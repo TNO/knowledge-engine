@@ -1,5 +1,7 @@
 package interconnect.ke.api;
 
-public class Binding {
+import java.util.HashMap;
 
+public class Binding extends HashMap<String, String> {
+	
 }
