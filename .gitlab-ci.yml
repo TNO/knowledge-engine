@@ -1,6 +1,9 @@
 stages:
   - documentation
 
+services:
+  - docker:dind
+
 build-docs:
   stage: documentation
   image: docker:latest
