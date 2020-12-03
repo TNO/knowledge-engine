@@ -1,0 +1,14 @@
+stages:
+  - documentation
+
+build-docs:
+  stage: documentation
+  image: docker:latest
+  script:
+    - cd docs
+    - docker run --rm --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex *.md -o docs.pdf
+    - docker run --rm --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex *.md -o docs.docx
+  artifacts:
+    paths:
+      - "docs/docs.pdf"
+      - "docs/docs.docx"
