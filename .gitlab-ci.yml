@@ -1,16 +1,14 @@
 stages:
   - documentation
 
-services:
-  - docker:dind
-
 build-docs:
   stage: documentation
-  image: docker:latest
+  image:
+    name: pandoc/latex
+    entrypoint: ["/bin/sh"]
   script:
     - cd docs
-    - docker run --rm --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex *.md -o docs.pdf
-    - docker run --rm --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex *.md -o docs.docx
+    - ./build_docs.sh
   artifacts:
     paths:
       - "docs/docs.pdf"
