@@ -1,5 +1,5 @@
 package interconnect.ke.api;
 
-public class Binding {
+public class Bindings {
 
 }
