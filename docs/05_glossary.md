@@ -12,7 +12,7 @@ An entity (currently in the form of a Java object) that enables a knowledge base
 ## [ Knowledge Network](#knowledge-network)
 A set of [knowledge bases](#-knowledge-base) that securely exchange knowledge about a clearly defined domain.
 
-## [ Knowledge IO](#knowledge-io)
+## [ Knowledge Interaction](#knowledge-interaction)
 A specification of knowledge that a [knowledge base](#-knowledge-base) processes.
 
 ## [ Knowledge Directory](#knowledge-directory)

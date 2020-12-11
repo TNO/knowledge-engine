@@ -127,17 +127,18 @@ For the knowledge exchange to work, and to take full advantage of the platform, 
 
 An example of such a knowledge model is the [SAREF ontology](https://ontology.tno.nl/saref/).
 
-## Knowledge IO
+## Knowledge Interaction
 
-A *knowledge IO* is a description of what kind of knowledge a knowledge base has to offer (or will request).
-A knowledge base can have multiple knowledge IOs.
-One knowledge IO describes a single capability of a knowledge base.
+A *knowledge interaction* is a description of what type of messages a knowledge base produces (or consumes).
+A knowledge base can have multiple knowledge interactions.
+One knowledge interaction describes a single capability of a knowledge base.
 
-A knowledge IO contains:
+There are four types of knowledge interactions:
 
-- A graph pattern that describes the input
-- A graph pattern that describes the ouput
-- An indication of the way the knowledge is required or made available
+- __Ask__: A graph pattern that describes the 'shape' of knowledge that the smart connector will request from the network.
+- __Answer__: A graph pattern that describes the 'shape' of knowledge that the smart connector can provide the network with.
+- __Post__: Whenever this knowledge base decides, it calls this function, with a specification of the input and output graph patterns.
+- __React__: Whenever a smart connector receives the request from the network, it calls this function, with a specification of the input and output graph patterns.
 
 For example, the knowledge IO of a temperature sensor is:
 
