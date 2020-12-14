@@ -2,11 +2,11 @@ package interconnect.ke.api;
 
 import java.net.URI;
 
-public final class FixedRecipientSelector extends RecipientSelector {
+public final class URIRecipientSelector extends RecipientSelector {
 
 	public final URI knowledgeBaseId;
 
-	public FixedRecipientSelector(URI knowledgeBase) {
+	public URIRecipientSelector(URI knowledgeBase) {
 		super();
 		this.knowledgeBaseId = knowledgeBase;
 	}

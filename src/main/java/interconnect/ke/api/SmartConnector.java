@@ -2,6 +2,13 @@ package interconnect.ke.api;
 
 import java.util.Set;
 
+import interconnect.ke.api.binding.Binding;
+import interconnect.ke.api.binding.SolutionSet;
+import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
+import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
+
 public class SmartConnector {
 
 	private KnowledgeBase knowledgeBase;
@@ -42,24 +49,23 @@ public class SmartConnector {
 
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, RecipientSelector r, Set<Binding> bindings) {
+	public AskResult ask(AskKnowledgeInteraction ki, RecipientSelector r, SolutionSet bindings) {
 		return null;
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, Set<Binding> bindings) {
+	public AskResult ask(AskKnowledgeInteraction ki, SolutionSet bindings) {
 		return ask(ki, null, bindings);
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, RecipientSelector r, Set<Binding> arguments) {
+	public PostResult post(PostKnowledgeInteraction ki, RecipientSelector r, SolutionSet arguments) {
 		return null;
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, Set<Binding> argument) {
+	public PostResult post(PostKnowledgeInteraction ki, SolutionSet argument) {
 		return post(ki, null, argument);
 	}
 
 	public void stop() {
 
 	}
-
 }

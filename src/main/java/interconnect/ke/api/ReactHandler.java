@@ -1,9 +1,10 @@
 package interconnect.ke.api;
 
-import java.util.Set;
+import interconnect.ke.api.binding.SolutionSet;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
 public interface ReactHandler {
 
-	public ReactResult react(ReactKnowledgeInteraction aReactKnowledgeInteraction, Set<Binding> argument);
+	public SolutionSet react(ReactKnowledgeInteraction aReactKnowledgeInteraction, SolutionSet argument);
 
 }

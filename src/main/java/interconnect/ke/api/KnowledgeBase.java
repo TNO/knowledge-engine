@@ -6,6 +6,8 @@ public interface KnowledgeBase {
 
 	public URI getKnowledgeBaseId();
 
+	public String getKnowledgeBaseName();
+	
 	public String getKnowledgeBaseDescription();
 	
 	public void smartConnectorReady();

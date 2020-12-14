@@ -1,4 +1,8 @@
-package interconnect.ke.api;
+package interconnect.ke.api.interaction;
+
+import interconnect.ke.api.CommunicativeAct;
+import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.KnowledgeInteraction;
 
 public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 
