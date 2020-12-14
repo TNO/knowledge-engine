@@ -16,6 +16,7 @@ Note that the *MUST HAVE* are basically all the features available in the curren
   7. variables do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO with different variables than the input KnowledgeIO of KB B. KB A publishes knowledge and KB B receives it in good fashion.
   8. prefixes do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO which uses prefixes while KB B has input KnowledgeIO without prefixes. KB A publishes knowledge and KB B receives it in good fashion.   
   9. answers are aggregated: 3 KBs A & B & C. KB A requests knowledge that both KB B & C have. KB B answers it and KB C answers it and KB A receives only a single answer which includes both answers from KB B & KB C.
+  10. automatically generate unique URIs for non bounded variables: when a kb1 executes a post and the argument contains 2 free variables, but only one is bound in the post call, the Knowledge Engine generates a unique id based on the Knowledge Base ID. 
 
 *S*HOULD HAVE
 --------------
