@@ -2,10 +2,17 @@ package interconnect.ke.api.interaction;
 
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
-import interconnect.ke.api.KnowledgeInteraction;
 
+/**
+ * An object of this class represents that the associated knowledge base will
+ * possibly ask for data that matches the configured GraphPattern `pattern`.
+ */
 public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 
+	/**
+	 * The graph pattern expresses the 'shape' of knowledge that this
+	 * KnowledgeInteraction possibly asks for.
+	 */
 	private final GraphPattern pattern;
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
@@ -13,6 +20,9 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 		this.pattern = pattern;
 	}
 
+	/**
+	 * @return This KnowledgeInteraction's graph pattern.
+	 */
 	public GraphPattern getPattern() {
 		return pattern;
 	}

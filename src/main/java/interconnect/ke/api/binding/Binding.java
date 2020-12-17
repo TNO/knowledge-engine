@@ -21,10 +21,16 @@ public class Binding {
 		this.value = aValue;
 	}
 
+	/**
+	 * @return The variable name associated with this binding
+	 */
 	public String getVariableName() {
 		return this.variableName;
 	}
 
+	/**
+	 * @return The valua associated with the variable name in this binding.
+	 */
 	public String getValue() {
 		return this.value;
 	}
