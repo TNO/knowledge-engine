@@ -1,38 +1,30 @@
 package interconnect.ke.api.binding;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
- * A variable name and a corresponding value. 
- *
+ * A binding of a set of variables. Note that not all variables in the graph
+ * pattern have to be bound. Even though it is logically a java.util.Map, we
+ * wrap it because we want to validate the values.
  */
 public class Binding {
+	// TODO: Implement/extend (Hash)Map<String, String> for easier iteration?
 
-	/**
-	 * The variable name (without the SPARQL question mark in front)
-	 */
-	private final String variableName;
+	private final Map<String, String> map = new HashMap<>();
 
-	/**
-	 * A RDF representation of the node, i.e. "12"^^xsd:integer
-	 */
-	private final String value;
+	public Binding() {}
 
-	public Binding(String aVariableName, String aValue) {
-		this.variableName = aVariableName;
-		this.value = aValue;
+	public void put(String variableName, String value) throws IllegalArgumentException {
+		this.validate(value);
+		this.map.put(variableName, value);
 	}
 
-	/**
-	 * @return The variable name associated with this binding
-	 */
-	public String getVariableName() {
-		return this.variableName;
+	public String get(String variableName) {
+		return this.map.get(variableName);
 	}
 
-	/**
-	 * @return The valua associated with the variable name in this binding.
-	 */
-	public String getValue() {
-		return this.value;
+	private void validate(String value) throws IllegalArgumentException {
+		// TODO
 	}
-
 }

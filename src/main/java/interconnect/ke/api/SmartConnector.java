@@ -1,9 +1,10 @@
 package interconnect.ke.api;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import interconnect.ke.api.binding.Binding;
-import interconnect.ke.api.binding.SolutionSet;
+import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
@@ -49,19 +50,19 @@ public class SmartConnector {
 
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, RecipientSelector r, SolutionSet bindings) {
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, RecipientSelector r, BindingSet bindings) {
 		return null;
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, SolutionSet bindings) {
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
 		return ask(ki, null, bindings);
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, RecipientSelector r, SolutionSet arguments) {
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, RecipientSelector r, BindingSet arguments) {
 		return null;
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, SolutionSet argument) {
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return post(ki, null, argument);
 	}
 

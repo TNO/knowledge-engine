@@ -1,6 +1,6 @@
 package interconnect.ke.api;
 
-import interconnect.ke.api.binding.SolutionSet;
+import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 
 /**
@@ -8,11 +8,14 @@ import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
  * the provided input.
  */
 public interface AnswerHandler {
-	/**
-	 * Returns all solution sets that match this knowledge interaction's graph
-	 * pattern, AND matches ANY of the input SolutionSet. All bindings in the
-	 * graph pattern's solution set must be bound, including the ones that were
-	 * provided by the input.
-	 */
-	public SolutionSet answer(AnswerKnowledgeInteraction anAKI, SolutionSet aSolution);
+	 /**
+		* @param anAKI The knowledge interaction that is involved in the question.
+		* @param aBindingSet A set of bindings for variables in the knowledge
+		* interaction's graph pattern.
+		* @return All solution sets that match this knowledge interaction's graph
+		* pattern, AND matches ANY of the input BindingSet. All variables from the
+		* graph pattern must be bound, including the ones that were already provided
+		* in the input BindingSet.
+	  */
+	public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet);
 }

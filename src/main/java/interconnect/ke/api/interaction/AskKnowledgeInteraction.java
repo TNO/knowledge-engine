@@ -10,8 +10,8 @@ import interconnect.ke.api.GraphPattern;
 public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
-	 * The graph pattern expresses the 'shape' of knowledge that this
-	 * KnowledgeInteraction possibly asks for.
+	 * The graph pattern expresses the 'shape' of knowledge that this knowledge
+	 * interaction possibly asks for.
 	 */
 	private final GraphPattern pattern;
 
@@ -21,7 +21,7 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	}
 
 	/**
-	 * @return This KnowledgeInteraction's graph pattern.
+	 * @return This knowledge interaction's graph pattern.
 	 */
 	public GraphPattern getPattern() {
 		return pattern;

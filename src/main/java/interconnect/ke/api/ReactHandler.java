@@ -1,6 +1,6 @@
 package interconnect.ke.api;
 
-import interconnect.ke.api.binding.SolutionSet;
+import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
 /**
@@ -9,7 +9,12 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
  * *can* be different from the argument's.
  */
 public interface ReactHandler {
-
-	public SolutionSet react(ReactKnowledgeInteraction aReactKnowledgeInteraction, SolutionSet argument);
-
+	/**
+	 * @param anRKI The knowledge interaction that is involved in this post/react
+	 * process.
+	 * @param argument The set of bindings for variables in the knowledge
+	 * interaction's argument graph pattern.
+	 * @return A set of bindings for variables in the knowledge interaction's result graph pattern.
+	 */
+	public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument);
 }

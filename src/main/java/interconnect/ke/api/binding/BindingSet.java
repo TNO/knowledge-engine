@@ -3,9 +3,8 @@ package interconnect.ke.api.binding;
 import java.util.HashSet;
 
 /**
- * A set of (partial) solutions.
- *
+ * A set bindings of variables.
  */
-public class SolutionSet extends HashSet<Solution> {
+public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 1L;
 }

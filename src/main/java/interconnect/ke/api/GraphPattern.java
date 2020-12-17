@@ -18,7 +18,7 @@ public class GraphPattern {
 	}
 
 	/**
-	 * @return A list of all the variables (including the '?') occuring in this
+	 * @return A list of all the variables (excluding the '?') occuring in this
 	 * graph pattern.
 	 */
 	public List<String> getVariables() {
