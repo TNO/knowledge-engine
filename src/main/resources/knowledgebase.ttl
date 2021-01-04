@@ -33,6 +33,20 @@
 #    Object Properties
 #################################################################
 
+###  https://www.tno.nl/energy/ontology/interconnect#consumerImplementsKnowledgeInteraction
+:consumerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#consumesService
+:consumesService rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf owl:topObjectProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasArgumentGraphPattern
+:hasArgumentGraphPattern rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf :hasGraphPattern .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct
 :hasCommunicativeAct rdf:type owl:ObjectProperty ;
                      rdfs:subPropertyOf owl:topObjectProperty ;
@@ -54,13 +68,44 @@
                          rdfs:range :KnowledgeInteraction .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect#hasResultGraphPattern
+:hasResultGraphPattern rdf:type owl:ObjectProperty ;
+                       rdfs:subPropertyOf :hasGraphPattern .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasSmartConnector
+:hasSmartConnector rdf:type owl:ObjectProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#providerImplementsKnowledgeInteraction
+:providerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#providesService
+:providesService rdf:type owl:ObjectProperty .
+
+
 #################################################################
 #    Data properties
 #################################################################
 
+###  https://www.tno.nl/energy/ontology/interconnect#hasData
+:hasData rdf:type owl:DatatypeProperty ;
+         rdfs:comment "TODO: bridge the gap between metadata and data" .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#hasDescription
 :hasDescription rdf:type owl:DatatypeProperty ;
                 rdfs:subPropertyOf owl:topDataProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasEndpoint
+:hasEndpoint rdf:type owl:DatatypeProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasName
+:hasName rdf:type owl:DatatypeProperty ;
+         rdfs:subPropertyOf owl:topDataProperty .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasPattern
@@ -82,12 +127,6 @@
                                                 ] ;
                             rdfs:subClassOf :KnowledgeInteraction ;
                             rdfs:comment "An answer knowledge interaction is a declaration that specifies the shape of knowledge that is available in the knowledge base."@en .
-
-
-###  https://www.tno.nl/energy/ontology/interconnect#ArgumentGraphPattern
-:ArgumentGraphPattern rdf:type owl:Class ;
-                      rdfs:subClassOf :GraphPattern ;
-                      rdfs:comment "A graph pattern that represents the argument of a PostKnowledgeInteraction and ReactKnowledgeInteraction."@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction
@@ -123,7 +162,27 @@
                                      owl:someValuesFrom :KnowledgeInteraction
                                    ] ,
                                    [ rdf:type owl:Restriction ;
+                                     owl:onProperty :consumesService ;
+                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :ServiceDescription
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :providesService ;
+                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :ServiceDescription
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasSmartConnector ;
+                                     owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :SmartConnector
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
                                      owl:onProperty :hasDescription ;
+                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onDataRange xsd:string
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasName ;
                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                      owl:onDataRange xsd:string
                                    ] ;
@@ -140,11 +199,6 @@ Examples include:
 ###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeInteraction
 :KnowledgeInteraction rdf:type owl:Class ;
                       owl:equivalentClass [ rdf:type owl:Restriction ;
-                                            owl:onProperty :hasGraphPattern ;
-                                            owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                            owl:onClass :GraphPattern
-                                          ] ,
-                                          [ rdf:type owl:Restriction ;
                                             owl:onProperty :hasCommunicativeAct ;
                                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                             owl:onClass :CommunicativeAct
@@ -155,18 +209,13 @@ Examples include:
 ###  https://www.tno.nl/energy/ontology/interconnect#PostKnowledgeInteraction
 :PostKnowledgeInteraction rdf:type owl:Class ;
                           owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                owl:onProperty :hasGraphPattern ;
+                                                owl:onProperty :hasArgumentGraphPattern ;
                                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                owl:onClass :ArgumentGraphPattern
+                                                owl:onClass :GraphPattern
                                               ] ,
                                               [ rdf:type owl:Restriction ;
-                                                owl:onProperty :hasGraphPattern ;
+                                                owl:onProperty :hasResultGraphPattern ;
                                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                owl:onClass :ResultGraphPattern
-                                              ] ,
-                                              [ rdf:type owl:Restriction ;
-                                                owl:onProperty :hasGraphPattern ;
-                                                owl:qualifiedCardinality "2"^^xsd:nonNegativeInteger ;
                                                 owl:onClass :GraphPattern
                                               ] ;
                           rdfs:subClassOf :KnowledgeInteraction ;
@@ -177,18 +226,13 @@ Examples include:
 ###  https://www.tno.nl/energy/ontology/interconnect#ReactKnowledgeInteraction
 :ReactKnowledgeInteraction rdf:type owl:Class ;
                            owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                 owl:onProperty :hasGraphPattern ;
+                                                 owl:onProperty :hasArgumentGraphPattern ;
                                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                 owl:onClass :ArgumentGraphPattern
+                                                 owl:onClass :GraphPattern
                                                ] ,
                                                [ rdf:type owl:Restriction ;
-                                                 owl:onProperty :hasGraphPattern ;
+                                                 owl:onProperty :hasResultGraphPattern ;
                                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                 owl:onClass :ResultGraphPattern
-                                               ] ,
-                                               [ rdf:type owl:Restriction ;
-                                                 owl:onProperty :hasGraphPattern ;
-                                                 owl:qualifiedCardinality "2"^^xsd:nonNegativeInteger ;
                                                  owl:onClass :GraphPattern
                                                ] ;
                            rdfs:subClassOf :KnowledgeInteraction ;
@@ -196,14 +240,37 @@ Examples include:
                            rdfs:seeAlso :PostKnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ResultGraphPattern
-:ResultGraphPattern rdf:type owl:Class ;
-                    rdfs:subClassOf :GraphPattern ;
-                    rdfs:comment "A graph pattern that represents the result of a PostKnowledgeInteraction and ReactKnowledgeInteraction."@en .
-
-
 ###  https://www.tno.nl/energy/ontology/interconnect#ServiceDescription
-:ServiceDescription rdf:type owl:Class .
+:ServiceDescription rdf:type owl:Class ;
+                    owl:equivalentClass [ rdf:type owl:Restriction ;
+                                          owl:onProperty :consumerImplementsKnowledgeInteraction ;
+                                          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                          owl:onClass :KnowledgeInteraction
+                                        ] ,
+                                        [ rdf:type owl:Restriction ;
+                                          owl:onProperty :providerImplementsKnowledgeInteraction ;
+                                          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                          owl:onClass :KnowledgeInteraction
+                                        ] ,
+                                        [ rdf:type owl:Restriction ;
+                                          owl:onProperty :hasDescription ;
+                                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                          owl:onDataRange xsd:string
+                                        ] ,
+                                        [ rdf:type owl:Restriction ;
+                                          owl:onProperty :hasName ;
+                                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                          owl:onDataRange xsd:string
+                                        ] .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#SmartConnector
+:SmartConnector rdf:type owl:Class ;
+                owl:equivalentClass [ rdf:type owl:Restriction ;
+                                      owl:onProperty :hasEndpoint ;
+                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                      owl:onDataRange xsd:string
+                                    ] .
 
 
 #################################################################
