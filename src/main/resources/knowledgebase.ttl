@@ -91,7 +91,9 @@
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasData
 :hasData rdf:type owl:DatatypeProperty ;
-         rdfs:comment "TODO: bridge the gap between metadata and data" .
+         rdfs:comment """This property bridges the gap between metadata and data. 
+
+It is not meant to be used in actual descriptions of knowledge bases. Instead, it is meant to be used in the Recipient Selector of the Developer API to indicate that the Knowledge Base wants to send a message to other Knowledge Bases with a certain property where this property is described in terms of the domain. So, for example, a Knowledge Base wants to send a message to all other Knowledge Bases that gave 24 degrees celsius as the temperature of a particular room.""" .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasDescription
