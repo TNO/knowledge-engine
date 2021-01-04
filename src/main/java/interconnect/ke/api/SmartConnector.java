@@ -64,6 +64,9 @@ public class SmartConnector {
 		return post(ki, null, argument);
 	}
 
+	/**
+	 * Stops this smart connector forever. It cannot be started again.
+	 */
 	public void stop() {
 
 	}

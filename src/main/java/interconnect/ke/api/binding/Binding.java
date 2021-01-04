@@ -13,11 +13,16 @@ public class Binding {
 
 	private final Map<String, String> map = new HashMap<>();
 
-	public Binding() {}
+	public Binding() {
+	}
 
 	public void put(String variableName, String value) throws IllegalArgumentException {
 		this.validate(value);
 		this.map.put(variableName, value);
+	}
+
+	public boolean containsKey(String aVariableName) {
+		return this.map.containsKey(aVariableName);
 	}
 
 	public String get(String variableName) {
