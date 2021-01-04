@@ -2,26 +2,42 @@ package interconnect.ke.api.interaction;
 
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.KnowledgeBase;
+import interconnect.ke.api.SmartConnector;
 
 /**
- * An object of this class represents that the associated knowledge base will
- * possibly ask for data that matches the configured GraphPattern `pattern`.
+ * An object of this class represents that the associated {@link KnowledgeBase}
+ * will possibly ask for data that matches the configured {@link GraphPattern}
+ * {@code pattern}.
+ * 
+ * In other words, the {@link KnowledgeBase} asks these kinds of questions to
+ * its {@link SmartConnector}.
  */
 public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
-	 * The graph pattern expresses the 'shape' of knowledge that this knowledge
-	 * interaction possibly asks for.
+	 * The {@link GraphPattern} expresses the 'shape' of knowledge that this
+	 * {@link KnowledgeInteraction} possibly asks for.
 	 */
 	private final GraphPattern pattern;
 
+	/**
+	 * Create a {@link AskKnowledgeInteraction}.
+	 * 
+	 * @param act     The {@link CommunicativeAct} of this
+	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
+	 *                'purpose' of the data exchange and whether it has side-effects
+	 *                or not.
+	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
+	 *                that this {@link KnowledgeInteraction} asks for.
+	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
 		super(act);
 		this.pattern = pattern;
 	}
 
 	/**
-	 * @return This knowledge interaction's graph pattern.
+	 * @return This {@link KnowledgeInteraction}'s graph pattern.
 	 */
 	public GraphPattern getPattern() {
 		return pattern;
