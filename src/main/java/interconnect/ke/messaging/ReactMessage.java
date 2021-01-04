@@ -4,11 +4,9 @@ import java.util.UUID;
 
 import interconnect.ke.api.binding.BindingSet;
 
-public class AnswerMessage extends KnowledgeMessage {
+public class ReactMessage extends KnowledgeMessage {
 
-	private UUID replyToAskMessage;
+	private UUID replyToPostMessage;
 	private BindingSet bindings;
-
-	// TODO toString()
 
 }

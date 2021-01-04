@@ -1,6 +1,12 @@
 package interconnect.ke.api;
 
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import interconnect.ke.api.binding.BindingSet;
+import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
+import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
 import interconnect.ke.runtime.SmartConnectorRegistry;
 
@@ -45,24 +51,23 @@ public class SmartConnector {
 
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, RecipientSelector r, Set<Bindings> bindings) {
-		return null;
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, RecipientSelector r, BindingSet bindings) {
+		return CompletableFuture.supplyAsync(() -> null);
 	}
 
-	public AskResult ask(AskKnowledgeInteraction ki, Set<Bindings> bindings) {
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
 		return ask(ki, null, bindings);
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, RecipientSelector r, Set<Bindings> arguments) {
-		return null;
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, RecipientSelector r, BindingSet arguments) {
+		return CompletableFuture.supplyAsync(() -> null);
 	}
 
-	public PostResult post(PostKnowledgeInteraction ki, Set<Bindings> argument) {
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return post(ki, null, argument);
 	}
 
 	public void stop() {
 		SmartConnectorRegistry.getInstance().unregister(this);
 	}
-
 }

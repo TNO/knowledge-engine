@@ -10,5 +10,5 @@ public abstract class KnowledgeMessage {
 	private URI fromKnowledgeInteraction;
 	private URI toKnowledgeBase;
 	private URI toKnowledgeInteraction;
-	
+
 }

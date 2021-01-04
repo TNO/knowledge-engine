@@ -1,14 +1,13 @@
 package interconnect.ke.messaging;
 
-import java.util.Set;
-
-import interconnect.ke.api.Bindings;
+import interconnect.ke.api.binding.BindingSet;
 
 public class AskMessage extends KnowledgeMessage {
-	
+
 	/**
-	 * Bindings for this AskMessage. Variable names of the AnswerKnowledgeInteraction are used.
+	 * Bindings for this AskMessage. Variable names of the
+	 * AnswerKnowledgeInteraction are used.
 	 */
-	private Set<Bindings> bindings; // TODO terminology
+	private BindingSet bindings; // TODO terminology
 
 }

@@ -7,16 +7,15 @@ Note that the *MUST HAVE* are basically all the features available in the curren
 
 *M*UST HAVE 
 ------------
-  1. publish subscribe: 2 knowledge bases A & B: the first knowledgeIO A the other the counterpart of it knowledgeOI B. A publishes knowledge and B receives it in good fashion.
-  2. request response: 2 knowledge bases A & B: the first knowledgeIO A and the other the counterpart of it knowledgeIO B. A requests knowledge and B receives the request. B answers the request and A receives the response.
-  3. publish to new knowledge base: first 2 knowledge bases then 3 knowledge bases: knowledge base A publishes knowledge and knowledge base B receive it. Next, knowledge base C comes online. Knowledgebase A publishes new knowledge and now both B and C receive the knowledge.
-  4. do not publish to unavailable knowledge base: first 3 knowledge bases then 2 knowledge bases: knowledge base A publishes knowledge and knowledge base B and C receive it. Next, knowledge base C goes offline. Knowledge Base A publishes new knowledge and now only B recieves it.
-  5. request to new knowledge base: first 2 knowledgebases then 3 knowledge bases. Knowledge Base A requests knowledge and Knowledge Base B answers. Next, Knowledge Base C comes online. Knowledge Base A requests knowledge again and this time both B and C answer.
-  6. do not request from unavailable knowledge base: first 3 knowledge bases then 2 knowledge bases: knowledge base A requests knowledge and Knowledge Base B & C answer. Next, Knowledge Base C goes offline. Knowledge Base A requests knowledge again and this time only B answers.
-  7. variables do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO with different variables than the input KnowledgeIO of KB B. KB A publishes knowledge and KB B receives it in good fashion.
-  8. prefixes do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO which uses prefixes while KB B has input KnowledgeIO without prefixes. KB A publishes knowledge and KB B receives it in good fashion.   
-  9. answers are aggregated: 3 KBs A & B & C. KB A requests knowledge that both KB B & C have. KB B answers it and KB C answers it and KB A receives only a single answer which includes both answers from KB B & KB C.
-  10. automatically generate unique URIs for non bounded variables: when a kb1 executes a post and the argument contains 2 free variables, but only one is bound in the post call, the Knowledge Engine generates a unique id based on the Knowledge Base ID. 
+  * publish subscribe: 2 knowledge bases A & B: the first knowledgeIO A the other the counterpart of it knowledgeOI B. A publishes knowledge and B receives it in good fashion.
+  * request response: 2 knowledge bases A & B: the first knowledgeIO A and the other the counterpart of it knowledgeIO B. A requests knowledge and B receives the request. B answers the request and A receives the response.
+  * publish to new knowledge base: first 2 knowledge bases then 3 knowledge bases: knowledge base A publishes knowledge and knowledge base B receive it. Next, knowledge base C comes online. Knowledgebase A publishes new knowledge and now both B and C receive the knowledge.
+  * do not publish to unavailable knowledge base: first 3 knowledge bases then 2 knowledge bases: knowledge base A publishes knowledge and knowledge base B and C receive it. Next, knowledge base C goes offline. Knowledge Base A publishes new knowledge and now only B recieves it.
+  * request to new knowledge base: first 2 knowledgebases then 3 knowledge bases. Knowledge Base A requests knowledge and Knowledge Base B answers. Next, Knowledge Base C comes online. Knowledge Base A requests knowledge again and this time both B and C answer.
+  * do not request from unavailable knowledge base: first 3 knowledge bases then 2 knowledge bases: knowledge base A requests knowledge and Knowledge Base B & C answer. Next, Knowledge Base C goes offline. Knowledge Base A requests knowledge again and this time only B answers.
+  * variables do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO with different variables than the input KnowledgeIO of KB B. KB A publishes knowledge and KB B receives it in good fashion.
+  * prefixes do not matter in matching KnowledgeIOs: 2 KBs A & B have the same knowledgeIOs. KB A has output knowledgeIO which uses prefixes while KB B has input KnowledgeIO without prefixes. KB A publishes knowledge and KB B receives it in good fashion.   
+  * answers are aggregated: 3 KBs A & B & C. KB A requests knowledge that both KB B & C have. KB B answers it and KB C answers it and KB A receives only a single answer which includes both answers from KB B & KB C.
 
 *S*HOULD HAVE
 --------------
