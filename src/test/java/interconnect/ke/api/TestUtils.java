@@ -7,7 +7,18 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import interconnect.ke.api.binding.Binding;
+import interconnect.ke.api.binding.BindingSet;
+
 public class TestUtils {
+
+	/**
+	 * The log facility of this class.
+	 */
+	private static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
 	public static final GraphPattern SAREF_MEASUREMENT_PATTERN = new GraphPattern(
 			"?m <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Measurement> . ?m <https://saref.etsi.org/core/hasValue> ?v");
@@ -17,12 +28,12 @@ public class TestUtils {
 	public static final SmartConnector getSmartConnector(final String aName) {
 		return new SmartConnector(new KnowledgeBase() {
 
-			public URI getKnowledgeBaseId() throws KnowledgeEngineException {
-				URI uri;
+			public URI getKnowledgeBaseId() {
+				URI uri = null;
 				try {
 					uri = new URI(KE_PREFIX + aName);
 				} catch (URISyntaxException e) {
-					throw new KnowledgeEngineException(e);
+					LOG.error("Could not parse the uri.", e);
 				}
 				return uri;
 			}
@@ -39,6 +50,11 @@ public class TestUtils {
 
 			public void smartConnectorConnectionRestored() {
 			}
+
+			@Override
+			public String getKnowledgeBaseName() {
+				return null;
+			}
 		});
 	}
 
@@ -50,8 +66,8 @@ public class TestUtils {
 		return bindings;
 	}
 
-	public static final Set<Binding> getSingleBinding(String name1, String value1, String name2, String value2) {
-		Set<Binding> bindings = new HashSet<Binding>();
+	public static final BindingSet getSingleBinding(String name1, String value1, String name2, String value2) {
+		BindingSet bindings = new BindingSet();
 		Binding b = new Binding();
 		b.put(name1, value1);
 		b.put(name2, value2);

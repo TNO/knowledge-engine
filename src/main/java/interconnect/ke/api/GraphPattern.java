@@ -1,8 +1,13 @@
 package interconnect.ke.api;
 
-public class GraphPattern {
+import java.util.List;
 
-	private String pattern;
+public class GraphPattern {
+	/**
+	 * According to Basic Graph Pattern syntax in SPARQL 1.1
+	 * {@linkplain https://www.w3.org/TR/sparql11-query/}
+	 */
+	private final String pattern;
 
 	public GraphPattern(String aPattern) {
 		this.pattern = aPattern;
@@ -10,5 +15,13 @@ public class GraphPattern {
 
 	public String getPattern() {
 		return this.pattern;
+	}
+
+	/**
+	 * @return A list of all the variables (excluding the '?') occuring in this
+	 * graph pattern.
+	 */
+	public List<String> getVariables() {
+		throw new RuntimeException("Unimplemented");
 	}
 }
