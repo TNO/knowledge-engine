@@ -10,12 +10,12 @@ import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
-class MustHavesTestCases {
+public class TestMustHaves {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MustHavesTestCases.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestMustHaves.class);
 
 	@Test
-	void testCaseM1() {
+	public void testCaseM1() {
 		// TODO do we want to start a service directory?
 		SmartConnector sc1 = TestUtils.getSmartConnector("kb1");
 		SmartConnector sc2 = TestUtils.getSmartConnector("kb2");
