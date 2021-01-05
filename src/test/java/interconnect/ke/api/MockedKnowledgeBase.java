@@ -6,15 +6,15 @@ import java.net.URISyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestKnowledgeBase implements KnowledgeBase {
+public class MockedKnowledgeBase implements KnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestKnowledgeBase.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MockedKnowledgeBase.class);
 
 	private SmartConnector sc;
 
 	private String name;
 
-	public TestKnowledgeBase(String aName) {
+	public MockedKnowledgeBase(String aName) {
 		this.name = aName;
 		this.sc = new SmartConnector(this);
 	}
