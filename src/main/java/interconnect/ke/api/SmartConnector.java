@@ -176,7 +176,7 @@ public class SmartConnector {
 	 * depending on the nature of the question and the availability of the answer it
 	 * might take a while.
 	 * 
-	 * @param aAKI        The given {@link AskKnowledgeInteraction} should be
+	 * @param anAKI       The given {@link AskKnowledgeInteraction} should be
 	 *                    registered with the {@link SmartConnector} via the
 	 *                    {@link #register(AskKnowledgeInteraction)} method.
 	 * @param aSelector   A selector that allows the {@link KnowledgeBase} to limit
@@ -191,10 +191,10 @@ public class SmartConnector {
 	 *                    the {@link GraphPattern} in the
 	 *                    {@link AskKnowledgeInteraction}.
 	 * @return A {@link CompletableFuture} that will return a {@link AskResult} in
-	 *         the future when the question is succesfully processed by the
+	 *         the future when the question is successfully processed by the
 	 *         {@link SmartConnector}.
 	 */
-	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction aAKI, RecipientSelector aSelector,
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
 		return CompletableFuture.supplyAsync(() -> null);
 	}
@@ -202,9 +202,11 @@ public class SmartConnector {
 	/**
 	 * Performs an
 	 * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)} with a
-	 * wildcard RecipientSelector meaning that all {@link KnowledgeBase}s that have
-	 * matching {@link KnowledgeInteraction}s are allowed to answer the question
-	 * being asked.
+	 * wildcard {@link RecipientSelector}. This means that all
+	 * {@link KnowledgeBase}s that have matching {@link KnowledgeInteraction}s are
+	 * allowed to answer the question being asked. This is the most interoperable
+	 * way in using the {@link SmartConnector}, because it allows any compatible
+	 * {@link KnowledgeBase} to join the data exchange.
 	 * 
 	 * @see SmartConnector#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
@@ -213,15 +215,96 @@ public class SmartConnector {
 		return ask(ki, null, bindings);
 	}
 
-	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, RecipientSelector r, BindingSet arguments) {
+	/**
+	 * With this method a {@link KnowledgeBase} can post data to its
+	 * {@link SmartConnector}. The Smart Connector will first check which of all the
+	 * other {@link KnowledgeBase}s fit the {@link RecipientSelector} and
+	 * subsequently determine whether those that fit the selector have a compatible
+	 * or matching {@link ReactKnowledgeInteraction}. The resulting other
+	 * {@link KnowledgeBase}s will have their matching
+	 * {@link ReactKnowledgeInteraction}'s {@link ReactHandler} triggered. If there
+	 * are multiple matching {@link KnowledgeBase}s this {@link SmartConnector} will
+	 * allow all of them to react.
+	 * 
+	 * This type of interaction can be used to make interoperable publish/subscribe
+	 * like mechanisms where the post is the publish and the react (without a
+	 * {@code result} {@link GraphPattern}) is an on_message method.
+	 * 
+	 * Also, this type of interaction can be used to make an interoperable function.
+	 * The {@link PostKnowledgeInteraction} being the one who calls the function
+	 * (with the argument {@link GraphPattern} being the input parameters) and the
+	 * {@link ReactKnowledgeInteraction} is the one who represents actual function
+	 * implementation and provides a result (with result {@link GraphPattern} being
+	 * the return value).
+	 * 
+	 * Note that depending on whether the {@link ReactKnowledgeInteraction} being
+	 * used has defined a {@code result} {@link GraphPattern}, there either is or is
+	 * no data being returned.
+	 * 
+	 * Using the {@link BindingSet} argument the caller should provide the actual
+	 * data by providing one or more values for all the variables in the argument
+	 * {@link GraphPattern} of the {@link PostKnowledgeInteraction}.
+	 * 
+	 * This method is asynchronous (and uses {@link CompletableFuture}s) because
+	 * depending on the nature of the post and the availability of results it might
+	 * take a while.
+	 * 
+	 * @param aPKI          The given {@link AskKnowledgeInteraction} should be
+	 *                      registered with the {@link SmartConnector} via the
+	 *                      {@link #register(AskKnowledgeInteraction)} method.
+	 * @param aSelector     A selector that allows the {@link KnowledgeBase} to
+	 *                      limit the potential recipients that can answer the
+	 *                      question. It can be either a specific
+	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
+	 *                      wildcard or something in between where potential
+	 *                      {@link KnowledgeBase} recipients are selected based on
+	 *                      criteria from the KnowledgeBase ontology.
+	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
+	 *                      question to specific values for specific variables from
+	 *                      the {@link GraphPattern} in the
+	 *                      {@link AskKnowledgeInteraction}.
+	 * @return A {@link CompletableFuture} that will return a {@link PostResult} in
+	 *         the future when the post is successfully processed by the
+	 *         {@link SmartConnector}.
+	 */
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+			BindingSet someArguments) {
 		return CompletableFuture.supplyAsync(() -> null);
 	}
 
+	/**
+	 * Performs an
+	 * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)} with a
+	 * wildcard {@link RecipientSelector}. This means that all
+	 * {@link KnowledgeBase}s that have matching {@link KnowledgeInteraction}s are
+	 * allowed to answer the question being asked. This is the most interoperable
+	 * way in using the {@link SmartConnector}, because it allows any compatible
+	 * {@link KnowledgeBase} to join the data exchange.
+	 * 
+	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
+	 */
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return post(ki, null, argument);
 	}
 
+	/**
+	 * Stops the current {@link SmartConnector}. Note that this methods is
+	 * asynchronous and will call
+	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnector)} when this smart
+	 * connector has successfully stopped.
+	 * 
+	 * After it has stopped, the {@link SmartConnector} can no longer be used by its
+	 * {@link KnowledgeBase} to exchange data and the {@link KnowledgeBase} itself
+	 * is no longer available to other {@link KnowledgeBase} for interoperable data
+	 * exchange.
+	 * 
+	 * Between calling this method and having the
+	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnector)} method called,
+	 * its methods should not be called and the behaviour of the
+	 * {@link SmartConnector} is unpredictable.
+	 * 
+	 * Note that a stopped {@link SmartConnector} can no longer be used.
+	 */
 	public void stop() {
-
 	}
 }
