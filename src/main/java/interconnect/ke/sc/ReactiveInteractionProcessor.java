@@ -2,6 +2,11 @@ package interconnect.ke.sc;
 
 import java.util.concurrent.CompletableFuture;
 
+import interconnect.ke.messaging.AnswerMessage;
+import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.messaging.PostMessage;
+import interconnect.ke.messaging.ReactMessage;
+
 /**
  * The {@link ReactiveInteractionProcessor} receives {@link AskMessage} and
  * {@link PostMessage} objects, and is responsible for processing these into
@@ -14,8 +19,6 @@ import java.util.concurrent.CompletableFuture;
  * automatically offer.
  */
 public interface ReactiveInteractionProcessor {
-	// NOTE: Methods commented out because of currently missing classes!
-
 	/**
 	 * Interprets the given {@link AskMessage} and returns an
 	 * {@link AnswerMessage} by delegating the {@link BindingSet} to the correct
@@ -25,7 +28,7 @@ public interface ReactiveInteractionProcessor {
 	 * @param anAskMsg The {@link AskMessage} that requires an answer.
 	 * @return A future {@link AnswerMessage}.
 	 */
-	// public CompletableFuture<AnswerMessage> processAsk(AskMessage anAskMsg);
+	public CompletableFuture<AnswerMessage> processAsk(AskMessage anAskMsg);
 
 	/**
 	 * Interprets the given {@link PostMessage} and returns a {@link ReactMessage}
@@ -36,5 +39,5 @@ public interface ReactiveInteractionProcessor {
 	 * @param aPostMsgThe {@link PostMessage} that requires a reaction.
 	 * @return A future {@link ReactMessage}.
 	 */
-	// public CompletableFuture<ReactMessage> processPost(PostMessage aPostMsg);
+	public CompletableFuture<ReactMessage> processPost(PostMessage aPostMsg);
 }
