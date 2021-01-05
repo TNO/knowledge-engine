@@ -37,6 +37,10 @@ public class Binding {
 		this.map.put(aVariableName, aValue);
 	}
 
+	public boolean containsKey(String aVariableName) {
+		return this.map.containsKey(aVariableName);
+	}
+
 	/**
 	 * Retrieve the value of a variable in this binding.
 	 * 
