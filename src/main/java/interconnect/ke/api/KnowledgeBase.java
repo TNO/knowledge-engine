@@ -27,17 +27,23 @@ public interface KnowledgeBase {
 	/**
 	 * This method is called by the smart connector when it is connected and ready.
 	 */
-	public void smartConnectorReady();
+	public void smartConnectorReady(SmartConnector aSC);
 
 	/**
 	 * This method is called by the smart connector when it has lost its connection
 	 * to the knowledge network.
 	 */
-	public void smartConnectorConnectionLost();
+	public void smartConnectorConnectionLost(SmartConnector aSC);
 
 	/**
 	 * This method is called by the smart connector when it restores its connection
 	 * after it has been lost.
 	 */
-	public void smartConnectorConnectionRestored();
+	public void smartConnectorConnectionRestored(SmartConnector aSC);
+
+	/**
+	 * This method is called by the smart connector when it restores its connection
+	 * after it has been lost.
+	 */
+	public void smartConnectorStopped(SmartConnector aSC);
 }
