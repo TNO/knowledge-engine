@@ -116,6 +116,12 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
             rdfs:range xsd:string .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect/isMeta
+<https://www.tno.nl/energy/ontology/interconnect/isMeta> rdf:type owl:DatatypeProperty ;
+                                                         rdfs:subPropertyOf owl:topDataProperty ;
+                                                         rdfs:comment "This property indicates whether the KnowledgeInteraction it is attached to is a meta interaction that is used for internal Knowledge Engine communication, or whether it is not a meta interaction indicating that it is a capability of the actual KnowledgeBase it is attached to." .
+
+
 #################################################################
 #    Classes
 #################################################################
@@ -204,6 +210,11 @@ Examples include:
                                             owl:onProperty :hasCommunicativeAct ;
                                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                             owl:onClass :CommunicativeAct
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/isMeta> ;
+                                            owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                            owl:onDataRange xsd:boolean
                                           ] ;
                       rdfs:comment "A knowledge interaction is a declaration of how a knowledge base interacts with its smart connector."@en .
 
