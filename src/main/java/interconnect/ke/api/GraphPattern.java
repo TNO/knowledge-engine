@@ -42,8 +42,8 @@ public class GraphPattern {
 	}
 
 	/**
-	 * @return A list of all the variables (excluding the '?') occuring in this
-	 *         graph pattern.
+	 * @return A list of all the variable names (excluding the '?') occurring in this
+	 *         {@link GraphPattern}.
 	 */
 	public List<String> getVariables() {
 		throw new RuntimeException("Unimplemented");
