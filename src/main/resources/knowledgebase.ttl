@@ -33,93 +33,87 @@
 #    Object Properties
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect/consumerImplementsKnowledgeInteraction
-<https://www.tno.nl/energy/ontology/interconnect/consumerImplementsKnowledgeInteraction> rdf:type owl:ObjectProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#consumerImplementsKnowledgeInteraction
+:consumerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/consumesService
-<https://www.tno.nl/energy/ontology/interconnect/consumesService> rdf:type owl:ObjectProperty ;
-                                                                  rdfs:subPropertyOf owl:topObjectProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#consumesService
+:consumesService rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf owl:topObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasArgumentGraphPattern
-<https://www.tno.nl/energy/ontology/interconnect/hasArgumentGraphPattern> rdf:type owl:ObjectProperty ;
-                                                                          rdfs:subPropertyOf <https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern> .
+###  https://www.tno.nl/energy/ontology/interconnect#hasArgumentGraphPattern
+:hasArgumentGraphPattern rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf :hasGraphPattern .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasCommunicativeAct
-<https://www.tno.nl/energy/ontology/interconnect/hasCommunicativeAct> rdf:type owl:ObjectProperty ;
-                                                                      rdfs:subPropertyOf owl:topObjectProperty ;
-                                                                      rdfs:domain <https://www.tno.nl/energy/ontology/interconnect/KnowledgeBase> ;
-                                                                      rdfs:range <https://www.tno.nl/energy/ontology/interconnect/CommunicativeAct> .
+###  https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct
+:hasCommunicativeAct rdf:type owl:ObjectProperty ;
+                     rdfs:subPropertyOf owl:topObjectProperty ;
+                     rdfs:domain :KnowledgeBase ;
+                     rdfs:range :CommunicativeAct .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern
-<https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern> rdf:type owl:ObjectProperty ;
-                                                                  rdfs:subPropertyOf owl:topObjectProperty ;
-                                                                  rdfs:domain <https://www.tno.nl/energy/ontology/interconnect/KnowledgeInteraction> ;
-                                                                  rdfs:range <https://www.tno.nl/energy/ontology/interconnect/GraphPattern> .
+###  https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern
+:hasGraphPattern rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf owl:topObjectProperty ;
+                 rdfs:domain :KnowledgeInteraction ;
+                 rdfs:range :GraphPattern .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasKnowledgeInteraction
-<https://www.tno.nl/energy/ontology/interconnect/hasKnowledgeInteraction> rdf:type owl:ObjectProperty ;
-                                                                          rdfs:subPropertyOf owl:topObjectProperty ;
-                                                                          rdfs:domain <https://www.tno.nl/energy/ontology/interconnect/KnowledgeBase> ;
-                                                                          rdfs:range <https://www.tno.nl/energy/ontology/interconnect/KnowledgeInteraction> .
+###  https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction
+:hasKnowledgeInteraction rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf owl:topObjectProperty ;
+                         rdfs:domain :KnowledgeBase ;
+                         rdfs:range :KnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasResultGraphPattern
-<https://www.tno.nl/energy/ontology/interconnect/hasResultGraphPattern> rdf:type owl:ObjectProperty ;
-                                                                        rdfs:subPropertyOf <https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern> .
+###  https://www.tno.nl/energy/ontology/interconnect#hasResultGraphPattern
+:hasResultGraphPattern rdf:type owl:ObjectProperty ;
+                       rdfs:subPropertyOf :hasGraphPattern .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasSmartConnector
-<https://www.tno.nl/energy/ontology/interconnect/hasSmartConnector> rdf:type owl:ObjectProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#hasSmartConnector
+:hasSmartConnector rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/providerImplementsKnowledgeInteraction
-<https://www.tno.nl/energy/ontology/interconnect/providerImplementsKnowledgeInteraction> rdf:type owl:ObjectProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#providerImplementsKnowledgeInteraction
+:providerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/providesService
-<https://www.tno.nl/energy/ontology/interconnect/providesService> rdf:type owl:ObjectProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#providesService
+:providesService rdf:type owl:ObjectProperty .
 
 
 #################################################################
 #    Data properties
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasData
-<https://www.tno.nl/energy/ontology/interconnect/hasData> rdf:type owl:DatatypeProperty ;
-                                                          rdfs:comment """This property bridges the gap between metadata and data. 
+###  https://www.tno.nl/energy/ontology/interconnect#hasData
+:hasData rdf:type owl:DatatypeProperty ;
+         rdfs:comment """This property bridges the gap between metadata and data. 
 
 It is not meant to be used in actual descriptions of knowledge bases. Instead, it is meant to be used in the Recipient Selector of the Developer API to indicate that the Knowledge Base wants to send a message to other Knowledge Bases with a certain property where this property is described in terms of the domain. So, for example, a Knowledge Base wants to send a message to all other Knowledge Bases that gave 24 degrees celsius as the temperature of a particular room.""" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasDescription
-<https://www.tno.nl/energy/ontology/interconnect/hasDescription> rdf:type owl:DatatypeProperty ;
-                                                                 rdfs:subPropertyOf owl:topDataProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#hasDescription
+:hasDescription rdf:type owl:DatatypeProperty ;
+                rdfs:subPropertyOf owl:topDataProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasEndpoint
-<https://www.tno.nl/energy/ontology/interconnect/hasEndpoint> rdf:type owl:DatatypeProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#hasEndpoint
+:hasEndpoint rdf:type owl:DatatypeProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasName
-<https://www.tno.nl/energy/ontology/interconnect/hasName> rdf:type owl:DatatypeProperty ;
-                                                          rdfs:subPropertyOf owl:topDataProperty .
+###  https://www.tno.nl/energy/ontology/interconnect#hasName
+:hasName rdf:type owl:DatatypeProperty ;
+         rdfs:subPropertyOf owl:topDataProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/hasPattern
-<https://www.tno.nl/energy/ontology/interconnect/hasPattern> rdf:type owl:DatatypeProperty ;
-                                                             rdfs:domain <https://www.tno.nl/energy/ontology/interconnect/GraphPattern> ;
-                                                             rdfs:range xsd:string .
-
-
-###  https://www.tno.nl/energy/ontology/interconnect/isImplicit
-<https://www.tno.nl/energy/ontology/interconnect/isImplicit> rdf:type owl:DatatypeProperty ;
-                                                             rdfs:range xsd:boolean ;
-                                                             rdfs:comment "Whether a knowledge interaction is implicit (i.e. is automatically generated by the Smart Connector for internal communication purposes) or explicit (i.e. is registered by the knowledge base)" .
+###  https://www.tno.nl/energy/ontology/interconnect#hasPattern
+:hasPattern rdf:type owl:DatatypeProperty ;
+            rdfs:domain :GraphPattern ;
+            rdfs:range xsd:string .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect/isMeta
@@ -132,75 +126,75 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 #    Classes
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect/AnswerKnowledgeInteraction
-<https://www.tno.nl/energy/ontology/interconnect/AnswerKnowledgeInteraction> rdf:type owl:Class ;
-                                                                             owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                                                                   owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern> ;
-                                                                                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                                   owl:onClass <https://www.tno.nl/energy/ontology/interconnect/GraphPattern>
-                                                                                                 ] ;
-                                                                             rdfs:subClassOf <https://www.tno.nl/energy/ontology/interconnect/KnowledgeInteraction> ;
-                                                                             rdfs:comment "An answer knowledge interaction is a declaration that specifies the shape of knowledge that is available in the knowledge base."@en .
+###  https://www.tno.nl/energy/ontology/interconnect#AnswerKnowledgeInteraction
+:AnswerKnowledgeInteraction rdf:type owl:Class ;
+                            owl:equivalentClass [ rdf:type owl:Restriction ;
+                                                  owl:onProperty :hasGraphPattern ;
+                                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                  owl:onClass :GraphPattern
+                                                ] ;
+                            rdfs:subClassOf :KnowledgeInteraction ;
+                            rdfs:comment "An answer knowledge interaction is a declaration that specifies the shape of knowledge that is available in the knowledge base."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/AskKnowledgeInteraction
-<https://www.tno.nl/energy/ontology/interconnect/AskKnowledgeInteraction> rdf:type owl:Class ;
-                                                                          owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                                                                owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasGraphPattern> ;
-                                                                                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                                owl:onClass <https://www.tno.nl/energy/ontology/interconnect/GraphPattern>
-                                                                                              ] ;
-                                                                          rdfs:subClassOf <https://www.tno.nl/energy/ontology/interconnect/KnowledgeInteraction> ;
-                                                                          rdfs:comment "An ask knowledge interaction declares the shape of knowledge that a knowledge base possibly asks its smart connector for."@en .
+###  https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction
+:AskKnowledgeInteraction rdf:type owl:Class ;
+                         owl:equivalentClass [ rdf:type owl:Restriction ;
+                                               owl:onProperty :hasGraphPattern ;
+                                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                               owl:onClass :GraphPattern
+                                             ] ;
+                         rdfs:subClassOf :KnowledgeInteraction ;
+                         rdfs:comment "An ask knowledge interaction declares the shape of knowledge that a knowledge base possibly asks its smart connector for."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/CommunicativeAct
-<https://www.tno.nl/energy/ontology/interconnect/CommunicativeAct> rdf:type owl:Class .
+###  https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct
+:CommunicativeAct rdf:type owl:Class .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/GraphPattern
-<https://www.tno.nl/energy/ontology/interconnect/GraphPattern> rdf:type owl:Class ;
-                                                               owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                                                     owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasPattern> ;
-                                                                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                     owl:onDataRange xsd:string
-                                                                                   ] ;
-                                                               rdfs:comment "A graph pattern is used for describing knowledge. It uses basic graph pattern (BGP) from the SPARQL specification which includes terms from the ontology combined with variables." ;
-                                                               rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
+###  https://www.tno.nl/energy/ontology/interconnect#GraphPattern
+:GraphPattern rdf:type owl:Class ;
+              owl:equivalentClass [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasPattern ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:onDataRange xsd:string
+                                  ] ;
+              rdfs:comment "A graph pattern is used for describing knowledge. It uses basic graph pattern (BGP) from the SPARQL specification which includes terms from the ontology combined with variables." ;
+              rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/KnowledgeBase
-<https://www.tno.nl/energy/ontology/interconnect/KnowledgeBase> rdf:type owl:Class ;
-                                                                owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasKnowledgeInteraction> ;
-                                                                                      owl:someValuesFrom <https://www.tno.nl/energy/ontology/interconnect/KnowledgeInteraction>
-                                                                                    ] ,
-                                                                                    [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/consumesService> ;
-                                                                                      owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                                                                                      owl:onClass <https://www.tno.nl/energy/ontology/interconnect/ServiceDescription>
-                                                                                    ] ,
-                                                                                    [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/providesService> ;
-                                                                                      owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                                                                                      owl:onClass <https://www.tno.nl/energy/ontology/interconnect/ServiceDescription>
-                                                                                    ] ,
-                                                                                    [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasSmartConnector> ;
-                                                                                      owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                      owl:onClass <https://www.tno.nl/energy/ontology/interconnect/SmartConnector>
-                                                                                    ] ,
-                                                                                    [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasDescription> ;
-                                                                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                      owl:onDataRange xsd:string
-                                                                                    ] ,
-                                                                                    [ rdf:type owl:Restriction ;
-                                                                                      owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/hasName> ;
-                                                                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                                                      owl:onDataRange xsd:string
-                                                                                    ] ;
-                                                                rdfs:comment """A knowledge base is a 'thing' that (through knowledge interactions) has a contract with its smart connector about how it exchanges knowledge.
+###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase
+:KnowledgeBase rdf:type owl:Class ;
+               owl:equivalentClass [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasKnowledgeInteraction ;
+                                     owl:someValuesFrom :KnowledgeInteraction
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :consumesService ;
+                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :ServiceDescription
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :providesService ;
+                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :ServiceDescription
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasSmartConnector ;
+                                     owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onClass :SmartConnector
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasDescription ;
+                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onDataRange xsd:string
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :hasName ;
+                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onDataRange xsd:string
+                                   ] ;
+               rdfs:comment """A knowledge base is a 'thing' that (through knowledge interactions) has a contract with its smart connector about how it exchanges knowledge.
 
 Examples include:
 
@@ -297,10 +291,10 @@ Examples include:
 #################################################################
 
 [ rdf:type owl:AllDisjointClasses ;
-  owl:members ( <https://www.tno.nl/energy/ontology/interconnect/AnswerKnowledgeInteraction>
-                <https://www.tno.nl/energy/ontology/interconnect/AskKnowledgeInteraction>
-                <https://www.tno.nl/energy/ontology/interconnect/PostKnowledgeInteraction>
-                <https://www.tno.nl/energy/ontology/interconnect/ReactKnowledgeInteraction>
+  owl:members ( :AnswerKnowledgeInteraction
+                :AskKnowledgeInteraction
+                :PostKnowledgeInteraction
+                :ReactKnowledgeInteraction
               )
 ] .
 
