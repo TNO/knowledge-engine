@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
@@ -21,9 +19,6 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
 public class TestPostReact {
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact.class);
-
 	@Test
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();

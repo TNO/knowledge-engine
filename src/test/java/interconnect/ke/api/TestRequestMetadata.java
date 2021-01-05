@@ -14,17 +14,12 @@ import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 public class TestRequestMetadata {
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestRequestMetadata.class);
-
 	@Test
 	public void testRequestMetadata() throws InterruptedException {
 
