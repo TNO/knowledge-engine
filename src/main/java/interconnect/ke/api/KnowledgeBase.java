@@ -2,6 +2,11 @@ package interconnect.ke.api;
 
 import java.net.URI;
 
+/**
+ * The {@link KnowledgeBase} is a generic name for the
+ * app/service/platform/database that wants to exchange data in an interoperable
+ * manner.
+ */
 public interface KnowledgeBase {
 
 	/**
@@ -37,9 +42,8 @@ public interface KnowledgeBase {
 	public void smartConnectorConnectionRestored(SmartConnector aSC);
 
 	/**
-	 * Called when the {@link SmartConnector#stop()} method is called.
-	 * 
-	 * @param aSC
+	 * This method is called by the smart connector when it restores its connection
+	 * after it has been lost.
 	 */
 	public void smartConnectorStopped(SmartConnector aSC);
 }
