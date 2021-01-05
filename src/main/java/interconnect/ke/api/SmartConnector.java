@@ -8,6 +8,8 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
+import interconnect.ke.messaging.SmartConnectorEndpoint;
+import interconnect.ke.runtime.SmartConnectorRegistryImpl;
 
 /**
  * The {@link SmartConnector} is the main component of the KnowledgeEngine. It's
@@ -35,6 +37,7 @@ public class SmartConnector {
 	 */
 	public SmartConnector(KnowledgeBase aKnowledgeBase) {
 		knowledgeBase = aKnowledgeBase;
+		SmartConnectorRegistryImpl.getInstance().register(this);
 	}
 
 	/**
@@ -306,5 +309,12 @@ public class SmartConnector {
 	 * Note that a stopped {@link SmartConnector} can no longer be used.
 	 */
 	public void stop() {
+		SmartConnectorRegistryImpl.getInstance().unregister(this);
 	}
+
+	public SmartConnectorEndpoint getEndpoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
