@@ -1,20 +1,37 @@
 package interconnect.ke.api;
 
+import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
+import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 /**
- * A PostResult contains the result of the post knowledge interaction, of course
- * including the bindings, but (in the future) also information on how the
- * result is formed (which knowledge bases contributed etc.)
+ * A {@link PostResult} contains the result of the
+ * {@link PostKnowledgeInteraction}, of course including the {@link Binding}s,
+ * but (in the future) also information on how the result is formed (which
+ * {@link KnowledgeBase}s contributed etc.)
  */
 public class PostResult {
-  private final BindingSet bindings;
+	private final BindingSet bindings;
 
-  public PostResult(BindingSet someBindings) {
-    this.bindings = someBindings;
-  }
+	/**
+	 * Create a {@link PostResult}.
+	 * 
+	 * @param someBindings A {@link BindingSet} that contains the solutions to an
+	 *                     {@link PostKnowledgeInteraction} question. It is either
+	 *                     empty, or contains one or more {@link Binding}s with a
+	 *                     value for every available variable in the
+	 *                     {@link GraphPattern}.
+	 */
+	public PostResult(BindingSet someBindings) {
+		this.bindings = someBindings;
+	}
 
-  public BindingSet getBindings() {
-    return this.bindings;
-  }
+	/**
+	 * @return The {@link BindingSet} that contains the results of the
+	 *         {@link PostKnowledgeInteraction} that happened.
+	 */
+	public BindingSet getBindings() {
+		return this.bindings;
+	}
 }

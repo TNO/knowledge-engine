@@ -2,27 +2,44 @@ package interconnect.ke.api.interaction;
 
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.KnowledgeBase;
 
 /**
- * An object of this class represents that the associated knowledge base will
- * possibly post knowledge of the shape `argument` to the network, and expects
- * a result of the shape `result`.
+ * An object of this class represents that the associated {@link KnowledgeBase}
+ * will possibly post knowledge of the shape `argument` to the network, and
+ * expects a result of the shape `result`.
  */
 public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
-	 * This graph pattern expresses the 'shape' of knowledge that this
-	 * KnowledgeInteraction possibly posts to the network.
+	 * This {@link GraphPattern} expresses the 'shape' of knowledge that this
+	 * {@link KnowledgeInteraction} possibly posts to the network.
 	 */
 	private final GraphPattern argument;
-	
+
 	/**
-	 * This graph pattern expresses the 'shape' of knowledge that this
-	 * KnowledgeInteraction expects as a result after posting something to the
-	 * network.
+	 * This {@link GraphPattern} expresses the 'shape' of knowledge that this
+	 * {@link KnowledgeInteraction} expects as a result after posting something to
+	 * the network.
 	 */
 	private final GraphPattern result;
-	
+
+	/**
+	 * Create a {@link PostKnowledgeInteraction}.
+	 * 
+	 * @param act      The {@link CommunicativeAct} of this
+	 *                 {@link KnowledgeInteraction}. It can be read as the 'goal' or
+	 *                 'purpose' of the data exchange and whether it has
+	 *                 side-effects or not.
+	 * @param argument The {@code argument} of this
+	 *                 {@link PostKnowledgeInteraction}. It can be seen as the
+	 *                 argument of a function call.
+	 * @param result   The {@code result} of this {@link PostKnowledgeInteraction}.
+	 *                 It can be seen as the result of a function call. Can be
+	 *                 {@code null} if this interaction does not expect any result.
+	 * @apiNote TODO Can {@code argument} also be {@code null}? Note that not both
+	 *          {@code argument} and {@code result} can be {@code null}.
+	 */
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
 		super(act);
 		this.argument = argument;
@@ -30,14 +47,17 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	}
 
 	/**
-	 * @return This KnowledgeInteraction's argument graph pattern.
+	 * @return This {@link KnowledgeInteraction}'s argument {@link GraphPattern}. It
+	 *         can be seen as the argument of a function call.
 	 */
 	public GraphPattern getArgument() {
 		return argument;
 	}
 
 	/**
-	 * @return This KnowledgeInteraction's result graph pattern.
+	 * @return This {@link KnowledgeInteraction}'s result {@link GraphPattern}. It
+	 *         can be seen as the result of a function call. Can be {@code null} if
+	 *         this {@link KnowledgeInteraction} does not expect any result.
 	 */
 	public GraphPattern getResult() {
 		return result;
