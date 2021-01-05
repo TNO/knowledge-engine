@@ -6,10 +6,6 @@ public interface SmartConnectorEndpoint {
 
 	URI getKnowledgeBaseId();
 
-	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint endpoint);
-
-	void unsetMessageDispatcherEndpoint(MessageDispatcherEndpoint endpoint);
-
 	void handleAskMessage(AskMessage message);
 
 	void handleAnswerMessage(AnswerMessage message);

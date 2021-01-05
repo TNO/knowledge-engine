@@ -7,8 +7,8 @@ import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
-
-import interconnect.ke.runtime.SmartConnectorRegistry;
+import interconnect.ke.messaging.SmartConnectorEndpoint;
+import interconnect.ke.runtime.SmartConnectorRegistryImpl;
 
 public class SmartConnector {
 
@@ -16,7 +16,7 @@ public class SmartConnector {
 
 	public SmartConnector(KnowledgeBase aKnowledgeBase) {
 		knowledgeBase = aKnowledgeBase;
-		SmartConnectorRegistry.getInstance().register(this);
+		SmartConnectorRegistryImpl.getInstance().register(this);
 	}
 
 	public void register(AskKnowledgeInteraction anAskKI) {
@@ -68,6 +68,12 @@ public class SmartConnector {
 	}
 
 	public void stop() {
-		SmartConnectorRegistry.getInstance().unregister(this);
+		SmartConnectorRegistryImpl.getInstance().unregister(this);
 	}
+
+	public SmartConnectorEndpoint getEndpoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
