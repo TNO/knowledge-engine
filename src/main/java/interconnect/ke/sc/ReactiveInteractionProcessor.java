@@ -36,7 +36,7 @@ public interface ReactiveInteractionProcessor {
 	 * OR to a handler in {@link OtherKnowledgeBaseStore} if it concerns metadata
 	 * about other knowledge bases.
 	 *
-	 * @param aPostMsgThe {@link PostMessage} that requires a reaction.
+	 * @param aPostMsg The {@link PostMessage} that requires a reaction.
 	 * @return A future {@link ReactMessage}.
 	 */
 	public CompletableFuture<ReactMessage> processPost(PostMessage aPostMsg);
