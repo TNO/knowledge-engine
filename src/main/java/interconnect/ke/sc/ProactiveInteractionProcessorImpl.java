@@ -18,11 +18,11 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 		return null;
 	}
 
-	@Override
-	public CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
-			BindingSet someArguments) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+//			BindingSet someArguments) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

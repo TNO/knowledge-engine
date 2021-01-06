@@ -22,17 +22,21 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
  * {@link KnowledgeInteraction} or for the argument/result
  * {@link GraphPattern}s.
  */
-public abstract class InteractionProcessor {
+public abstract class SingleInteractionProcessor {
 
-	private Set<KnowledgeBase> knowledgeBases;
+	private Set<KnowledgeInteraction> selectedOtherKnowledgeInteractions;
 
-	public InteractionProcessor(Set<KnowledgeBase> someKnowledgeBases) {
-		this.knowledgeBases = someKnowledgeBases;
+	public SingleInteractionProcessor(Set<KnowledgeInteraction> someKnowledgeInteractions,
+			ProactiveInteractionProcessor messageDispatcher) {
+		this.selectedOtherKnowledgeInteractions = someKnowledgeInteractions;
+
 	}
 
 	abstract CompletableFuture<BindingSet> processInteraction(AskKnowledgeInteraction aAKI, BindingSet someBindings);
 
-	abstract CompletableFuture<BindingSet> processInteraction(PostKnowledgeInteraction aPKI,
-			BindingSet someArgumentBindings);
+//	abstract void processInteraction(PostKnowledgeInteraction aPKI,
+//			BindingSet someArgumentBindings);
+
+	// close?
 
 }

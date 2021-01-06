@@ -19,7 +19,6 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
  * <ul>
  * <li>handle all proactive interactions like {@link AskKnowledgeInteraction}
  * and {@link PostKnowledgeInteraction}</li>
- * 
  * <li>determine the potential {@link KnowledgeBase}s for which matching
  * {@link KnowledgeInteraction}s should be found</li>
  * <li>reduce the potential {@link KnowledgeBase}s to the ones that actually
@@ -27,7 +26,7 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
  * <li>Send the {@link KnowledgeBase}s the correct messages via the message
  * dispatcher interface.</li>
  * <li>process the results from other {@link KnowledgeBase}s</li>
- * <li>contact the {@link KnowledgeBase} via the {@link SmartConnector}
+ * <li>contact the {@link KnowledgeBase} via the {@link CompletableFuture}
  * interface</li>
  * <li>take into account that the reasoner will be added in a future
  * version</li>
@@ -73,7 +72,7 @@ public interface ProactiveInteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
-			BindingSet someArguments);
+//	CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+//			BindingSet someArguments);
 
 }
