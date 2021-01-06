@@ -53,10 +53,10 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
-		// outstanding message replies. Then it returns the future. THe
-		// MessageDispatcher threads will finish the process and the last reply message
-		// will complete the
-		// future.
+		// outstanding message replies. Then it returns the future. Threads from the
+		// MessageDispatcher will finish this process and the thread that handles the
+		// last reply message will complete the future and notify the caller
+		// KnowledgeBase.
 		CompletableFuture<AskResult> future = processor.processInteraction(anAKI, aBindingSet);
 
 		return future;
