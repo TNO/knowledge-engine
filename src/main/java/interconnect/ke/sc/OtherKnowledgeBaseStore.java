@@ -31,5 +31,5 @@ public interface OtherKnowledgeBaseStore {
 	 * metadata about other knowledge bases. It MUST contain bindings for an
 	 * agreed set of variables that describe other knowledge bases.
 	 */
-	public void synchronizeOtherKnowledeBaseMetadata(PostResult aPostResult);
+	// public void synchronizeOtherKnowledeBaseMetadata(PostResult aPostResult);
 }
