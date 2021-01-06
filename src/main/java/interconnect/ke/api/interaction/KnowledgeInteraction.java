@@ -20,6 +20,12 @@ public abstract class KnowledgeInteraction {
 	private final CommunicativeAct act;
 
 	/**
+	 * Whether or not this knowledge interaction contains metadata about the
+	 * knowledge base itself.
+	 */
+	private final boolean isMeta;
+
+	/**
 	 * Create a {@link KnowledgeInteraction}.
 	 * 
 	 * @param act The {@link CommunicativeAct} of this {@link KnowledgeInteraction}.
@@ -29,6 +35,23 @@ public abstract class KnowledgeInteraction {
 	public KnowledgeInteraction(CommunicativeAct act) {
 		super();
 		this.act = act;
+		this.isMeta = false;
+	}
+
+	/**
+	 * Create a {@link KnowledgeInteraction}.
+	 *
+	 * @param act The {@link CommunicativeAct} of this
+	 *            {@link KnowledgeInteraction}. It can be read as the 'goal' or
+	 *            'purpose' of the data exchange and whether it has side-effects
+	 *            or not.
+	 * @param isMeta  Whether or not this knowledge interaction contains metadata
+	 * about the knowledge base itself. 
+	 */
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
+		super();
+		this.act = act;
+		this.isMeta = isMeta;
 	}
 
 	/**
@@ -36,5 +59,9 @@ public abstract class KnowledgeInteraction {
 	 */
 	public CommunicativeAct getAct() {
 		return act;
+	}
+
+	public boolean getIsMeta() {
+		return this.isMeta;
 	}
 }
