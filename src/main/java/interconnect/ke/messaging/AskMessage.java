@@ -9,6 +9,7 @@ public class AskMessage extends KnowledgeMessage {
 	/**
 	 * Bindings for this AskMessage. Variable names of the
 	 * AnswerKnowledgeInteraction are used.
+	 * (Proactive side does the translations)
 	 */
 	private BindingSet bindings;
 

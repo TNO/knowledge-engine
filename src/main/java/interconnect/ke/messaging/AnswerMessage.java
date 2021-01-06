@@ -8,6 +8,11 @@ import interconnect.ke.api.binding.BindingSet;
 public class AnswerMessage extends KnowledgeMessage {
 
 	private UUID replyToAskMessage;
+	/**
+	 * Bindings for this AnswerMessage. Variable names of the
+	 * AnswerKnowledgeInteraction are used.
+	 * (Proactive side does the translations)
+	 */
 	private BindingSet bindings;
 
 	public AnswerMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
