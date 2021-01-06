@@ -1,5 +1,6 @@
 package interconnect.ke.runtime;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,6 @@ import interconnect.ke.messaging.KnowledgeMessage;
 import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
-import interconnect.ke.messaging.RecepientStatusCallback;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
 
 /**
@@ -38,13 +38,14 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 		}
 
 		@Override
-		public void send(KnowledgeMessage message, RecepientStatusCallback callback) {
-			JvmOnlyMessageDispatcher.this.executor.execute(() -> {
-				SmartConnectorHandler receiver = JvmOnlyMessageDispatcher.this.handlers
-						.get(message.getToKnowledgeBase());
-				if (receiver == null) {
-					fail(message, callback, "There is no KnowledgeBase with ID " + message.getToKnowledgeBase());
-				} else {
+		public void send(KnowledgeMessage message) throws IOException {
+			assert message.getFromKnowledgeBase().equals(this.endpoint.getKnowledgeBaseId());
+
+			SmartConnectorHandler receiver = JvmOnlyMessageDispatcher.this.handlers.get(message.getToKnowledgeBase());
+			if (receiver == null) {
+				throw new IOException("There is no KnowledgeBase with ID " + message.getToKnowledgeBase());
+			} else {
+				JvmOnlyMessageDispatcher.this.executor.execute(() -> {
 					if (message instanceof AnswerMessage) {
 						receiver.getEndpoint().handleAnswerMessage((AnswerMessage) message);
 					} else if (message instanceof AskMessage) {
@@ -53,21 +54,11 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 						receiver.getEndpoint().handlePostMessage((PostMessage) message);
 					} else if (message instanceof ReactMessage) {
 						receiver.getEndpoint().handleReactMessage((ReactMessage) message);
+					} else {
+						assert false;
 					}
-					if (callback != null) {
-						callback.delivered(message);
-					}
-				}
-			});
-		}
-
-		private void fail(KnowledgeMessage message, RecepientStatusCallback callback, String error) {
-			if (callback != null) {
-				// TODO other type of Throwable?
-				callback.deliveryFailed(message, new IllegalStateException(error));
+				});
 			}
-			LOG.warn("Could not deliver message from " + message.getFromKnowledgeInteraction() + " to "
-					+ message.getToKnowledgeBase() + ": " + error);
 		}
 
 		public SmartConnectorEndpoint getEndpoint() {
@@ -77,10 +68,6 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
 	private ExecutorService executor = Executors.newFixedThreadPool(4);
-
-	public JvmOnlyMessageDispatcher() {
-		// TODO Auto-generated constructor stub
-	}
 
 	@Override
 	public void smartConnectorAdded(SmartConnector smartConnector) {
