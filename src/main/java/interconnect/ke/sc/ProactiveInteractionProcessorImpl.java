@@ -19,15 +19,12 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProactiveInteractionProcessorImpl.class);
 
-	private final Map<SingleInteractionProcessor, CompletableFuture<AskResult>> processorToFutureMapping;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageReplyTracker messageReplyTracker;
 
-	public ProactiveInteractionProcessorImpl(
-			Map<SingleInteractionProcessor, CompletableFuture<AskResult>> processorToFutureMapping,
-			OtherKnowledgeBaseStore otherKnowledgeBaseStore, MessageReplyTracker messageReplyTracker) {
+	public ProactiveInteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore,
+			MessageReplyTracker messageReplyTracker) {
 		super();
-		this.processorToFutureMapping = processorToFutureMapping;
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.messageReplyTracker = messageReplyTracker;
 	}
@@ -39,13 +36,11 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aBindingSet != null : "the binding set should be non-null";
 
-		// in the MVP we interpret the recipient selector as a wildcard.
+		// TODO use RecipientSelector. In the MVP we interpret the recipient selector as
+		// a wildcard.
 
 		// retrieve other knowledge bases
 		List<OtherKnowledgeBase> otherKnowledgeBases = otherKnowledgeBaseStore.getOtherKnowledgeBases();
-
-		assert otherKnowledgeBases != null;
-
 		Set<KnowledgeInteraction> otherKnowledgeInteractions = new HashSet<KnowledgeInteraction>();
 
 		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
@@ -64,17 +59,7 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 		// future.
 		CompletableFuture<AskResult> future = processor.processInteraction(anAKI, aBindingSet);
 
-		// store the interactionprocessor for future usage.
-		processorToFutureMapping.put(processor, future);
-
 		return future;
 	}
-
-//	@Override
-//	public CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
-//			BindingSet someArguments) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 }
