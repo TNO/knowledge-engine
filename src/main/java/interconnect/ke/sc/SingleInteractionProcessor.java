@@ -3,12 +3,11 @@ package interconnect.ke.sc;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
-import interconnect.ke.api.KnowledgeBase;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
-import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 /**
  * This interface is used to abstract away the details of the matching/reasoning
@@ -24,15 +23,17 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
  */
 public abstract class SingleInteractionProcessor {
 
-	private Set<KnowledgeInteraction> selectedOtherKnowledgeInteractions;
+	protected final Set<KnowledgeInteraction> otherKnowledgeInteractions;
+	protected final MessageReplyTracker messageReplyTracker;
 
-	public SingleInteractionProcessor(Set<KnowledgeInteraction> someKnowledgeInteractions,
-			ProactiveInteractionProcessor messageDispatcher) {
-		this.selectedOtherKnowledgeInteractions = someKnowledgeInteractions;
+	public SingleInteractionProcessor(Set<KnowledgeInteraction> knowledgeInteractions,
+			MessageReplyTracker messageReplyTracker) {
+		this.otherKnowledgeInteractions = knowledgeInteractions;
+		this.messageReplyTracker = messageReplyTracker;
 
 	}
 
-	abstract CompletableFuture<BindingSet> processInteraction(AskKnowledgeInteraction aAKI, BindingSet someBindings);
+	abstract CompletableFuture<AskResult> processInteraction(AskKnowledgeInteraction aAKI, BindingSet someBindings);
 
 //	abstract void processInteraction(PostKnowledgeInteraction aPKI,
 //			BindingSet someArgumentBindings);
