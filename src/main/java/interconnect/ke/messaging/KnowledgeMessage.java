@@ -18,6 +18,20 @@ public abstract class KnowledgeMessage {
 		this.fromKnowledgeInteraction = fromKnowledgeInteraction;
 		this.toKnowledgeBase = toKnowledgeBase;
 		this.toKnowledgeInteraction = toKnowledgeInteraction;
+
+		// validate
+		if (fromKnowledgeBase == null) {
+			throw new IllegalArgumentException("fromKnowledgeBase cannot be null");
+		}
+		if (fromKnowledgeInteraction == null) {
+			throw new IllegalArgumentException("fromKnowledgeInteraction cannot be null");
+		}
+		if (toKnowledgeBase == null) {
+			throw new IllegalArgumentException("toKnowledgeBase cannot be null");
+		}
+		if (toKnowledgeInteraction == null) {
+			throw new IllegalArgumentException("toKnowledgeInteraction cannot be null");
+		}
 	}
 
 	public UUID getMessageId() {

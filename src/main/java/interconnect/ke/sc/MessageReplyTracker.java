@@ -1,5 +1,6 @@
 package interconnect.ke.sc;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -43,11 +44,12 @@ public class MessageReplyTracker {
 	 * @param askMessage {@link AskMessage} to be sent.
 	 * @return A {@link CompletableFuture} that will be notified once the reply has
 	 *         arrived.
+	 * @throws IOException
 	 */
-	public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) {
+	public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) throws IOException {
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<AnswerMessage>();
 		openAskMessages.put(askMessage.getMessageId(), future);
-		messageDispatcherEndpoint.send(askMessage, null);
+		messageDispatcherEndpoint.send(askMessage);
 		return future;
 	}
 
@@ -59,11 +61,12 @@ public class MessageReplyTracker {
 	 * @param postMessage {@link PostMessage} to be sent.
 	 * @return A {@link CompletableFuture} that will be notified once the reply has
 	 *         arrived.
+	 * @throws IOException
 	 */
-	public CompletableFuture<ReactMessage> sendPostMessage(PostMessage postMessage) {
+	public CompletableFuture<ReactMessage> sendPostMessage(PostMessage postMessage) throws IOException {
 		CompletableFuture<ReactMessage> future = new CompletableFuture<ReactMessage>();
 		openPostMessages.put(postMessage.getMessageId(), future);
-		messageDispatcherEndpoint.send(postMessage, null);
+		messageDispatcherEndpoint.send(postMessage);
 		return future;
 	}
 
