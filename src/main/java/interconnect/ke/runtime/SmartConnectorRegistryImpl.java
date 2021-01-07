@@ -11,6 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.runtime.SmartConnectorRegistry;
 import interconnect.ke.api.runtime.SmartConnectorRegistryListener;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * Singleton object that keeps a reference to every SmartConnector object in
@@ -20,7 +21,7 @@ public class SmartConnectorRegistryImpl implements SmartConnectorRegistry {
 
 	public static SmartConnectorRegistry instance;
 
-	private Map<URI, SmartConnector> smartConnectors = new HashMap<>();
+	private Map<URI, SmartConnectorImpl> smartConnectors = new HashMap<>();
 	private List<SmartConnectorRegistryListener> listeners = new CopyOnWriteArrayList<>();
 
 	private SmartConnectorRegistryImpl() {
@@ -34,13 +35,13 @@ public class SmartConnectorRegistryImpl implements SmartConnectorRegistry {
 	}
 
 	@Override
-	public void register(SmartConnector smartConnector) {
+	public void register(SmartConnectorImpl smartConnector) {
 		synchronized (smartConnectors) {
-			if (smartConnectors.containsKey(smartConnector.getEndpoint().getKnowledgeBaseId())) {
-				throw new IllegalArgumentException("There already is a smart connector registered with ID "
-						+ smartConnector.getEndpoint().getKnowledgeBaseId());
+			if (smartConnectors.containsKey(smartConnector.getKnowledgeBaseId())) {
+				throw new IllegalArgumentException(
+						"There already is a smart connector registered with ID " + smartConnector.getKnowledgeBaseId());
 			}
-			smartConnectors.put(smartConnector.getEndpoint().getKnowledgeBaseId(), smartConnector);
+			smartConnectors.put(smartConnector.getKnowledgeBaseId(), smartConnector);
 		}
 		for (SmartConnectorRegistryListener l : listeners) {
 			l.smartConnectorAdded(smartConnector);
@@ -48,9 +49,9 @@ public class SmartConnectorRegistryImpl implements SmartConnectorRegistry {
 	};
 
 	@Override
-	public void unregister(SmartConnector smartConnector) {
+	public void unregister(SmartConnectorImpl smartConnector) {
 		synchronized (smartConnectors) {
-			smartConnectors.remove(smartConnector.getEndpoint().getKnowledgeBaseId());
+			smartConnectors.remove(smartConnector.getKnowledgeBaseId());
 		}
 		for (SmartConnectorRegistryListener l : listeners) {
 			l.smartConnectorRemoved(smartConnector);
@@ -58,7 +59,7 @@ public class SmartConnectorRegistryImpl implements SmartConnectorRegistry {
 	};
 
 	@Override
-	public Set<SmartConnector> getSmartConnectors() {
+	public Set<SmartConnectorImpl> getSmartConnectors() {
 		synchronized (smartConnectors) {
 			return new HashSet<>(smartConnectors.values());
 		}
