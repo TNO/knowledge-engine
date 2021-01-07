@@ -14,7 +14,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	private SmartConnector sc;
 
-	private String name;
+	protected String name;
 
 	public MockedKnowledgeBase(String aName) {
 		this.name = aName;

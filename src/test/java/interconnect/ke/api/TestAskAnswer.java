@@ -13,8 +13,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
@@ -23,6 +24,8 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.runtime.JvmOnlyMessageDispatcher;
 
 public class TestAskAnswer {
+
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer.class);
 
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -37,66 +40,61 @@ public class TestAskAnswer {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		int wait = 2;
-		final CountDownLatch kb1Done = new CountDownLatch(1);
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
 
 		kb1 = new MockedKnowledgeBase("kb1") {
-			private AnswerKnowledgeInteraction ki;
-
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
-				this.ki = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
-				aSC.register(this.ki, new AnswerHandler() {
-					@Override
-					public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
-						assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
-
-						BindingSet bindingSet = new BindingSet();
-						Binding binding = new Binding();
-						binding.put("a", "<https://www.tno.nl/example/a>");
-						binding.put("c", "<https://www.tno.nl/example/c>");
-						bindingSet.add(binding);
-
-						return bindingSet;
-					}
-				});
-				kb1Done.countDown();
+				LOG.info("smartConnector of {} ready.", this.name);
 			};
 		};
-		assertTrue(kb1Done.await(wait, TimeUnit.SECONDS), "KB1 should have initialized within " + wait + " seconds.");
+
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:b ?c.");
+		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
+		kb1.getSmartConnector().register(aKI, new AnswerHandler() {
+			@Override
+			public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+				assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+
+				BindingSet bindingSet = new BindingSet();
+				Binding binding = new Binding();
+				binding.put("a", "<https://www.tno.nl/example/a>");
+				binding.put("c", "<https://www.tno.nl/example/c>");
+				bindingSet.add(binding);
+
+				return bindingSet;
+			}
+		});
 
 		kb2 = new MockedKnowledgeBase("kb2") {
-			private AskKnowledgeInteraction ki;
-
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
-				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+				LOG.info("smartConnector of {} ready.", this.name);
 
-				aSC.register(this.ki);
-
-				this.askForKnowledge();
 			};
 
-			private void askForKnowledge() {
-				BindingSet result = null;
-				try {
-					result = this.getSmartConnector().ask(this.ki, new BindingSet()).get().getBindings();
-				} catch (InterruptedException | ExecutionException e) {
-					fail();
-				}
-
-				Iterator<Binding> iter = result.iterator();
-				Binding b = iter.next();
-
-				assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
-				assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
-
-				assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
-				kb2ReceivedData.countDown();
-			}
 		};
+
+		GraphPattern gp2 = new GraphPattern(prefixes, "?a ex:b ?c.");
+		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
+
+		kb2.getSmartConnector().register(askKI);
+
+		BindingSet result = null;
+		try {
+			result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get().getBindings();
+		} catch (InterruptedException | ExecutionException e) {
+			fail();
+		}
+
+		Iterator<Binding> iter = result.iterator();
+		Binding b = iter.next();
+
+		assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
+		assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
+
+		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+		kb2ReceivedData.countDown();
 
 		assertTrue(kb2ReceivedData.await(wait, TimeUnit.SECONDS),
 				"KB2 should have initialized within " + wait + " seconds.");
