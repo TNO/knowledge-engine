@@ -55,12 +55,16 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageDispatcherEndpoint messageDispatcherEndpoint;
 
+	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
+	private boolean smartConnectorReadyNotified = false;
+
 	/**
 	 * Create a {@link SmartConnectorImpl}
 	 * 
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
+
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
 		myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
@@ -354,7 +358,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 */
 	@Override
 	public void stop() {
-		KeRuntime.localSmartConnectorRegistry().register(this);
+		KeRuntime.localSmartConnectorRegistry().unregister(this);
 		this.myKnowledgeBase.smartConnectorStopped(this);
 	}
 
@@ -397,17 +401,26 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 	@Override
 	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+		assert this.messageDispatcherEndpoint == null : "messageDispatcher set while there already was one set";
+
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
 		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
-		this.myKnowledgeBase.smartConnectorReady(this); // TODO second time the MessageDispatcher is called, it should
-														// call the connectionRestored method.
+		if (!smartConnectorReadyNotified) {
+			smartConnectorReadyNotified = true;
+			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
+		} else {
+			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
+		}
 
 	}
 
 	@Override
 	public void unsetMessageDispatcher() {
+		assert this.messageDispatcherEndpoint != null : "unsetMessageDispatcher called while there was no messageDisatcher set";
+
 		this.messageDispatcherEndpoint = null;
 		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
 	}
 
 }

@@ -8,6 +8,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import interconnect.ke.api.SmartConnector;
+import interconnect.ke.api.runtime.LocalSmartConnectorRegistry;
 import interconnect.ke.api.runtime.SmartConnectorRegistryListener;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
@@ -20,8 +22,11 @@ import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * This class is responsible for delivering messages between
- * {@link SmartConnectorImpl}s. THIS VERSION ONLY WORKS FOR THE JVM ONLY.
- * REPLACE FOR DISTRIBUTED VERSION OF KNOWLEDGE ENGINE. TODO
+ * {@link SmartConnectorImpl}s. Once constructed, it registers itself at the
+ * {@link LocalSmartConnectorRegistry} and at all the {@link SmartConnector}s.
+ * 
+ * THIS VERSION ONLY WORKS FOR THE JVM ONLY. REPLACE FOR DISTRIBUTED VERSION OF
+ * KNOWLEDGE ENGINE. TODO
  */
 public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener {
 
@@ -72,6 +77,12 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	 */
 	JvmOnlyMessageDispatcher() {
 		KeRuntime.localSmartConnectorRegistry().addListener(this);
+
+		// Add all the smart connectors that already existed before we were registered
+		// as listener
+		for (SmartConnectorImpl sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
+			smartConnectorAdded(sc);
+		}
 	}
 
 	@Override
