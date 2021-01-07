@@ -75,7 +75,7 @@ class ProactiveInteractionProcessorImplTest {
 
 		@Override
 		public void send(KnowledgeMessage message) throws IOException {
-
+			
 		}
 
 	}
