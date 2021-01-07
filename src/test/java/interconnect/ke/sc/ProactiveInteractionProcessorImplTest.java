@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,25 +47,39 @@ class ProactiveInteractionProcessorImplTest {
 			SmartConnectorEndpoint anEndpoint = new SmartConnectorEndpoint() {
 				@Override
 				public URI getKnowledgeBaseId() {
-					return new URI(knowledgeBaseId2);
+					try {
+						return new URI(knowledgeBaseId2);
+					} catch (URISyntaxException e) {
+						fail(e);
+						return null;
+					}
 				}
 
 				@Override
-				public void handleAnswerMessage(AnswerMessage message) {}
+				public void handleAnswerMessage(AnswerMessage message) {
+				}
+
 				@Override
-				public void handleAskMessage(AskMessage message) {}
+				public void handleAskMessage(AskMessage message) {
+				}
+
 				@Override
-				public void handlePostMessage(PostMessage message) {}
+				public void handlePostMessage(PostMessage message) {
+				}
+
 				@Override
-				public void handleReactMessage(ReactMessage message) {}
+				public void handleReactMessage(ReactMessage message) {
+				}
 			};
-			
+
 			List<KnowledgeInteraction> someKIs = new ArrayList<>();
-			someKIs.add(new AnswerKnowledgeInteraction(null, new GraphPattern("?s <https://www.tno.nl/example/predicate1> ?o")));
-			
-			OtherKnowledgeBase other = new OtherKnowledgeBase(knowledgeBaseId2, "kb2", "this is kb2", someKIs, anEndpoint)
-			
-			others.add(other);
+			someKIs.add(new AnswerKnowledgeInteraction(null,
+					new GraphPattern("?s <https://www.tno.nl/example/predicate1> ?o")));
+
+			// OtherKnowledgeBase other = new OtherKnowledgeBase(knowledgeBaseId2, "kb2",
+			// "this is kb2", someKIs, anEndpoint)
+
+			// others.add(other);
 
 			return null;
 		}
@@ -75,7 +90,7 @@ class ProactiveInteractionProcessorImplTest {
 
 		@Override
 		public void send(KnowledgeMessage message) throws IOException {
-			
+
 		}
 
 	}
