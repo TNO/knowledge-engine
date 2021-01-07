@@ -405,6 +405,9 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
 		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
+		// TODO it would be better to create a dedicated thread for the knowledgebase,
+		// instead of using the threadpool. When we use one thread for all interaction
+		// with the Knowledge Base, the Knowledge Base doesn't have to be threadsafe.
 		if (!smartConnectorReadyNotified) {
 			smartConnectorReadyNotified = true;
 			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
@@ -420,6 +423,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 		this.messageDispatcherEndpoint = null;
 		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+		// TODO see setMessageDispatcher
 		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
 	}
 
