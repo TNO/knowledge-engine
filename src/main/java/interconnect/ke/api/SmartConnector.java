@@ -258,6 +258,7 @@ public interface SmartConnector {
 	 * 
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
+
 	void stop();
 
 }

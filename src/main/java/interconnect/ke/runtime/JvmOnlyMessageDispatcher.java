@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import interconnect.ke.api.SmartConnector;
+import interconnect.ke.api.runtime.LocalSmartConnectorRegistry;
 import interconnect.ke.api.runtime.SmartConnectorRegistryListener;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
@@ -22,8 +22,11 @@ import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * This class is responsible for delivering messages between
- * {@link SmartConnectorImpl}s. THIS VERSION ONLY WORKS FOR THE JVM ONLY.
- * REPLACE FOR DISTRIBUTED VERSION OF KNOWLEDGE ENGINE. TODO
+ * {@link SmartConnectorImpl}s. Once constructed, it registers itself at the
+ * {@link LocalSmartConnectorRegistry} and at all the {@link SmartConnector}s.
+ * 
+ * THIS VERSION ONLY WORKS FOR THE JVM ONLY. REPLACE FOR DISTRIBUTED VERSION OF
+ * KNOWLEDGE ENGINE. TODO
  */
 public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener {
 
@@ -46,7 +49,7 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 			if (receiver == null) {
 				throw new IOException("There is no KnowledgeBase with ID " + message.getToKnowledgeBase());
 			} else {
-				JvmOnlyMessageDispatcher.this.executor.execute(() -> {
+				KeRuntime.executorService().execute(() -> {
 					if (message instanceof AnswerMessage) {
 						receiver.getEndpoint().handleAnswerMessage((AnswerMessage) message);
 					} else if (message instanceof AskMessage) {
@@ -68,10 +71,18 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	}
 
 	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
-	private ExecutorService executor = Executors.newFixedThreadPool(4);
 
-	public JvmOnlyMessageDispatcher() {
-		SmartConnectorRegistryImpl.getInstance().addListener(this);
+	/**
+	 * Constructor may only be called by {@link KeRuntime}
+	 */
+	JvmOnlyMessageDispatcher() {
+		KeRuntime.localSmartConnectorRegistry().addListener(this);
+
+		// Add all the smart connectors that already existed before we were registered
+		// as listener
+		for (SmartConnectorImpl sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
+			smartConnectorAdded(sc);
+		}
 	}
 
 	@Override
@@ -84,6 +95,10 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	@Override
 	public void smartConnectorRemoved(SmartConnectorImpl smartConnector) {
 		this.handlers.remove(smartConnector.getKnowledgeBaseId());
+	}
+
+	public void stop() {
+		KeRuntime.localSmartConnectorRegistry().removeListener(this);
 	}
 
 }

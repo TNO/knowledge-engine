@@ -27,7 +27,7 @@ import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
-import interconnect.ke.runtime.SmartConnectorRegistryImpl;
+import interconnect.ke.runtime.KeRuntime;
 
 /**
  * The {@link SmartConnectorImpl} is the main component of the KnowledgeEngine.
@@ -55,19 +55,23 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageDispatcherEndpoint messageDispatcherEndpoint;
 
+	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
+	private boolean smartConnectorReadyNotified = false;
+
 	/**
 	 * Create a {@link SmartConnectorImpl}
 	 * 
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
+
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
 		myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
 		reactiveInteractionProcessor = null; // TODO
 		this.otherKnowledgeBaseStore = null; // TODO
 		this.proactiveInteractionProcessor = new ProactiveInteractionProcessorImpl(this.otherKnowledgeBaseStore);
-		SmartConnectorRegistryImpl.getInstance().register(this);
+		KeRuntime.localSmartConnectorRegistry().register(this);
 	}
 
 	/**
@@ -354,7 +358,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 */
 	@Override
 	public void stop() {
-		SmartConnectorRegistryImpl.getInstance().unregister(this);
+		KeRuntime.localSmartConnectorRegistry().unregister(this);
 		this.myKnowledgeBase.smartConnectorStopped(this);
 	}
 
@@ -397,17 +401,30 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 	@Override
 	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+		assert this.messageDispatcherEndpoint == null : "messageDispatcher set while there already was one set";
+
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
 		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
-		this.myKnowledgeBase.smartConnectorReady(this); // TODO second time the MessageDispatcher is called, it should
-														// call the connectionRestored method.
+		// TODO it would be better to create a dedicated thread for the knowledgebase,
+		// instead of using the threadpool. When we use one thread for all interaction
+		// with the Knowledge Base, the Knowledge Base doesn't have to be threadsafe.
+		if (!smartConnectorReadyNotified) {
+			smartConnectorReadyNotified = true;
+			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
+		} else {
+			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
+		}
 
 	}
 
 	@Override
 	public void unsetMessageDispatcher() {
+		assert this.messageDispatcherEndpoint != null : "unsetMessageDispatcher called while there was no messageDisatcher set";
+
 		this.messageDispatcherEndpoint = null;
 		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+		// TODO see setMessageDispatcher
+		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
 	}
 
 }

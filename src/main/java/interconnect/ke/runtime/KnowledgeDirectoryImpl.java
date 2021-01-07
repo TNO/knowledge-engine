@@ -14,21 +14,15 @@ import interconnect.ke.sc.SmartConnectorImpl;
  */
 public class KnowledgeDirectoryImpl implements KnowledgeDirectory {
 
-	private static KnowledgeDirectoryImpl instance;
-
-	public static KnowledgeDirectoryImpl getInstance() {
-		if (instance == null) {
-			instance = new KnowledgeDirectoryImpl();
-		}
-		return instance;
-	}
-
-	private KnowledgeDirectoryImpl() {
+	/**
+	 * Constructor may only be called by {@link Runtime}
+	 */
+	KnowledgeDirectoryImpl() {
 	}
 
 	@Override
 	public Set<URI> getKnowledgeBaseIds() {
-		return SmartConnectorRegistryImpl.getInstance().getSmartConnectors().stream().map(sc -> sc.getKnowledgeBaseId())
+		return KeRuntime.localSmartConnectorRegistry().getSmartConnectors().stream().map(sc -> sc.getKnowledgeBaseId())
 				.collect(Collectors.toSet());
 	}
 

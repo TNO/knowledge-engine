@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import interconnect.ke.api.SmartConnector;
-import interconnect.ke.api.runtime.SmartConnectorRegistry;
+import interconnect.ke.api.runtime.LocalSmartConnectorRegistry;
 import interconnect.ke.api.runtime.SmartConnectorRegistryListener;
 import interconnect.ke.sc.SmartConnectorImpl;
 
@@ -17,21 +17,15 @@ import interconnect.ke.sc.SmartConnectorImpl;
  * Singleton object that keeps a reference to every SmartConnector object in
  * this JVM.
  */
-public class SmartConnectorRegistryImpl implements SmartConnectorRegistry {
-
-	public static SmartConnectorRegistry instance;
+public class LocalSmartConnectorRegistryImpl implements LocalSmartConnectorRegistry {
 
 	private Map<URI, SmartConnectorImpl> smartConnectors = new HashMap<>();
 	private List<SmartConnectorRegistryListener> listeners = new CopyOnWriteArrayList<>();
 
-	private SmartConnectorRegistryImpl() {
-	}
-
-	public static SmartConnectorRegistry getInstance() {
-		if (instance == null) {
-			instance = new SmartConnectorRegistryImpl();
-		}
-		return instance;
+	/**
+	 * Constructor may only be called by {@link KeRuntime}
+	 */
+	LocalSmartConnectorRegistryImpl() {
 	}
 
 	@Override

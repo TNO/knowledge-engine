@@ -21,7 +21,6 @@ import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.runtime.JvmOnlyMessageDispatcher;
 
 public class TestAskAnswer {
 
@@ -32,8 +31,6 @@ public class TestAskAnswer {
 
 	@Test
 	public void testAskAnswer() throws InterruptedException {
-
-		new JvmOnlyMessageDispatcher();
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
