@@ -39,6 +39,7 @@ public class ReactiveInteractionProcessorImpl implements ReactiveInteractionProc
 				// TODO: Ask MyMetaKnowledgeBase for the bindings.
 			} else {
 				var handler = myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+				// TODO This should happen in the single thread for the knowledge base
 				bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
 			}
 	
