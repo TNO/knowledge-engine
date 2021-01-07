@@ -1,11 +1,11 @@
 package interconnect.ke.api.runtime;
 
-import interconnect.ke.api.SmartConnector;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 public interface SmartConnectorRegistryListener {
 
-	void smartConnectorAdded(SmartConnector smartConnector);
+	void smartConnectorAdded(SmartConnectorImpl smartConnector);
 
-	void smartConnectorRemoved(SmartConnector smartConnector);
+	void smartConnectorRemoved(SmartConnectorImpl smartConnector);
 
 }

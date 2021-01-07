@@ -6,17 +6,19 @@ import java.net.URISyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import interconnect.ke.sc.SmartConnectorImpl;
+
 public class MockedKnowledgeBase implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MockedKnowledgeBase.class);
 
 	private SmartConnector sc;
 
-	private String name;
+	protected String name;
 
 	public MockedKnowledgeBase(String aName) {
 		this.name = aName;
-		this.sc = new SmartConnector(this);
+		this.sc = new SmartConnectorImpl(this);
 	}
 
 	public URI getKnowledgeBaseId() {
@@ -59,6 +61,10 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	public SmartConnector getSmartConnector() {
 		return sc;
+	}
+
+	public void stop() {
+		this.sc.stop();
 	}
 
 }

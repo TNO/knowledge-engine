@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 public class TestUtils {
 
@@ -34,7 +35,7 @@ public class TestUtils {
 	private static final String KE_PREFIX = "https://www.interconnectproject.eu/";
 
 	public static final SmartConnector getSmartConnector(final String aName) {
-		return new SmartConnector(new KnowledgeBase() {
+		return new SmartConnectorImpl(new KnowledgeBase() {
 
 			public URI getKnowledgeBaseId() {
 				URI uri = null;

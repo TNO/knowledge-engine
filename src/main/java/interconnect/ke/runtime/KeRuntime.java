@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import interconnect.ke.api.runtime.KnowledgeDirectory;
 import interconnect.ke.api.runtime.LocalSmartConnectorRegistry;
 
-public class Runtime {
+public class KeRuntime {
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
 	private static KnowledgeDirectory knowledgeDirectory = new KnowledgeDirectoryImpl();

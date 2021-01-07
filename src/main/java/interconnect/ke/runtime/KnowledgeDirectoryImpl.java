@@ -4,12 +4,12 @@ import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.runtime.KnowledgeDirectory;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * This is a KnowledgeDirectory implementation that only provides information
- * for {@link SmartConnector}s inside this JVM! NEEDS TO BE REPLACED ONCE WE
+ * for {@link SmartConnectorImpl}s inside this JVM! NEEDS TO BE REPLACED ONCE WE
  * SUPPORT DISTRIBUTED KNOWLEDGE ENGINES! TODO
  */
 public class KnowledgeDirectoryImpl implements KnowledgeDirectory {
@@ -22,8 +22,8 @@ public class KnowledgeDirectoryImpl implements KnowledgeDirectory {
 
 	@Override
 	public Set<URI> getKnowledgeBaseIds() {
-		return Runtime.localSmartConnectorRegistry().getSmartConnectors().stream()
-				.map(sc -> sc.getEndpoint().getKnowledgeBaseId()).collect(Collectors.toSet());
+		return KeRuntime.localSmartConnectorRegistry().getSmartConnectors().stream().map(sc -> sc.getKnowledgeBaseId())
+				.collect(Collectors.toSet());
 	}
 
 }
