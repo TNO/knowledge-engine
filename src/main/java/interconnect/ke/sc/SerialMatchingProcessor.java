@@ -1,11 +1,12 @@
 package interconnect.ke.sc;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,16 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 				if (ki instanceof AnswerKnowledgeInteraction) {
 					aKI = (AnswerKnowledgeInteraction) ki;
 					if (matches(myKnowledgeInteraction.getPattern(), aKI.getPattern())) {
-						AskMessage askMessage = new AskMessage(null, null, null, null, bindingSet);
+
+						// TODO temporarily create an uri because this is not present in the Interaction
+						// yet.
+						URI u = null;
+						try {
+							u = new URI("test");
+						} catch (URISyntaxException e1) {
+
+						}
+						AskMessage askMessage = new AskMessage(u, u, u, u, bindingSet);
 						try {
 							this.messageFuture = messageReplyTracker.sendAskMessage(askMessage);
 							this.messageFuture.thenAccept((aMessage) -> {
