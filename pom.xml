@@ -37,6 +37,13 @@
 			<version>3.17.0</version>
 			<type>pom</type>
 		</dependency>
+
+		<!-- graph algorithms -->
+		<dependency>
+			<groupId>org.jgrapht</groupId>
+			<artifactId>jgrapht-core</artifactId>
+			<version>1.5.0</version>
+		</dependency>
 	</dependencies>
 
 	<properties>
