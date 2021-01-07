@@ -13,6 +13,7 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.vocabulary.RDF;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import interconnect.ke.api.binding.BindingSet;
@@ -20,6 +21,9 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 public class TestRequestMetadata {
+	private static MockedKnowledgeBase kb1;
+	private static MockedKnowledgeBase kb2;
+
 	@Test
 	public void testRequestMetadata() throws InterruptedException {
 
@@ -30,8 +34,7 @@ public class TestRequestMetadata {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		// the knowledge base from who we want to retrieve the data.
-		KnowledgeBase kb1 = new MockedKnowledgeBase("kb1") {
+		kb1 = new MockedKnowledgeBase("kb1") {
 
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
@@ -42,8 +45,7 @@ public class TestRequestMetadata {
 			};
 		};
 
-		// the knowledge base who wants to retrieve the metadata of kb1.
-		KnowledgeBase kb2 = new MockedKnowledgeBase("kb2") {
+		kb2 = new MockedKnowledgeBase("kb2") {
 
 			private AskKnowledgeInteraction ki;
 
@@ -77,5 +79,18 @@ public class TestRequestMetadata {
 
 		int wait = 2;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
+
+	}
+
+	@AfterAll
+	public static void cleanup() {
+
+		if (kb1 != null) {
+			kb1.stop();
+		}
+
+		if (kb2 != null) {
+			kb2.stop();
+		}
 	}
 }

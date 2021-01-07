@@ -3,7 +3,7 @@ package interconnect.ke.api.interaction;
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.KnowledgeBase;
-import interconnect.ke.api.SmartConnector;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * An object of this class represents that the associated {@link KnowledgeBase}
@@ -11,7 +11,7 @@ import interconnect.ke.api.SmartConnector;
  * {@code pattern}.
  * 
  * In other words, the {@link KnowledgeBase} asks these kinds of questions to
- * its {@link SmartConnector}.
+ * its {@link SmartConnectorImpl}.
  */
 public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 

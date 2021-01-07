@@ -4,14 +4,15 @@ import java.net.URI;
 import java.util.Set;
 
 import interconnect.ke.api.SmartConnector;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 public interface SmartConnectorRegistry {
 
-	void register(SmartConnector smartConnector);
+	void register(SmartConnectorImpl smartConnector);
 
-	void unregister(SmartConnector smartConnector);
+	void unregister(SmartConnectorImpl smartConnector);
 
-	Set<SmartConnector> getSmartConnectors();
+	Set<SmartConnectorImpl> getSmartConnectors();
 
 	SmartConnector getSmartConnectorById(URI id);
 
