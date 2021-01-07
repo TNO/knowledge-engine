@@ -1,16 +1,74 @@
-package interconnect.ke.api;
+package interconnect.ke.sc;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import interconnect.ke.api.AnswerHandler;
+import interconnect.ke.api.AskResult;
+import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.KnowledgeBase;
+import interconnect.ke.api.PostResult;
+import interconnect.ke.api.ReactHandler;
+import interconnect.ke.api.RecipientSelector;
+import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
-import interconnect.ke.sc.SmartConnectorImpl;
+import interconnect.ke.messaging.AnswerMessage;
+import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.messaging.MessageDispatcherEndpoint;
+import interconnect.ke.messaging.PostMessage;
+import interconnect.ke.messaging.ReactMessage;
+import interconnect.ke.messaging.SmartConnectorEndpoint;
+import interconnect.ke.runtime.SmartConnectorRegistryImpl;
 
-public interface SmartConnector {
+/**
+ * The {@link SmartConnectorImpl} is the main component of the KnowledgeEngine.
+ * It's function is to facilitate the {@link KnowledgeBase} with interoperable
+ * data exchange with other {@link KnowledgeBase}s. This is done by registering
+ * four types of {@link KnowledgeInteraction}s beforehand that indicate the
+ * capabilities of the {@link KnowledgeBase}.
+ * 
+ * After registration the
+ * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)} and
+ * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)}
+ * methods can be used by the {@link KnowledgeBase} to proactively exchange
+ * data, while the {@link AnswerHandler} and {@link ReactHandler} are used to
+ * reactively exchange data.
+ */
+public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoint {
+
+	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorImpl.class);
+
+	private final KnowledgeBase myKnowledgeBase;
+	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	// private final MyMetaKnowledgeBase
+	private final ReactiveInteractionProcessor reactiveInteractionProcessor;
+	private final ProactiveInteractionProcessor proactiveInteractionProcessor;
+	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
+	private MessageDispatcherEndpoint messageDispatcherEndpoint;
+
+	/**
+	 * Create a {@link SmartConnectorImpl}
+	 * 
+	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
+	 *                       to.
+	 */
+	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
+		myKnowledgeBase = aKnowledgeBase;
+		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
+		reactiveInteractionProcessor = null; // TODO
+		this.otherKnowledgeBaseStore = null; // TODO
+		this.proactiveInteractionProcessor = new ProactiveInteractionProcessorImpl(this.otherKnowledgeBaseStore);
+		SmartConnectorRegistryImpl.getInstance().register(this);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -22,7 +80,10 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void register(AskKnowledgeInteraction anAskKI);
+	@Override
+	public void register(AskKnowledgeInteraction anAskKI) {
+		this.myKnowledgeBaseStore.register(anAskKI);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -34,7 +95,10 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void unregister(AskKnowledgeInteraction anAskKI);
+	@Override
+	public void unregister(AskKnowledgeInteraction anAskKI) {
+		this.myKnowledgeBaseStore.unregister(anAskKI);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -44,14 +108,17 @@ public interface SmartConnector {
 	 * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
 	 * 
-	 * @param anAnswerKI     The {@link AskKnowledgeInteraction} that the
-	 *                       {@link KnowledgeBase} wants to register with this
-	 *                       {@link SmartConnectorImpl}.
-	 * @param aAnswerHandler The {@link AnswerHandler} that will process and answer
-	 *                       an incoming question from another
-	 *                       {@link KnowledgeBase}.
+	 * @param anAnswerKI      The {@link AskKnowledgeInteraction} that the
+	 *                        {@link KnowledgeBase} wants to register with this
+	 *                        {@link SmartConnectorImpl}.
+	 * @param anAnswerHandler The {@link AnswerHandler} that will process and answer
+	 *                        an incoming question from another
+	 *                        {@link KnowledgeBase}.
 	 */
-	void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler);
+	@Override
+	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
+		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -63,7 +130,10 @@ public interface SmartConnector {
 	 *                   {@link KnowledgeBase} wants to unregister from this
 	 *                   {@link SmartConnectorImpl}.
 	 */
-	void unregister(AnswerKnowledgeInteraction anAnswerKI);
+	@Override
+	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
+		this.myKnowledgeBaseStore.unregister(anAnswerKI);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -75,7 +145,10 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void register(PostKnowledgeInteraction aPostKI);
+	@Override
+	public void register(PostKnowledgeInteraction aPostKI) {
+		this.myKnowledgeBaseStore.register(aPostKI);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -87,7 +160,10 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void unregister(PostKnowledgeInteraction aPostKI);
+	@Override
+	public void unregister(PostKnowledgeInteraction aPostKI) {
+		this.myKnowledgeBaseStore.unregister(aPostKI);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -97,13 +173,16 @@ public interface SmartConnector {
 	 * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
 	 * 
-	 * @param anReactKI     The {@link AskKnowledgeInteraction} that the
+	 * @param aReactKI      The {@link AskKnowledgeInteraction} that the
 	 *                      {@link KnowledgeBase} wants to register with this
 	 *                      {@link SmartConnectorImpl}.
 	 * @param aReactHandler The {@link AnswerHandler} that will process and answer
 	 *                      an incoming question from another {@link KnowledgeBase}.
 	 */
-	void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
+	@Override
+	public void register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
+		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler);
+	}
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -111,11 +190,14 @@ public interface SmartConnector {
 	 * that it no longer reacts to certain types of data. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
 	 * 
-	 * @param anReactKI The {@link ReactKnowledgeInteraction} that the
-	 *                  {@link KnowledgeBase} wants to unregister from this
-	 *                  {@link SmartConnectorImpl}.
+	 * @param aReactKI The {@link ReactKnowledgeInteraction} that the
+	 *                 {@link KnowledgeBase} wants to unregister from this
+	 *                 {@link SmartConnectorImpl}.
 	 */
-	void unregister(ReactKnowledgeInteraction anReactKI);
+	@Override
+	public void unregister(ReactKnowledgeInteraction aReactKI) {
+		this.myKnowledgeBaseStore.unregister(aReactKI);
+	}
 
 	/**
 	 * With this method a {@link KnowledgeBase} can ask a question to its
@@ -155,8 +237,11 @@ public interface SmartConnector {
 	 *         the future when the question is successfully processed by the
 	 *         {@link SmartConnectorImpl}.
 	 */
-	CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
-			BindingSet aBindingSet);
+	@Override
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
+			BindingSet aBindingSet) {
+		return this.proactiveInteractionProcessor.processAsk(anAKI, aSelector, aBindingSet);
+	}
 
 	/**
 	 * Performs an
@@ -170,7 +255,10 @@ public interface SmartConnector {
 	 * @see SmartConnectorImpl#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
 	 */
-	CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings);
+	@Override
+	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
+		return ask(ki, null, bindings);
+	}
 
 	/**
 	 * With this method a {@link KnowledgeBase} can post data to its
@@ -224,8 +312,11 @@ public interface SmartConnector {
 	 *         the future when the post is successfully processed by the
 	 *         {@link SmartConnectorImpl}.
 	 */
-	CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
-			BindingSet someArguments);
+	@Override
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+			BindingSet someArguments) {
+		return CompletableFuture.supplyAsync(() -> null);
+	}
 
 	/**
 	 * Performs an
@@ -238,7 +329,10 @@ public interface SmartConnector {
 	 * 
 	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
 	 */
-	CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument);
+	@Override
+	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
+		return post(ki, null, argument);
+	}
 
 	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is
@@ -258,6 +352,60 @@ public interface SmartConnector {
 	 * 
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
-	void stop();
+	@Override
+	public void stop() {
+		SmartConnectorRegistryImpl.getInstance().unregister(this);
+		this.myKnowledgeBase.smartConnectorStopped(this);
+	}
+
+	@Override
+	public URI getKnowledgeBaseId() {
+		return this.myKnowledgeBase.getKnowledgeBaseId();
+	}
+
+	@Override
+	public void handleAskMessage(AskMessage message) {
+		this.reactiveInteractionProcessor.processAsk(message).thenAccept((m) -> {
+			try {
+				this.messageDispatcherEndpoint.send(m);
+			} catch (IOException e) {
+				LOG.error("The message '" + m + "' should send correctly.", e);
+			}
+		});
+	}
+
+	@Override
+	public void handleAnswerMessage(AnswerMessage message) {
+		this.proactiveInteractionProcessor.handleAnswerMessage(message);
+	}
+
+	@Override
+	public void handlePostMessage(PostMessage message) {
+		this.reactiveInteractionProcessor.processPost(message).thenAccept((m) -> {
+			try {
+				this.messageDispatcherEndpoint.send(m);
+			} catch (IOException e) {
+				LOG.error("The message '" + m + "' should send correctly.", e);
+			}
+		});
+	}
+
+	@Override
+	public void handleReactMessage(ReactMessage message) {
+		this.proactiveInteractionProcessor.handleReactMessage(message);
+	}
+
+	@Override
+	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
+		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
+
+	}
+
+	@Override
+	public void unsetMessageDispatcher() {
+		this.messageDispatcherEndpoint = null;
+		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+	}
 
 }

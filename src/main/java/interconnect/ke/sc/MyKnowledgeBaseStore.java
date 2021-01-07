@@ -6,7 +6,6 @@ import java.util.Set;
 import interconnect.ke.api.AnswerHandler;
 import interconnect.ke.api.KnowledgeBase;
 import interconnect.ke.api.ReactHandler;
-import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
@@ -16,7 +15,7 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 /**
  * The MyKnowledgeBaseStore keeps tracks of the {@link KnowledgeInteraction}s
  * that are currently registered by the {@link KnowledgeBase} associated with
- * this {@link SmartConnector}.
+ * this {@link SmartConnectorImpl}.
  */
 public interface MyKnowledgeBaseStore {
 

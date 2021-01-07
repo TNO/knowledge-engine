@@ -2,13 +2,13 @@ package interconnect.ke.api.interaction;
 
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.KnowledgeBase;
-import interconnect.ke.api.SmartConnector;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
- * knowledge between the {@link SmartConnector} and the {@link KnowledgeBase}.
+ * knowledge between the {@link SmartConnectorImpl} and the {@link KnowledgeBase}.
  * It expresses the 'shape' of knowledge that a {@link KnowledgeBase} asks from,
- * or can provide to its {@link SmartConnector}.
+ * or can provide to its {@link SmartConnectorImpl}.
  */
 public abstract class KnowledgeInteraction {
 

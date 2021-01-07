@@ -14,4 +14,8 @@ public interface SmartConnectorEndpoint {
 
 	void handleReactMessage(ReactMessage message);
 
+	void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint);
+
+	void unsetMessageDispatcher();
+
 }

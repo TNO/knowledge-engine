@@ -7,12 +7,15 @@ import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.KnowledgeBase;
 import interconnect.ke.api.PostResult;
 import interconnect.ke.api.RecipientSelector;
-import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
+import interconnect.ke.messaging.AnswerMessage;
+import interconnect.ke.messaging.MessageDispatcherEndpoint;
+import interconnect.ke.messaging.ReactMessage;
 
 /**
  * Responsibilities:
@@ -55,6 +58,10 @@ public interface ProactiveInteractionProcessor {
 	CompletableFuture<AskResult> processAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet);
 
+	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint);
+
+	void unsetMessageDispatcherEndpoint();
+
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
 	 * 
@@ -75,4 +82,7 @@ public interface ProactiveInteractionProcessor {
 //	CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 //			BindingSet someArguments);
 
+	void handleAnswerMessage(AnswerMessage answerMessage);
+
+	void handleReactMessage(ReactMessage reactMessage);
 }
