@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.runtime.SmartConnectorRegistryListener;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
@@ -19,11 +18,12 @@ import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
+import interconnect.ke.sc.SmartConnectorImpl;
 
 /**
  * This class is responsible for delivering messages between
- * {@link SmartConnector}s. THIS VERSION ONLY WORKS FOR THE JVM ONLY. REPLACE
- * FOR DISTRIBUTED VERSION OF KNOWLEDGE ENGINE. TODO
+ * {@link SmartConnectorImpl}s. THIS VERSION ONLY WORKS FOR THE JVM ONLY.
+ * REPLACE FOR DISTRIBUTED VERSION OF KNOWLEDGE ENGINE. TODO
  */
 public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener {
 
@@ -35,6 +35,7 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 		public SmartConnectorHandler(SmartConnectorEndpoint sce) {
 			this.endpoint = sce;
+			this.endpoint.setMessageDispatcher(this);
 		}
 
 		@Override
@@ -69,16 +70,20 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
 	private ExecutorService executor = Executors.newFixedThreadPool(4);
 
+	public JvmOnlyMessageDispatcher() {
+		SmartConnectorRegistryImpl.getInstance().addListener(this);
+	}
+
 	@Override
-	public void smartConnectorAdded(SmartConnector smartConnector) {
+	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
 		// Create a new SmartConnectorHandler and attach it
-		SmartConnectorEndpoint endpoint = smartConnector.getEndpoint();
+		SmartConnectorEndpoint endpoint = smartConnector;
 		this.handlers.put(endpoint.getKnowledgeBaseId(), new SmartConnectorHandler(endpoint));
 	}
 
 	@Override
-	public void smartConnectorRemoved(SmartConnector smartConnector) {
-		this.handlers.remove(smartConnector.getEndpoint().getKnowledgeBaseId());
+	public void smartConnectorRemoved(SmartConnectorImpl smartConnector) {
+		this.handlers.remove(smartConnector.getKnowledgeBaseId());
 	}
 
 }

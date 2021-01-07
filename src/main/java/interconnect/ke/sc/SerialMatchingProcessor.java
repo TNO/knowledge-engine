@@ -45,8 +45,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		resultFuture = new CompletableFuture<AskResult>();
 		checkOtherKnowledgeInteraction(bindingSet);
 		return resultFuture;
-		
-		
+
 	}
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {

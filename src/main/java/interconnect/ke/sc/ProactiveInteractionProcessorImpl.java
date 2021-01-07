@@ -14,6 +14,9 @@ import interconnect.ke.api.RecipientSelector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
+import interconnect.ke.messaging.AnswerMessage;
+import interconnect.ke.messaging.MessageDispatcherEndpoint;
+import interconnect.ke.messaging.ReactMessage;
 
 public class ProactiveInteractionProcessorImpl implements ProactiveInteractionProcessor {
 
@@ -22,11 +25,13 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageReplyTracker messageReplyTracker;
 
-	public ProactiveInteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore,
-			MessageReplyTracker messageReplyTracker) {
+	private MessageDispatcherEndpoint messageDispatcherEndpoint;
+
+	public ProactiveInteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
 		super();
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
-		this.messageReplyTracker = messageReplyTracker;
+		this.setMessageDispatcherEndpoint(messageDispatcherEndpoint);
+		this.messageReplyTracker = new MessageReplyTracker(this.messageDispatcherEndpoint);
 	}
 
 	@Override
@@ -60,6 +65,27 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 		CompletableFuture<AskResult> future = processor.processInteraction(anAKI, aBindingSet);
 
 		return future;
+	}
+
+	@Override
+	public void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
+	}
+
+	@Override
+	public void unsetMessageDispatcherEndpoint() {
+		this.messageDispatcherEndpoint = null;
+	}
+
+	@Override
+	public void handleAnswerMessage(AnswerMessage answerMessage) {
+		this.messageReplyTracker.handleAnswerMessage(answerMessage);
+
+	}
+
+	@Override
+	public void handleReactMessage(ReactMessage reactMessage) {
+		this.messageReplyTracker.handleReactMessage(reactMessage);
 	}
 
 }
