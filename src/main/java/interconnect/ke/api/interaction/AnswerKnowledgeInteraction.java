@@ -10,8 +10,8 @@ import interconnect.ke.api.SmartConnector;
  * can provide data that matches the configured {@link GraphPattern}
  * {@code pattern}.
  * 
- * In other words, the {@link KnowledgeBase} can answer those kinds of
- * questions for its {@link SmartConnector}.
+ * In other words, the {@link KnowledgeBase} can answer those kinds of questions
+ * for its {@link SmartConnector}.
  */
 public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 

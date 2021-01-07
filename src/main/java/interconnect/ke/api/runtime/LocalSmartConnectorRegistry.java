@@ -5,7 +5,7 @@ import java.util.Set;
 
 import interconnect.ke.api.SmartConnector;
 
-public interface SmartConnectorRegistry {
+public interface LocalSmartConnectorRegistry {
 
 	void register(SmartConnector smartConnector);
 

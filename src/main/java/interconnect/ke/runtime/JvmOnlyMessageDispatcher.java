@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +43,7 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 			if (receiver == null) {
 				throw new IOException("There is no KnowledgeBase with ID " + message.getToKnowledgeBase());
 			} else {
-				JvmOnlyMessageDispatcher.this.executor.execute(() -> {
+				Runtime.executorService().execute(() -> {
 					if (message instanceof AnswerMessage) {
 						receiver.getEndpoint().handleAnswerMessage((AnswerMessage) message);
 					} else if (message instanceof AskMessage) {
@@ -67,7 +65,13 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	}
 
 	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
-	private ExecutorService executor = Executors.newFixedThreadPool(4);
+
+	/**
+	 * Constructor may only be called by {@link Runtime}
+	 */
+	JvmOnlyMessageDispatcher() {
+		Runtime.localSmartConnectorRegistry().addListener(this);
+	}
 
 	@Override
 	public void smartConnectorAdded(SmartConnector smartConnector) {
@@ -79,6 +83,10 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	@Override
 	public void smartConnectorRemoved(SmartConnector smartConnector) {
 		this.handlers.remove(smartConnector.getEndpoint().getKnowledgeBaseId());
+	}
+
+	public void stop() {
+		Runtime.localSmartConnectorRegistry().removeListener(this);
 	}
 
 }
