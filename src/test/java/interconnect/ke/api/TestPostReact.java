@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import interconnect.ke.api.binding.Binding;
@@ -19,6 +20,9 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 
 public class TestPostReact {
+	private static MockedKnowledgeBase kb1;
+	private static MockedKnowledgeBase kb2;
+
 	@Test
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
@@ -29,9 +33,9 @@ public class TestPostReact {
 		final CountDownLatch kb2Initialized = new CountDownLatch(1);
 		final CountDownLatch kb2ReceivedKnowledge = new CountDownLatch(1);
 
-		// the knowledge base that posts the data.
-		KnowledgeBase kb1 = new MockedKnowledgeBase("kb1") {
+		kb1 = new MockedKnowledgeBase("kb1") {
 			private PostKnowledgeInteraction ki;
+
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
@@ -55,13 +59,12 @@ public class TestPostReact {
 				binding.put("a", "<https://www.tno.nl/example/a>");
 				binding.put("c", "<https://www.tno.nl/example/c>");
 				bindingSet.add(binding);
-				
+
 				this.getSmartConnector().post(ki, bindingSet);
 			}
 		};
 
-		// the knowledge base that receives the data
-		KnowledgeBase kb2 = new MockedKnowledgeBase("kb2") {
+		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
@@ -72,10 +75,10 @@ public class TestPostReact {
 					public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
 						Iterator<Binding> iter = argument.iterator();
 						Binding b = iter.next();
-						
+
 						assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
 						assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
-						
+
 						assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
 						// Complete the latch to make the test pass.
@@ -87,6 +90,24 @@ public class TestPostReact {
 			};
 		};
 
-		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
+		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
+				"Should execute the tests within " + wait + " seconds.");
+
+		kb1.stop();
+		kb2.stop();
+
 	}
+
+	@AfterAll
+	public static void cleanup() {
+
+		if (kb1 != null) {
+			kb1.stop();
+		}
+
+		if (kb2 != null) {
+			kb2.stop();
+		}
+	}
+
 }

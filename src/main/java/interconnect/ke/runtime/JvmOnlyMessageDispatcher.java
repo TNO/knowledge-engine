@@ -70,6 +70,10 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
 	private ExecutorService executor = Executors.newFixedThreadPool(4);
 
+	public JvmOnlyMessageDispatcher() {
+		SmartConnectorRegistryImpl.getInstance().addListener(this);
+	}
+
 	@Override
 	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
 		// Create a new SmartConnectorHandler and attach it

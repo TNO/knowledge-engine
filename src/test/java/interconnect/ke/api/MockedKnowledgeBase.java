@@ -63,4 +63,8 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		return sc;
 	}
 
+	public void stop() {
+		this.sc.stop();
+	}
+
 }

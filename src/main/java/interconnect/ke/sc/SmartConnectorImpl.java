@@ -399,6 +399,8 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
 		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
+		this.myKnowledgeBase.smartConnectorReady(this); // TODO second time the MessageDispatcher is called, it should
+														// call the connectionRestored method.
 
 	}
 
