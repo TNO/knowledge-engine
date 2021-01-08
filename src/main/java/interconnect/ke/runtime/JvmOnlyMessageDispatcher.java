@@ -68,6 +68,10 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 		public SmartConnectorEndpoint getEndpoint() {
 			return this.endpoint;
 		}
+
+		public void close() {
+			this.endpoint.unsetMessageDispatcher();
+		}
 	}
 
 	private final Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
@@ -94,11 +98,14 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 	@Override
 	public void smartConnectorRemoved(SmartConnectorImpl smartConnector) {
-		this.handlers.remove(smartConnector.getKnowledgeBaseId());
+		SmartConnectorHandler handler = this.handlers.remove(smartConnector.getKnowledgeBaseId());
+		handler.close();
 	}
 
 	public void stop() {
 		KeRuntime.localSmartConnectorRegistry().removeListener(this);
+		this.handlers.values().forEach(SmartConnectorHandler::close);
+		this.handlers.clear();
 	}
 
 }
