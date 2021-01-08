@@ -45,9 +45,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final GraphPattern metaGraphPattern;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
 
-	public MetaKnowledgeBaseImpl(URI myKnowledgeBaseId, MessageRouter aMessageRouter,
+	public MetaKnowledgeBaseImpl(MessageRouter aMessageRouter,
 			MyKnowledgeBaseStore aKnowledgeBaseStore) {
-		this.myKnowledgeBaseId = myKnowledgeBaseId;
+		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();
 		this.messageRouter = aMessageRouter;
 		this.myKnowledgeBaseStore = aKnowledgeBaseStore;
 
