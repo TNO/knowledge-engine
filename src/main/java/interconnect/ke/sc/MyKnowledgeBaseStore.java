@@ -19,6 +19,21 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
  */
 public interface MyKnowledgeBaseStore {
 
+	/**
+	 * @return Globally unique identifier for this knowledge base.
+	 */
+	URI getKnowledgeBaseId();
+
+	/**
+	 * @return Human-friendly name of this knowledge base.
+	 */
+	String getKnowledgeBaseName();
+
+	/**
+	 * @return A short description of this knowledge base.
+	 */
+	String getKnowledgeBaseDescription();
+
 	MyKnowledgeInteractionInfo getKnowledgeInteractionById(URI id);
 
 	Set<MyKnowledgeInteractionInfo> getKnowledgeInteractions();

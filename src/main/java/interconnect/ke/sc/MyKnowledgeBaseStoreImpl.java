@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.AnswerHandler;
+import interconnect.ke.api.KnowledgeBase;
 import interconnect.ke.api.ReactHandler;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
@@ -27,17 +28,18 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MyKnowledgeBaseStoreImpl.class);
 
-	private URI knowledgeBaseId;
-	private Map<URI, MyKnowledgeInteractionInfo> kiis = new ConcurrentHashMap<>();
-	private List<MyKnowledgeBaseStoreListener> listeners = new CopyOnWriteArrayList<>();
+	private final KnowledgeBase knowledgeBase;
+	private final Map<URI, MyKnowledgeInteractionInfo> kiis = new ConcurrentHashMap<>();
+	private final List<MyKnowledgeBaseStoreListener> listeners = new CopyOnWriteArrayList<>();
 
-	public MyKnowledgeBaseStoreImpl(URI knowledgeBaseId) {
-		this.knowledgeBaseId = knowledgeBaseId;
+	public MyKnowledgeBaseStoreImpl(KnowledgeBase knowledgeBase) {
+		this.knowledgeBase = knowledgeBase;
 	}
 
 	private URI generateId(KnowledgeInteraction anAskKI) {
 		try {
-			return new URI(knowledgeBaseId.toString() + "/interaction/" + UUID.randomUUID().toString());
+			return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
+					+ UUID.randomUUID().toString());
 		} catch (URISyntaxException e) {
 			// This should not happen in knowledgeBaseId is correct
 			assert false : "Could not generate URI for KnowledeInteraction";
@@ -46,38 +48,53 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	}
 
 	@Override
+	public URI getKnowledgeBaseId() {
+		return this.knowledgeBase.getKnowledgeBaseId();
+	}
+
+	@Override
+	public String getKnowledgeBaseName() {
+		return this.knowledgeBase.getKnowledgeBaseName();
+	}
+
+	@Override
+	public String getKnowledgeBaseDescription() {
+		return this.knowledgeBase.getKnowledgeBaseDescription();
+	}
+
+	@Override
 	public MyKnowledgeInteractionInfo getKnowledgeInteractionById(URI id) {
-		return kiis.get(id);
+		return this.kiis.get(id);
 	}
 
 	@Override
 	public Set<MyKnowledgeInteractionInfo> getKnowledgeInteractions() {
-		return new HashSet<>(kiis.values());
+		return new HashSet<>(this.kiis.values());
 	}
 
 	@Override
 	public Set<MyKnowledgeInteractionInfo> getAskKnowledgeInteractions() {
-		return kiis.values().stream().filter(ki -> ki.getType() == Type.ASK).collect(Collectors.toSet());
+		return this.kiis.values().stream().filter(ki -> ki.getType() == Type.ASK).collect(Collectors.toSet());
 	}
 
 	@Override
 	public Set<MyKnowledgeInteractionInfo> getAnswerKnowledgeInteractions() {
-		return kiis.values().stream().filter(ki -> ki.getType() == Type.ANSWER).collect(Collectors.toSet());
+		return this.kiis.values().stream().filter(ki -> ki.getType() == Type.ANSWER).collect(Collectors.toSet());
 	}
 
 	@Override
 	public Set<MyKnowledgeInteractionInfo> getPostKnowledgeInteractions() {
-		return kiis.values().stream().filter(ki -> ki.getType() == Type.POST).collect(Collectors.toSet());
+		return this.kiis.values().stream().filter(ki -> ki.getType() == Type.POST).collect(Collectors.toSet());
 	}
 
 	@Override
 	public Set<MyKnowledgeInteractionInfo> getReactKnowledgeInteractions() {
-		return kiis.values().stream().filter(ki -> ki.getType() == Type.REACT).collect(Collectors.toSet());
+		return this.kiis.values().stream().filter(ki -> ki.getType() == Type.REACT).collect(Collectors.toSet());
 	}
 
 	@Override
 	public AnswerHandler getAnswerHandler(URI anAnswerKiId) {
-		MyKnowledgeInteractionInfo info = kiis.get(anAnswerKiId);
+		MyKnowledgeInteractionInfo info = this.kiis.get(anAnswerKiId);
 		if (info == null) {
 			return null;
 		} else {
@@ -87,7 +104,7 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 
 	@Override
 	public ReactHandler getReactHandler(URI anReactKiId) {
-		MyKnowledgeInteractionInfo info = kiis.get(anReactKiId);
+		MyKnowledgeInteractionInfo info = this.kiis.get(anReactKiId);
 		if (info == null) {
 			return null;
 		} else {
@@ -97,83 +114,83 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 
 	@Override
 	public void addListener(MyKnowledgeBaseStoreListener listener) {
-		listeners.add(listener);
+		this.listeners.add(listener);
 	}
 
 	@Override
 	public void removeListener(MyKnowledgeBaseStoreListener listener) {
-		listeners.remove(listener);
+		this.listeners.remove(listener);
 	}
 
 	@Override
 	public URI register(AskKnowledgeInteraction anAskKI) {
-		URI id = generateId(anAskKI);
+		URI id = this.generateId(anAskKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anAskKI, null, null);
-		kiis.put(id, kii);
-		listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
+		this.kiis.put(id, kii);
+		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
 
 	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
-		kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anAskKI).findFirst()
-				.ifPresent((e) -> {
-					kiis.remove(e.getKey());
-					listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
+		this.kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anAskKI).findFirst()
+				.ifPresent(e -> {
+					this.kiis.remove(e.getKey());
+					this.listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
 				});
 	}
 
 	@Override
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
-		URI id = generateId(anAnswerKI);
+		URI id = this.generateId(anAnswerKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anAnswerKI, anAnswerHandler, null);
-		kiis.put(id, kii);
-		listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
+		this.kiis.put(id, kii);
+		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
 
 	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
-		kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anAnswerKI).findFirst()
-				.ifPresent((e) -> {
-					kiis.remove(e.getKey());
-					listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
+		this.kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anAnswerKI).findFirst()
+				.ifPresent(e -> {
+					this.kiis.remove(e.getKey());
+					this.listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
 				});
 	}
 
 	@Override
 	public URI register(PostKnowledgeInteraction aPostKI) {
-		URI id = generateId(aPostKI);
+		URI id = this.generateId(aPostKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, aPostKI, null, null);
-		kiis.put(id, kii);
-		listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
+		this.kiis.put(id, kii);
+		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
 
 	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
-		kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == aPostKI).findFirst()
-				.ifPresent((e) -> {
-					kiis.remove(e.getKey());
-					listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
+		this.kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == aPostKI).findFirst()
+				.ifPresent(e -> {
+					this.kiis.remove(e.getKey());
+					this.listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
 				});
 	}
 
 	@Override
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
-		URI id = generateId(anReactKI);
+		URI id = this.generateId(anReactKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anReactKI, null, aReactHandler);
-		kiis.put(id, kii);
-		listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
+		this.kiis.put(id, kii);
+		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
 
 	@Override
 	public void unregister(ReactKnowledgeInteraction anReactKI) {
-		kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anReactKI).findFirst()
-				.ifPresent((e) -> {
-					kiis.remove(e.getKey());
-					listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
+		this.kiis.entrySet().stream().filter(e -> e.getValue().getKnowledgeInteraction() == anReactKI).findFirst()
+				.ifPresent(e -> {
+					this.kiis.remove(e.getKey());
+					this.listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
 				});
 	}
 

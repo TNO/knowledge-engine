@@ -11,7 +11,7 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 public class MyKnowledgeInteractionInfo {
 
-	public static enum Type {
+	public enum Type {
 		ASK, ANSWER, POST, REACT
 	}
 
@@ -39,52 +39,60 @@ public class MyKnowledgeInteractionInfo {
 		this.reactHandler = reactHandler;
 
 		// validation
-		switch (type) {
+		switch (this.type) {
 		case ANSWER:
-			if (answerHandler == null)
+			if (answerHandler == null) {
 				throw new IllegalArgumentException("answerHandler cannot be null");
-			if (reactHandler != null)
+			}
+			if (reactHandler != null) {
 				throw new IllegalArgumentException("reactHandler must be null");
+			}
 			break;
 		case ASK:
-			if (answerHandler != null)
+			if (answerHandler != null) {
 				throw new IllegalArgumentException("answerHandler must be null");
-			if (reactHandler != null)
+			}
+			if (reactHandler != null) {
 				throw new IllegalArgumentException("reactHandler must be null");
+			}
 			break;
 		case POST:
-			if (answerHandler != null)
+			if (answerHandler != null) {
 				throw new IllegalArgumentException("answerHandler must be null");
-			if (reactHandler != null)
+			}
+			if (reactHandler != null) {
 				throw new IllegalArgumentException("reactHandler must be null");
+			}
 			break;
 		case REACT:
-			if (answerHandler != null)
+			if (answerHandler != null) {
 				throw new IllegalArgumentException("answerHandler must be null");
-			if (reactHandler == null)
+			}
+			if (reactHandler == null) {
 				throw new IllegalArgumentException("reactHandler cannot be null");
+			}
 			break;
 		}
 	}
 
 	public URI getId() {
-		return id;
+		return this.id;
 	}
 
 	public MyKnowledgeInteractionInfo.Type getType() {
-		return type;
+		return this.type;
 	}
 
 	public KnowledgeInteraction getKnowledgeInteraction() {
-		return knowledgeInteraction;
+		return this.knowledgeInteraction;
 	}
 
 	public AnswerHandler getAnswerHandler() {
-		return answerHandler;
+		return this.answerHandler;
 	}
 
 	public ReactHandler getReactHandler() {
-		return reactHandler;
+		return this.reactHandler;
 	}
 
 }
