@@ -14,7 +14,8 @@ import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
-import interconnect.ke.messaging.MessageDispatcherEndpoint;
+import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 
 /**
@@ -40,7 +41,7 @@ public interface ProactiveInteractionProcessor {
 
 	/**
 	 * Process an {@link AskKnowledgeInteraction} from MyKnowledgeBase.
-	 * 
+	 *
 	 * @param anAKI       The {@link AskKnowledgeInteraction} to process.
 	 * @param aSelector   The {@link RecipientSelector} to limit the
 	 *                    OtherKnowledgeBases who's
@@ -55,16 +56,12 @@ public interface ProactiveInteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link AskResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<AskResult> processAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
+	CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet);
-
-	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint);
-
-	void unsetMessageDispatcherEndpoint();
 
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
-	 * 
+	 *
 	 * @param aPKI          The {@link PostKnowledgeInteraction} to process.
 	 * @param aSelector     The {@link RecipientSelector} to limit the
 	 *                      OtherKnowledgeBases who's
@@ -79,10 +76,11 @@ public interface ProactiveInteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-//	CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+//	CompletableFuture<PostResult> processPostFromKnowledgeBase(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 //			BindingSet someArguments);
 
-	void handleAnswerMessage(AnswerMessage answerMessage);
+	CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage askMessage);
 
-	void handleReactMessage(ReactMessage reactMessage);
+	CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage postMessage);
+
 }

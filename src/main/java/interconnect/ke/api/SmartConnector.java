@@ -1,5 +1,6 @@
 package interconnect.ke.api;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import interconnect.ke.api.binding.BindingSet;
@@ -12,12 +13,14 @@ import interconnect.ke.sc.SmartConnectorImpl;
 
 public interface SmartConnector {
 
+	URI getKnowledgeBaseId();
+
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will ask certain types of questions for which it would like an
 	 * answer. This allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAskKI The {@link AskKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
@@ -29,7 +32,7 @@ public interface SmartConnector {
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer will ask certain types of questions. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAskKI The {@link AskKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
@@ -43,7 +46,7 @@ public interface SmartConnector {
 	 * {@link KnowledgeBase}s would like to
 	 * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAnswerKI     The {@link AskKnowledgeInteraction} that the
 	 *                       {@link KnowledgeBase} wants to register with this
 	 *                       {@link SmartConnectorImpl}.
@@ -58,7 +61,7 @@ public interface SmartConnector {
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer answers certain types of questions. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAnswerKI The {@link AswerKnowledgeInteraction} that the
 	 *                   {@link KnowledgeBase} wants to unregister from this
 	 *                   {@link SmartConnectorImpl}.
@@ -70,7 +73,7 @@ public interface SmartConnector {
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will post certain type of data in which other {@link KnowledgeBase}s
 	 * might want to react. This allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aPostKI The {@link PostKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
@@ -82,7 +85,7 @@ public interface SmartConnector {
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will no longer post certain types of data. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aPostKI The {@link PostKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
@@ -96,7 +99,7 @@ public interface SmartConnector {
 	 * {@link KnowledgeBase}s will
 	 * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anReactKI     The {@link AskKnowledgeInteraction} that the
 	 *                      {@link KnowledgeBase} wants to register with this
 	 *                      {@link SmartConnectorImpl}.
@@ -110,7 +113,7 @@ public interface SmartConnector {
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer reacts to certain types of data. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anReactKI The {@link ReactKnowledgeInteraction} that the
 	 *                  {@link KnowledgeBase} wants to unregister from this
 	 *                  {@link SmartConnectorImpl}.
@@ -127,16 +130,16 @@ public interface SmartConnector {
 	 * {@link AnswerKnowledgeInteraction}'s {@link AnswerHandler} triggered. If
 	 * there are multiple matching {@link KnowledgeBase}s this
 	 * {@link SmartConnectorImpl} will combine their results.
-	 * 
+	 *
 	 * Using the {@link BindingSet} argument the caller can limit the question being
 	 * asked by providing one or more allowed values for the answers to certain
 	 * variables in the {@link GraphPattern} of the {@link AskKnowledgeInteraction}.
 	 * Note that the different bindings in the set form a disjunction.
-	 * 
+	 *
 	 * This method is asynchronous (and uses {@link CompletableFuture}s) because
 	 * depending on the nature of the question and the availability of the answer it
 	 * might take a while.
-	 * 
+	 *
 	 * @param anAKI       The given {@link AskKnowledgeInteraction} should be
 	 *                    registered with the {@link SmartConnectorImpl} via the
 	 *                    {@link #register(AskKnowledgeInteraction)} method.
@@ -166,7 +169,7 @@ public interface SmartConnector {
 	 * allowed to answer the question being asked. This is the most interoperable
 	 * way in using the {@link SmartConnectorImpl}, because it allows any compatible
 	 * {@link KnowledgeBase} to join the data exchange.
-	 * 
+	 *
 	 * @see SmartConnectorImpl#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
 	 */
@@ -182,30 +185,30 @@ public interface SmartConnector {
 	 * {@link ReactKnowledgeInteraction}'s {@link ReactHandler} triggered. If there
 	 * are multiple matching {@link KnowledgeBase}s this {@link SmartConnectorImpl}
 	 * will allow all of them to react.
-	 * 
+	 *
 	 * This type of interaction can be used to make interoperable publish/subscribe
 	 * like mechanisms where the post is the publish and the react (without a
 	 * {@code result} {@link GraphPattern}) is an on_message method.
-	 * 
+	 *
 	 * Also, this type of interaction can be used to make an interoperable function.
 	 * The {@link PostKnowledgeInteraction} being the one who calls the function
 	 * (with the argument {@link GraphPattern} being the input parameters) and the
 	 * {@link ReactKnowledgeInteraction} is the one who represents actual function
 	 * implementation and provides a result (with result {@link GraphPattern} being
 	 * the return value).
-	 * 
+	 *
 	 * Note that depending on whether the {@link ReactKnowledgeInteraction} being
 	 * used has defined a {@code result} {@link GraphPattern}, there either is or is
 	 * no data being returned.
-	 * 
+	 *
 	 * Using the {@link BindingSet} argument the caller should provide the actual
 	 * data by providing one or more values for all the variables in the argument
 	 * {@link GraphPattern} of the {@link PostKnowledgeInteraction}.
-	 * 
+	 *
 	 * This method is asynchronous (and uses {@link CompletableFuture}s) because
 	 * depending on the nature of the post and the availability of results it might
 	 * take a while.
-	 * 
+	 *
 	 * @param aPKI          The given {@link AskKnowledgeInteraction} should be
 	 *                      registered with the {@link SmartConnectorImpl} via the
 	 *                      {@link #register(AskKnowledgeInteraction)} method.
@@ -235,7 +238,7 @@ public interface SmartConnector {
 	 * allowed to answer the question being asked. This is the most interoperable
 	 * way in using the {@link SmartConnectorImpl}, because it allows any compatible
 	 * {@link KnowledgeBase} to join the data exchange.
-	 * 
+	 *
 	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
 	 */
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument);
@@ -245,17 +248,17 @@ public interface SmartConnector {
 	 * asynchronous and will call
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} when this
 	 * smart connector has successfully stopped.
-	 * 
+	 *
 	 * After it has stopped, the {@link SmartConnectorImpl} can no longer be used by
 	 * its {@link KnowledgeBase} to exchange data and the {@link KnowledgeBase}
 	 * itself is no longer available to other {@link KnowledgeBase} for
 	 * interoperable data exchange.
-	 * 
+	 *
 	 * Between calling this method and having the
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} method
 	 * called, its methods should not be called and the behaviour of the
 	 * {@link SmartConnectorImpl} is unpredictable.
-	 * 
+	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
 

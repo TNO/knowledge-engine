@@ -24,7 +24,7 @@ import interconnect.ke.sc.SmartConnectorImpl;
  * This class is responsible for delivering messages between
  * {@link SmartConnectorImpl}s. Once constructed, it registers itself at the
  * {@link LocalSmartConnectorRegistry} and at all the {@link SmartConnector}s.
- * 
+ *
  * THIS VERSION ONLY WORKS FOR THE JVM ONLY. REPLACE FOR DISTRIBUTED VERSION OF
  * KNOWLEDGE ENGINE. TODO
  */
@@ -34,7 +34,7 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 	private class SmartConnectorHandler implements MessageDispatcherEndpoint {
 
-		private SmartConnectorEndpoint endpoint;
+		private final SmartConnectorEndpoint endpoint;
 
 		public SmartConnectorHandler(SmartConnectorEndpoint sce) {
 			this.endpoint = sce;
@@ -66,11 +66,11 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 		}
 
 		public SmartConnectorEndpoint getEndpoint() {
-			return endpoint;
+			return this.endpoint;
 		}
 	}
 
-	private Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
+	private final Map<URI, SmartConnectorHandler> handlers = new HashMap<>();
 
 	/**
 	 * Constructor may only be called by {@link KeRuntime}
@@ -81,14 +81,14 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 		// Add all the smart connectors that already existed before we were registered
 		// as listener
 		for (SmartConnectorImpl sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
-			smartConnectorAdded(sc);
+			this.smartConnectorAdded(sc);
 		}
 	}
 
 	@Override
 	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
 		// Create a new SmartConnectorHandler and attach it
-		SmartConnectorEndpoint endpoint = smartConnector;
+		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
 		this.handlers.put(endpoint.getKnowledgeBaseId(), new SmartConnectorHandler(endpoint));
 	}
 
