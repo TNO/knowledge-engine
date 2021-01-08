@@ -32,7 +32,7 @@ import interconnect.ke.messaging.MessageDispatcherEndpoint;
 
 public class ProactiveInteractionProcessorImplTest {
 
-	private ProactiveInteractionProcessor interactionProcessor = null;
+	private InteractionProcessor interactionProcessor = null;
 	private MessageDispatcherEndpoint dispatcher = null;
 
 	private URI knowledgeBaseId1 = null;
@@ -51,7 +51,7 @@ public class ProactiveInteractionProcessorImplTest {
 	@BeforeEach
 	void setUp() throws Exception {
 
-		interactionProcessor = new ProactiveInteractionProcessorImpl(new TestOtherKnowledgeBaseStore());
+		interactionProcessor = new InteractionProcessorImpl(new TestOtherKnowledgeBaseStore());
 		this.dispatcher = new TestMessageDispatcherEndpoint(this.interactionProcessor);
 		interactionProcessor.setMessageDispatcherEndpoint(this.dispatcher);
 
@@ -131,9 +131,9 @@ public class ProactiveInteractionProcessorImplTest {
 	class TestMessageDispatcherEndpoint implements MessageDispatcherEndpoint {
 
 		private ExecutorService executor = Executors.newFixedThreadPool(1);
-		private ProactiveInteractionProcessor processor = null;
+		private InteractionProcessor processor = null;
 
-		public TestMessageDispatcherEndpoint(ProactiveInteractionProcessor processor) {
+		public TestMessageDispatcherEndpoint(InteractionProcessor processor) {
 			this.processor = processor;
 		}
 

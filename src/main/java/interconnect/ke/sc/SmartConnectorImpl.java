@@ -50,8 +50,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
 	// private final MyMetaKnowledgeBase
-	private final ReactiveInteractionProcessor reactiveInteractionProcessor;
-	private final ProactiveInteractionProcessor proactiveInteractionProcessor;
+	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageDispatcherEndpoint messageDispatcherEndpoint;
 
@@ -68,9 +67,8 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
 		myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
-		reactiveInteractionProcessor = null; // TODO
 		this.otherKnowledgeBaseStore = null; // TODO
-		this.proactiveInteractionProcessor = new ProactiveInteractionProcessorImpl(this.otherKnowledgeBaseStore);
+		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
 		KeRuntime.localSmartConnectorRegistry().register(this);
 	}
 
@@ -244,7 +242,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
-		return this.proactiveInteractionProcessor.processAsk(anAKI, aSelector, aBindingSet);
+		return this.interactionProcessor.processAsk(anAKI, aSelector, aBindingSet);
 	}
 
 	/**
@@ -369,7 +367,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 	@Override
 	public void handleAskMessage(AskMessage message) {
-		this.reactiveInteractionProcessor.processAsk(message).thenAccept((m) -> {
+		this.interactionProcessor.processAsk(message).thenAccept((m) -> {
 			try {
 				this.messageDispatcherEndpoint.send(m);
 			} catch (IOException e) {
@@ -380,12 +378,12 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 	@Override
 	public void handleAnswerMessage(AnswerMessage message) {
-		this.proactiveInteractionProcessor.handleAnswerMessage(message);
+		this.interactionProcessor.handleAnswerMessage(message);
 	}
 
 	@Override
 	public void handlePostMessage(PostMessage message) {
-		this.reactiveInteractionProcessor.processPost(message).thenAccept((m) -> {
+		this.interactionProcessor.processPost(message).thenAccept((m) -> {
 			try {
 				this.messageDispatcherEndpoint.send(m);
 			} catch (IOException e) {
@@ -396,7 +394,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 
 	@Override
 	public void handleReactMessage(ReactMessage message) {
-		this.proactiveInteractionProcessor.handleReactMessage(message);
+		this.interactionProcessor.handleReactMessage(message);
 	}
 
 	@Override
@@ -404,7 +402,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 		assert this.messageDispatcherEndpoint == null : "messageDispatcher set while there already was one set";
 
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
-		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
+		this.interactionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
 		// TODO it would be better to create a dedicated thread for the knowledgebase,
 		// instead of using the threadpool. When we use one thread for all interaction
 		// with the Knowledge Base, the Knowledge Base doesn't have to be threadsafe.
@@ -422,7 +420,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 		assert this.messageDispatcherEndpoint != null : "unsetMessageDispatcher called while there was no messageDisatcher set";
 
 		this.messageDispatcherEndpoint = null;
-		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+		this.interactionProcessor.unsetMessageDispatcherEndpoint();
 		// TODO see setMessageDispatcher
 		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
 	}
