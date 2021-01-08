@@ -85,6 +85,8 @@ public class TestAskAnswer {
 		}
 
 		Iterator<Binding> iter = result.iterator();
+
+		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
 		assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");

@@ -45,7 +45,7 @@ public class SmartConnectorImpl implements SmartConnector {
 
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
-	private final MetaKnowledgeBase myMetaKnowledgeBase;
+	private final MetaKnowledgeBase metaKnowledgeBase;
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
@@ -64,12 +64,12 @@ public class SmartConnectorImpl implements SmartConnector {
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
 		this.myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
-		this.myMetaKnowledgeBase = null; // TODO
-		this.otherKnowledgeBaseStore = null; // TODO
+		this.metaKnowledgeBase = null; // TODO
+		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this.metaKnowledgeBase);
 		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
 		this.messageRouter = new MessageRouterImpl(this);
 		this.messageRouter.registerInteractionProcessor(interactionProcessor);
-//		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
+		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
 		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
