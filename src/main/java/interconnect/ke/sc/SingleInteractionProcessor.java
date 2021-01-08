@@ -3,8 +3,6 @@ package interconnect.ke.sc;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.sparql.lang.arq.ParseException;
-
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.binding.BindingSet;
