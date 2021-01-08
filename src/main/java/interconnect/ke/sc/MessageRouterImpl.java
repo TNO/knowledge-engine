@@ -159,7 +159,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	@Override
 	public void registerInteractionProcessor(InteractionProcessor interactionProcessor) {
-		assert interactionProcessor == null;
+		assert this.interactionProcessor == null;
 		this.interactionProcessor = interactionProcessor;
 	}
 

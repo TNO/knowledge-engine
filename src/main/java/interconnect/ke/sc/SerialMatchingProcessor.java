@@ -31,8 +31,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	private Object lock;
 
 	public SerialMatchingProcessor(Set<KnowledgeInteraction> someKnowledgeInteractions,
-			MessageReplyTracker messageReplyTracker) {
-		super(someKnowledgeInteractions, messageReplyTracker);
+			MessageRouter messageRouter) {
+		super(someKnowledgeInteractions, messageRouter);
 		this.kiIter = someKnowledgeInteractions.iterator();
 		this.allBindings = new BindingSet();
 		lock = new Object();
@@ -69,7 +69,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						}
 						AskMessage askMessage = new AskMessage(u, u, u, u, bindingSet);
 						try {
-							this.messageFuture = messageReplyTracker.sendAskMessage(askMessage);
+							this.messageFuture = messageRouter.sendAskMessage(askMessage);
 							this.messageFuture.thenAccept((aMessage) -> {
 								this.messageFuture = null;
 

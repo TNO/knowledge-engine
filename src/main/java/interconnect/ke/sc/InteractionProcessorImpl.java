@@ -26,9 +26,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private static final Logger LOG = LoggerFactory.getLogger(InteractionProcessorImpl.class);
 
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
-	private MessageReplyTracker messageReplyTracker;
-
-	private MessageDispatcherEndpoint messageDispatcherEndpoint;
+	private MessageRouter messageRouter;
+	private MyKnowledgeBaseStore myKnowledgeBaseStore;
+	// private MyMetaKnowledgeBase myMetaKnowledgeBase;
 
 	public InteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
 		super();
@@ -55,7 +55,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		// create a new SingleInteractionProcessor to handle this ask.
 		SingleInteractionProcessor processor = new SerialMatchingProcessor(otherKnowledgeInteractions,
-				this.messageReplyTracker);
+				this.messageRouter);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -67,20 +67,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future;
 	}
-
-	@Override
-	public void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint) {
-		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
-		this.messageReplyTracker = new MessageReplyTracker(this.messageDispatcherEndpoint);
-	}
-
-	@Override
-	public void unsetMessageDispatcherEndpoint() {
-		this.messageDispatcherEndpoint = null;
-	}
-
-	private MyKnowledgeBaseStore myKnowledgeBaseStore;
-	// private MyMetaKnowledgeBase myMetaKnowledgeBase;
 
 	@Override
 	public CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage anAskMsg) {
@@ -122,6 +108,16 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
 		// TODO Implement after MVP phase.
 		return null;
+	}
+
+	@Override
+	public void setMessageRouter(MessageRouter messageRouter) {
+		this.messageRouter = messageRouter;
+	}
+
+	@Override
+	public void unsetMessageRouter() {
+		this.messageRouter = null;
 	}
 
 }

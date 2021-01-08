@@ -24,12 +24,11 @@ import interconnect.ke.api.interaction.KnowledgeInteraction;
 public abstract class SingleInteractionProcessor {
 
 	protected final Set<KnowledgeInteraction> otherKnowledgeInteractions;
-	protected final MessageReplyTracker messageReplyTracker;
+	protected final MessageRouter messageRouter;
 
-	public SingleInteractionProcessor(Set<KnowledgeInteraction> knowledgeInteractions,
-			MessageReplyTracker messageReplyTracker) {
+	public SingleInteractionProcessor(Set<KnowledgeInteraction> knowledgeInteractions, MessageRouter messageRouter) {
 		this.otherKnowledgeInteractions = knowledgeInteractions;
-		this.messageReplyTracker = messageReplyTracker;
+		this.messageRouter = messageRouter;
 
 	}
 

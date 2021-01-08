@@ -69,6 +69,7 @@ public class SmartConnectorImpl implements SmartConnector {
 		this.messageRouter = new MessageRouterImpl(this);
 		this.messageRouter.registerInteractionProcessor(interactionProcessor);
 //		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
+		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
 		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
 		this.knowledgeBaseExecutorService = knowledgeBaseIsThreadSafe ? KeRuntime.executorService()

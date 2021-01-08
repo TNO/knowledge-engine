@@ -55,6 +55,7 @@ public class InteractionProcessorImplTest {
 
 		interactionProcessor = new InteractionProcessorImpl(new TestOtherKnowledgeBaseStore());
 		this.messageRouter = new TestMessageRouter();
+		interactionProcessor.setMessageRouter(this.messageRouter);
 
 		this.knowledgeBaseId1 = new URI("https://www.tno.nl/interconnect/kb1");
 		this.graphPattern1 = "?s1 <https://www.tno.nl/example/predicate1> ?o1 .";

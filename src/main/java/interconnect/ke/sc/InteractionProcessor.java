@@ -71,10 +71,6 @@ public interface InteractionProcessor {
 	CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet);
 
-	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint);
-
-	void unsetMessageDispatcherEndpoint();
-
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
 	 * 
@@ -116,4 +112,8 @@ public interface InteractionProcessor {
 	 * @return A future {@link ReactMessage}.
 	 */
 	CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage postMessage);
+
+	void setMessageRouter(MessageRouter messageRouter);
+
+	void unsetMessageRouter();
 }
