@@ -36,8 +36,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
-			BindingSet aBindingSet) {
+	public CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI,
+			RecipientSelector aSelector, BindingSet aBindingSet) {
 
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aBindingSet != null : "the binding set should be non-null";
@@ -79,22 +79,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		this.messageDispatcherEndpoint = null;
 	}
 
-	@Override
-	public void handleAnswerMessage(AnswerMessage answerMessage) {
-		this.messageReplyTracker.handleAnswerMessage(answerMessage);
-
-	}
-
-	@Override
-	public void handleReactMessage(ReactMessage reactMessage) {
-		this.messageReplyTracker.handleReactMessage(reactMessage);
-	}
-
 	private MyKnowledgeBaseStore myKnowledgeBaseStore;
 	// private MyMetaKnowledgeBase myMetaKnowledgeBase;
 
 	@Override
-	public CompletableFuture<AnswerMessage> processAsk(AskMessage anAskMsg) {
+	public CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage anAskMsg) {
 		URI answerKnowledgeInteractionId = anAskMsg.getToKnowledgeInteraction();
 		AnswerKnowledgeInteraction answerKnowledgeInteraction;
 		try {
@@ -130,7 +119,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<ReactMessage> processPost(PostMessage aPostMsg) {
+	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
 		// TODO Implement after MVP phase.
 		return null;
 	}

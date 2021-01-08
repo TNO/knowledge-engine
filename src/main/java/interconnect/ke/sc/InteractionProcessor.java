@@ -68,7 +68,7 @@ public interface InteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link AskResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<AskResult> processAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
+	CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet);
 
 	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint);
@@ -92,12 +92,8 @@ public interface InteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-//	CompletableFuture<PostResult> processPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
+//	CompletableFuture<PostResult> processPostFromKnowledgeBase(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 //			BindingSet someArguments);
-
-	void handleAnswerMessage(AnswerMessage answerMessage);
-
-	void handleReactMessage(ReactMessage reactMessage);
 
 	/**
 	 * Interprets the given {@link AskMessage} and returns an {@link AnswerMessage}
@@ -108,7 +104,7 @@ public interface InteractionProcessor {
 	 * @param anAskMsg The {@link AskMessage} that requires an answer.
 	 * @return A future {@link AnswerMessage}.
 	 */
-	public CompletableFuture<AnswerMessage> processAsk(AskMessage anAskMsg);
+	CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage askMessage);
 
 	/**
 	 * Interprets the given {@link PostMessage} and returns a {@link ReactMessage}
@@ -119,5 +115,5 @@ public interface InteractionProcessor {
 	 * @param aPostMsg The {@link PostMessage} that requires a reaction.
 	 * @return A future {@link ReactMessage}.
 	 */
-	public CompletableFuture<ReactMessage> processPost(PostMessage aPostMsg);
+	CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage postMessage);
 }

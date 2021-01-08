@@ -1,8 +1,18 @@
 package interconnect.ke.sc;
 
-import interconnect.ke.api.binding.BindingSet;
-import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
+import java.net.URI;
+
+import interconnect.ke.messaging.AnswerMessage;
+import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.messaging.PostMessage;
+import interconnect.ke.messaging.ReactMessage;
 
 public interface MyMetaKnowledgeBase {
-	BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet incomingBindings);
+
+	AnswerMessage processAskFromMessageRouter(AskMessage askMessage);
+
+	ReactMessage processPostFromMessageRouter(PostMessage postMessage);
+
+	boolean isMetaKnowledgeInteraction(URI id);
+
 }
