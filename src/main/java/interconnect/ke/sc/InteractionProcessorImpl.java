@@ -46,7 +46,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// a wildcard.
 
 		// retrieve other knowledge bases
-		List<OtherKnowledgeBase> otherKnowledgeBases = otherKnowledgeBaseStore.getOtherKnowledgeBases();
+		Set<OtherKnowledgeBase> otherKnowledgeBases = otherKnowledgeBaseStore.getOtherKnowledgeBases();
 		Set<KnowledgeInteraction> otherKnowledgeInteractions = new HashSet<KnowledgeInteraction>();
 
 		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {

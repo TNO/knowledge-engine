@@ -1,7 +1,7 @@
 package interconnect.ke.runtime;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import interconnect.ke.api.runtime.KnowledgeDirectory;
 import interconnect.ke.api.runtime.LocalSmartConnectorRegistry;
@@ -16,7 +16,7 @@ public class KeRuntime {
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
 	private static KnowledgeDirectory knowledgeDirectory = new KnowledgeDirectoryImpl();
-	private static ExecutorService executorService = Executors.newFixedThreadPool(4);
+	private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
 	/**
 	 * The purpose of calling the constructor is to start the
@@ -33,7 +33,7 @@ public class KeRuntime {
 		return knowledgeDirectory;
 	}
 
-	public static ExecutorService executorService() {
+	public static ScheduledExecutorService executorService() {
 		return executorService;
 	}
 
