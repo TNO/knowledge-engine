@@ -152,7 +152,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	@Override
 	public void registerMetaKnowledgeBase(MetaKnowledgeBase metaKnowledgeBase) {
-		assert metaKnowledgeBase == null;
+		assert this.metaKnowledgeBase == null;
 
 		this.metaKnowledgeBase = metaKnowledgeBase;
 	}
