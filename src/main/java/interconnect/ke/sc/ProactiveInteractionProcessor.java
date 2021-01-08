@@ -15,7 +15,6 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
-import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 
@@ -59,10 +58,6 @@ public interface ProactiveInteractionProcessor {
 	 */
 	CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet);
-
-	void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint);
-
-	void unsetMessageDispatcherEndpoint();
 
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
