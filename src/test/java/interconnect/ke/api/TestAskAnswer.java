@@ -43,24 +43,21 @@ public class TestAskAnswer {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
-			};
+			}
 		};
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:b ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb1.getSmartConnector().register(aKI, new AnswerHandler() {
-			@Override
-			public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
-				assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
+			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
 
-				BindingSet bindingSet = new BindingSet();
-				Binding binding = new Binding();
-				binding.put("a", "<https://www.tno.nl/example/a>");
-				binding.put("c", "<https://www.tno.nl/example/c>");
-				bindingSet.add(binding);
+			BindingSet bindingSet = new BindingSet();
+			Binding binding = new Binding();
+			binding.put("a", "<https://www.tno.nl/example/a>");
+			binding.put("c", "<https://www.tno.nl/example/c>");
+			bindingSet.add(binding);
 
-				return bindingSet;
-			}
+			return bindingSet;
 		});
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -68,14 +65,16 @@ public class TestAskAnswer {
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
 
-			};
+			}
 
 		};
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?a ex:b ?c.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
 		kb2.getSmartConnector().register(askKI);
+
+		Thread.sleep(1000);
 
 		BindingSet result = null;
 		try {
@@ -89,8 +88,8 @@ public class TestAskAnswer {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
-		assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 		kb2ReceivedData.countDown();

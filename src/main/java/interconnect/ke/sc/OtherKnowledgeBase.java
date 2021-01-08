@@ -4,8 +4,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
-import interconnect.ke.api.interaction.KnowledgeInteraction;
-
 /**
  * An {@link OtherKnowledgeBase} represents a knowledge base in the network that
  * is NOT the knowledge base that this smart connector represents.
@@ -14,11 +12,11 @@ public class OtherKnowledgeBase {
 	private final URI id;
 	private final String name;
 	private final String description;
-	private final List<KnowledgeInteraction> knowledgeInteractions;
+	private final List<KnowledgeInteractionInfo> knowledgeInteractions;
 	private final URL endpoint;
 
-	public OtherKnowledgeBase(URI anId, String aName, String aDescription, List<KnowledgeInteraction> someKnowledgeInteractions,
-			URL anEndpoint) {
+	public OtherKnowledgeBase(URI anId, String aName, String aDescription,
+			List<KnowledgeInteractionInfo> someKnowledgeInteractions, URL anEndpoint) {
 		this.id = anId;
 		this.name = aName;
 		this.description = aDescription;
@@ -27,22 +25,22 @@ public class OtherKnowledgeBase {
 	}
 
 	public URI getId() {
-		return id;
+		return this.id;
 	}
-	
+
 	public String getName() {
-		return name;
+		return this.name;
 	}
-	
+
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
-	
-	public List<KnowledgeInteraction> getKnowledgeInteractions() {
-		return knowledgeInteractions;
+
+	public List<KnowledgeInteractionInfo> getKnowledgeInteractions() {
+		return this.knowledgeInteractions;
 	}
 
 	public URL getEndpoint() {
-		return endpoint;
+		return this.endpoint;
 	}
 }

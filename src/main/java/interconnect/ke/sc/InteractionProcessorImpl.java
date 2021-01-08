@@ -2,7 +2,6 @@ package interconnect.ke.sc;
 
 import java.net.URI;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -13,11 +12,8 @@ import interconnect.ke.api.AskResult;
 import interconnect.ke.api.RecipientSelector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
-import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
-import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 
@@ -27,16 +23,19 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
-	private MyKnowledgeBaseStore myKnowledgeBaseStore;
-	private MetaKnowledgeBase myMetaKnowledgeBase;
+	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final MetaKnowledgeBase metaKnowledgeBase;
 
-	public InteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
+	public InteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore,
+			MyKnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
 		super();
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
+		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
+		this.metaKnowledgeBase = metaKnowledgeBase;
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI,
+	public CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
 			RecipientSelector aSelector, BindingSet aBindingSet) {
 
 		assert anAKI != null : "the knowledge interaction should be non-null";
@@ -46,8 +45,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// a wildcard.
 
 		// retrieve other knowledge bases
-		Set<OtherKnowledgeBase> otherKnowledgeBases = otherKnowledgeBaseStore.getOtherKnowledgeBases();
-		Set<KnowledgeInteraction> otherKnowledgeInteractions = new HashSet<KnowledgeInteraction>();
+		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
 
 		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
 			otherKnowledgeInteractions.addAll(otherKB.getKnowledgeInteractions());
@@ -73,11 +72,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		URI answerKnowledgeInteractionId = anAskMsg.getToKnowledgeInteraction();
 		AnswerKnowledgeInteraction answerKnowledgeInteraction;
 		try {
-			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) myKnowledgeBaseStore
+			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) this.myKnowledgeBaseStore
 					.getKnowledgeInteractionById(answerKnowledgeInteractionId).getKnowledgeInteraction();
 		} catch (Throwable t) {
 			LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
-					+ "' that was expected to resolve to one of our own.");
+					+ "' that was expected to resolve to one of our own.", t);
 			var future = new CompletableFuture<AnswerMessage>();
 			future.completeExceptionally(t);
 			return future;
@@ -89,7 +88,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			if (answerKnowledgeInteraction.getIsMeta()) {
 				// TODO: Ask MyMetaKnowledgeBase for the bindings.
 			} else {
-				var handler = myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+				var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
 				// TODO This should happen in the single thread for the knowledge base
 				bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
 			}

@@ -24,6 +24,7 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
 import interconnect.ke.runtime.KeRuntime;
+import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 /**
  * The {@link SmartConnectorImpl} is the main component of the KnowledgeEngine.
@@ -68,7 +69,8 @@ public class SmartConnectorImpl implements SmartConnector {
 		this.messageRouter = new MessageRouterImpl(this);
 		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this.messageRouter, this.myKnowledgeBaseStore); // TODO
 		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this.metaKnowledgeBase);
-		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
+		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore,
+				this.myKnowledgeBaseStore, this.metaKnowledgeBase);
 
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
@@ -273,7 +275,12 @@ public class SmartConnectorImpl implements SmartConnector {
 			BindingSet aBindingSet) {
 
 		this.checkStopped();
-		return this.interactionProcessor.processAskFromKnowledgeBase(anAKI, aSelector, aBindingSet);
+		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.ASK;
+
+		return this.interactionProcessor.processAskFromKnowledgeBase(info, aSelector, aBindingSet);
 	}
 
 	/**

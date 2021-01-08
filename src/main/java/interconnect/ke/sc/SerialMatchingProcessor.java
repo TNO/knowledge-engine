@@ -1,8 +1,6 @@
 package interconnect.ke.sc;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -15,9 +13,9 @@ import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
@@ -25,51 +23,45 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 	private CompletableFuture<AskResult> resultFuture;
 	private CompletableFuture<AnswerMessage> messageFuture;
-	private Iterator<KnowledgeInteraction> kiIter;
-	private AskKnowledgeInteraction myKnowledgeInteraction;
-	private BindingSet allBindings;
-	private Object lock;
+	private final Iterator<KnowledgeInteractionInfo> kiIter;
+	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
+	private final BindingSet allBindings;
+	private final Object lock;
 
-	public SerialMatchingProcessor(Set<KnowledgeInteraction> someKnowledgeInteractions,
+	public SerialMatchingProcessor(Set<KnowledgeInteractionInfo> otherKnowledgeInteractions,
 			MessageRouter messageRouter) {
-		super(someKnowledgeInteractions, messageRouter);
-		this.kiIter = someKnowledgeInteractions.iterator();
+		super(otherKnowledgeInteractions, messageRouter);
+		this.kiIter = otherKnowledgeInteractions.iterator();
 		this.allBindings = new BindingSet();
-		lock = new Object();
+		this.lock = new Object();
 
 	}
 
 	@Override
-	CompletableFuture<AskResult> processInteraction(AskKnowledgeInteraction askKnowledgeInteraction,
+	CompletableFuture<AskResult> processInteraction(MyKnowledgeInteractionInfo askKnowledgeInteraction,
 			BindingSet bindingSet) {
-		myKnowledgeInteraction = askKnowledgeInteraction;
-		resultFuture = new CompletableFuture<AskResult>();
-		checkOtherKnowledgeInteraction(bindingSet);
-		return resultFuture;
+		this.myKnowledgeInteraction = askKnowledgeInteraction;
+		this.resultFuture = new CompletableFuture<>();
+		this.checkOtherKnowledgeInteraction(bindingSet);
+		return this.resultFuture;
 
 	}
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {
 
 		synchronized (this.lock) {
-			if (kiIter.hasNext()) {
-				KnowledgeInteraction ki = kiIter.next();
+			if (this.kiIter.hasNext()) {
+				KnowledgeInteractionInfo ki = this.kiIter.next();
 				AnswerKnowledgeInteraction aKI = null;
-				if (ki instanceof AnswerKnowledgeInteraction) {
-					aKI = (AnswerKnowledgeInteraction) ki;
-					if (matches(myKnowledgeInteraction.getPattern(), aKI.getPattern())) {
+				if (ki.getType() == Type.ANSWER) {
+					aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
+					if (this.matches(((AskKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
+							.getPattern(), aKI.getPattern())) {
 
-						// TODO temporarily create an uri because this is not present in the Interaction
-						// yet.
-						URI u = null;
+						AskMessage askMessage = new AskMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
+								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
 						try {
-							u = new URI("test");
-						} catch (URISyntaxException e1) {
-
-						}
-						AskMessage askMessage = new AskMessage(u, u, u, u, bindingSet);
-						try {
-							this.messageFuture = messageRouter.sendAskMessage(askMessage);
+							this.messageFuture = this.messageRouter.sendAskMessage(askMessage);
 							this.messageFuture.thenAccept((aMessage) -> {
 								this.messageFuture = null;
 

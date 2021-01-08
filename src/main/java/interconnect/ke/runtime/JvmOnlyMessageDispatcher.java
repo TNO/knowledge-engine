@@ -43,23 +43,30 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 		@Override
 		public void send(KnowledgeMessage message) throws IOException {
-			assert message.getFromKnowledgeBase().equals(this.endpoint.getKnowledgeBaseId());
+			assert message.getFromKnowledgeBase()
+					.equals(this.endpoint.getKnowledgeBaseId()) : "the fromKnowledgeBaseId should be mine, but isn't.";
 
 			SmartConnectorHandler receiver = JvmOnlyMessageDispatcher.this.handlers.get(message.getToKnowledgeBase());
 			if (receiver == null) {
 				throw new IOException("There is no KnowledgeBase with ID " + message.getToKnowledgeBase());
 			} else {
 				KeRuntime.executorService().execute(() -> {
-					if (message instanceof AnswerMessage) {
-						receiver.getEndpoint().handleAnswerMessage((AnswerMessage) message);
-					} else if (message instanceof AskMessage) {
-						receiver.getEndpoint().handleAskMessage((AskMessage) message);
-					} else if (message instanceof PostMessage) {
-						receiver.getEndpoint().handlePostMessage((PostMessage) message);
-					} else if (message instanceof ReactMessage) {
-						receiver.getEndpoint().handleReactMessage((ReactMessage) message);
-					} else {
-						assert false;
+
+					try {
+
+						if (message instanceof AnswerMessage) {
+							receiver.getEndpoint().handleAnswerMessage((AnswerMessage) message);
+						} else if (message instanceof AskMessage) {
+							receiver.getEndpoint().handleAskMessage((AskMessage) message);
+						} else if (message instanceof PostMessage) {
+							receiver.getEndpoint().handlePostMessage((PostMessage) message);
+						} else if (message instanceof ReactMessage) {
+							receiver.getEndpoint().handleReactMessage((ReactMessage) message);
+						} else {
+							assert false;
+						}
+					} catch (Throwable t) {
+						LOG.error("No errors should occur.", t);
 					}
 				});
 			}
