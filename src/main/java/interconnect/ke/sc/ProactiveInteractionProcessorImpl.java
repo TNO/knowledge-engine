@@ -23,15 +23,13 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 	private static final Logger LOG = LoggerFactory.getLogger(ProactiveInteractionProcessorImpl.class);
 
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
-	private final MessageReplyTracker messageReplyTracker;
+	private MessageReplyTracker messageReplyTracker;
 
 	private MessageDispatcherEndpoint messageDispatcherEndpoint;
 
 	public ProactiveInteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
 		super();
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
-		this.setMessageDispatcherEndpoint(messageDispatcherEndpoint);
-		this.messageReplyTracker = new MessageReplyTracker(this.messageDispatcherEndpoint);
 	}
 
 	@Override
@@ -70,6 +68,7 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 	@Override
 	public void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint) {
 		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
+		this.messageReplyTracker = new MessageReplyTracker(this.messageDispatcherEndpoint);
 	}
 
 	@Override
