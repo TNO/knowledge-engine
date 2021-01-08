@@ -24,4 +24,6 @@ public interface MetaKnowledgeBase {
 	ReactMessage processPostFromMessageRouter(PostMessage aPostMessage);
 
 	CompletableFuture<OtherKnowledgeBase> getOtherKnowledgeBase(URI knowledgeBaseId);
+
+	boolean isMetaKnowledgeInteraction(URI id);
 }
