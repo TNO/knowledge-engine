@@ -15,7 +15,7 @@ import interconnect.ke.runtime.KeRuntime;
 public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 
 	private long initialDelay = 0;
-	private long delay = 5;
+	private long delay = 3;
 	private MetaKnowledgeBase metaKnowledgeBase;
 	private ScheduledFuture<?> scheduledFuture;
 
