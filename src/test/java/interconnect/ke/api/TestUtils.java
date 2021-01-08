@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
-import interconnect.ke.sc.SmartConnectorImpl;
+import interconnect.ke.sc.SmartConnectorBuilder;
 
 public class TestUtils {
 
@@ -35,8 +35,9 @@ public class TestUtils {
 	private static final String KE_PREFIX = "https://www.interconnectproject.eu/";
 
 	public static final SmartConnector getSmartConnector(final String aName) {
-		return new SmartConnectorImpl(new KnowledgeBase() {
+		return SmartConnectorBuilder.newSmartConnector(new KnowledgeBase() {
 
+			@Override
 			public URI getKnowledgeBaseId() {
 				URI uri = null;
 				try {
@@ -47,16 +48,20 @@ public class TestUtils {
 				return uri;
 			}
 
+			@Override
 			public String getKnowledgeBaseDescription() {
 				return null;
 			}
 
+			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 			}
 
+			@Override
 			public void smartConnectorConnectionLost(SmartConnector aSC) {
 			}
 
+			@Override
 			public void smartConnectorConnectionRestored(SmartConnector aSC) {
 			}
 
@@ -70,11 +75,11 @@ public class TestUtils {
 				// TODO Auto-generated method stub
 
 			}
-		});
+		}).create();
 	}
 
 	public static final Set<Binding> getSingleBinding(String name, String value) {
-		Set<Binding> bindings = new HashSet<Binding>();
+		Set<Binding> bindings = new HashSet<>();
 		Binding b = new Binding();
 		b.put(name, value);
 		bindings.add(b);
@@ -108,7 +113,7 @@ public class TestUtils {
 	/**
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
 	 * triples.
-	 * 
+	 *
 	 * @param graphPattern The Knowledge to populate to a model.
 	 * @return A model where all variables of the kIO are populated with URIs.
 	 * @throws ParseException

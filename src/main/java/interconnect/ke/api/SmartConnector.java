@@ -1,6 +1,5 @@
 package interconnect.ke.api;
 
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import interconnect.ke.api.binding.BindingSet;
@@ -12,8 +11,6 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.sc.SmartConnectorImpl;
 
 public interface SmartConnector {
-
-	URI getKnowledgeBaseId();
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
