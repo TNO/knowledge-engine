@@ -45,7 +45,7 @@ public class SmartConnectorImpl implements SmartConnector {
 
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
-	private final MyMetaKnowledgeBase myMetaKnowledgeBase;
+	private final MetaKnowledgeBase myMetaKnowledgeBase;
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;

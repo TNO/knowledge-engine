@@ -28,7 +28,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
 	private MyKnowledgeBaseStore myKnowledgeBaseStore;
-	private MyMetaKnowledgeBase myMetaKnowledgeBase;
+	private MetaKnowledgeBase myMetaKnowledgeBase;
 
 	public InteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
 		super();

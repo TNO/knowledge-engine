@@ -55,7 +55,7 @@ public interface MessageRouter {
 	 *
 	 * @param metaKnowledgeBase
 	 */
-	void registerMetaKnowledgeBase(MyMetaKnowledgeBase metaKnowledgeBase);
+	void registerMetaKnowledgeBase(MetaKnowledgeBase metaKnowledgeBase);
 
 	void registerInteractionProcessor(InteractionProcessor interactionProcessor);
 

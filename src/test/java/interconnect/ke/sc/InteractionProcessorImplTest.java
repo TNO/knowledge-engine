@@ -168,11 +168,12 @@ public class InteractionProcessorImplTest {
 		}
 
 		@Override
-		public void registerMetaKnowledgeBase(MyMetaKnowledgeBase metaKnowledgeBase) {
+		public void registerInteractionProcessor(InteractionProcessor interactionProcessor) {
 		}
 
 		@Override
-		public void registerInteractionProcessor(InteractionProcessor interactionProcessor) {
+		public void registerMetaKnowledgeBase(MetaKnowledgeBase metaKnowledgeBase) {
+
 		}
 
 	}
