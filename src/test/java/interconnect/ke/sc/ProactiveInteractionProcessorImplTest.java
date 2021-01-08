@@ -75,7 +75,7 @@ public class ProactiveInteractionProcessorImplTest {
 
 		AskKnowledgeInteraction askInteraction = new AskKnowledgeInteraction(null,
 				new GraphPattern(this.graphPattern1));
-		CompletableFuture<AskResult> future = interactionProcessor.processAsk(askInteraction, null, new BindingSet());
+		CompletableFuture<AskResult> future = interactionProcessor.processAskFromKnowledgeBase(askInteraction, null, new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
 

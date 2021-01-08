@@ -1,6 +1,5 @@
 package interconnect.ke.sc;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,11 +20,7 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
-import interconnect.ke.messaging.AnswerMessage;
-import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.MessageDispatcherEndpoint;
-import interconnect.ke.messaging.PostMessage;
-import interconnect.ke.messaging.ReactMessage;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
 import interconnect.ke.runtime.KeRuntime;
 
@@ -35,7 +30,7 @@ import interconnect.ke.runtime.KeRuntime;
  * data exchange with other {@link KnowledgeBase}s. This is done by registering
  * four types of {@link KnowledgeInteraction}s beforehand that indicate the
  * capabilities of the {@link KnowledgeBase}.
- * 
+ *
  * After registration the
  * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)} and
  * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)}
@@ -43,7 +38,7 @@ import interconnect.ke.runtime.KeRuntime;
  * data, while the {@link AnswerHandler} and {@link ReactHandler} are used to
  * reactively exchange data.
  */
-public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoint {
+public class SmartConnectorImpl implements SmartConnector {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorImpl.class);
 
@@ -54,23 +49,25 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	private final ProactiveInteractionProcessor proactiveInteractionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageDispatcherEndpoint messageDispatcherEndpoint;
+	private final MessageRouterImpl messageRouter;
 
 	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
-	private boolean smartConnectorReadyNotified = false;
+	private final boolean smartConnectorReadyNotified = false;
 
 	/**
 	 * Create a {@link SmartConnectorImpl}
-	 * 
+	 *
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
 
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
-		myKnowledgeBase = aKnowledgeBase;
+		this.myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
-		reactiveInteractionProcessor = null; // TODO
+		this.reactiveInteractionProcessor = null; // TODO
 		this.otherKnowledgeBaseStore = null; // TODO
 		this.proactiveInteractionProcessor = new ProactiveInteractionProcessorImpl(this.otherKnowledgeBaseStore);
+		this.messageRouter = new MessageRouterImpl();
 		KeRuntime.localSmartConnectorRegistry().register(this);
 	}
 
@@ -79,7 +76,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will ask certain types of questions for which it would like an
 	 * answer. This allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAskKI The {@link AskKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
@@ -94,7 +91,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer will ask certain types of questions. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAskKI The {@link AskKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
@@ -111,7 +108,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link KnowledgeBase}s would like to
 	 * {@link #ask(AskKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAnswerKI      The {@link AskKnowledgeInteraction} that the
 	 *                        {@link KnowledgeBase} wants to register with this
 	 *                        {@link SmartConnectorImpl}.
@@ -129,7 +126,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer answers certain types of questions. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param anAnswerKI The {@link AswerKnowledgeInteraction} that the
 	 *                   {@link KnowledgeBase} wants to unregister from this
 	 *                   {@link SmartConnectorImpl}.
@@ -144,7 +141,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will post certain type of data in which other {@link KnowledgeBase}s
 	 * might want to react. This allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aPostKI The {@link PostKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
@@ -159,7 +156,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it will no longer post certain types of data. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aPostKI The {@link PostKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to unregister from this
 	 *                {@link SmartConnectorImpl}.
@@ -176,7 +173,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link KnowledgeBase}s will
 	 * {@link #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)}. This
 	 * allows the {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aReactKI      The {@link AskKnowledgeInteraction} that the
 	 *                      {@link KnowledgeBase} wants to register with this
 	 *                      {@link SmartConnectorImpl}.
@@ -193,7 +190,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link SmartConnectorImpl} (and via it other {@link KnowledgeBase}s) know
 	 * that it no longer reacts to certain types of data. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
-	 * 
+	 *
 	 * @param aReactKI The {@link ReactKnowledgeInteraction} that the
 	 *                 {@link KnowledgeBase} wants to unregister from this
 	 *                 {@link SmartConnectorImpl}.
@@ -213,16 +210,16 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link AnswerKnowledgeInteraction}'s {@link AnswerHandler} triggered. If
 	 * there are multiple matching {@link KnowledgeBase}s this
 	 * {@link SmartConnectorImpl} will combine their results.
-	 * 
+	 *
 	 * Using the {@link BindingSet} argument the caller can limit the question being
 	 * asked by providing one or more allowed values for the answers to certain
 	 * variables in the {@link GraphPattern} of the {@link AskKnowledgeInteraction}.
 	 * Note that the different bindings in the set form a disjunction.
-	 * 
+	 *
 	 * This method is asynchronous (and uses {@link CompletableFuture}s) because
 	 * depending on the nature of the question and the availability of the answer it
 	 * might take a while.
-	 * 
+	 *
 	 * @param anAKI       The given {@link AskKnowledgeInteraction} should be
 	 *                    registered with the {@link SmartConnectorImpl} via the
 	 *                    {@link #register(AskKnowledgeInteraction)} method.
@@ -244,7 +241,7 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
-		return this.proactiveInteractionProcessor.processAsk(anAKI, aSelector, aBindingSet);
+		return this.proactiveInteractionProcessor.processAskFromKnowledgeBase(anAKI, aSelector, aBindingSet);
 	}
 
 	/**
@@ -255,13 +252,13 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * allowed to answer the question being asked. This is the most interoperable
 	 * way in using the {@link SmartConnectorImpl}, because it allows any compatible
 	 * {@link KnowledgeBase} to join the data exchange.
-	 * 
+	 *
 	 * @see SmartConnectorImpl#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
 	 */
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
-		return ask(ki, null, bindings);
+		return this.ask(ki, null, bindings);
 	}
 
 	/**
@@ -274,30 +271,30 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * {@link ReactKnowledgeInteraction}'s {@link ReactHandler} triggered. If there
 	 * are multiple matching {@link KnowledgeBase}s this {@link SmartConnectorImpl}
 	 * will allow all of them to react.
-	 * 
+	 *
 	 * This type of interaction can be used to make interoperable publish/subscribe
 	 * like mechanisms where the post is the publish and the react (without a
 	 * {@code result} {@link GraphPattern}) is an on_message method.
-	 * 
+	 *
 	 * Also, this type of interaction can be used to make an interoperable function.
 	 * The {@link PostKnowledgeInteraction} being the one who calls the function
 	 * (with the argument {@link GraphPattern} being the input parameters) and the
 	 * {@link ReactKnowledgeInteraction} is the one who represents actual function
 	 * implementation and provides a result (with result {@link GraphPattern} being
 	 * the return value).
-	 * 
+	 *
 	 * Note that depending on whether the {@link ReactKnowledgeInteraction} being
 	 * used has defined a {@code result} {@link GraphPattern}, there either is or is
 	 * no data being returned.
-	 * 
+	 *
 	 * Using the {@link BindingSet} argument the caller should provide the actual
 	 * data by providing one or more values for all the variables in the argument
 	 * {@link GraphPattern} of the {@link PostKnowledgeInteraction}.
-	 * 
+	 *
 	 * This method is asynchronous (and uses {@link CompletableFuture}s) because
 	 * depending on the nature of the post and the availability of results it might
 	 * take a while.
-	 * 
+	 *
 	 * @param aPKI          The given {@link AskKnowledgeInteraction} should be
 	 *                      registered with the {@link SmartConnectorImpl} via the
 	 *                      {@link #register(AskKnowledgeInteraction)} method.
@@ -330,12 +327,12 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * allowed to answer the question being asked. This is the most interoperable
 	 * way in using the {@link SmartConnectorImpl}, because it allows any compatible
 	 * {@link KnowledgeBase} to join the data exchange.
-	 * 
+	 *
 	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
 	 */
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
-		return post(ki, null, argument);
+		return this.post(ki, null, argument);
 	}
 
 	/**
@@ -343,17 +340,17 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 	 * asynchronous and will call
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} when this
 	 * smart connector has successfully stopped.
-	 * 
+	 *
 	 * After it has stopped, the {@link SmartConnectorImpl} can no longer be used by
 	 * its {@link KnowledgeBase} to exchange data and the {@link KnowledgeBase}
 	 * itself is no longer available to other {@link KnowledgeBase} for
 	 * interoperable data exchange.
-	 * 
+	 *
 	 * Between calling this method and having the
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} method
 	 * called, its methods should not be called and the behaviour of the
 	 * {@link SmartConnectorImpl} is unpredictable.
-	 * 
+	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
 	@Override
@@ -367,64 +364,69 @@ public class SmartConnectorImpl implements SmartConnector, SmartConnectorEndpoin
 		return this.myKnowledgeBase.getKnowledgeBaseId();
 	}
 
-	@Override
-	public void handleAskMessage(AskMessage message) {
-		this.reactiveInteractionProcessor.processAsk(message).thenAccept((m) -> {
-			try {
-				this.messageDispatcherEndpoint.send(m);
-			} catch (IOException e) {
-				LOG.error("The message '" + m + "' should send correctly.", e);
-			}
-		});
-	}
+//	@Override
+//	public void handleAskMessage(AskMessage message) {
+//		this.reactiveInteractionProcessor.processAsk(message).thenAccept(m -> {
+//			try {
+//				this.messageDispatcherEndpoint.send(m);
+//			} catch (IOException e) {
+//				LOG.error("The message '" + m + "' should send correctly.", e);
+//			}
+//		});
+//	}
+//
+//	@Override
+//	public void handleAnswerMessage(AnswerMessage message) {
+//		this.messageRouter.
+//	}
+//
+//	@Override
+//	public void handlePostMessage(PostMessage message) {
+//		this.reactiveInteractionProcessor.processPost(message).thenAccept(m -> {
+//			try {
+//				this.messageDispatcherEndpoint.send(m);
+//			} catch (IOException e) {
+//				LOG.error("The message '" + m + "' should send correctly.", e);
+//			}
+//		});
+//	}
+//
+//	@Override
+//	public void handleReactMessage(ReactMessage message) {
+//		this.proactiveInteractionProcessor.handleReactMessage(message);
+//	}
+//
+//	@Override
+//	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+//		assert this.messageDispatcherEndpoint == null : "messageDispatcher set while there already was one set";
+//
+//		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
+//		this.messageRouter.setMessageDispatcherEndpoint(messageDispatcherEndpoint);
+//
+//		// TODO it would be better to create a dedicated thread for the knowledgebase,
+//		// instead of using the threadpool. When we use one thread for all interaction
+//		// with the Knowledge Base, the Knowledge Base doesn't have to be threadsafe.
+//		if (!this.smartConnectorReadyNotified) {
+//			this.smartConnectorReadyNotified = true;
+//			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
+//		} else {
+//			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
+//		}
+//
+//	}
+//
+//	@Override
+//	public void unsetMessageDispatcher() {
+//		assert this.messageDispatcherEndpoint != null : "unsetMessageDispatcher called while there was no messageDisatcher set";
+//
+//		this.messageDispatcherEndpoint = null;
+//		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
+//		// TODO see setMessageDispatcher
+//		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
+//	}
 
-	@Override
-	public void handleAnswerMessage(AnswerMessage message) {
-		this.proactiveInteractionProcessor.handleAnswerMessage(message);
-	}
-
-	@Override
-	public void handlePostMessage(PostMessage message) {
-		this.reactiveInteractionProcessor.processPost(message).thenAccept((m) -> {
-			try {
-				this.messageDispatcherEndpoint.send(m);
-			} catch (IOException e) {
-				LOG.error("The message '" + m + "' should send correctly.", e);
-			}
-		});
-	}
-
-	@Override
-	public void handleReactMessage(ReactMessage message) {
-		this.proactiveInteractionProcessor.handleReactMessage(message);
-	}
-
-	@Override
-	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
-		assert this.messageDispatcherEndpoint == null : "messageDispatcher set while there already was one set";
-
-		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
-		this.proactiveInteractionProcessor.setMessageDispatcherEndpoint(this.messageDispatcherEndpoint);
-		// TODO it would be better to create a dedicated thread for the knowledgebase,
-		// instead of using the threadpool. When we use one thread for all interaction
-		// with the Knowledge Base, the Knowledge Base doesn't have to be threadsafe.
-		if (!smartConnectorReadyNotified) {
-			smartConnectorReadyNotified = true;
-			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
-		} else {
-			KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
-		}
-
-	}
-
-	@Override
-	public void unsetMessageDispatcher() {
-		assert this.messageDispatcherEndpoint != null : "unsetMessageDispatcher called while there was no messageDisatcher set";
-
-		this.messageDispatcherEndpoint = null;
-		this.proactiveInteractionProcessor.unsetMessageDispatcherEndpoint();
-		// TODO see setMessageDispatcher
-		KeRuntime.executorService().execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
+	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
+		return this.messageRouter;
 	}
 
 }
