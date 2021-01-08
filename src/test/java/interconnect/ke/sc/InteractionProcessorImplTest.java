@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -27,8 +29,6 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
-import interconnect.ke.messaging.KnowledgeMessage;
-import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 
@@ -107,9 +107,9 @@ public class InteractionProcessorImplTest {
 	public class TestOtherKnowledgeBaseStore implements OtherKnowledgeBaseStore {
 
 		@Override
-		public List<OtherKnowledgeBase> getOtherKnowledgeBases() {
+		public Set<OtherKnowledgeBase> getOtherKnowledgeBases() {
 
-			List<OtherKnowledgeBase> others = new ArrayList<>();
+			Set<OtherKnowledgeBase> others = new HashSet<>();
 
 			// create/add second
 			List<KnowledgeInteraction> someKIs2 = new ArrayList<>();
