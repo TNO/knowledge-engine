@@ -2,6 +2,7 @@ package interconnect.ke.sc;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,7 +23,6 @@ import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.PostMessage;
@@ -45,8 +45,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final GraphPattern metaGraphPattern;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
 
-	public MetaKnowledgeBaseImpl(MessageRouter aMessageRouter,
-			MyKnowledgeBaseStore aKnowledgeBaseStore) {
+	public MetaKnowledgeBaseImpl(MessageRouter aMessageRouter, MyKnowledgeBaseStore aKnowledgeBaseStore) {
 		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();
 		this.messageRouter = aMessageRouter;
 		this.myKnowledgeBaseStore = aKnowledgeBaseStore;
@@ -55,45 +54,51 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?gp kb:hasPattern ?pattern .");
 	}
 
 	@Override
 	public AnswerMessage processAskFromMessageRouter(AskMessage anAskMessage) {
-		assert anAskMessage.getToKnowledgeBase() == this.myKnowledgeBaseId;
-		assert anAskMessage.getToKnowledgeInteraction() == this
-				.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId);
-		assert anAskMessage.getFromKnowledgeInteraction() == this
-				.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase());
+		assert anAskMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId) : "the message should be for me";
+		assert anAskMessage.getToKnowledgeInteraction()
+				.equals(this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId));
+		assert anAskMessage.getFromKnowledgeInteraction()
+				.equals(this.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase()));
 
 		URI fromKnowledgeInteraction = this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId);
 		URI toKnowledgeInteraction = this.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase());
 
 		BindingSet bindings = new BindingSet();
 
-		for (MyKnowledgeInteractionInfo knowledgeInteractionInfo : myKnowledgeBaseStore.getKnowledgeInteractions()) {
+		for (KnowledgeInteractionInfo knowledgeInteractionInfo : this.myKnowledgeBaseStore.getKnowledgeInteractions()) {
 			Binding binding = new Binding();
 			binding.put("kb", "<" + this.myKnowledgeBaseId.toString() + ">");
-			binding.put("name", myKnowledgeBaseStore.getKnowledgeBaseName());
-			binding.put("description", myKnowledgeBaseStore.getKnowledgeBaseDescription());
+			binding.put("name", "\"" + this.myKnowledgeBaseStore.getKnowledgeBaseName() + "\"");
+			binding.put("description", "\"" + this.myKnowledgeBaseStore.getKnowledgeBaseDescription() + "\"");
 			// binding.put("sc", "TODO"); // TODO
 			// binding.put("endpoint", "TODO"); // TODO
 			binding.put("ki", "<" + knowledgeInteractionInfo.getId() + ">");
-			binding.put("isMeta", "false");
+			binding.put("isMeta", "\"false\"");
 			var knowledgeInteraction = knowledgeInteractionInfo.getKnowledgeInteraction();
 			switch (knowledgeInteractionInfo.getType()) {
 			case ASK:
-				binding.put("gp", "TODO"); // TODO
-				binding.put("pattern", ((AskKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern());
+				binding.put("kiType", "<" + ASK_KI.toString() + ">");
+				binding.put("gp", "<https://www.tno.nl/TODO1>"); // TODO
+				binding.put("pattern",
+						"\"" + ((AskKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
 			case ANSWER:
-				binding.put("gp", "TODO"); // TODO
-				binding.put("pattern", ((AskKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern());
+				binding.put("kiType", "<" + ANSWER_KI.toString() + ">");
+				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("pattern",
+						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
 			default:
-				LOG.warn("Ignored currently unsupported knowledge interaction type " + knowledgeInteractionInfo.getType());
+				LOG.warn("Ignored currently unsupported knowledge interaction type "
+						+ knowledgeInteractionInfo.getType());
 				assert false;
 			}
+			bindings.add(binding);
 		}
 
 		var answerMessage = new AnswerMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction,
@@ -122,7 +127,14 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				toKnowledgeInteraction, new BindingSet());
 		try {
 			CompletableFuture<OtherKnowledgeBase> future = this.messageRouter.sendAskMessage(askMsg)
-					.thenApply((answerMsg) -> this.constructOtherKnowledgeBaseFromAnswerMessage(answerMsg));
+					.thenApply((answerMsg) -> {
+						try {
+							return this.constructOtherKnowledgeBaseFromAnswerMessage(answerMsg);
+						} catch (Throwable t) {
+							LOG.error("The construction of other knowledge base should succeed.", t);
+						}
+						return null;
+					});
 			return future;
 		} catch (IOException e) {
 			var failedFuture = new CompletableFuture<OtherKnowledgeBase>();
@@ -132,11 +144,21 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	}
 
 	private URI constructAskMetaKnowledgeInteractionId(URI knowledgeBaseId) {
-		return knowledgeBaseId.resolve(ASK_SUFFIX);
+		try {
+			return new URI(knowledgeBaseId.toString() + ASK_SUFFIX);
+		} catch (URISyntaxException e) {
+			LOG.error("", e);
+		}
+		return null;
 	}
 
 	private URI constructAnswerMetaKnowledgeInteractionId(URI knowledgeBaseId) {
-		return knowledgeBaseId.resolve(ANSWER_SUFFIX);
+		try {
+			return new URI(knowledgeBaseId.toString() + ANSWER_SUFFIX);
+		} catch (URISyntaxException e) {
+			LOG.error("", e);
+		}
+		return null;
 	}
 
 	private OtherKnowledgeBase constructOtherKnowledgeBaseFromAnswerMessage(AnswerMessage answerMessage) {
@@ -153,10 +175,16 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		}
 		model.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 
-		Resource kb = model.listSubjectsWithProperty(RDF.type, "kb:KnowledgeBase").next();
-		String name = model.listObjectsOfProperty(kb, model.getProperty("kb:hasName")).next().asLiteral().getString();
-		String description = model.listObjectsOfProperty(kb, model.getProperty("kb:hasDescription")).next().asLiteral()
-				.getString();
+		Resource kb = model.listSubjectsWithProperty(RDF.type,
+				model.createResource("https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase")).next();
+
+		String name = model
+				.listObjectsOfProperty(kb, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasName"))
+				.next().asLiteral().getString();
+		String description = model
+				.listObjectsOfProperty(kb,
+						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasDescription"))
+				.next().asLiteral().getString();
 
 		// Commented out because we don't need this for now.
 		// Resource sc = model.listObjectsOfProperty(kb,
@@ -172,25 +200,48 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		// return null;
 		// }
 
-		ExtendedIterator<Resource> kis = model.listObjectsOfProperty(kb, model.getProperty("kb:hasKnowledgeInteraction"))
+		ExtendedIterator<Resource> kis = model
+				.listObjectsOfProperty(kb,
+						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction"))
 				.mapWith((n) -> n.asResource());
 
-		var knowledgeInteractions = new ArrayList<KnowledgeInteraction>();
+		var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
 		for (Resource ki : kis.toList()) {
-			Resource graphPattern = model.listObjectsOfProperty(ki, model.getProperty("kb:hasGraphPattern")).next()
-					.asResource();
-			String graphPatternString = model.listObjectsOfProperty(graphPattern, model.getProperty("kb:hasPattern")).next()
-					.asLiteral().getString();
+			Resource graphPattern = model
+					.listObjectsOfProperty(ki,
+							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern"))
+					.next().asResource();
+			String graphPatternString = model
+					.listObjectsOfProperty(graphPattern,
+							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
+					.next().asLiteral().getString();
 			var kiType = model.listObjectsOfProperty(ki, RDF.type).next();
-			if (kiType.equals(ASK_KI)) {
-				knowledgeInteractions
-						.add(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(graphPatternString)));
-			} else if (kiType.equals(ANSWER_KI)) {
-				knowledgeInteractions
-						.add(new AnswerKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(graphPatternString)));
-			} else {
-				LOG.warn("Ignored unexpected knowledge interaction type " + kiType);
+
+			try {
+
+				if (kiType.equals(ASK_KI)) {
+					AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
+							new CommunicativeAct(), new GraphPattern(graphPatternString));
+
+					KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+							new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction);
+
+					knowledgeInteractions.add(knowledgeInteractionInfo);
+				} else if (kiType.equals(ANSWER_KI)) {
+					AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
+							new CommunicativeAct(), new GraphPattern(graphPatternString));
+
+					KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+							new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction);
+
+					knowledgeInteractions.add(knowledgeInteractionInfo);
+				} else {
+					LOG.warn("Ignored unexpected knowledge interaction type " + kiType);
+				}
+			} catch (URISyntaxException e) {
+				LOG.error("The URIs should be correctly formatted.", e);
 			}
+
 		}
 
 		return new OtherKnowledgeBase(knowledgeBaseId, name, description, knowledgeInteractions, null);

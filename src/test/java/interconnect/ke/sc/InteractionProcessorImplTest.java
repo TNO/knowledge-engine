@@ -19,6 +19,8 @@ import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
@@ -26,13 +28,14 @@ import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 
 public class InteractionProcessorImplTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(InteractionProcessorImplTest.class);
 
 	private InteractionProcessor interactionProcessor = null;
 	private MessageRouter messageRouter = null;
@@ -53,9 +56,9 @@ public class InteractionProcessorImplTest {
 	@BeforeEach
 	void setUp() throws Exception {
 
-		interactionProcessor = new InteractionProcessorImpl(new TestOtherKnowledgeBaseStore());
+		this.interactionProcessor = new InteractionProcessorImpl(new TestOtherKnowledgeBaseStore(), null, null);
 		this.messageRouter = new TestMessageRouter();
-		interactionProcessor.setMessageRouter(this.messageRouter);
+		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
 		this.knowledgeBaseId1 = new URI("https://www.tno.nl/interconnect/kb1");
 		this.graphPattern1 = "?s1 <https://www.tno.nl/example/predicate1> ?o1 .";
@@ -73,12 +76,14 @@ public class InteractionProcessorImplTest {
 	}
 
 	@Test
-	void test() throws InterruptedException, ExecutionException {
+	void test() throws InterruptedException, ExecutionException, URISyntaxException {
 
 		AskKnowledgeInteraction askInteraction = new AskKnowledgeInteraction(null,
 				new GraphPattern(this.graphPattern1));
-		CompletableFuture<AskResult> future = interactionProcessor.processAskFromKnowledgeBase(askInteraction, null,
-				new BindingSet());
+
+		CompletableFuture<AskResult> future = this.interactionProcessor
+				.processAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
+						new URI("http://www.tno.nl/"), askInteraction, null, null), null, new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
 
@@ -91,13 +96,13 @@ public class InteractionProcessorImplTest {
 			b = iterator.next();
 			assertNotNull(b);
 			if (b.containsKey("s2")) {
-				assertTrue(b.get("s2").equals(subject2));
+				assertTrue(b.get("s2").equals(this.subject2));
 				assertTrue(b.containsKey("o2"));
-				assertTrue(b.get("o2").equals(object2));
+				assertTrue(b.get("o2").equals(this.object2));
 			} else if (b.containsKey("s3")) {
-				assertTrue(b.get("s3").equals(subject3));
+				assertTrue(b.get("s3").equals(this.subject3));
 				assertTrue(b.containsKey("o3"));
-				assertTrue(b.get("o3").equals(object3));
+				assertTrue(b.get("o3").equals(this.object3));
 			} else {
 				fail("Every binding should contain either s2 or s3.");
 			}
@@ -110,37 +115,52 @@ public class InteractionProcessorImplTest {
 		public Set<OtherKnowledgeBase> getOtherKnowledgeBases() {
 
 			Set<OtherKnowledgeBase> others = new HashSet<>();
+			try {
 
-			// create/add second
-			List<KnowledgeInteraction> someKIs2 = new ArrayList<>();
-			someKIs2.add(new AnswerKnowledgeInteraction(null,
-					new GraphPattern(InteractionProcessorImplTest.this.graphPattern2)));
-			OtherKnowledgeBase other2 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId2, "",
-					"", someKIs2, null);
-			others.add(other2);
+				// create/add second
+				List<KnowledgeInteractionInfo> someKIs2 = new ArrayList<>();
+				AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(null,
+						new GraphPattern(InteractionProcessorImplTest.this.graphPattern2));
 
-			// create/add third
-			List<KnowledgeInteraction> someKIs3 = new ArrayList<>();
-			someKIs3.add(new AnswerKnowledgeInteraction(null,
-					new GraphPattern(InteractionProcessorImplTest.this.graphPattern3)));
-			OtherKnowledgeBase other3 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId3, "",
-					"", someKIs3, null);
-			others.add(other3);
+				KnowledgeInteractionInfo knowledgeInteractionInfo;
+				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/2"),
+						InteractionProcessorImplTest.this.knowledgeBaseId2, answerKnowledgeInteraction);
 
+				someKIs2.add(knowledgeInteractionInfo);
+				OtherKnowledgeBase other2 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId2,
+						"", "", someKIs2, null);
+				others.add(other2);
+
+				// create/add third
+				List<KnowledgeInteractionInfo> someKIs3 = new ArrayList<>();
+				answerKnowledgeInteraction = new AnswerKnowledgeInteraction(null,
+						new GraphPattern(InteractionProcessorImplTest.this.graphPattern3));
+
+				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/3"),
+						InteractionProcessorImplTest.this.knowledgeBaseId3, answerKnowledgeInteraction);
+
+				someKIs3.add(knowledgeInteractionInfo);
+				OtherKnowledgeBase other3 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId3,
+						"", "", someKIs3, null);
+				others.add(other3);
+			} catch (URISyntaxException e) {
+				LOG.error("", e);
+			}
 			return others;
+
 		}
 	}
 
 	class TestMessageRouter implements MessageRouter {
 
-		private ExecutorService executor = Executors.newFixedThreadPool(1);
+		private final ExecutorService executor = Executors.newFixedThreadPool(1);
 
 		@Override
 		public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) throws IOException {
 
-			CompletableFuture<AnswerMessage> future = new CompletableFuture<AnswerMessage>();
+			CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 
-			executor.execute(() -> {
+			this.executor.execute(() -> {
 
 				BindingSet bindings = new BindingSet();
 
@@ -151,7 +171,8 @@ public class InteractionProcessorImplTest {
 
 				AnswerMessage msg;
 				try {
-					msg = new AnswerMessage(knowledgeBaseId2, new URI("https://www.tno.nl/ki2"), knowledgeBaseId1,
+					msg = new AnswerMessage(InteractionProcessorImplTest.this.knowledgeBaseId2,
+							new URI("https://www.tno.nl/ki2"), InteractionProcessorImplTest.this.knowledgeBaseId1,
 							new URI("https://www.tno.nl/ki1"), askMessage.getMessageId(), bindings);
 					future.complete(msg);
 				} catch (URISyntaxException e) {

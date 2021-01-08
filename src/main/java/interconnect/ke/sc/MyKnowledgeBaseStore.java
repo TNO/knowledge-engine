@@ -34,7 +34,9 @@ public interface MyKnowledgeBaseStore {
 	 */
 	String getKnowledgeBaseDescription();
 
-	MyKnowledgeInteractionInfo getKnowledgeInteractionById(URI id);
+	KnowledgeInteractionInfo getKnowledgeInteractionById(URI id);
+
+	MyKnowledgeInteractionInfo getKnowledgeInteractionByObject(KnowledgeInteraction ki);
 
 	Set<MyKnowledgeInteractionInfo> getKnowledgeInteractions();
 
@@ -69,4 +71,5 @@ public interface MyKnowledgeBaseStore {
 	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
 
 	void unregister(ReactKnowledgeInteraction anReactKI);
+
 }

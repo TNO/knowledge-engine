@@ -22,7 +22,7 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
-import interconnect.ke.sc.MyKnowledgeInteractionInfo.Type;
+import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 
@@ -63,8 +63,15 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	}
 
 	@Override
-	public MyKnowledgeInteractionInfo getKnowledgeInteractionById(URI id) {
+	public KnowledgeInteractionInfo getKnowledgeInteractionById(URI id) {
 		return this.kiis.get(id);
+	}
+
+	@Override
+	public MyKnowledgeInteractionInfo getKnowledgeInteractionByObject(KnowledgeInteraction ki) {
+
+		return this.kiis.values().stream().filter((storedKI) -> storedKI.getKnowledgeInteraction() == ki).findFirst()
+				.orElse(null);
 	}
 
 	@Override
@@ -125,7 +132,8 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	@Override
 	public URI register(AskKnowledgeInteraction anAskKI) {
 		URI id = this.generateId(anAskKI);
-		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anAskKI, null, null);
+		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAskKI, null,
+				null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -143,7 +151,8 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	@Override
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		URI id = this.generateId(anAnswerKI);
-		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anAnswerKI, anAnswerHandler, null);
+		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAnswerKI,
+				anAnswerHandler, null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -161,7 +170,8 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	@Override
 	public URI register(PostKnowledgeInteraction aPostKI) {
 		URI id = this.generateId(aPostKI);
-		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, aPostKI, null, null);
+		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), aPostKI, null,
+				null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -179,7 +189,8 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	@Override
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
 		URI id = this.generateId(anReactKI);
-		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, anReactKI, null, aReactHandler);
+		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anReactKI, null,
+				aReactHandler);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;

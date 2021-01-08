@@ -2,8 +2,8 @@ package interconnect.ke.sc;
 
 public interface MyKnowledgeBaseStoreListener {
 
-	void knowledgeInteractionRegistered(MyKnowledgeInteractionInfo ki);
+	void knowledgeInteractionRegistered(KnowledgeInteractionInfo ki);
 
-	void knowledgeInteractionUnregistered(MyKnowledgeInteractionInfo ki);
+	void knowledgeInteractionUnregistered(KnowledgeInteractionInfo ki);
 
 }
