@@ -33,7 +33,7 @@ public class ProactiveInteractionProcessorImpl implements ProactiveInteractionPr
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
+	public CompletableFuture<AskResult> processAskFromKnowledgeBase(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
 
 		assert anAKI != null : "the knowledge interaction should be non-null";
