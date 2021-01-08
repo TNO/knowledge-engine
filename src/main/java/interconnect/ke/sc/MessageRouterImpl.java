@@ -17,45 +17,112 @@ import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
 
-/**
- * This class can be used to send {@link AskMessage}s or {@link PostMessage}s
- * towards other SmartConnectors. This class will immedately return a
- * {@link CompletableFuture}, and wait for the corresponding
- * {@link AnswerMessage} or {@link ReactMessage} to arrive, and will notify the
- * original sender of the message via the {@link CompletableFuture} that the
- * reply has arrived.
- */
 public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint {
 
 	private final static Logger LOG = LoggerFactory.getLogger(MessageRouterImpl.class);
 
+	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = new ConcurrentHashMap<>();
 	private final Map<UUID, CompletableFuture<ReactMessage>> openPostMessages = new ConcurrentHashMap<>();
 
 	private MessageDispatcherEndpoint messageDispatcherEndpoint = null;
+	private MyMetaKnowledgeBase metaKnowledgeBase;
+	private InteractionProcessor interactionProcessor;
+
+	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
+	private boolean smartConnectorReadyNotified = false;
+
+	public MessageRouterImpl(SmartConnectorImpl smartConnector) {
+		this.smartConnector = smartConnector;
+	}
 
 	@Override
 	public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) throws IOException {
+		MessageDispatcherEndpoint messageDispatcher = this.messageDispatcherEndpoint;
+		if (messageDispatcher == null) {
+			throw new IOException("Not connected to MessageDispatcher");
+		}
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 		this.openAskMessages.put(askMessage.getMessageId(), future);
-		this.messageDispatcherEndpoint.send(askMessage);
+		messageDispatcher.send(askMessage);
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<ReactMessage> sendPostMessage(PostMessage postMessage) throws IOException {
+		MessageDispatcherEndpoint messageDispatcher = this.messageDispatcherEndpoint;
+		if (messageDispatcher == null) {
+			throw new IOException("Not connected to MessageDispatcher");
+		}
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
 		this.openPostMessages.put(postMessage.getMessageId(), future);
-		this.messageDispatcherEndpoint.send(postMessage);
+		messageDispatcher.send(postMessage);
 		return future;
 	}
 
 	/**
-	 * Handle the arrival of an {@link AnswerMessage}, which is a reply on an
-	 * {@link AskMessage} that was originally sent out through this class. This
-	 * method should indirectly be called by the MessageDispatcher.
-	 *
-	 * @param answerMessage message to handle
+	 * Handle a new incoming {@link AskMessage} to which we need to reply
+	 */
+	@Override
+	public void handleAskMessage(AskMessage message) {
+		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
+			LOG.warn(
+					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
+		} else {
+			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
+				AnswerMessage reply = this.metaKnowledgeBase.processAskFromMessageRouter(message);
+				try {
+					this.messageDispatcherEndpoint.send(reply);
+				} catch (IOException e) {
+					LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+				}
+			} else {
+				CompletableFuture<AnswerMessage> replyFuture = this.interactionProcessor
+						.processAskFromMessageRouter(message);
+				replyFuture.thenAccept(reply -> {
+					try {
+						this.messageDispatcherEndpoint.send(reply);
+					} catch (IOException e) {
+						LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					}
+				});
+			}
+		}
+	}
+
+	/**
+	 * Handle a new incoming {@link PostMessage} to which we need to reply
+	 */
+	@Override
+	public void handlePostMessage(PostMessage message) {
+		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
+			LOG.warn(
+					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
+		} else {
+			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
+				ReactMessage reply = this.metaKnowledgeBase.processPostFromMessageRouter(message);
+				try {
+					this.messageDispatcherEndpoint.send(reply);
+				} catch (IOException e) {
+					LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+				}
+			} else {
+				CompletableFuture<ReactMessage> replyFuture = this.interactionProcessor
+						.processPostFromMessageRouter(message);
+				replyFuture.thenAccept(reply -> {
+					try {
+						this.messageDispatcherEndpoint.send(reply);
+					} catch (IOException e) {
+						LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					}
+				});
+			}
+		}
+	}
+
+	/**
+	 * Handle an incoming {@link AnswerMessage} which is a reply to an
+	 * {@link AskMessage} we sent out earlier
 	 */
 	@Override
 	public void handleAnswerMessage(AnswerMessage answerMessage) {
@@ -69,11 +136,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	}
 
 	/**
-	 * Handle the arrival of an {@link ReactMessage}, which is a reply on a
-	 * {@link PostMessage} that was originally sent out through this class. This
-	 * method should indirectly be called by the MessageDispatcher.
-	 *
-	 * @param reactMessage message to handle
+	 * Handle an incoming {@link ReactMessage} which is a reply to an
+	 * {@link PostMessage} we sent out earlier
 	 */
 	@Override
 	public void handleReactMessage(ReactMessage reactMessage) {
@@ -88,49 +152,43 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	@Override
 	public void registerMetaKnowledgeBase(MyMetaKnowledgeBase metaKnowledgeBase) {
-		// TODO Auto-generated method stub
+		assert metaKnowledgeBase == null;
 
+		this.metaKnowledgeBase = metaKnowledgeBase;
 	}
 
 	@Override
 	public void registerInteractionProcessor(InteractionProcessor interactionProcessor) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint) {
-		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
-	}
-
-	@Override
-	public void handleAskMessage(AskMessage message) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void handlePostMessage(PostMessage message) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void unsetMessageDispatcher() {
-		// TODO Auto-generated method stub
-
+		assert interactionProcessor == null;
+		this.interactionProcessor = interactionProcessor;
 	}
 
 	@Override
 	public URI getKnowledgeBaseId() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.smartConnector.getKnowledgeBaseId();
+	}
+
+	@Override
+	public void setMessageDispatcher(MessageDispatcherEndpoint messageDispatcherEndpoint) {
+		assert this.messageDispatcherEndpoint == null;
+
+		this.messageDispatcherEndpoint = messageDispatcherEndpoint;
+
+		if (!this.smartConnectorReadyNotified) {
+			this.smartConnector.communicationReady();
+			this.smartConnectorReadyNotified = true;
+		} else {
+			this.smartConnector.communicationRestored();
+		}
+	}
+
+	@Override
+	public void unsetMessageDispatcher() {
+		assert this.messageDispatcherEndpoint != null;
+
+		this.messageDispatcherEndpoint = null;
+
+		this.smartConnector.communicationInterrupted();
 	}
 
 }

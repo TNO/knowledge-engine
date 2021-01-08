@@ -135,10 +135,6 @@ public class InteractionProcessorImplTest {
 		private ExecutorService executor = Executors.newFixedThreadPool(1);
 
 		@Override
-		public void setMessageDispatcherEndpoint(MessageDispatcherEndpoint messageDispatcherEndpoint) {
-		}
-
-		@Override
 		public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) throws IOException {
 
 			CompletableFuture<AnswerMessage> future = new CompletableFuture<AnswerMessage>();

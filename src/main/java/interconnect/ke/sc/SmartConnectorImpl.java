@@ -2,6 +2,8 @@ package interconnect.ke.sc;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +22,6 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
-import interconnect.ke.messaging.AnswerMessage;
-import interconnect.ke.messaging.MessageDispatcherEndpoint;
 import interconnect.ke.messaging.SmartConnectorEndpoint;
 import interconnect.ke.runtime.KeRuntime;
 
@@ -48,11 +48,12 @@ public class SmartConnectorImpl implements SmartConnector {
 	// private final MyMetaKnowledgeBase
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
-	private MessageDispatcherEndpoint messageDispatcherEndpoint;
 	private final MessageRouterImpl messageRouter;
 
-	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
-	private final boolean smartConnectorReadyNotified = false;
+	private boolean isStopped = false;
+
+	private final boolean knowledgeBaseIsThreadSafe;
+	private final ExecutorService knowledgeBaseExecutorService;
 
 	/**
 	 * Create a {@link SmartConnectorImpl}
@@ -60,14 +61,24 @@ public class SmartConnectorImpl implements SmartConnector {
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
-
-	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
+	SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
 		this.myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
 		this.otherKnowledgeBaseStore = null; // TODO
 		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
-		this.messageRouter = new MessageRouterImpl();
+		this.messageRouter = new MessageRouterImpl(this);
+		this.messageRouter.registerInteractionProcessor(interactionProcessor);
+//		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
+
+		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
+		this.knowledgeBaseExecutorService = knowledgeBaseIsThreadSafe ? KeRuntime.executorService()
+				: Executors.newSingleThreadExecutor();
+
 		KeRuntime.localSmartConnectorRegistry().register(this);
+	}
+
+	public URI getKnowledgeBaseId() {
+		return this.myKnowledgeBase.getKnowledgeBaseId();
 	}
 
 	/**
@@ -82,6 +93,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void register(AskKnowledgeInteraction anAskKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.register(anAskKI);
 	}
 
@@ -97,6 +110,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.unregister(anAskKI);
 	}
 
@@ -117,6 +132,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler);
 	}
 
@@ -132,6 +149,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.unregister(anAnswerKI);
 	}
 
@@ -147,6 +166,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void register(PostKnowledgeInteraction aPostKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.register(aPostKI);
 	}
 
@@ -162,6 +183,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.unregister(aPostKI);
 	}
 
@@ -181,6 +204,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler);
 	}
 
@@ -196,6 +221,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void unregister(ReactKnowledgeInteraction aReactKI) {
+		this.checkStopped();
+
 		this.myKnowledgeBaseStore.unregister(aReactKI);
 	}
 
@@ -240,6 +267,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
+
+		this.checkStopped();
 		return this.interactionProcessor.processAskFromKnowledgeBase(anAKI, aSelector, aBindingSet);
 	}
 
@@ -315,6 +344,8 @@ public class SmartConnectorImpl implements SmartConnector {
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments) {
+		this.checkStopped();
+
 		return CompletableFuture.supplyAsync(() -> null);
 	}
 
@@ -354,13 +385,37 @@ public class SmartConnectorImpl implements SmartConnector {
 	 */
 	@Override
 	public void stop() {
+		this.checkStopped();
+
+		this.isStopped = true;
+
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
-		this.myKnowledgeBase.smartConnectorStopped(this);
+
+		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
+
+		if (!this.knowledgeBaseIsThreadSafe) {
+			// In that case this was a SingleThreadExecutor that was created in the
+			// constructor specifically for this Knowledge Base
+			this.knowledgeBaseExecutorService.shutdown();
+		}
 	}
 
-	@Override
-	public URI getKnowledgeBaseId() {
-		return this.myKnowledgeBase.getKnowledgeBaseId();
+	private void checkStopped() {
+		if (this.isStopped) {
+			throw new IllegalStateException("The SmartConnector cannot be used anymore once it is stopped");
+		}
+	}
+
+	void communicationReady() {
+		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
+	}
+
+	void communicationInterrupted() {
+		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
+	}
+
+	void communicationRestored() {
+		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
 	}
 
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
