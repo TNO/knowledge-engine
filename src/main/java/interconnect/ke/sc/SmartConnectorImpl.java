@@ -45,7 +45,7 @@ public class SmartConnectorImpl implements SmartConnector {
 
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
-	// private final MyMetaKnowledgeBase
+	private final MyMetaKnowledgeBase myMetaKnowledgeBase;
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
@@ -61,9 +61,10 @@ public class SmartConnectorImpl implements SmartConnector {
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
-	SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
+	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
 		this.myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
+		this.myMetaKnowledgeBase = null; // TODO
 		this.otherKnowledgeBaseStore = null; // TODO
 		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
 		this.messageRouter = new MessageRouterImpl(this);
