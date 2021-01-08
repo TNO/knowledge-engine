@@ -3,8 +3,6 @@ package interconnect.ke.sc;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.sparql.lang.arq.ParseException;
-
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.binding.BindingSet;
@@ -26,12 +24,11 @@ import interconnect.ke.api.interaction.KnowledgeInteraction;
 public abstract class SingleInteractionProcessor {
 
 	protected final Set<KnowledgeInteraction> otherKnowledgeInteractions;
-	protected final MessageReplyTracker messageReplyTracker;
+	protected final MessageRouter messageRouter;
 
-	public SingleInteractionProcessor(Set<KnowledgeInteraction> knowledgeInteractions,
-			MessageReplyTracker messageReplyTracker) {
+	public SingleInteractionProcessor(Set<KnowledgeInteraction> knowledgeInteractions, MessageRouter messageRouter) {
 		this.otherKnowledgeInteractions = knowledgeInteractions;
-		this.messageReplyTracker = messageReplyTracker;
+		this.messageRouter = messageRouter;
 
 	}
 

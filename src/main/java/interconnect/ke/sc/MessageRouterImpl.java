@@ -26,8 +26,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	private final Map<UUID, CompletableFuture<ReactMessage>> openPostMessages = new ConcurrentHashMap<>();
 
 	private MessageDispatcherEndpoint messageDispatcherEndpoint = null;
-	private MyMetaKnowledgeBase metaKnowledgeBase;
-	private ProactiveInteractionProcessor interactionProcessor;
+	private MetaKnowledgeBase metaKnowledgeBase;
+	private InteractionProcessor interactionProcessor;
 
 	/** Indicates if we already called myKnowledgeBase.smartConnectorReady(this) */
 	private boolean smartConnectorReadyNotified = false;
@@ -151,16 +151,15 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	}
 
 	@Override
-	public void registerMetaKnowledgeBase(MyMetaKnowledgeBase metaKnowledgeBase) {
+	public void registerMetaKnowledgeBase(MetaKnowledgeBase metaKnowledgeBase) {
 		assert metaKnowledgeBase == null;
 
 		this.metaKnowledgeBase = metaKnowledgeBase;
 	}
 
 	@Override
-	public void registerInteractionProcessor(ProactiveInteractionProcessor interactionProcessor) {
-		assert interactionProcessor == null;
-
+	public void registerInteractionProcessor(InteractionProcessor interactionProcessor) {
+		assert this.interactionProcessor == null;
 		this.interactionProcessor = interactionProcessor;
 	}
 

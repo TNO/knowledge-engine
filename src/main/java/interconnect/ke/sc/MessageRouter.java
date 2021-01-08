@@ -55,14 +55,8 @@ public interface MessageRouter {
 	 *
 	 * @param metaKnowledgeBase
 	 */
-	void registerMetaKnowledgeBase(MyMetaKnowledgeBase metaKnowledgeBase);
+	void registerMetaKnowledgeBase(MetaKnowledgeBase metaKnowledgeBase);
 
-	/**
-	 * Register the {@link ProactiveInteractionProcessor} so it can receive incoming
-	 * messages for which a reply needs to be created.
-	 *
-	 * @param metaKnowledgeBase
-	 */
-	void registerInteractionProcessor(ProactiveInteractionProcessor interactionProcessor);
+	void registerInteractionProcessor(InteractionProcessor interactionProcessor);
 
 }

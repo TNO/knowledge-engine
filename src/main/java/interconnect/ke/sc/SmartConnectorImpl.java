@@ -45,9 +45,8 @@ public class SmartConnectorImpl implements SmartConnector {
 
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
-	// private final MyMetaKnowledgeBase
-	private final ReactiveInteractionProcessor reactiveInteractionProcessor;
-	private final ProactiveInteractionProcessor proactiveInteractionProcessor;
+	private final MetaKnowledgeBase myMetaKnowledgeBase;
+	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
 
@@ -62,13 +61,16 @@ public class SmartConnectorImpl implements SmartConnector {
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
-	SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
+	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
 		this.myKnowledgeBase = aKnowledgeBase;
 		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase.getKnowledgeBaseId());
-		this.reactiveInteractionProcessor = null; // TODO
+		this.myMetaKnowledgeBase = null; // TODO
 		this.otherKnowledgeBaseStore = null; // TODO
-		this.proactiveInteractionProcessor = new ProactiveInteractionProcessorImpl(this.otherKnowledgeBaseStore);
+		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore);
 		this.messageRouter = new MessageRouterImpl(this);
+		this.messageRouter.registerInteractionProcessor(interactionProcessor);
+//		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
+		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
 		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
 		this.knowledgeBaseExecutorService = knowledgeBaseIsThreadSafe ? KeRuntime.executorService()
@@ -267,9 +269,9 @@ public class SmartConnectorImpl implements SmartConnector {
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
-		this.checkStopped();
 
-		return this.proactiveInteractionProcessor.processAskFromKnowledgeBase(anAKI, aSelector, aBindingSet);
+		this.checkStopped();
+		return this.interactionProcessor.processAskFromKnowledgeBase(anAKI, aSelector, aBindingSet);
 	}
 
 	/**
