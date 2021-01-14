@@ -5,9 +5,9 @@ Welcome to the documentation of the Knowledge Engine. The Knowledge Engine allow
 The Knowledge Engine provides this interoperability by giving it an ontology that describes the standardized terminology about the domain of the ecosystem. A deductive reasoner uses this ontology to match the demand an supply of knowledge within the ecosystem.
 
 
-- Section 1: [Conceptual framework](#conceptual-framework)
-- Section 2: [How is reasoning used?](#how-is-reasoning-used)
-- Section 3: [Java developer API](#java-developer-api)
-- Section 4: [Test cases](#test-cases)
+- Section 1: [Conceptual framework](#01_conceptual-framework)
+- Section 2: [How is reasoning used?](#02_how-is-reasoning-used)
+- Section 3: [Java developer API](#03_java-developer-api)
+- Section 4: [Test cases](#04_test-cases)
 
-- [Glossary](#glossary)
+- [Glossary](#05_glossary)
