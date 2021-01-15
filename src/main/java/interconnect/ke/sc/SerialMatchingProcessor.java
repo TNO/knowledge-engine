@@ -9,19 +9,26 @@ import org.slf4j.Logger;
 
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.PostResult;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
+import interconnect.ke.messaging.PostMessage;
+import interconnect.ke.messaging.ReactMessage;
 import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 	private final Logger LOG;
 
-	private CompletableFuture<AskResult> resultFuture;
-	private CompletableFuture<AnswerMessage> messageFuture;
+	private CompletableFuture<AskResult> answerFuture;
+	private CompletableFuture<PostResult> reactFuture;
+	private CompletableFuture<AnswerMessage> answerMessageFuture;
+	private CompletableFuture<ReactMessage> reactMessageFuture;
 	private final Iterator<KnowledgeInteractionInfo> kiIter;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final BindingSet allBindings;
@@ -39,13 +46,21 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	CompletableFuture<AskResult> processInteraction(MyKnowledgeInteractionInfo askKnowledgeInteraction,
+	CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo askKnowledgeInteraction,
 			BindingSet bindingSet) {
 		this.myKnowledgeInteraction = askKnowledgeInteraction;
-		this.resultFuture = new CompletableFuture<>();
+		this.answerFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
-		return this.resultFuture;
+		return this.answerFuture;
+	}
 
+	@Override
+	CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo postKnowledgeInteraction,
+			BindingSet bindingSet) {
+		this.myKnowledgeInteraction = postKnowledgeInteraction;
+		this.reactFuture = new CompletableFuture<>();
+		this.checkOtherKnowledgeInteraction(bindingSet);
+		return this.reactFuture;
 	}
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {
@@ -55,13 +70,9 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 			this.LOG.trace("In sync: hasNext? {}", this.kiIter.hasNext());
 			if (this.kiIter.hasNext()) {
 				KnowledgeInteractionInfo ki = this.kiIter.next();
-				AnswerKnowledgeInteraction aKI = null;
-
 				this.LOG.trace("In sync: {}", ki);
-				this.LOG.trace("In sync: before Type check: {}", ki.getType());
-
 				if (ki.getType() == Type.ANSWER) {
-					aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
+					AnswerKnowledgeInteraction aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
 					if (this.matches(((AskKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
 							.getPattern(), aKI.getPattern())) {
 						this.LOG.trace("In sync: after match");
@@ -69,12 +80,12 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
 						try {
 							this.LOG.trace("Before sending message {}", askMessage);
-							this.messageFuture = this.messageRouter.sendAskMessage(askMessage);
+							this.answerMessageFuture = this.messageRouter.sendAskMessage(askMessage);
 							this.LOG.trace("After sending message {}. Expecting answer.", askMessage);
-							this.messageFuture.thenAccept((aMessage) -> {
+							this.answerMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.LOG.trace("Received message {}. Is answer to: {}", aMessage, askMessage);
-									this.messageFuture = null;
+									this.answerMessageFuture = null;
 
 									// TODO make sure there are no duplicates
 									this.allBindings.addAll(aMessage.getBindings());
@@ -82,7 +93,6 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								} catch (Throwable t) {
 									this.LOG.error("Receiving a answer message should succeed.", t);
 								}
-
 							});
 						} catch (IOException e) {
 							this.LOG.warn("Errors should not occur when sending and processing message: "
@@ -91,15 +101,45 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
 						}
+					}
+				} else if (ki.getType() == Type.REACT) {
+					ReactKnowledgeInteraction rKI = (ReactKnowledgeInteraction) ki.getKnowledgeInteraction();
+					if (this.matches(((PostKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
+							.getArgument(), rKI.getArgument())) {
+						PostMessage postMessage = new PostMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
+								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
+						try {
+							this.reactMessageFuture = this.messageRouter.sendPostMessage(postMessage);
+							this.reactMessageFuture.thenAccept(aMessage -> {
+								try {
+									this.reactMessageFuture = null;
+
+									// TODO make sure there are no duplicates
+									this.allBindings.addAll(aMessage.getBindings());
+									this.checkOtherKnowledgeInteraction(bindingSet);
+								} catch (Throwable t) {
+									this.LOG.error("Receiving a react message should succeed.", t);
+								}
+							});
+						} catch (IOException e) {
+							this.LOG.warn("Errors should not occur when sending and processing message: "
+									+ postMessage.toString(), e);
+
+							// continue with the work, otherwise this process will come to a halt.
+							this.checkOtherKnowledgeInteraction(bindingSet);
+						}
 					} else {
 						this.checkOtherKnowledgeInteraction(bindingSet);
 					}
 				} else {
-					this.LOG.info("Not a Answer KI: {}", ki);
 					this.checkOtherKnowledgeInteraction(bindingSet);
 				}
 			} else {
-				this.resultFuture.complete(new AskResult(this.allBindings));
+				if (this.answerFuture != null) {
+					this.answerFuture.complete(new AskResult(this.allBindings));
+				} else if (this.reactFuture != null) {
+					this.reactFuture.complete(new PostResult(this.allBindings));
+				}
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
 import interconnect.ke.api.AskResult;
+import interconnect.ke.api.PostResult;
 import interconnect.ke.api.RecipientSelector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
@@ -65,7 +66,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// MessageDispatcher will finish this process and the thread that handles the
 		// last reply message will complete the future and notify the caller
 		// KnowledgeBase.
-		CompletableFuture<AskResult> future = processor.processInteraction(anAKI, aBindingSet);
+		CompletableFuture<AskResult> future = processor.processAskInteraction(anAKI, aBindingSet);
 
 		return future;
 	}
@@ -103,6 +104,37 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			// figure out how to do it asynchronously.
 			future.complete(result);
 		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI,
+			RecipientSelector aSelector, BindingSet someArguments) {
+		assert aPKI != null : "the knowledge interaction should be non-null";
+		assert someArguments != null : "the binding set should be non-null";
+
+		// TODO: Use RecipientSelector
+
+		// retrieve other knowledge bases
+		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
+
+		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
+			otherKnowledgeInteractions.addAll(otherKB.getKnowledgeInteractions());
+		}
+
+		// create a new SingleInteractionProcessor to handle this ask.
+		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
+				otherKnowledgeInteractions, this.messageRouter);
+
+		// give the caller something to chew on while it waits. This method starts the
+		// interaction process as far as it can until it is blocked because it waits for
+		// outstanding message replies. Then it returns the future. Threads from the
+		// MessageDispatcher will finish this process and the thread that handles the
+		// last reply message will complete the future and notify the caller
+		// KnowledgeBase.
+		CompletableFuture<PostResult> future = processor.processPostInteraction(aPKI, someArguments);
+
 		return future;
 	}
 
