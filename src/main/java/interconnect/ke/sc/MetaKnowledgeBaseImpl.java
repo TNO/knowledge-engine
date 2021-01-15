@@ -249,36 +249,50 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 		var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
 		for (Resource ki : kis.toList()) {
-			Resource graphPattern = model
-					.listObjectsOfProperty(ki,
-							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern"))
-					.next().asResource();
-			String graphPatternString = model
-					.listObjectsOfProperty(graphPattern,
-							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
-					.next().asLiteral().getString();
 			var kiType = model.listObjectsOfProperty(ki, RDF.type).next();
 
 			try {
 
-				if (kiType.equals(ASK_KI)) {
-					AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
-							new CommunicativeAct(), new GraphPattern(graphPatternString));
+				if (kiType.equals(ASK_KI) || kiType.equals(ANSWER_KI)) {
+					Resource graphPattern = model.listObjectsOfProperty(ki, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern")).next().asResource();
+					String graphPatternString = model.listObjectsOfProperty(graphPattern, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern")).next().asLiteral().getString();
+					if (kiType.equals(ASK_KI)) {
+						AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(graphPatternString));
 
-					KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-							new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction);
-
-					knowledgeInteractions.add(knowledgeInteractionInfo);
-				} else if (kiType.equals(ANSWER_KI)) {
-					AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
-							new CommunicativeAct(), new GraphPattern(graphPatternString));
-
-					KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-							new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction);
-
-					knowledgeInteractions.add(knowledgeInteractionInfo);
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction);
+	
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					} else if (kiType.equals(ANSWER_KI)) {
+						AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(graphPatternString));
+	
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction);
+	
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					}
+				} else if (kiType.equals(POST_KI) || kiType.equals(REACT_KI)) {
+					Resource argumentGraphPattern = model.listObjectsOfProperty(ki, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasArgumentPattern")).next().asResource();
+					Resource resultGraphPattern = model.listObjectsOfProperty(ki, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasResultPattern")).next().asResource();
+					String argumentGraphPatternString = model.listObjectsOfProperty(argumentGraphPattern, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern")).next().asLiteral().getString();
+					String resultGraphPatternString = model.listObjectsOfProperty(resultGraphPattern, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern")).next().asLiteral().getString();
+					if (kiType.equals(POST_KI)) {
+						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(argumentGraphPatternString), new GraphPattern(resultGraphPatternString));
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction);
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					} else if (kiType.equals(REACT_KI)) {
+						ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(argumentGraphPatternString), new GraphPattern(resultGraphPatternString));
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction);
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					}
 				} else {
-					this.LOG.warn("Ignored unexpected knowledge interaction type " + kiType);
+					this.LOG.warn("Ignored unexpected knowledge interaction type {}", kiType);
 				}
 			} catch (URISyntaxException e) {
 				this.LOG.error("The URIs should be correctly formatted.", e);
