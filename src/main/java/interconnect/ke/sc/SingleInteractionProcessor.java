@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
+import interconnect.ke.api.PostResult;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
 
@@ -32,10 +33,9 @@ public abstract class SingleInteractionProcessor {
 
 	}
 
-	abstract CompletableFuture<AskResult> processInteraction(MyKnowledgeInteractionInfo aAKI, BindingSet someBindings);
+	abstract CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo aAKI, BindingSet someBindings);
 
-//	abstract void processInteraction(PostKnowledgeInteraction aPKI,
-//			BindingSet someArgumentBindings);
+	abstract CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI, BindingSet someBindings);
 
 	// close?
 
