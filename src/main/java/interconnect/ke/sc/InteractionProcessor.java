@@ -6,6 +6,7 @@ import interconnect.ke.api.AnswerHandler;
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.KnowledgeBase;
+import interconnect.ke.api.PostResult;
 import interconnect.ke.api.ReactHandler;
 import interconnect.ke.api.RecipientSelector;
 import interconnect.ke.api.binding.BindingSet;
@@ -63,7 +64,7 @@ public interface InteractionProcessor {
 	 *                    {@link AskKnowledgeInteraction}.
 	 * @return A future to an {@link AskResult}. This means this method immediately
 	 *         returns and will continue processing the
-	 *         {@link AskKnowledgeInteraction} in the background. Ones the
+	 *         {@link AskKnowledgeInteraction} in the background. Once the
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link AskResult} and access its {@link BindingSet}.
 	 */
@@ -77,18 +78,17 @@ public interface InteractionProcessor {
 	 * @param aSelector     The {@link RecipientSelector} to limit the
 	 *                      OtherKnowledgeBases who's
 	 *                      {@link ReactKnowledgeInteraction} will be called.
-	 * @param someArguments The {@link BindingSet} containing limitations on the
+	 * @param aBindingSet The {@link BindingSet} containing limitations on the
 	 *                      expected answers. The variable names in the bindings
 	 *                      should occur in the {@link GraphPattern} of the
 	 *                      {@link PostKnowledgeInteraction}.
 	 * @return A future to an {@link AskResult}. This means this method immediately
 	 *         returns and will continue processing the
-	 *         {@link PostKnowledgeInteraction} in the background. Ones the
+	 *         {@link PostKnowledgeInteraction} in the background. Once the
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-//	CompletableFuture<PostResult> processPostFromKnowledgeBase(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
-//			BindingSet someArguments);
+	CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector, BindingSet aBindingSet);
 
 	/**
 	 * Interprets the given {@link AskMessage} and returns an {@link AnswerMessage}
