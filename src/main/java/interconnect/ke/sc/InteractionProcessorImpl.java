@@ -12,6 +12,7 @@ import interconnect.ke.api.PostResult;
 import interconnect.ke.api.RecipientSelector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.PostMessage;
@@ -140,8 +141,38 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 	@Override
 	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
-		// TODO Implement after MVP phase.
-		return null;
+		URI reactKnowledgeInteractionId = aPostMsg.getToKnowledgeInteraction();
+		ReactKnowledgeInteraction reactKnowledgeInteraction;
+		try {
+			reactKnowledgeInteraction = (ReactKnowledgeInteraction) this.myKnowledgeBaseStore
+					.getKnowledgeInteractionById(reactKnowledgeInteractionId).getKnowledgeInteraction();
+		} catch (Throwable t) {
+			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + reactKnowledgeInteractionId
+					+ "' that was expected to resolve to one of our own.", t);
+			var future = new CompletableFuture<ReactMessage>();
+			future.completeExceptionally(t);
+			return future;
+		}
+
+		var future = new CompletableFuture<ReactMessage>();
+		{
+			BindingSet bindings = null;
+			if (reactKnowledgeInteraction.getIsMeta()) {
+				// TODO: Ask MyMetaKnowledgeBase for the bindings.
+			} else {
+				var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+				// TODO This should happen in the single thread for the knowledge base
+				bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getBindings());
+			}
+
+			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					bindings);
+			// TODO: Here I just complete the future in the same thread, but we should
+			// figure out how to do it asynchronously.
+			future.complete(result);
+		}
+		return future;
 	}
 
 	@Override
