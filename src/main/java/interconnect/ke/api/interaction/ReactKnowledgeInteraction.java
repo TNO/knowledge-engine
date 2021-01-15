@@ -25,7 +25,7 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
 	 * Creates a {@link ReactKnowledgeInteraction}.
-	 * 
+	 *
 	 * @param act      The {@link CommunicativeAct} of this
 	 *                 {@link KnowledgeInteraction}. It can be read as the 'goal' or
 	 *                 'purpose' of the data exchange and whether it has
@@ -49,7 +49,7 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 *         can be seen as the argument of a function call.
 	 */
 	public GraphPattern getArgument() {
-		return argument;
+		return this.argument;
 	}
 
 	/**
@@ -58,7 +58,15 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 *         this {@link KnowledgeInteraction} does not expect any result.
 	 */
 	public GraphPattern getResult() {
-		return result;
+		return this.result;
+	}
+
+	@Override
+	public String toString() {
+		return "ReactKnowledgeInteraction [" + (this.argument != null ? "argument=" + this.argument + ", " : "")
+				+ (this.result != null ? "result=" + this.result + ", " : "")
+				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "getIsMeta()=" + this.getIsMeta()
+				+ "]";
 	}
 
 }

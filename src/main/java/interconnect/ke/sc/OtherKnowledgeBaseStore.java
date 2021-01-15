@@ -12,14 +12,24 @@ import interconnect.ke.api.runtime.KnowledgeDirectory;
  * should poll the network periodically for other {@link KnowledgeBase}s'
  * {@link KnowledgeInteraction}s and their {@link SmartConnectorImpl}s'
  * endpoints.
- * 
+ *
  * It uses the {@link KnowledgeDirectory} to discover other smart connectors.
  */
 public interface OtherKnowledgeBaseStore {
 
 	/**
+	 * Start the updating of the store.
+	 */
+	void start();
+
+	/**
+	 * Stop the updating of the store.
+	 */
+	void stop();
+
+	/**
 	 * @return The current list of {@link OtherKnowledgeBase}s.
 	 */
-	public Set<OtherKnowledgeBase> getOtherKnowledgeBases();
+	Set<OtherKnowledgeBase> getOtherKnowledgeBases();
 
 }

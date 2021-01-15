@@ -40,9 +40,9 @@ import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
  * data, while the {@link AnswerHandler} and {@link ReactHandler} are used to
  * reactively exchange data.
  */
-public class SmartConnectorImpl implements SmartConnector {
+public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorImpl.class);
+	private final Logger LOG;
 
 	private final KnowledgeBase myKnowledgeBase;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
@@ -65,11 +65,13 @@ public class SmartConnectorImpl implements SmartConnector {
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
 		this.myKnowledgeBase = aKnowledgeBase;
 
-		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this.myKnowledgeBase);
+		this.LOG = this.getLogger(SmartConnectorImpl.class);
+
+		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
 		this.messageRouter = new MessageRouterImpl(this);
-		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this.messageRouter, this.myKnowledgeBaseStore); // TODO
-		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this.metaKnowledgeBase);
-		this.interactionProcessor = new InteractionProcessorImpl(this.otherKnowledgeBaseStore,
+		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this, this.messageRouter, this.myKnowledgeBaseStore); // TODO
+		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this, this.metaKnowledgeBase);
+		this.interactionProcessor = new InteractionProcessorImpl(this, this.otherKnowledgeBaseStore,
 				this.myKnowledgeBaseStore, this.metaKnowledgeBase);
 
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
@@ -81,6 +83,13 @@ public class SmartConnectorImpl implements SmartConnector {
 				: Executors.newSingleThreadExecutor();
 
 		KeRuntime.localSmartConnectorRegistry().register(this);
+	}
+
+	@Override
+	public Logger getLogger(Class<?> class1) {
+		return LoggerFactory
+				.getLogger(this.myKnowledgeBase.getKnowledgeBaseId().toString() + " " + class1.getSimpleName());
+//		return LoggerFactory.getLogger("pindakaas");
 	}
 
 	public URI getKnowledgeBaseId() {
@@ -400,6 +409,8 @@ public class SmartConnectorImpl implements SmartConnector {
 
 		this.isStopped = true;
 
+		this.otherKnowledgeBaseStore.stop();
+
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
 
 		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
@@ -418,6 +429,7 @@ public class SmartConnectorImpl implements SmartConnector {
 	}
 
 	void communicationReady() {
+		this.otherKnowledgeBaseStore.start();
 		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
 	}
 

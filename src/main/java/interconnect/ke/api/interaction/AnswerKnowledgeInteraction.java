@@ -9,7 +9,7 @@ import interconnect.ke.sc.SmartConnectorImpl;
  * An object of this class represents that the associated {@link KnowledgeBase}
  * can provide data that matches the configured {@link GraphPattern}
  * {@code pattern}.
- * 
+ *
  * In other words, the {@link KnowledgeBase} can answer those kinds of questions
  * for its {@link SmartConnectorImpl}.
  */
@@ -23,7 +23,7 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
 	 * Create an {@link AnswerKnowledgeInteraction}.
-	 * 
+	 *
 	 * @param act     The {@link CommunicativeAct} of this
 	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
 	 *                'purpose' of the data exchange and whether it has side-effects
@@ -40,7 +40,14 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 	 * @return This {@link KnowledgeInteraction}'s graph pattern.
 	 */
 	public GraphPattern getPattern() {
-		return pattern;
+		return this.pattern;
+	}
+
+	@Override
+	public String toString() {
+		return "AnswerKnowledgeInteraction [" + (this.pattern != null ? "pattern=" + this.pattern + ", " : "")
+				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "getIsMeta()=" + this.getIsMeta()
+				+ "]";
 	}
 
 }

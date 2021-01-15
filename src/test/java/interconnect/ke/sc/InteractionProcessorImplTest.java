@@ -56,7 +56,8 @@ public class InteractionProcessorImplTest {
 	@BeforeEach
 	void setUp() throws Exception {
 
-		this.interactionProcessor = new InteractionProcessorImpl(new TestOtherKnowledgeBaseStore(), null, null);
+		this.interactionProcessor = new InteractionProcessorImpl(class1 -> LoggerFactory.getLogger(class1),
+				new TestOtherKnowledgeBaseStore(), null, null);
 		this.messageRouter = new TestMessageRouter();
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
@@ -147,6 +148,18 @@ public class InteractionProcessorImplTest {
 				LOG.error("", e);
 			}
 			return others;
+
+		}
+
+		@Override
+		public void start() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void stop() {
+			// TODO Auto-generated method stub
 
 		}
 	}

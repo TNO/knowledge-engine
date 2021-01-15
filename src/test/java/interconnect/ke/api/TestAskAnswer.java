@@ -73,12 +73,14 @@ public class TestAskAnswer {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
 		kb2.getSmartConnector().register(askKI);
-
+		LOG.trace("After kb2 register");
 		Thread.sleep(1000);
 
 		BindingSet result = null;
 		try {
+			LOG.trace("Before ask.");
 			result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get().getBindings();
+			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}

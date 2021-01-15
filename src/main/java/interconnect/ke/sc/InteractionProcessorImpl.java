@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.AskResult;
 import interconnect.ke.api.RecipientSelector;
@@ -19,16 +18,20 @@ import interconnect.ke.messaging.ReactMessage;
 
 public class InteractionProcessorImpl implements InteractionProcessor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(InteractionProcessorImpl.class);
+	private final Logger LOG;
 
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
 	private final MetaKnowledgeBase metaKnowledgeBase;
 
-	public InteractionProcessorImpl(OtherKnowledgeBaseStore otherKnowledgeBaseStore,
+	private final LoggerProvider loggerProvider;
+
+	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
 			MyKnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
 		super();
+		this.loggerProvider = loggerProvider;
+		this.LOG = loggerProvider.getLogger(this.getClass());
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 		this.metaKnowledgeBase = metaKnowledgeBase;
@@ -53,8 +56,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(otherKnowledgeInteractions,
-				this.messageRouter);
+		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
+				otherKnowledgeInteractions, this.messageRouter);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -75,7 +78,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) this.myKnowledgeBaseStore
 					.getKnowledgeInteractionById(answerKnowledgeInteractionId).getKnowledgeInteraction();
 		} catch (Throwable t) {
-			LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
+			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
 					+ "' that was expected to resolve to one of our own.", t);
 			var future = new CompletableFuture<AnswerMessage>();
 			future.completeExceptionally(t);
