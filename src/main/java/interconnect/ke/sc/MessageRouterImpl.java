@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
@@ -19,7 +18,7 @@ import interconnect.ke.messaging.SmartConnectorEndpoint;
 
 public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint {
 
-	private final static Logger LOG = LoggerFactory.getLogger(MessageRouterImpl.class);
+	private final Logger LOG;
 
 	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = new ConcurrentHashMap<>();
@@ -33,6 +32,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	private boolean smartConnectorReadyNotified = false;
 
 	public MessageRouterImpl(SmartConnectorImpl smartConnector) {
+		this.LOG = smartConnector.getLogger(MessageRouterImpl.class);
+
 		this.smartConnector = smartConnector;
 	}
 
@@ -66,7 +67,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	@Override
 	public void handleAskMessage(AskMessage message) {
 		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
-			LOG.warn(
+			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
 		} else {
 			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
@@ -74,7 +75,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				try {
 					this.messageDispatcherEndpoint.send(reply);
 				} catch (IOException e) {
-					LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
 			} else {
 				CompletableFuture<AnswerMessage> replyFuture = this.interactionProcessor
@@ -82,8 +83,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				replyFuture.thenAccept(reply -> {
 					try {
 						this.messageDispatcherEndpoint.send(reply);
-					} catch (IOException e) {
-						LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					} catch (Throwable e) {
+						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 					}
 				});
 			}
@@ -96,7 +97,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	@Override
 	public void handlePostMessage(PostMessage message) {
 		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
-			LOG.warn(
+			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
 		} else {
 			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
@@ -104,7 +105,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				try {
 					this.messageDispatcherEndpoint.send(reply);
 				} catch (IOException e) {
-					LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
 			} else {
 				CompletableFuture<ReactMessage> replyFuture = this.interactionProcessor
@@ -112,8 +113,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				replyFuture.thenAccept(reply -> {
 					try {
 						this.messageDispatcherEndpoint.send(reply);
-					} catch (IOException e) {
-						LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					} catch (Throwable e) {
+						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 					}
 				});
 			}
@@ -128,7 +129,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	public void handleAnswerMessage(AnswerMessage answerMessage) {
 		CompletableFuture<AnswerMessage> future = this.openAskMessages.remove(answerMessage.getReplyToAskMessage());
 		if (future == null) {
-			LOG.warn("I received a reply for an AskMessage with ID " + answerMessage.getReplyToAskMessage()
+			this.LOG.warn("I received a reply for an AskMessage with ID " + answerMessage.getReplyToAskMessage()
 					+ ", but I don't remember sending a message with that ID");
 		} else {
 			future.complete(answerMessage);
@@ -143,7 +144,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	public void handleReactMessage(ReactMessage reactMessage) {
 		CompletableFuture<ReactMessage> future = this.openPostMessages.remove(reactMessage.getReplyToPostMessage());
 		if (future == null) {
-			LOG.warn("I received a reply for a PostMessage with ID " + reactMessage.getReplyToPostMessage()
+			this.LOG.warn("I received a reply for a PostMessage with ID " + reactMessage.getReplyToPostMessage()
 					+ ", but I don't remember sending a message with that ID");
 		} else {
 			future.complete(reactMessage);

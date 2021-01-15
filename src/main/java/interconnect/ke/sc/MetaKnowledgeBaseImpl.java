@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -15,7 +16,6 @@ import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
@@ -30,7 +30,7 @@ import interconnect.ke.messaging.ReactMessage;
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MetaKnowledgeBaseImpl.class);
+	private final Logger LOG;
 
 	private static final String ASK_SUFFIX = "/meta/knowledgeinteractions/ask";
 	private static final String ANSWER_SUFFIX = "/meta/knowledgeinteractions/answer";
@@ -45,7 +45,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final GraphPattern metaGraphPattern;
 	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
 
-	public MetaKnowledgeBaseImpl(MessageRouter aMessageRouter, MyKnowledgeBaseStore aKnowledgeBaseStore) {
+	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
+			MyKnowledgeBaseStore aKnowledgeBaseStore) {
+		this.LOG = loggerProvider.getLogger(this.getClass());
+
 		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();
 		this.messageRouter = aMessageRouter;
 		this.myKnowledgeBaseStore = aKnowledgeBaseStore;
@@ -94,7 +97,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
 			default:
-				LOG.warn("Ignored currently unsupported knowledge interaction type "
+				this.LOG.warn("Ignored currently unsupported knowledge interaction type "
 						+ knowledgeInteractionInfo.getType());
 				assert false;
 			}
@@ -127,11 +130,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				toKnowledgeInteraction, new BindingSet());
 		try {
 			CompletableFuture<OtherKnowledgeBase> future = this.messageRouter.sendAskMessage(askMsg)
-					.thenApply((answerMsg) -> {
+					.thenApply(answerMsg -> {
 						try {
 							return this.constructOtherKnowledgeBaseFromAnswerMessage(answerMsg);
 						} catch (Throwable t) {
-							LOG.error("The construction of other knowledge base should succeed.", t);
+							this.LOG.error("The construction of other knowledge base should succeed.", t);
 						}
 						return null;
 					});
@@ -147,7 +150,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		try {
 			return new URI(knowledgeBaseId.toString() + ASK_SUFFIX);
 		} catch (URISyntaxException e) {
-			LOG.error("", e);
+			this.LOG.error("", e);
 		}
 		return null;
 	}
@@ -156,7 +159,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		try {
 			return new URI(knowledgeBaseId.toString() + ANSWER_SUFFIX);
 		} catch (URISyntaxException e) {
-			LOG.error("", e);
+			this.LOG.error("", e);
 		}
 		return null;
 	}
@@ -169,7 +172,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		try {
 			model = Util.generateModel(this.metaGraphPattern, bindings);
 		} catch (ParseException e) {
-			LOG.warn("Received parse error while generating model.", e);
+			this.LOG.warn("Received parse error while generating model.", e);
 			assert false;
 			return null;
 		}
@@ -203,7 +206,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		ExtendedIterator<Resource> kis = model
 				.listObjectsOfProperty(kb,
 						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction"))
-				.mapWith((n) -> n.asResource());
+				.mapWith(RDFNode::asResource);
 
 		var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
 		for (Resource ki : kis.toList()) {
@@ -236,10 +239,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 					knowledgeInteractions.add(knowledgeInteractionInfo);
 				} else {
-					LOG.warn("Ignored unexpected knowledge interaction type " + kiType);
+					this.LOG.warn("Ignored unexpected knowledge interaction type " + kiType);
 				}
 			} catch (URISyntaxException e) {
-				LOG.error("The URIs should be correctly formatted.", e);
+				this.LOG.error("The URIs should be correctly formatted.", e);
 			}
 
 		}

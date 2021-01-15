@@ -50,4 +50,12 @@ public class KnowledgeInteractionInfo {
 		return this.knowledgeBaseId;
 	}
 
+	@Override
+	public String toString() {
+		return "KnowledgeInteractionInfo [" + (this.id != null ? "id=" + this.id + ", " : "")
+				+ (this.knowledgeBaseId != null ? "knowledgeBaseId=" + this.knowledgeBaseId + ", " : "")
+				+ (this.type != null ? "type=" + this.type + ", " : "")
+				+ (this.knowledgeInteraction != null ? "knowledgeInteraction=" + this.knowledgeInteraction : "") + "]";
+	}
+
 }

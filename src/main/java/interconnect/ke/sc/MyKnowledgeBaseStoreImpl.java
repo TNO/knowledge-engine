@@ -12,7 +12,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.AnswerHandler;
 import interconnect.ke.api.KnowledgeBase;
@@ -26,13 +25,13 @@ import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MyKnowledgeBaseStoreImpl.class);
-
+	private final Logger LOG;
 	private final KnowledgeBase knowledgeBase;
 	private final Map<URI, MyKnowledgeInteractionInfo> kiis = new ConcurrentHashMap<>();
 	private final List<MyKnowledgeBaseStoreListener> listeners = new CopyOnWriteArrayList<>();
 
-	public MyKnowledgeBaseStoreImpl(KnowledgeBase knowledgeBase) {
+	public MyKnowledgeBaseStoreImpl(LoggerProvider loggerProvider, KnowledgeBase knowledgeBase) {
+		this.LOG = loggerProvider.getLogger(MyKnowledgeBaseStoreImpl.class);
 		this.knowledgeBase = knowledgeBase;
 	}
 

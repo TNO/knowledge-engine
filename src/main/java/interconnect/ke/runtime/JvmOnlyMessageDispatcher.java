@@ -38,6 +38,9 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 		public SmartConnectorHandler(SmartConnectorEndpoint sce) {
 			this.endpoint = sce;
+		}
+
+		public void start() {
 			this.endpoint.setMessageDispatcher(this);
 		}
 
@@ -100,7 +103,9 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
 		// Create a new SmartConnectorHandler and attach it
 		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
-		this.handlers.put(endpoint.getKnowledgeBaseId(), new SmartConnectorHandler(endpoint));
+		SmartConnectorHandler handler = new SmartConnectorHandler(endpoint);
+		this.handlers.put(endpoint.getKnowledgeBaseId(), handler);
+		handler.start();
 	}
 
 	@Override
