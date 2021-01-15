@@ -88,7 +88,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public Logger getLogger(Class<?> class1) {
 		return LoggerFactory
-				.getLogger(this.myKnowledgeBase.getKnowledgeBaseId().toString() + " " + class1.getSimpleName());
+				.getLogger(this.myKnowledgeBase.getKnowledgeBaseId().toString() + "-" + class1.getSimpleName());
 //		return LoggerFactory.getLogger("pindakaas");
 	}
 
@@ -429,16 +429,35 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	}
 
 	void communicationReady() {
-		this.otherKnowledgeBaseStore.start();
-		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorReady(this));
+		this.otherKnowledgeBaseStore.start().thenRun(() -> {
+			this.knowledgeBaseExecutorService.execute(() -> {
+				try {
+					this.myKnowledgeBase.smartConnectorReady(this);
+				} catch (Throwable t) {
+					this.LOG.error("KnowledgeBase threw exception", t);
+				}
+			});
+		});
 	}
 
 	void communicationInterrupted() {
-		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorConnectionLost(this));
+		this.knowledgeBaseExecutorService.execute(() -> {
+			try {
+				this.myKnowledgeBase.smartConnectorConnectionLost(this);
+			} catch (Throwable t) {
+				this.LOG.error("KnowledgeBase threw exception", t);
+			}
+		});
 	}
 
 	void communicationRestored() {
-		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorConnectionRestored(this));
+		this.knowledgeBaseExecutorService.execute(() -> {
+			try {
+				this.myKnowledgeBase.smartConnectorConnectionRestored(this);
+			} catch (Throwable t) {
+				this.LOG.error("KnowledgeBase threw exception", t);
+			}
+		});
 	}
 
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {

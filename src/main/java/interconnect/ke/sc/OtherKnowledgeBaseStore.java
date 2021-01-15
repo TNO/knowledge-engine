@@ -1,6 +1,7 @@
 package interconnect.ke.sc;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import interconnect.ke.api.KnowledgeBase;
 import interconnect.ke.api.interaction.KnowledgeInteraction;
@@ -20,7 +21,7 @@ public interface OtherKnowledgeBaseStore {
 	/**
 	 * Start the updating of the store.
 	 */
-	void start();
+	CompletableFuture<Void> start();
 
 	/**
 	 * Stop the updating of the store.

@@ -38,17 +38,19 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 	}
 
 	@Override
-	public void start() {
-		this.updateStore();
+	public CompletableFuture<Void> start() {
+		CompletableFuture<Void> future = this.updateStore();
 		this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
 			this.updateStore();
 		}, this.delay, this.delay, TimeUnit.SECONDS);
-
+		return future;
 	}
 
-	private void updateStore() {
+	private CompletableFuture<Void> updateStore() {
 		// retrieve ids from knowledge directory
 		Set<URI> ids = KeRuntime.knowledgeDirectory().getKnowledgeBaseIds();
+
+		Set<CompletableFuture<?>> futures = new HashSet<>();
 
 		for (URI id : ids) {
 
@@ -58,8 +60,10 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 				CompletableFuture<OtherKnowledgeBase> otherKnowledgeBaseFuture = this.metaKnowledgeBase
 						.getOtherKnowledgeBase(id);
 
+				futures.add(otherKnowledgeBaseFuture);
+
 				// when finished, add it to the store.
-				otherKnowledgeBaseFuture.thenAccept((otherKnowledgeBase) -> {
+				otherKnowledgeBaseFuture.thenAccept(otherKnowledgeBase -> {
 
 					try {
 						this.otherKnowledgeBases.put(otherKnowledgeBase.getId(), otherKnowledgeBase);
@@ -71,6 +75,8 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 				this.LOG.trace("Skipping myself: {}", this.sc.getKnowledgeBaseId());
 			}
 		}
+
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
 	}
 
 	@Override

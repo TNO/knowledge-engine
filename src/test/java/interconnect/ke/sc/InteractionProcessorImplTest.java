@@ -56,7 +56,7 @@ public class InteractionProcessorImplTest {
 	@BeforeEach
 	void setUp() throws Exception {
 
-		this.interactionProcessor = new InteractionProcessorImpl(class1 -> LoggerFactory.getLogger(class1),
+		this.interactionProcessor = new InteractionProcessorImpl(LoggerFactory::getLogger,
 				new TestOtherKnowledgeBaseStore(), null, null);
 		this.messageRouter = new TestMessageRouter();
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
@@ -152,9 +152,9 @@ public class InteractionProcessorImplTest {
 		}
 
 		@Override
-		public void start() {
+		public CompletableFuture<Void> start() {
 			// TODO Auto-generated method stub
-
+			return null;
 		}
 
 		@Override

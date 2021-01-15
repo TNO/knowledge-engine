@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -129,7 +130,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				toKnowledgeInteraction, new BindingSet());
 		try {
 			CompletableFuture<OtherKnowledgeBase> future = this.messageRouter.sendAskMessage(askMsg)
-					.thenApply((answerMsg) -> {
+					.thenApply(answerMsg -> {
 						try {
 							return this.constructOtherKnowledgeBaseFromAnswerMessage(answerMsg);
 						} catch (Throwable t) {
@@ -205,7 +206,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		ExtendedIterator<Resource> kis = model
 				.listObjectsOfProperty(kb,
 						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction"))
-				.mapWith((n) -> n.asResource());
+				.mapWith(RDFNode::asResource);
 
 		var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
 		for (Resource ki : kis.toList()) {
