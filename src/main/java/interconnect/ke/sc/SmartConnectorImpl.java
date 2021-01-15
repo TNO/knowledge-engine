@@ -1,6 +1,8 @@
 package interconnect.ke.sc;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,8 +89,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 	@Override
 	public Logger getLogger(Class<?> class1) {
-		return LoggerFactory
-				.getLogger(this.myKnowledgeBase.getKnowledgeBaseId().toString() + "-" + class1.getSimpleName());
+		try {
+			return LoggerFactory
+					.getLogger(URLEncoder.encode(this.myKnowledgeBase.getKnowledgeBaseId().toString(), "utf8") + "-"
+							+ class1.getSimpleName());
+		} catch (UnsupportedEncodingException e) {
+			assert false;
+			return null;
+		}
 //		return LoggerFactory.getLogger("pindakaas");
 	}
 
@@ -366,7 +374,12 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 			BindingSet someArguments) {
 		this.checkStopped();
 
-		return CompletableFuture.supplyAsync(() -> null);
+		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.POST;
+
+		return this.interactionProcessor.processPostFromKnowledgeBase(info, aSelector, someArguments);
 	}
 
 	/**

@@ -57,6 +57,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	@Override
 	CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo postKnowledgeInteraction,
 			BindingSet bindingSet) {
+		this.LOG.trace("processPost()");
 		this.myKnowledgeInteraction = postKnowledgeInteraction;
 		this.reactFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
@@ -65,26 +66,19 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {
 
-		this.LOG.trace("Before sync: {}", bindingSet);
 		synchronized (this.lock) {
-			this.LOG.trace("In sync: hasNext? {}", this.kiIter.hasNext());
 			if (this.kiIter.hasNext()) {
 				KnowledgeInteractionInfo ki = this.kiIter.next();
-				this.LOG.trace("In sync: {}", ki);
 				if (ki.getType() == Type.ANSWER) {
 					AnswerKnowledgeInteraction aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
 					if (this.matches(((AskKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
 							.getPattern(), aKI.getPattern())) {
-						this.LOG.trace("In sync: after match");
 						AskMessage askMessage = new AskMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
 								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
 						try {
-							this.LOG.trace("Before sending message {}", askMessage);
 							this.answerMessageFuture = this.messageRouter.sendAskMessage(askMessage);
-							this.LOG.trace("After sending message {}. Expecting answer.", askMessage);
 							this.answerMessageFuture.thenAccept(aMessage -> {
 								try {
-									this.LOG.trace("Received message {}. Is answer to: {}", aMessage, askMessage);
 									this.answerMessageFuture = null;
 
 									// TODO make sure there are no duplicates
@@ -103,9 +97,12 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						}
 					}
 				} else if (ki.getType() == Type.REACT) {
+
 					ReactKnowledgeInteraction rKI = (ReactKnowledgeInteraction) ki.getKnowledgeInteraction();
+
 					if (this.matches(((PostKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
 							.getArgument(), rKI.getArgument())) {
+
 						PostMessage postMessage = new PostMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
 								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
 						try {
