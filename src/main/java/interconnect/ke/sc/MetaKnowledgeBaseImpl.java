@@ -24,10 +24,12 @@ import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.PostMessage;
 import interconnect.ke.messaging.ReactMessage;
+import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
@@ -62,7 +64,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?gp kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern ."
+		);
 	}
 
 	@Override
@@ -92,26 +95,30 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			case ASK:
 				binding.put("kiType", "<" + ASK_KI.toString() + ">");
 				binding.put("gp", "<https://www.tno.nl/TODO1>"); // TODO
+				binding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern>");
 				binding.put("pattern",
-						"\"" + ((AskKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+				"\"" + ((AskKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
 			case ANSWER:
 				binding.put("kiType", "<" + ANSWER_KI.toString() + ">");
 				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern>");
 				binding.put("pattern",
-						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+				"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
 			case POST:
 				binding.put("kiType", "<" + POST_KI.toString() + ">");
-				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("gp", "<https://www.tno.nl/TODO3>"); // TODO
+				binding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasArgumentPattern>");
 				binding.put("pattern",
-						"\"" + ((PostKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+				"\"" + ((PostKnowledgeInteraction) knowledgeInteraction).getArgument().getPattern() + "\"");
 				break;
 			case REACT:
-				binding.put("kiType", "<" + POST_KI.toString() + ">");
-				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("kiType", "<" + REACT_KI.toString() + ">");
+				binding.put("gp", "<https://www.tno.nl/TODO4>"); // TODO
+				binding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasArgumentPattern>");
 				binding.put("pattern",
-						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+						"\"" + ((ReactKnowledgeInteraction) knowledgeInteraction).getArgument().getPattern() + "\"");
 				break;
 			default:
 				this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.",
@@ -119,6 +126,21 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				assert false;
 			}
 			bindings.add(binding);
+			
+			// Also add another binding for the resultPattern if we're processing a POST/REACT Knowledge Interaction.
+			if (knowledgeInteractionInfo.getType() == Type.POST) {
+				Binding additionalBinding = binding.clone();
+				additionalBinding.put("gp", "<https://www.tno.nl/TODO5>"); // TODO
+				additionalBinding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasResultPattern>");
+				additionalBinding.put("pattern", "\"" + ((PostKnowledgeInteraction) knowledgeInteraction).getResult().getPattern() + "\"");
+				bindings.add(additionalBinding);
+			} else if (knowledgeInteractionInfo.getType() == Type.REACT) {
+				Binding additionalBinding = binding.clone();
+				additionalBinding.put("gp", "<https://www.tno.nl/TODO6>"); // TODO
+				additionalBinding.put("patternType", "<https://www.tno.nl/energy/ontology/interconnect#hasResultPattern>");
+				additionalBinding.put("pattern", "\"" + ((ReactKnowledgeInteraction) knowledgeInteraction).getResult().getPattern() + "\"");
+				bindings.add(additionalBinding);
+			}
 		}
 
 		var answerMessage = new AnswerMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction,

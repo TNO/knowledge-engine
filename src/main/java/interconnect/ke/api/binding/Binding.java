@@ -63,4 +63,12 @@ public class Binding {
 		if (aValue == null /*|| not a SPARQL literal/iri*/ )
 			throw new IllegalArgumentException("Variable values should not be null and follow SPARQL literal/iri syntax.");
 	}
+
+	public Binding clone() {
+		Binding b = new Binding();
+		for (var a : b.map.entrySet()) {
+			b.put(a.getKey(), a.getValue());
+		}
+		return b;
+	}
 }
