@@ -23,6 +23,7 @@ import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.messaging.AnswerMessage;
 import interconnect.ke.messaging.AskMessage;
 import interconnect.ke.messaging.PostMessage;
@@ -39,6 +40,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			.createResource("https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction");
 	private static final Resource ANSWER_KI = ResourceFactory
 			.createResource("https://www.tno.nl/energy/ontology/interconnect#AnswerKnowledgeInteraction");
+	private static final Resource POST_KI = ResourceFactory
+			.createResource("https://www.tno.nl/energy/ontology/interconnect#PostKnowledgeInteraction");
+	private static final Resource REACT_KI = ResourceFactory
+			.createResource("https://www.tno.nl/energy/ontology/interconnect#ReactKnowledgeInteraction");
 
 	private final URI myKnowledgeBaseId;
 	private final MessageRouter messageRouter;
@@ -96,9 +101,21 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				binding.put("pattern",
 						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
 				break;
+			case POST:
+				binding.put("kiType", "<" + POST_KI.toString() + ">");
+				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("pattern",
+						"\"" + ((PostKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+				break;
+			case REACT:
+				binding.put("kiType", "<" + POST_KI.toString() + ">");
+				binding.put("gp", "<https://www.tno.nl/TODO2>"); // TODO
+				binding.put("pattern",
+						"\"" + ((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern().getPattern() + "\"");
+				break;
 			default:
-				this.LOG.warn("Ignored currently unsupported knowledge interaction type "
-						+ knowledgeInteractionInfo.getType());
+				this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.",
+						knowledgeInteractionInfo.getType());
 				assert false;
 			}
 			bindings.add(binding);

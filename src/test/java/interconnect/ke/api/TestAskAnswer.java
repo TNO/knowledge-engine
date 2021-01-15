@@ -69,7 +69,7 @@ public class TestAskAnswer {
 
 		};
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
 		kb2.getSmartConnector().register(askKI);

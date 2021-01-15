@@ -42,8 +42,8 @@ public class TestPostReact {
 				this.ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(this.ki);
 
-				waitForOtherKbAndPostSomething();
-			};
+				this.waitForOtherKbAndPostSomething();
+			}
 
 			private void waitForOtherKbAndPostSomething() {
 				// Wait until KB2 completed its latch.
@@ -60,34 +60,34 @@ public class TestPostReact {
 				binding.put("c", "<https://www.tno.nl/example/c>");
 				bindingSet.add(binding);
 
-				this.getSmartConnector().post(ki, bindingSet);
+				this.getSmartConnector().post(this.ki, bindingSet);
 			}
 		};
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
+
+				kb2Initialized.countDown();
+
 				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
 				ReactKnowledgeInteraction ki = new ReactKnowledgeInteraction(new CommunicativeAct(), gp, null);
 
-				aSC.register(ki, new ReactHandler() {
-					@Override
-					public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
-						Iterator<Binding> iter = argument.iterator();
-						Binding b = iter.next();
+				aSC.register(ki, (ReactHandler) (anRKI, argument) -> {
+					Iterator<Binding> iter = argument.iterator();
+					Binding b = iter.next();
 
-						assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
-						assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
+					assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
+					assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
 
-						assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+					assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
-						// Complete the latch to make the test pass.
-						kb2ReceivedKnowledge.countDown();
+					// Complete the latch to make the test pass.
+					kb2ReceivedKnowledge.countDown();
 
-						return null;
-					}
+					return null;
 				});
-			};
+			}
 		};
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
