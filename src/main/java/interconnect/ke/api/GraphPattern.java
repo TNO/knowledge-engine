@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * Pattern syntax from SPARQL 1.1
  * {@linkplain https://www.w3.org/TR/sparql11-query/} to represent this
  * knowledge.
- * 
+ *
  * It is a conjunction of triple patterns, where each triple pattern consists of
  * a {@code subject}, {@code predicate} and {@code object}. Each of these can be
  * either a variable or a SPARQL literal/iri.
@@ -27,7 +27,7 @@ public class GraphPattern {
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphPattern.class);
 
-	private PrefixMapping prefixes;
+	private final PrefixMapping prefixes;
 
 	/**
 	 * According to Basic Graph Pattern syntax in SPARQL 1.1
@@ -42,14 +42,17 @@ public class GraphPattern {
 
 	/**
 	 * Create a {@link GraphPattern}.
-	 * 
+	 *
 	 * @param aPattern A string that contains a SPARQL 1.1 Basic Graph Pattern
 	 *                 {@linkplain https://www.w3.org/TR/sparql11-query/}. It
 	 *                 encodes a particular type of knowledge about which the
 	 *                 {@link KnowledgeBase} wants to communicate with other
-	 *                 {@link KnowledgeBase}.
+	 *                 {@link KnowledgeBase}. Cannot be null.
 	 */
 	public GraphPattern(String aPattern) {
+		if (aPattern == null) {
+			throw new IllegalArgumentException("The given pattern should be non-null.");
+		}
 		this.prefixes = PrefixMapping.Standard;
 		this.pattern = aPattern;
 	}
@@ -63,8 +66,8 @@ public class GraphPattern {
 	}
 
 	/**
-	 * @return A list of all the variable names (excluding the '?') occurring in this
-	 *         {@link GraphPattern}.
+	 * @return A list of all the variable names (excluding the '?') occurring in
+	 *         this {@link GraphPattern}.
 	 */
 	public List<String> getVariables() {
 		throw new RuntimeException("Unimplemented");
@@ -89,6 +92,11 @@ public class GraphPattern {
 		}
 		return (ElementPathBlock) eg.getLast();
 
+	}
+
+	@Override
+	public String toString() {
+		return "GraphPattern [" + (this.pattern != null ? "pattern=" + this.pattern : "") + "]";
 	}
 
 }

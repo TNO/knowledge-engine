@@ -69,7 +69,7 @@ public class TestAskAnswer {
 
 		};
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
 		kb2.getSmartConnector().register(askKI);
@@ -103,13 +103,18 @@ public class TestAskAnswer {
 
 	@AfterAll
 	public static void cleanup() {
-
+		LOG.info("Clean up: {}", TestAskAnswer.class.getSimpleName());
 		if (kb1 != null) {
 			kb1.stop();
+		} else {
+			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
+
 			kb2.stop();
+		} else {
+			fail("KB2 should not be null!");
 		}
 	}
 }

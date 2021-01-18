@@ -13,6 +13,8 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
@@ -23,13 +25,15 @@ public class TestPostReact {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact.class);
+
 	@Test
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		int wait = 2;
+		int wait = 6;
 		final CountDownLatch kb2Initialized = new CountDownLatch(1);
 		final CountDownLatch kb2ReceivedKnowledge = new CountDownLatch(1);
 
@@ -38,12 +42,12 @@ public class TestPostReact {
 
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
+				GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 				this.ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(this.ki);
 
-				waitForOtherKbAndPostSomething();
-			};
+				this.waitForOtherKbAndPostSomething();
+			}
 
 			private void waitForOtherKbAndPostSomething() {
 				// Wait until KB2 completed its latch.
@@ -60,53 +64,63 @@ public class TestPostReact {
 				binding.put("c", "<https://www.tno.nl/example/c>");
 				bindingSet.add(binding);
 
-				this.getSmartConnector().post(ki, bindingSet);
+				try {
+					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
+				} catch (Exception e) {
+					LOG.error("Erorr", e);
+				}
+				this.getSmartConnector().post(this.ki, bindingSet);
+				LOG.trace("After post!");
 			}
 		};
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes, "?a ex:b ?c.");
+
+				GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 				ReactKnowledgeInteraction ki = new ReactKnowledgeInteraction(new CommunicativeAct(), gp, null);
 
-				aSC.register(ki, new ReactHandler() {
-					@Override
-					public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
-						Iterator<Binding> iter = argument.iterator();
-						Binding b = iter.next();
+				aSC.register(ki, (ReactHandler) (anRKI, argument) -> {
 
-						assertEquals("https://www.tno.nl/example/a", b.get("a"), "Binding of 'a' is incorrect.");
-						assertEquals("https://www.tno.nl/example/c", b.get("c"), "Binding of 'c' is incorrect.");
+					LOG.trace("Reacting...");
 
-						assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+					Iterator<Binding> iter = argument.iterator();
+					Binding b = iter.next();
 
-						// Complete the latch to make the test pass.
-						kb2ReceivedKnowledge.countDown();
+					assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
+					assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
 
-						return null;
-					}
+					assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+
+					// Complete the latch to make the test pass.
+					kb2ReceivedKnowledge.countDown();
+
+					return null;
 				});
-			};
+				kb2Initialized.countDown();
+			}
 		};
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
 				"Should execute the tests within " + wait + " seconds.");
 
-		kb1.stop();
-		kb2.stop();
-
 	}
 
 	@AfterAll
 	public static void cleanup() {
-
+		LOG.info("Clean up: {}", TestPostReact.class.getSimpleName());
 		if (kb1 != null) {
 			kb1.stop();
+		} else {
+			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
+
 			kb2.stop();
+		} else {
+			fail("KB2 should not be null!");
 		}
 	}
 
