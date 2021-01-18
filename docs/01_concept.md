@@ -18,7 +18,7 @@ However, much power lies in *combining* several of these knowledge bases (explai
 
 An important assumption that we make is that a knowledge base can be sufficiently described in terms of the knowledge that it processes.
 This means that we can describe what kind of knowledge can be extracted from this base and what kind of knowledge this base is interested in, and that we capture this well enough to provide synergy to the network.
-In other words, we assume that we can make a description of the knowledge base that captures its knowledge input and output ([knowledge IO](#-knowledge-io)): What knowledge does it provide? What knowledge does it require?
+In other words, we assume that we can make a description of the knowledge base that captures its knowledge input and output ([knowledge Interaction](#knowledge-interaction)): What knowledge does it provide? What knowledge does it require?
 Furthermore, we assume that we capture the knowledge IO of a knowledge base well enough that it can be exploited or satisfied by *other* knowledge bases.
 
 It is important to note that knowledge bases aren't limited to being *just* producers or consumers of information; they could trigger **side effects**, and thus play a role in control systems such as heating systems or artificial cardiac pacemakers.
@@ -68,7 +68,7 @@ This is solved by smart connectors.
 A smart connector is an entity (currently in the form of a Java object) that allows a knowledge base to register with the knowledge network, and exchange knowledge with it.
 It represents the knowledge base within the knowledge network, and acts on its behalf.
 
-In the registration phase, the knowledge base has to specify how it wants to exchange what knowledge (the [knowledge IO](#-knowledge-io)):
+In the registration phase, the knowledge base has to specify how it wants to exchange what knowledge (the [knowledge Interaction](#knowledge-interaction)):
 
 - What knowledge can be requested from me?
 - What knowledge will I publish in a channel?
@@ -105,7 +105,7 @@ The main advantages of using smart connectors are:
 
 As long as the smart connectors are aware of changes in the network, new knowledge bases can be dynamically added to the network.
 
-Information about the [knowledge IOs](#-knowledge-io) of smart connectors is synchronized by using a [*knowledge directory*](#-knowledge-directory), explained [further on](#knowledge-directory).
+Information about the [knowledge Interactions](#knowledge-interaction) of smart connectors is synchronized by using a [*knowledge directory*](#knowledge-directory), explained [further on](#knowledge-directory).
 
 For example, we could add a smart curtain to the hypothetical home automation knowledge network that automatically closes the curtains when the lights in the same room are turned on after sunset.
 

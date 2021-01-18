@@ -48,7 +48,7 @@ Reasoning to orchestrate data exchange
 --------------------------------------------
 This type of reasoning is less obvious and requires some explanation. It is particularly useful in a scenario where data is scattered amongst heterogeneous knowledge bases. Instead of periodically transforming data from each of those knowledge bases into a uniform format and collecting it in a central database, this orchestration method allows the data to stay at its source and only retrieve those facts whenever they are needed.
 
-For the reasoner to orchestrate this, it requires an overview of all the currently available knowledge bases and their capabilities. These capabilities are called KnowledgeIOs (see also [Conceptual framework](#conceptual-framework)) and each knowledge base typically has multiple of them. Each KnowledgeIO represents a single capability of a knowledge base and describes this capability using only the concepts and relations defined in the common Knowledge Model. Our assumption is that every capability of a possible knowledge base (i.e. a machine learning model, user app, database or service) can be described in such a way. For this a KnowledgeIO defines either an input knowledge or an output knowledge or both. For example, a user app that presents knowledge to its user in a table would define a KnowledgeIO in which only the input knowledge is defined. This should be read as: the app needs input data for it to function properly.
+For the reasoner to orchestrate this, it requires an overview of all the currently available knowledge bases and their capabilities. These capabilities are called KnowledgeInteractions (see also [Conceptual framework](01_concept.md)) and each knowledge base typically has multiple of them. Each KnowledgeIO represents a single capability of a knowledge base and describes this capability using only the concepts and relations defined in the common Knowledge Model. Our assumption is that every capability of a possible knowledge base (i.e. a machine learning model, user app, database or service) can be described in such a way. For this a KnowledgeIO defines either an input knowledge or an output knowledge or both. For example, a user app that presents knowledge to its user in a table would define a KnowledgeIO in which only the input knowledge is defined. This should be read as: the app needs input data for it to function properly.
 
 With this overview of the available capabilities, the reasoner is able to answer questions about knowledge that is scattered over multiple knowledge bases. This works as follows. For every KnowledgeIO of every available Knowledge Base, the Smart Connector determines whether it is relevant and if so, it updates its state accordingly. This state consists of a collection of rules that represent the available capabilities and whenever the reasoner applies such a rule to answer a certain question (i.e. using backward reasoning), during the execution of the rule the relevant Knowledge Base is contacted and the data is retrieved on the fly.
 
@@ -72,7 +72,7 @@ Temperature Converter KnowledgeIO:
 
 ```
 
-Now, these KnowledgeIOs will result in the following backward rules (see also [Conceptual framework](#conceptual-framework)) in the App's Smart Connector:
+Now, these KnowledgeIOs will result in the following backward rules (see also [Conceptual framework](01_concept.md)) in the App's Smart Connector:
 
 ```
 if
