@@ -65,7 +65,7 @@ public class TestPostReact {
 				bindingSet.add(binding);
 
 				try {
-					Thread.sleep(4000);
+					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
 				} catch (Exception e) {
 					LOG.error("Erorr", e);
 				}
@@ -77,8 +77,6 @@ public class TestPostReact {
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-
-				kb2Initialized.countDown();
 
 				GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 				ReactKnowledgeInteraction ki = new ReactKnowledgeInteraction(new CommunicativeAct(), gp, null);
@@ -100,26 +98,29 @@ public class TestPostReact {
 
 					return null;
 				});
+				kb2Initialized.countDown();
 			}
 		};
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
 				"Should execute the tests within " + wait + " seconds.");
 
-		kb1.stop();
-		kb2.stop();
-
 	}
 
 	@AfterAll
 	public static void cleanup() {
-
+		LOG.info("Clean up: {}", TestPostReact.class.getSimpleName());
 		if (kb1 != null) {
 			kb1.stop();
+		} else {
+			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
+
 			kb2.stop();
+		} else {
+			fail("KB2 should not be null!");
 		}
 	}
 

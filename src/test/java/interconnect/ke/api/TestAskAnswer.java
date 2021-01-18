@@ -103,13 +103,18 @@ public class TestAskAnswer {
 
 	@AfterAll
 	public static void cleanup() {
-
+		LOG.info("Clean up: {}", TestAskAnswer.class.getSimpleName());
 		if (kb1 != null) {
 			kb1.stop();
+		} else {
+			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
+
 			kb2.stop();
+		} else {
+			fail("KB2 should not be null!");
 		}
 	}
 }
