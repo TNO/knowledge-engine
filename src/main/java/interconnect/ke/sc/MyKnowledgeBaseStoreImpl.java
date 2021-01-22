@@ -204,4 +204,9 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 				});
 	}
 
+	@Override
+	public void register(MyKnowledgeInteractionInfo aKI) {
+		this.kiis.put(aKI.getId(), aKI);
+	}
+
 }

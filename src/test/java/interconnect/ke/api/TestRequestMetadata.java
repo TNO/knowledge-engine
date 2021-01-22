@@ -42,7 +42,7 @@ public class TestRequestMetadata {
 				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement . ?obs :hasTemp ?temp .");
 				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(ki);
-			};
+			}
 		};
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -52,9 +52,9 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				GraphPattern gp = new GraphPattern(prefixes,
-						"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType .");
-				ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
-				aSC.register(ki);
+						"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+				aSC.register(this.ki);
 
 				try {
 					this.testMetadata();
@@ -62,7 +62,7 @@ public class TestRequestMetadata {
 					fail("Should not throw any exception.");
 				}
 
-			};
+			}
 
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
 				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();

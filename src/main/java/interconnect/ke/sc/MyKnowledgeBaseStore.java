@@ -72,4 +72,6 @@ public interface MyKnowledgeBaseStore {
 
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
+	void register(MyKnowledgeInteractionInfo aKI);
+
 }
