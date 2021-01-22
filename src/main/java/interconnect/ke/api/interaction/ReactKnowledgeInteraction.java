@@ -65,8 +65,7 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	public String toString() {
 		return "ReactKnowledgeInteraction [" + (this.argument != null ? "argument=" + this.argument + ", " : "")
 				+ (this.result != null ? "result=" + this.result + ", " : "")
-				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "getIsMeta()=" + this.getIsMeta()
-				+ "]";
+				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "]";
 	}
 
 }

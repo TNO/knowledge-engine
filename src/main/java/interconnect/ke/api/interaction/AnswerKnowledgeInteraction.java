@@ -46,8 +46,7 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 	@Override
 	public String toString() {
 		return "AnswerKnowledgeInteraction [" + (this.pattern != null ? "pattern=" + this.pattern + ", " : "")
-				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "getIsMeta()=" + this.getIsMeta()
-				+ "]";
+				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "]";
 	}
 
 }

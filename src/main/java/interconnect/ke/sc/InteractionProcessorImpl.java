@@ -75,10 +75,34 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage anAskMsg) {
 		URI answerKnowledgeInteractionId = anAskMsg.getToKnowledgeInteraction();
-		AnswerKnowledgeInteraction answerKnowledgeInteraction;
+
 		try {
-			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(answerKnowledgeInteractionId).getKnowledgeInteraction();
+			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+					.getKnowledgeInteractionById(answerKnowledgeInteractionId);
+
+			AnswerKnowledgeInteraction answerKnowledgeInteraction;
+			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
+					.getKnowledgeInteraction();
+			var future = new CompletableFuture<AnswerMessage>();
+			{
+				BindingSet bindings = null;
+				if (knowledgeInteractionById.isMeta()) {
+					// TODO: Ask MyMetaKnowledgeBase for the bindings.
+				} else {
+					var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+					// TODO This should happen in the single thread for the knowledge base
+					bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
+				}
+
+				AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+						anAskMsg.getMessageId(), bindings);
+				// TODO: Here I just complete the future in the same thread, but we should
+				// figure out how to do it asynchronously.
+				future.complete(result);
+
+				return future;
+			}
 		} catch (Throwable t) {
 			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
 					+ "' that was expected to resolve to one of our own.", t);
@@ -86,26 +110,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			future.completeExceptionally(t);
 			return future;
 		}
-
-		var future = new CompletableFuture<AnswerMessage>();
-		{
-			BindingSet bindings = null;
-			if (answerKnowledgeInteraction.getIsMeta()) {
-				// TODO: Ask MyMetaKnowledgeBase for the bindings.
-			} else {
-				var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
-				// TODO This should happen in the single thread for the knowledge base
-				bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
-			}
-
-			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
-					bindings);
-			// TODO: Here I just complete the future in the same thread, but we should
-			// figure out how to do it asynchronously.
-			future.complete(result);
-		}
-		return future;
 	}
 
 	@Override
@@ -142,10 +146,31 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
 		URI reactKnowledgeInteractionId = aPostMsg.getToKnowledgeInteraction();
-		ReactKnowledgeInteraction reactKnowledgeInteraction;
 		try {
-			reactKnowledgeInteraction = (ReactKnowledgeInteraction) this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(reactKnowledgeInteractionId).getKnowledgeInteraction();
+			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+					.getKnowledgeInteractionById(reactKnowledgeInteractionId);
+			ReactKnowledgeInteraction reactKnowledgeInteraction;
+			reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
+			var future = new CompletableFuture<ReactMessage>();
+			{
+				BindingSet bindings = null;
+				if (knowledgeInteractionById.isMeta()) {
+					// TODO: Ask MyMetaKnowledgeBase for the bindings.
+				} else {
+					var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+					// TODO This should happen in the single thread for the knowledge base
+					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getBindings());
+				}
+
+				ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
+						aPostMsg.getMessageId(), bindings);
+				// TODO: Here I just complete the future in the same thread, but we should
+				// figure out how to do it asynchronously.
+				future.complete(result);
+			}
+
+			return future;
 		} catch (Throwable t) {
 			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + reactKnowledgeInteractionId
 					+ "' that was expected to resolve to one of our own.", t);
@@ -154,25 +179,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			return future;
 		}
 
-		var future = new CompletableFuture<ReactMessage>();
-		{
-			BindingSet bindings = null;
-			if (reactKnowledgeInteraction.getIsMeta()) {
-				// TODO: Ask MyMetaKnowledgeBase for the bindings.
-			} else {
-				var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
-				// TODO This should happen in the single thread for the knowledge base
-				bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getBindings());
-			}
-
-			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
-					bindings);
-			// TODO: Here I just complete the future in the same thread, but we should
-			// figure out how to do it asynchronously.
-			future.complete(result);
-		}
-		return future;
 	}
 
 	@Override
