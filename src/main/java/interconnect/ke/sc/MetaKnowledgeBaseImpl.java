@@ -292,7 +292,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 									new CommunicativeAct(), new GraphPattern(graphPatternString));
 
 							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction);
+									new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction, false);
 
 							knowledgeInteractions.add(knowledgeInteractionInfo);
 						} else if (kiType.equals(ANSWER_KI)) {
@@ -300,7 +300,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 									new CommunicativeAct(), new GraphPattern(graphPatternString));
 
 							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction);
+									new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction, false);
 
 							knowledgeInteractions.add(knowledgeInteractionInfo);
 						}
@@ -345,7 +345,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 									(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString)
 											: null));
 							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction);
+									new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction, false);
 							knowledgeInteractions.add(knowledgeInteractionInfo);
 						} else if (kiType.equals(REACT_KI)) {
 							ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(
@@ -355,7 +355,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 									(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString)
 											: null));
 							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction);
+									new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction, false);
 							knowledgeInteractions.add(knowledgeInteractionInfo);
 						}
 					} else {

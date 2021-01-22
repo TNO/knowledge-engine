@@ -132,7 +132,7 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	public URI register(AskKnowledgeInteraction anAskKI) {
 		URI id = this.generateId(anAskKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAskKI, null,
-				null);
+				null, false);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -151,7 +151,7 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		URI id = this.generateId(anAnswerKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAnswerKI,
-				anAnswerHandler, null);
+				anAnswerHandler, null, false);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -170,7 +170,7 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	public URI register(PostKnowledgeInteraction aPostKI) {
 		URI id = this.generateId(aPostKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), aPostKI, null,
-				null);
+				null, false);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -189,7 +189,7 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
 		URI id = this.generateId(anReactKI);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anReactKI, null,
-				aReactHandler);
+				aReactHandler, false);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
