@@ -39,7 +39,8 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 
-				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement . ?obs :hasTemp ?temp .");
+				GraphPattern gp = new GraphPattern(prefixes,
+						"?obs rdf:type saref:Measurement . ?obs saref:hasTemp ?temp .");
 				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(ki);
 			}

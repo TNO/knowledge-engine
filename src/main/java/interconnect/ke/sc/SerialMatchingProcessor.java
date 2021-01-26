@@ -96,6 +96,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
 						}
+					} else {
+						this.checkOtherKnowledgeInteraction(bindingSet);
 					}
 				} else if (ki.getType() == Type.REACT) {
 
