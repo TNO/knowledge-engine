@@ -69,7 +69,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		synchronized (this.lock) {
 			if (this.kiIter.hasNext()) {
 				KnowledgeInteractionInfo ki = this.kiIter.next();
-				if (ki.getType() == Type.ANSWER) {
+				if (this.myKnowledgeInteraction.getType() == Type.ASK && ki.getType() == Type.ANSWER) {
 					AnswerKnowledgeInteraction aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
 					if (this.matches(((AskKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
 							.getPattern(), aKI.getPattern())) {
@@ -99,7 +99,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 					} else {
 						this.checkOtherKnowledgeInteraction(bindingSet);
 					}
-				} else if (ki.getType() == Type.REACT) {
+				} else if (this.myKnowledgeInteraction.getType() == Type.POST && ki.getType() == Type.REACT) {
 
 					ReactKnowledgeInteraction rKI = (ReactKnowledgeInteraction) ki.getKnowledgeInteraction();
 

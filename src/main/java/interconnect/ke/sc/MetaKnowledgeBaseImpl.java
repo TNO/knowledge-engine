@@ -90,8 +90,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		assert anAskMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId) : "the message should be for me";
 		assert anAskMessage.getToKnowledgeInteraction()
 				.equals(this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId));
-		assert anAskMessage.getFromKnowledgeInteraction()
-				.equals(this.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase()));
 
 		URI fromKnowledgeInteraction = this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId);
 		URI toKnowledgeInteraction = this.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase());
