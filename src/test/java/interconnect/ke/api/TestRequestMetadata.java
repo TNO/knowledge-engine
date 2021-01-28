@@ -9,12 +9,15 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
@@ -24,12 +27,14 @@ public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TestRequestMetadata.class);
+
 	@Test
 	public void testRequestMetadata() throws InterruptedException {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect/");
+		prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -39,10 +44,11 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 
-				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement . ?obs :hasTemp ?temp .");
+				GraphPattern gp = new GraphPattern(prefixes,
+						"?obs rdf:type saref:Measurement . ?obs saref:hasTemp ?temp .");
 				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(ki);
-			};
+			}
 		};
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -52,9 +58,9 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				GraphPattern gp = new GraphPattern(prefixes,
-						"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType .");
-				ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
-				aSC.register(ki);
+						"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+				aSC.register(this.ki);
 
 				try {
 					this.testMetadata();
@@ -62,16 +68,20 @@ public class TestRequestMetadata {
 					fail("Should not throw any exception.");
 				}
 
-			};
+			}
 
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
 				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();
 
+				LOG.info("Bindings: {}", result.getBindings());
+
 				Model m = TestUtils.generateModel(this.ki.getPattern(), result.getBindings());
 
 				ResIterator i = m.listSubjectsWithProperty(RDF.type,
-						prefixes.getNsPrefixURI("ke") + "PostKnowledgeInteraction");
-				assertTrue(i.hasNext(), "Should have exactly 1 PostKnowledgeInteraction.");
+						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"));
+				assertTrue(i.hasNext(), "Should have at least 1 PostKnowledgeInteraction.");
+				i.next();
+				assertTrue(!i.hasNext(), "Should have at most 1 PostKnowledgeInteraction.");
 				latch.countDown();
 
 			}
