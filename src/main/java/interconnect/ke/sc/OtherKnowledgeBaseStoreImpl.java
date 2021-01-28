@@ -65,6 +65,8 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 				// when finished, add it to the store.
 				otherKnowledgeBaseFuture.thenAccept(otherKnowledgeBase -> {
 
+					assert otherKnowledgeBase != null : "The other knowledge base should be non-null.";
+
 					try {
 						this.otherKnowledgeBases.put(otherKnowledgeBase.getId(), otherKnowledgeBase);
 					} catch (Throwable t) {
