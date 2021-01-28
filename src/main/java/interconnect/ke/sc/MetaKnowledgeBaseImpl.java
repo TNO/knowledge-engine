@@ -235,8 +235,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 							return this.constructOtherKnowledgeBaseFromAnswerMessage(answerMsg);
 						} catch (Throwable t) {
 							this.LOG.error("The construction of other knowledge base should succeed.", t);
+							// TODO do we want to complete the future exceptionally, here? Because we have a
+							// condition that otherKnowledgeBase should NEVER be null.
+							return null;
 						}
-						return null;
 					});
 			return future;
 		} catch (IOException e) {
@@ -269,161 +271,150 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		var bindings = answerMessage.getBindings();
 		this.LOG.trace("Received message: {}", answerMessage);
 
-		if (!bindings.isEmpty()) {
+		assert !bindings.isEmpty() : "An answer meta message should always have at least a single binding.";
 
-			Model model;
-			try {
-				model = Util.generateModel(this.metaGraphPattern, bindings);
-			} catch (ParseException e) {
-				this.LOG.warn("Received parse error while generating model.", e);
-				assert false;
-				return null;
-			}
-			model.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
-
-			model.write(System.out, "turtle");
-
-			Resource kb = model
-					.listSubjectsWithProperty(RDF.type,
-							model.createResource("https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase"))
-					.next();
-
-			String name = model
-					.listObjectsOfProperty(kb,
-							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasName"))
-					.next().asLiteral().getString();
-			String description = model
-					.listObjectsOfProperty(kb,
-							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasDescription"))
-					.next().asLiteral().getString();
-
-			// Commented out because we don't need this for now.
-			// Resource sc = model.listObjectsOfProperty(kb,
-			// model.getProperty("kb:hasSmartConnector")).next().asResource();
-			// String endpointString = model.listObjectsOfProperty(sc,
-			// model.getProperty("kb:hasEndpoint")).next().asLiteral().getString();
-			// URL endpoint;
-			// try {
-			// endpoint = new URL(endpointString);
-			// } catch (MalformedURLException e1) {
-			// LOG.warn("Invalid URL for endpoint.", e1);
-			// assert false;
-			// return null;
-			// }
-
-			ExtendedIterator<Resource> kis = model
-					.listObjectsOfProperty(kb,
-							model.getProperty(
-									"https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction"))
-					.mapWith(RDFNode::asResource);
-
-			var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
-			for (Resource ki : kis.toList()) {
-				var kiType = model.listObjectsOfProperty(ki, RDF.type).next();
-				var kiMeta = model.listObjectsOfProperty(ki,
-						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#isMeta")).next();
-
-				boolean isMeta = kiMeta.asLiteral().getBoolean();
-				assert isMeta == kiMeta.toString().contains("true") : "If the text contains 'true' (=" + kiMeta
-						+ ") then the boolean should be true.";
-
-				this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
-				try {
-
-					if (kiType.equals(ASK_KI) || kiType.equals(ANSWER_KI)) {
-						Resource graphPattern = model
-								.listObjectsOfProperty(ki,
-										model.getProperty(
-												"https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern"))
-								.next().asResource();
-						String graphPatternString = model
-								.listObjectsOfProperty(graphPattern,
-										model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
-								.next().asLiteral().getString();
-						if (kiType.equals(ASK_KI)) {
-							AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
-									new CommunicativeAct(), new GraphPattern(graphPatternString));
-
-							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction, isMeta);
-
-							knowledgeInteractions.add(knowledgeInteractionInfo);
-						} else if (kiType.equals(ANSWER_KI)) {
-							AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
-									new CommunicativeAct(), new GraphPattern(graphPatternString));
-
-							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction, isMeta);
-
-							knowledgeInteractions.add(knowledgeInteractionInfo);
-						}
-					} else if (kiType.equals(POST_KI) || kiType.equals(REACT_KI)) {
-
-						// argument
-						NodeIterator listObjectsOfProperty = model.listObjectsOfProperty(ki, model
-								.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasArgumentPattern"));
-						Resource argumentGraphPattern = null;
-						String argumentGraphPatternString = null;
-						if (listObjectsOfProperty.hasNext()) {
-							argumentGraphPattern = listObjectsOfProperty.next().asResource();
-							argumentGraphPatternString = model
-									.listObjectsOfProperty(argumentGraphPattern,
-											model.getProperty(
-													"https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
-									.next().asLiteral().getString();
-						}
-
-						// result
-						NodeIterator listObjectsOfProperty2 = model.listObjectsOfProperty(ki,
-								model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasResultPattern"));
-						Resource resultGraphPattern = null;
-						String resultGraphPatternString = null;
-						if (listObjectsOfProperty2.hasNext()) {
-							resultGraphPattern = listObjectsOfProperty2.next().asResource();
-							resultGraphPatternString = model
-									.listObjectsOfProperty(resultGraphPattern,
-											model.getProperty(
-													"https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
-									.next().asLiteral().getString();
-						}
-
-						if (kiType.equals(POST_KI)) {
-
-							this.LOG.trace("{} - {}", argumentGraphPatternString, resultGraphPatternString);
-
-							PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(
-									new CommunicativeAct(),
-									(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
-											: null),
-									(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString)
-											: null));
-							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction, isMeta);
-							knowledgeInteractions.add(knowledgeInteractionInfo);
-						} else if (kiType.equals(REACT_KI)) {
-							ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(
-									new CommunicativeAct(),
-									(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
-											: null),
-									(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString)
-											: null));
-							KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-									new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction, isMeta);
-							knowledgeInteractions.add(knowledgeInteractionInfo);
-						}
-					} else {
-						this.LOG.warn("Ignored unexpected knowledge interaction type {}", kiType);
-					}
-				} catch (URISyntaxException e) {
-					this.LOG.error("The URIs should be correctly formatted.", e);
-				}
-
-			}
-
-			return new OtherKnowledgeBase(knowledgeBaseId, name, description, knowledgeInteractions, null);
-		} else {
+		Model model;
+		try {
+			model = Util.generateModel(this.metaGraphPattern, bindings);
+		} catch (ParseException e) {
+			this.LOG.warn("Received parse error while generating model.", e);
+			assert false;
 			return null;
 		}
+		model.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
+
+		model.write(System.out, "turtle");
+
+		Resource kb = model.listSubjectsWithProperty(RDF.type,
+				model.createResource("https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase")).next();
+
+		String name = model
+				.listObjectsOfProperty(kb, model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasName"))
+				.next().asLiteral().getString();
+		String description = model
+				.listObjectsOfProperty(kb,
+						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasDescription"))
+				.next().asLiteral().getString();
+
+		// Commented out because we don't need this for now.
+		// Resource sc = model.listObjectsOfProperty(kb,
+		// model.getProperty("kb:hasSmartConnector")).next().asResource();
+		// String endpointString = model.listObjectsOfProperty(sc,
+		// model.getProperty("kb:hasEndpoint")).next().asLiteral().getString();
+		// URL endpoint;
+		// try {
+		// endpoint = new URL(endpointString);
+		// } catch (MalformedURLException e1) {
+		// LOG.warn("Invalid URL for endpoint.", e1);
+		// assert false;
+		// return null;
+		// }
+
+		ExtendedIterator<Resource> kis = model
+				.listObjectsOfProperty(kb,
+						model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction"))
+				.mapWith(RDFNode::asResource);
+
+		var knowledgeInteractions = new ArrayList<KnowledgeInteractionInfo>();
+		for (Resource ki : kis.toList()) {
+			var kiType = model.listObjectsOfProperty(ki, RDF.type).next();
+			var kiMeta = model.listObjectsOfProperty(ki,
+					model.getProperty("https://www.tno.nl/energy/ontology/interconnect#isMeta")).next();
+
+			boolean isMeta = kiMeta.asLiteral().getBoolean();
+			assert isMeta == kiMeta.toString().contains("true") : "If the text contains 'true' (=" + kiMeta
+					+ ") then the boolean should be true.";
+
+			this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
+			try {
+
+				if (kiType.equals(ASK_KI) || kiType.equals(ANSWER_KI)) {
+					Resource graphPattern = model
+							.listObjectsOfProperty(ki,
+									model.getProperty(
+											"https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern"))
+							.next().asResource();
+					String graphPatternString = model
+							.listObjectsOfProperty(graphPattern,
+									model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
+							.next().asLiteral().getString();
+					if (kiType.equals(ASK_KI)) {
+						AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(graphPatternString));
+
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction, isMeta);
+
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					} else if (kiType.equals(ANSWER_KI)) {
+						AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
+								new CommunicativeAct(), new GraphPattern(graphPatternString));
+
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction, isMeta);
+
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					}
+				} else if (kiType.equals(POST_KI) || kiType.equals(REACT_KI)) {
+
+					// argument
+					NodeIterator listObjectsOfProperty = model.listObjectsOfProperty(ki,
+							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasArgumentPattern"));
+					Resource argumentGraphPattern = null;
+					String argumentGraphPatternString = null;
+					if (listObjectsOfProperty.hasNext()) {
+						argumentGraphPattern = listObjectsOfProperty.next().asResource();
+						argumentGraphPatternString = model
+								.listObjectsOfProperty(argumentGraphPattern,
+										model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
+								.next().asLiteral().getString();
+					}
+
+					// result
+					NodeIterator listObjectsOfProperty2 = model.listObjectsOfProperty(ki,
+							model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasResultPattern"));
+					Resource resultGraphPattern = null;
+					String resultGraphPatternString = null;
+					if (listObjectsOfProperty2.hasNext()) {
+						resultGraphPattern = listObjectsOfProperty2.next().asResource();
+						resultGraphPatternString = model
+								.listObjectsOfProperty(resultGraphPattern,
+										model.getProperty("https://www.tno.nl/energy/ontology/interconnect#hasPattern"))
+								.next().asLiteral().getString();
+					}
+
+					if (kiType.equals(POST_KI)) {
+
+						this.LOG.trace("{} - {}", argumentGraphPatternString, resultGraphPatternString);
+
+						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(
+								new CommunicativeAct(),
+								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
+										: null),
+								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction, isMeta);
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					} else if (kiType.equals(REACT_KI)) {
+						ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(
+								new CommunicativeAct(),
+								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
+										: null),
+								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));
+						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
+								new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction, isMeta);
+						knowledgeInteractions.add(knowledgeInteractionInfo);
+					}
+				} else {
+					this.LOG.warn("Ignored unexpected knowledge interaction type {}", kiType);
+				}
+			} catch (URISyntaxException e) {
+				this.LOG.error("The URIs should be correctly formatted.", e);
+			}
+
+		}
+
+		return new OtherKnowledgeBase(knowledgeBaseId, name, description, knowledgeInteractions, null);
 
 	}
 
