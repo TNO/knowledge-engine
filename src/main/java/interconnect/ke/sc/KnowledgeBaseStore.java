@@ -17,7 +17,7 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
  * that are currently registered by the {@link KnowledgeBase} associated with
  * this {@link SmartConnectorImpl}.
  */
-public interface MyKnowledgeBaseStore {
+public interface KnowledgeBaseStore {
 
 	/**
 	 * @return Globally unique identifier for this knowledge base.
@@ -52,26 +52,25 @@ public interface MyKnowledgeBaseStore {
 
 	ReactHandler getReactHandler(URI anReactKiId);
 
-	void addListener(MyKnowledgeBaseStoreListener listener);
+	void addListener(KnowledgeBaseStoreListener listener);
 
-	void removeListener(MyKnowledgeBaseStoreListener listener);
+	void removeListener(KnowledgeBaseStoreListener listener);
 
-	URI register(AskKnowledgeInteraction anAskKI);
+	URI register(AskKnowledgeInteraction anAskKI, boolean isMeta);
 
 	void unregister(AskKnowledgeInteraction anAskKI);
 
-	URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler);
+	URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler, boolean isMeta);
 
 	void unregister(AnswerKnowledgeInteraction anAnswerKI);
 
-	URI register(PostKnowledgeInteraction aPostKI);
+	URI register(PostKnowledgeInteraction aPostKI, boolean isMeta);
 
 	void unregister(PostKnowledgeInteraction aPostKI);
 
-	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
+	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler, boolean isMeta);
 
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
-	void register(MyKnowledgeInteractionInfo aKI);
-
+	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType);
 }

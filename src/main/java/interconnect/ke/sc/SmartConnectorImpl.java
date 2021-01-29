@@ -47,7 +47,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	private final Logger LOG;
 
 	private final KnowledgeBase myKnowledgeBase;
-	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final KnowledgeBaseStore myKnowledgeBaseStore;
 	private final MetaKnowledgeBase metaKnowledgeBase;
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
@@ -69,7 +69,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		this.LOG = this.getLogger(SmartConnectorImpl.class);
 
-		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
+		this.myKnowledgeBaseStore = new KnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
 		this.messageRouter = new MessageRouterImpl(this);
 		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this, this.messageRouter, this.myKnowledgeBaseStore); // TODO
 		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this, this.metaKnowledgeBase);
@@ -118,7 +118,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(anAskKI);
+		this.myKnowledgeBaseStore.register(anAskKI, false);
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler);
+		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
 	}
 
 	/**
@@ -191,7 +191,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(aPostKI);
+		this.myKnowledgeBaseStore.register(aPostKI, false);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler);
+		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
 	}
 
 	/**

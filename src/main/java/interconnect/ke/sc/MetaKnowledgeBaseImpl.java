@@ -39,9 +39,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 	private final Logger LOG;
 
-	private static final String ASK_SUFFIX = "/meta/knowledgeinteractions/ask";
-	private static final String ANSWER_SUFFIX = "/meta/knowledgeinteractions/answer";
-
 	private static final Resource ASK_KI = ResourceFactory
 			.createResource("https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction");
 	private static final Resource ANSWER_KI = ResourceFactory
@@ -54,15 +51,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final URI myKnowledgeBaseId;
 	private final MessageRouter messageRouter;
 	private final GraphPattern metaGraphPattern;
-	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final KnowledgeBaseStore knowledgeBaseStore;
 
 	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
-			MyKnowledgeBaseStore aKnowledgeBaseStore) {
+			KnowledgeBaseStore aKnowledgeBaseStore) {
 		this.LOG = loggerProvider.getLogger(this.getClass());
 
 		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();
 		this.messageRouter = aMessageRouter;
-		this.myKnowledgeBaseStore = aKnowledgeBaseStore;
+		this.knowledgeBaseStore = aKnowledgeBaseStore;
 
 		var prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -72,27 +69,19 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 		// create answer knowledge interaction
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		MyKnowledgeInteractionInfo aMyKI = new MyKnowledgeInteractionInfo(
-				this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId), this.myKnowledgeBaseId, aKI,
-				(anAKI, aBindingSet) -> this.fillMetaBindings(), null, true);
-		this.myKnowledgeBaseStore.register(aMyKI);
+		this.knowledgeBaseStore.register(aKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);
 
 		// create ask knowledge interaction
 		AskKnowledgeInteraction aKI2 = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		MyKnowledgeInteractionInfo aMyKI2 = new MyKnowledgeInteractionInfo(
-				this.constructAskMetaKnowledgeInteractionId(this.myKnowledgeBaseId), this.myKnowledgeBaseId, aKI2, null,
-				null, true);
-		this.myKnowledgeBaseStore.register(aMyKI2);
+		this.knowledgeBaseStore.register(aKI2, true);
 	}
 
 	@Override
 	public AnswerMessage processAskFromMessageRouter(AskMessage anAskMessage) {
 		assert anAskMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId) : "the message should be for me";
-		assert anAskMessage.getToKnowledgeInteraction()
-				.equals(this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId));
 
-		URI fromKnowledgeInteraction = this.constructAnswerMetaKnowledgeInteractionId(this.myKnowledgeBaseId);
-		URI toKnowledgeInteraction = this.constructAskMetaKnowledgeInteractionId(anAskMessage.getFromKnowledgeBase());
+		URI toKnowledgeInteraction = anAskMessage.getFromKnowledgeInteraction();
+		URI fromKnowledgeInteraction = knowledgeBaseStore.getKnowledgeInteractionById(anAskMessage.getToKnowledgeInteraction()).id;
 
 		BindingSet bindings = this.fillMetaBindings();
 
@@ -106,14 +95,14 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private BindingSet fillMetaBindings() {
 		BindingSet bindings = new BindingSet();
 
-		for (KnowledgeInteractionInfo knowledgeInteractionInfo : this.myKnowledgeBaseStore.getKnowledgeInteractions()) {
+		for (KnowledgeInteractionInfo knowledgeInteractionInfo : this.knowledgeBaseStore.getKnowledgeInteractions()) {
 
 			this.LOG.trace("Creating meta info for: {}", knowledgeInteractionInfo);
 
 			Binding binding = new Binding();
 			binding.put("kb", "<" + this.myKnowledgeBaseId.toString() + ">");
-			binding.put("name", "\"" + this.myKnowledgeBaseStore.getKnowledgeBaseName() + "\"");
-			binding.put("description", "\"" + this.myKnowledgeBaseStore.getKnowledgeBaseDescription() + "\"");
+			binding.put("name", "\"" + this.knowledgeBaseStore.getKnowledgeBaseName() + "\"");
+			binding.put("description", "\"" + this.knowledgeBaseStore.getKnowledgeBaseDescription() + "\"");
 			// binding.put("sc", "TODO"); // TODO
 			// binding.put("endpoint", "TODO"); // TODO
 			binding.put("ki", "<" + knowledgeInteractionInfo.getId() + ">");
@@ -224,8 +213,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		// sent from here to the message dispatcher is handled (in the other SC) in
 		// processAskFromMessageRouter.
 
-		var toKnowledgeInteraction = this.constructAnswerMetaKnowledgeInteractionId(toKnowledgeBaseId);
-		var fromKnowledgeInteraction = this.constructAskMetaKnowledgeInteractionId(this.myKnowledgeBaseId);
+		var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(toKnowledgeBaseId, KnowledgeInteractionInfo.Type.ANSWER);
+		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.ASK);
 		var askMsg = new AskMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, toKnowledgeBaseId,
 				toKnowledgeInteraction, new BindingSet());
 		try {
@@ -246,24 +235,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			failedFuture.completeExceptionally(e);
 			return failedFuture;
 		}
-	}
-
-	private URI constructAskMetaKnowledgeInteractionId(URI knowledgeBaseId) {
-		try {
-			return new URI(knowledgeBaseId.toString() + ASK_SUFFIX);
-		} catch (URISyntaxException e) {
-			this.LOG.error("", e);
-		}
-		return null;
-	}
-
-	private URI constructAnswerMetaKnowledgeInteractionId(URI knowledgeBaseId) {
-		try {
-			return new URI(knowledgeBaseId.toString() + ANSWER_SUFFIX);
-		} catch (URISyntaxException e) {
-			this.LOG.error("", e);
-		}
-		return null;
 	}
 
 	private OtherKnowledgeBase constructOtherKnowledgeBaseFromAnswerMessage(AnswerMessage answerMessage) {
@@ -420,8 +391,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 	@Override
 	public boolean isMetaKnowledgeInteraction(URI id) {
-		String urlString = id.toString();
-		// For now, a meta knowledge interaction id can be identified by its suffix.
-		return urlString.endsWith(ASK_SUFFIX) || urlString.endsWith(ANSWER_SUFFIX);
+		return this.knowledgeBaseStore.getKnowledgeInteractionById(id).isMeta();
 	}
 }
