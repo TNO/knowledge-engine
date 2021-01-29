@@ -47,7 +47,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	private final Logger LOG;
 
 	private final KnowledgeBase myKnowledgeBase;
-	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final KnowledgeBaseStore myKnowledgeBaseStore;
 	private final MetaKnowledgeBase metaKnowledgeBase;
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
@@ -69,7 +69,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		this.LOG = this.getLogger(SmartConnectorImpl.class);
 
-		this.myKnowledgeBaseStore = new MyKnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
+		this.myKnowledgeBaseStore = new KnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
 		this.messageRouter = new MessageRouterImpl(this);
 		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this, this.messageRouter, this.myKnowledgeBaseStore); // TODO
 		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this, this.metaKnowledgeBase);

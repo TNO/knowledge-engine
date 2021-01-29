@@ -23,15 +23,15 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
-public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
+public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 
 	private final Logger LOG;
 	private final KnowledgeBase knowledgeBase;
 	private final Map<URI, MyKnowledgeInteractionInfo> kiis = new ConcurrentHashMap<>();
-	private final List<MyKnowledgeBaseStoreListener> listeners = new CopyOnWriteArrayList<>();
+	private final List<KnowledgeBaseStoreListener> listeners = new CopyOnWriteArrayList<>();
 
-	public MyKnowledgeBaseStoreImpl(LoggerProvider loggerProvider, KnowledgeBase knowledgeBase) {
-		this.LOG = loggerProvider.getLogger(MyKnowledgeBaseStoreImpl.class);
+	public KnowledgeBaseStoreImpl(LoggerProvider loggerProvider, KnowledgeBase knowledgeBase) {
+		this.LOG = loggerProvider.getLogger(KnowledgeBaseStoreImpl.class);
 		this.knowledgeBase = knowledgeBase;
 	}
 
@@ -119,12 +119,12 @@ public class MyKnowledgeBaseStoreImpl implements MyKnowledgeBaseStore {
 	}
 
 	@Override
-	public void addListener(MyKnowledgeBaseStoreListener listener) {
+	public void addListener(KnowledgeBaseStoreListener listener) {
 		this.listeners.add(listener);
 	}
 
 	@Override
-	public void removeListener(MyKnowledgeBaseStoreListener listener) {
+	public void removeListener(KnowledgeBaseStoreListener listener) {
 		this.listeners.remove(listener);
 	}
 

@@ -17,7 +17,7 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
  * that are currently registered by the {@link KnowledgeBase} associated with
  * this {@link SmartConnectorImpl}.
  */
-public interface MyKnowledgeBaseStore {
+public interface KnowledgeBaseStore {
 
 	/**
 	 * @return Globally unique identifier for this knowledge base.
@@ -52,9 +52,9 @@ public interface MyKnowledgeBaseStore {
 
 	ReactHandler getReactHandler(URI anReactKiId);
 
-	void addListener(MyKnowledgeBaseStoreListener listener);
+	void addListener(KnowledgeBaseStoreListener listener);
 
-	void removeListener(MyKnowledgeBaseStoreListener listener);
+	void removeListener(KnowledgeBaseStoreListener listener);
 
 	URI register(AskKnowledgeInteraction anAskKI);
 

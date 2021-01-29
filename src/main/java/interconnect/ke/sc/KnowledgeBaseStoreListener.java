@@ -1,6 +1,6 @@
 package interconnect.ke.sc;
 
-public interface MyKnowledgeBaseStoreListener {
+public interface KnowledgeBaseStoreListener {
 
 	void knowledgeInteractionRegistered(KnowledgeInteractionInfo ki);
 

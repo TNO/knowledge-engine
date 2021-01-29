@@ -24,13 +24,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
-	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final KnowledgeBaseStore myKnowledgeBaseStore;
 	private final MetaKnowledgeBase metaKnowledgeBase;
 
 	private final LoggerProvider loggerProvider;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
-			MyKnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
+			KnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());

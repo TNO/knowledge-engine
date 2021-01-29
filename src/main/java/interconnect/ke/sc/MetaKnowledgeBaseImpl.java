@@ -54,10 +54,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final URI myKnowledgeBaseId;
 	private final MessageRouter messageRouter;
 	private final GraphPattern metaGraphPattern;
-	private final MyKnowledgeBaseStore myKnowledgeBaseStore;
+	private final KnowledgeBaseStore myKnowledgeBaseStore;
 
 	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
-			MyKnowledgeBaseStore aKnowledgeBaseStore) {
+			KnowledgeBaseStore aKnowledgeBaseStore) {
 		this.LOG = loggerProvider.getLogger(this.getClass());
 
 		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();

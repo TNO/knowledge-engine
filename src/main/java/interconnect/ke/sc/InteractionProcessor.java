@@ -27,7 +27,7 @@ import interconnect.ke.messaging.ReactMessage;
  *
  * For this, it needs to know which knowledge interactions are offered by the
  * knowledge base that this smart connector is attached to. For this, it uses
- * {@link MyKnowledgeBaseStore}, and also {@link MyMetaKnowledgeBase} for the
+ * {@link KnowledgeBaseStore}, and also {@link MyMetaKnowledgeBase} for the
  * knowledge interactions about the metadata that all smart connectors
  * automatically offer.
  *
