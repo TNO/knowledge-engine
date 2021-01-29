@@ -20,11 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import interconnect.ke.admin.AdminUI;
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
-import interconnect.ke.sc.AdminUI;
 
 public class TestAskAnswer {
 
@@ -37,8 +37,8 @@ public class TestAskAnswer {
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
-		admin = new AdminUI();
-		admin.start();
+//		admin = new AdminUI();
+//		admin.start();
 	}
 
 	@Test
@@ -71,6 +71,8 @@ public class TestAskAnswer {
 
 			return bindingSet;
 		});
+
+		Thread.sleep(5000);
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
@@ -129,6 +131,6 @@ public class TestAskAnswer {
 			fail("KB2 should not be null!");
 		}
 
-		admin.close();
+//		admin.close();
 	}
 }
