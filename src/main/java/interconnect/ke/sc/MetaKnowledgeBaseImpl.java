@@ -1,6 +1,7 @@
 package interconnect.ke.sc;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -283,7 +284,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		}
 		model.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 
-		model.write(System.out, "turtle");
+		StringWriter sw = new StringWriter();
+		model.write(sw, "turtle");
+		this.LOG.trace("Incoming RDF: {}", sw.toString());
 
 		Resource kb = model.listSubjectsWithProperty(RDF.type,
 				model.createResource("https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase")).next();

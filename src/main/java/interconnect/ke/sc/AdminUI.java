@@ -4,12 +4,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +28,16 @@ import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 
 public class AdminUI implements KnowledgeBase {
 
+	private static final int SLEEPTIME = 2;
+
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
 	private final CyclicBarrier connected;
+	private ScheduledFuture<?> future;
+
+	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
 	private AskKnowledgeInteraction aKI;
 
@@ -42,43 +53,49 @@ public class AdminUI implements KnowledgeBase {
 		this.prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
-		this.connected = new CyclicBarrier(1);
+		this.connected = new CyclicBarrier(2);
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 
 	}
 
-	private void start() throws InterruptedException, BrokenBarrierException, TimeoutException {
+	public void start() throws InterruptedException, BrokenBarrierException, TimeoutException {
 		LOG.info("Admin UI started.");
 
-		while (true) {
+		this.connected.await();
+		// smart connector is ready and connected
 
-			try {
-				this.connected.await(5, TimeUnit.SECONDS);
+		this.future = this.executorService.scheduleWithFixedDelay(() -> {
+			LOG.info("Retrieving other Knowledge Base info.");
 
-				// smart connector is ready and connected
+			this.sc.ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
+				try {
+					Model m = BindingSet.generateModel(this.aKI.getPattern(), askResult.getBindings());
+					m.setNsPrefixes(this.prefixes);
+					System.out.println("Printing current other knowledge base information:");
+					if (!m.isEmpty()) {
 
-				LOG.info("Before ask");
-				this.sc.ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
-					try {
-						Model m = BindingSet.generateModel(this.aKI.getPattern(), askResult.getBindings());
-						this.clear();
-						LOG.info("{}", m);
+						ResIterator iter = m.listResourcesWithProperty(RDF.type,
+								m.createResource(this.prefixes.expandPrefix("kb:KnowledgeBase")));
 
-					} catch (Throwable e) {
-						LOG.error("{}", e);
+						Resource r;
+						while (iter.hasNext()) {
+							r = iter.next();
+
+							System.out.println("Knowledge Base found: " + r);
+							System.out
+									.println(r.getProperty(m.createProperty(this.prefixes.expandPrefix("kb:hasName"))));
+
+						}
+
+						m.write(System.out, "turtle");
+					} else {
+						System.out.println("No other knowledge bases found.");
 					}
-				});
-				LOG.info("After ask");
-
-			} catch (TimeoutException te) {
-				// do nothing
-
-				this.connected.reset();
-
-			}
-
-		}
-
+				} catch (Throwable e) {
+					LOG.error("{}", e);
+				}
+			});
+		}, 0, SLEEPTIME, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -103,10 +120,19 @@ public class AdminUI implements KnowledgeBase {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
+
+		LOG.info("Smart connector ready.");
+
 		GraphPattern gp = new GraphPattern(this.prefixes,
 				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 		this.sc.register(this.aKI);
+
+		try {
+			this.connected.await();
+		} catch (InterruptedException | BrokenBarrierException e) {
+			LOG.info("{}", e);
+		}
 	}
 
 	@Override
@@ -128,8 +154,9 @@ public class AdminUI implements KnowledgeBase {
 		LOG.info("Our Smart Connector has been succesfully stopped.");
 	}
 
-	private void close() {
+	public void close() {
 		this.sc.stop();
+		this.future.cancel(true);
 
 	}
 

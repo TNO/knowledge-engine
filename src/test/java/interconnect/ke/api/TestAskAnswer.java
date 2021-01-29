@@ -6,13 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,7 @@ import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AnswerKnowledgeInteraction;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
+import interconnect.ke.sc.AdminUI;
 
 public class TestAskAnswer {
 
@@ -28,6 +32,14 @@ public class TestAskAnswer {
 
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
+
+	private static AdminUI admin;
+
+	@BeforeAll
+	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
+		admin = new AdminUI();
+		admin.start();
+	}
 
 	@Test
 	public void testAskAnswer() throws InterruptedException {
@@ -74,7 +86,7 @@ public class TestAskAnswer {
 
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
-		Thread.sleep(1000);
+		Thread.sleep(10000);
 
 		BindingSet result = null;
 		try {
@@ -116,5 +128,7 @@ public class TestAskAnswer {
 		} else {
 			fail("KB2 should not be null!");
 		}
+
+		admin.close();
 	}
 }
