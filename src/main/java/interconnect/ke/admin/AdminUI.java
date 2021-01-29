@@ -31,31 +31,32 @@ import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.sc.SmartConnectorBuilder;
 
+/**
+ * Knowledge Base that regularly prints an overview of the currently available
+ * Knowledge Bases within the network.
+ *
+ */
 public class AdminUI implements KnowledgeBase {
-
-	private static final String NONE = "<none>";
-
-	private static final int SLEEPTIME = 2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
+	private static final String NONE = "<none>";
+	private static final int SLEEPTIME = 2;
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
 	private volatile boolean connected = false;
 	private ScheduledFuture<?> future;
-
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-
 	private AskKnowledgeInteraction aKI;
 
 	public AdminUI() {
+		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);
 		this.prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
-
 	}
 
 	public void start() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -96,8 +97,8 @@ public class AdminUI implements KnowledgeBase {
 
 								for (Resource kiRes : kiResources) {
 									String knowledgeInteractionType = this.getKnowledgeInteractionType(model, kiRes);
-									LOG.info("\t* {}", knowledgeInteractionType);
-									LOG.info("\t\t- isMeta: {}", this.isMeta(model, kiRes));
+									LOG.info("\t* {}{}", knowledgeInteractionType,
+											(this.isMeta(model, kiRes) ? " (meta)" : ""));
 									if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
 											|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
 										LOG.info("\t\t- GraphPattern: {}", this.getGraphPattern(model, kiRes));
@@ -213,10 +214,10 @@ public class AdminUI implements KnowledgeBase {
 		return r.getPropertyResourceValue(RDF.type).getLocalName();
 	}
 
-	private String isMeta(Model model, Resource kiRes) {
+	private boolean isMeta(Model model, Resource kiRes) {
 
-		return Boolean.toString(kiRes.getProperty(model.createProperty(this.prefixes.expandPrefix("kb:isMeta")))
-				.getObject().asLiteral().getBoolean());
+		return kiRes.getProperty(model.createProperty(this.prefixes.expandPrefix("kb:isMeta"))).getObject().asLiteral()
+				.getBoolean();
 
 	}
 

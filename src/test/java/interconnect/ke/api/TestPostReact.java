@@ -6,20 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import interconnect.ke.admin.AdminUI;
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
@@ -28,15 +24,8 @@ import interconnect.ke.api.interaction.ReactKnowledgeInteraction;
 public class TestPostReact {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
-	private static AdminUI admin;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact.class);
-
-	@BeforeAll
-	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
-		admin = new AdminUI();
-		admin.start();
-	}
 
 	@Test
 	public void testPostReact() throws InterruptedException {
@@ -76,7 +65,7 @@ public class TestPostReact {
 				bindingSet.add(binding);
 
 				try {
-					Thread.sleep(8000); // we wait with posting until all Smart Connectors are up-to-date.
+					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
 				} catch (Exception e) {
 					LOG.error("Erorr", e);
 				}
@@ -107,13 +96,12 @@ public class TestPostReact {
 					// Complete the latch to make the test pass.
 					kb2ReceivedKnowledge.countDown();
 
-					return null;
+					return new BindingSet();
 				});
 				kb2Initialized.countDown();
 			}
 		};
 
-		Thread.sleep(1000000);
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
 				"Should execute the tests within " + wait + " seconds.");
 
@@ -134,7 +122,6 @@ public class TestPostReact {
 		} else {
 			fail("KB2 should not be null!");
 		}
-		admin.close();
 	}
 
 }
