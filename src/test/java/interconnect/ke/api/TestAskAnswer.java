@@ -37,8 +37,8 @@ public class TestAskAnswer {
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
-//		admin = new AdminUI();
-//		admin.start();
+		admin = new AdminUI();
+		admin.start();
 	}
 
 	@Test
@@ -131,6 +131,6 @@ public class TestAskAnswer {
 			fail("KB2 should not be null!");
 		}
 
-//		admin.close();
+		admin.close();
 	}
 }

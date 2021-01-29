@@ -1,7 +1,10 @@
 package interconnect.ke.admin;
 
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,6 +33,8 @@ import interconnect.ke.sc.SmartConnectorBuilder;
 
 public class AdminUI implements KnowledgeBase {
 
+	private static final String NONE = "<none>";
+
 	private static final int SLEEPTIME = 2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
@@ -42,12 +47,6 @@ public class AdminUI implements KnowledgeBase {
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
 	private AskKnowledgeInteraction aKI;
-
-	public static void main(String[] args) throws InterruptedException, BrokenBarrierException, TimeoutException {
-		AdminUI ui = new AdminUI();
-		ui.start();
-		ui.close();
-	}
 
 	public AdminUI() {
 		this.prefixes = new PrefixMappingMem();
@@ -65,47 +64,55 @@ public class AdminUI implements KnowledgeBase {
 		this.future = this.executorService.scheduleWithFixedDelay(() -> {
 
 			if (this.connected) {
-				LOG.info("Retrieving other Knowledge Base info...");
+				LOG.debug("Retrieving other Knowledge Base info...");
 				this.sc.ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
 					try {
-						Model m = BindingSet.generateModel(this.aKI.getPattern(), askResult.getBindings());
-						m.setNsPrefixes(this.prefixes);
-						System.out.println("Printing current other knowledge base information:");
+						Model model = BindingSet.generateModel(this.aKI.getPattern(), askResult.getBindings());
+						model.setNsPrefixes(this.prefixes);
 
-						if (!m.isEmpty()) {
+//						LOG.info("{}", this.getRDF(model));
 
-							ResIterator iter = m.listResourcesWithProperty(RDF.type,
-									m.createResource(this.prefixes.expandPrefix("kb:KnowledgeBase")));
+						LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+						LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
+						LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+						if (!model.isEmpty()) {
 
-							Resource r;
-							while (iter.hasNext()) {
-								r = iter.next();
+							Set<Resource> kbs = this.getKnowledgeBaseURIs(model);
 
-								System.out.println("Knowledge Base found with id: " + r);
+							int i = 0;
+							for (Resource kbRes : kbs) {
+								i++;
 
-								System.out.println("\tName: "
-										+ r.getProperty(m.createProperty(this.prefixes.expandPrefix("kb:hasName")))
-												.getObject());
-								System.out.println("\tDescription: " + r
-										.getProperty(m.createProperty(this.prefixes.expandPrefix("kb:hasDescription")))
-										.getObject());
-
-								StmtIterator kiIter = m.listStatements(r,
-										m.createProperty(this.prefixes.expandPrefix("kb:hasKnowledgeInteraction")),
-										(RDFNode) null);
-
-								int i = 0;
-								while (kiIter.hasNext()) {
-									kiIter.next();
-									i++;
+								if (i > 1) {
+									LOG.info("");
 								}
-								System.out.println("\tNr of Knowledge Iteractions: " + i);
 
+								LOG.info("Knowledge Base <{}>", kbRes);
+
+								LOG.info("\t* Name: {}", this.getName(model, kbRes));
+								LOG.info("\t* Description: {}", this.getDescription(model, kbRes));
+
+								Set<Resource> kiResources = this.getKnowledgeInteractionURIs(model, kbRes);
+
+								for (Resource kiRes : kiResources) {
+									String knowledgeInteractionType = this.getKnowledgeInteractionType(model, kiRes);
+									LOG.info("\t* {}", knowledgeInteractionType);
+									LOG.info("\t\t- isMeta: {}", this.isMeta(model, kiRes));
+									if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
+											|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
+										LOG.info("\t\t- GraphPattern: {}", this.getGraphPattern(model, kiRes));
+									} else if (knowledgeInteractionType.equals("PostKnowledgeInteraction")
+											|| knowledgeInteractionType.equals("ReactKnowledgeInteraction")) {
+										LOG.info("\t\t- Argument GP: {}", this.getArgument(model, kiRes));
+										LOG.info("\t\t- Result GP: {}", this.getResult(model, kiRes));
+									}
+								}
 							}
 
 						} else {
-							System.out.println("No other knowledge bases found.");
+							LOG.info("No other knowledge bases found.");
 						}
+
 					} catch (Throwable e) {
 						LOG.error("{}", e);
 					}
@@ -167,6 +174,88 @@ public class AdminUI implements KnowledgeBase {
 	@Override
 	public void smartConnectorStopped(SmartConnector aSC) {
 		LOG.info("Our Smart Connector has been succesfully stopped.");
+	}
+
+	private Set<Resource> getKnowledgeBaseURIs(Model m) {
+
+		ResIterator iter = m.listResourcesWithProperty(RDF.type,
+				m.createResource(this.prefixes.expandPrefix("kb:KnowledgeBase")));
+
+		Set<Resource> kbs = new HashSet<>();
+
+		while (iter.hasNext()) {
+			kbs.add(iter.next());
+		}
+		return kbs;
+	}
+
+	private String getName(Model m, Resource r) {
+		return this.getProperty(m, r, this.prefixes.expandPrefix("kb:hasName"));
+	}
+
+	private String getDescription(Model m, Resource r) {
+		return this.getProperty(m, r, this.prefixes.expandPrefix("kb:hasDescription"));
+	}
+
+	private Set<Resource> getKnowledgeInteractionURIs(Model m, Resource r) {
+		StmtIterator kiIter = m.listStatements(r,
+				m.getProperty(this.prefixes.expandPrefix("kb:hasKnowledgeInteraction")), (RDFNode) null);
+
+		Set<Resource> kis = new HashSet<>();
+
+		while (kiIter.hasNext()) {
+			kis.add(kiIter.next().getObject().asResource());
+		}
+		return kis;
+	}
+
+	private String getKnowledgeInteractionType(Model m, Resource r) {
+		return r.getPropertyResourceValue(RDF.type).getLocalName();
+	}
+
+	private String isMeta(Model model, Resource kiRes) {
+
+		return Boolean.toString(kiRes.getProperty(model.createProperty(this.prefixes.expandPrefix("kb:isMeta")))
+				.getObject().asLiteral().getBoolean());
+
+	}
+
+	private String getGraphPattern(Model model, Resource kiRes) {
+		Resource gpRes = kiRes
+				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasGraphPattern")));
+		return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
+
+	}
+
+	private String getArgument(Model model, Resource kiRes) {
+		Resource gpRes = kiRes
+				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasArgumentGraphPattern")));
+		if (gpRes != null) {
+			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
+		} else {
+			return NONE;
+		}
+	}
+
+	private String getResult(Model model, Resource kiRes) {
+
+		Resource gpRes = kiRes
+				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasResultGraphPattern")));
+		if (gpRes != null) {
+			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
+		} else {
+			return NONE;
+		}
+	}
+
+	private String getProperty(Model m, Resource r, String propertyURI) {
+		return r.getProperty(m.getProperty(propertyURI)).getObject().toString();
+	}
+
+	private String getRDF(Model model) {
+		StringWriter sw = new StringWriter();
+		model.write(sw, "turtle");
+		return sw.toString();
 	}
 
 	public void close() {
