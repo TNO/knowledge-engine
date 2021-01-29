@@ -82,6 +82,9 @@ public class AdminUI implements KnowledgeBase {
 							r = iter.next();
 
 							System.out.println("Knowledge Base found: " + r);
+
+							r.getProp
+
 							System.out
 									.println(r.getProperty(m.createProperty(this.prefixes.expandPrefix("kb:hasName"))));
 
