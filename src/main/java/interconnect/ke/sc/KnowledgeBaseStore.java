@@ -56,22 +56,21 @@ public interface KnowledgeBaseStore {
 
 	void removeListener(KnowledgeBaseStoreListener listener);
 
-	URI register(AskKnowledgeInteraction anAskKI);
+	URI register(AskKnowledgeInteraction anAskKI, boolean isMeta);
 
 	void unregister(AskKnowledgeInteraction anAskKI);
 
-	URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler);
+	URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler, boolean isMeta);
 
 	void unregister(AnswerKnowledgeInteraction anAnswerKI);
 
-	URI register(PostKnowledgeInteraction aPostKI);
+	URI register(PostKnowledgeInteraction aPostKI, boolean isMeta);
 
 	void unregister(PostKnowledgeInteraction aPostKI);
 
-	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
+	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler, boolean isMeta);
 
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
-	void register(MyKnowledgeInteractionInfo aKI);
-
+	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType);
 }

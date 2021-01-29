@@ -118,7 +118,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(anAskKI);
+		this.myKnowledgeBaseStore.register(anAskKI, false);
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler);
+		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
 	}
 
 	/**
@@ -191,7 +191,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(aPostKI);
+		this.myKnowledgeBaseStore.register(aPostKI, false);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	public void register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
 		this.checkStopped();
 
-		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler);
+		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
 	}
 
 	/**

@@ -25,6 +25,9 @@ import interconnect.ke.sc.KnowledgeInteractionInfo.Type;
 
 public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 
+	private static final String ASK_SUFFIX = "/meta/knowledgeinteractions/ask";
+	private static final String ANSWER_SUFFIX = "/meta/knowledgeinteractions/answer";
+
 	private final Logger LOG;
 	private final KnowledgeBase knowledgeBase;
 	private final Map<URI, MyKnowledgeInteractionInfo> kiis = new ConcurrentHashMap<>();
@@ -33,17 +36,6 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	public KnowledgeBaseStoreImpl(LoggerProvider loggerProvider, KnowledgeBase knowledgeBase) {
 		this.LOG = loggerProvider.getLogger(KnowledgeBaseStoreImpl.class);
 		this.knowledgeBase = knowledgeBase;
-	}
-
-	private URI generateId(KnowledgeInteraction anAskKI) {
-		try {
-			return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
-					+ UUID.randomUUID().toString());
-		} catch (URISyntaxException e) {
-			// This should not happen in knowledgeBaseId is correct
-			assert false : "Could not generate URI for KnowledeInteraction";
-			return null;
-		}
 	}
 
 	@Override
@@ -129,10 +121,10 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public URI register(AskKnowledgeInteraction anAskKI) {
-		URI id = this.generateId(anAskKI);
+	public URI register(AskKnowledgeInteraction anAskKI, boolean isMeta) {
+		URI id = this.generateId(anAskKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAskKI, null,
-				null, false);
+				null, isMeta);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -148,10 +140,10 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
-		URI id = this.generateId(anAnswerKI);
+	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler, boolean isMeta) {
+		URI id = this.generateId(anAnswerKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAnswerKI,
-				anAnswerHandler, null, false);
+				anAnswerHandler, null, isMeta);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -167,10 +159,10 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public URI register(PostKnowledgeInteraction aPostKI) {
-		URI id = this.generateId(aPostKI);
+	public URI register(PostKnowledgeInteraction aPostKI, boolean isMeta) {
+		URI id = this.generateId(aPostKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), aPostKI, null,
-				null, false);
+				null, isMeta);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -186,10 +178,10 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
-		URI id = this.generateId(anReactKI);
+	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler, boolean isMeta) {
+		URI id = this.generateId(anReactKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anReactKI, null,
-				aReactHandler, false);
+				aReactHandler, isMeta);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -204,9 +196,45 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 				});
 	}
 
-	@Override
-	public void register(MyKnowledgeInteractionInfo aKI) {
-		this.kiis.put(aKI.getId(), aKI);
+	private URI generateId(KnowledgeInteraction aKI, boolean isMeta) {
+		try {
+			if (isMeta) {
+				if (aKI instanceof AskKnowledgeInteraction) {
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ASK);
+				} else if (aKI instanceof AnswerKnowledgeInteraction) {
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ANSWER);
+				} else {
+					assert false : "Meta KI IDs for POST/REACT are currently not implemented.";
+					return null;
+				}
+			} else {
+				return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
+					+ UUID.randomUUID().toString());
+			}
+		} catch (URISyntaxException e) {
+			// This should not happen if knowledgeBaseId is correct
+			assert false : "Could not generate URI for KnowledgeInteraction";
+			return null;
+		}
 	}
 
+	@Override
+	public URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType) {
+		try {
+			switch (kiType) {
+			case ASK:
+				return new URI(knowledgeBaseId.toString() + ASK_SUFFIX);
+			case ANSWER:
+				return new URI(knowledgeBaseId.toString() + ANSWER_SUFFIX);
+			case POST:
+			case REACT:
+			default:
+				assert false : "Meta KI IDs for POST/REACT are currently not implemented.";
+				return null;
+			}
+		} catch (URISyntaxException e) {
+			assert false : "Could not generate URI for KnowledgeInteraction";
+			return null;
+		}
+	}
 }
