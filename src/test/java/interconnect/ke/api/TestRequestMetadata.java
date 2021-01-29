@@ -75,7 +75,7 @@ public class TestRequestMetadata {
 
 				LOG.info("Bindings: {}", result.getBindings());
 
-				Model m = TestUtils.generateModel(this.ki.getPattern(), result.getBindings());
+				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
 
 				ResIterator i = m.listSubjectsWithProperty(RDF.type,
 						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"));

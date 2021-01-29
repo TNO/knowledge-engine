@@ -15,13 +15,13 @@ public interface ReactHandler {
 
 	/**
 	 * Create a {@link ReactHandler}
-	 * 
+	 *
 	 * @param anRKI    The {@link KnowledgeInteraction} that is involved in this
 	 *                 post/react process.
 	 * @param argument The {@link BindingSet} for variables in the
 	 *                 {@link KnowledgeInteraction}'s argument {@link GraphPattern}.
-	 * @return A {@link BindingSet} for variables in the
+	 * @return A non-null but possibly empty {@link BindingSet} for variables in the
 	 *         {@link KnowledgeInteraction}'s result {@link GraphPattern}.
 	 */
-	public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument);
+	BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument);
 }

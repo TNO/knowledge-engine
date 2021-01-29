@@ -147,6 +147,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			this.LOG.warn("I received a reply for a PostMessage with ID " + reactMessage.getReplyToPostMessage()
 					+ ", but I don't remember sending a message with that ID");
 		} else {
+			assert reactMessage != null;
+			assert future != null;
 			future.complete(reactMessage);
 		}
 	}

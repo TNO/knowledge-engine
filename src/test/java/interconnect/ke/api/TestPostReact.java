@@ -96,7 +96,7 @@ public class TestPostReact {
 					// Complete the latch to make the test pass.
 					kb2ReceivedKnowledge.countDown();
 
-					return null;
+					return new BindingSet();
 				});
 				kb2Initialized.countDown();
 			}
