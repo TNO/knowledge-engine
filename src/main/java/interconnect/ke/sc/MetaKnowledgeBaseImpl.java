@@ -119,14 +119,14 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			case POST:
 				binding.put("kiType", bracketize(Vocab.POST_KI.toString()));
 				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/argumentgp"));
-				binding.put("patternType", bracketize(Vocab.HAS_GP.toString()));
+				binding.put("patternType", bracketize(Vocab.HAS_ARG.toString()));
 				binding.put("pattern", quotize(
 						this.convertToPattern(((PostKnowledgeInteraction) knowledgeInteraction).getArgument())));
 				break;
 			case REACT:
 				binding.put("kiType", bracketize(Vocab.REACT_KI.toString()));
 				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/argumentgp"));
-				binding.put("patternType", bracketize(Vocab.HAS_GP.toString()));
+				binding.put("patternType", bracketize(Vocab.HAS_ARG.toString()));
 				binding.put("pattern", quotize(
 						this.convertToPattern(((ReactKnowledgeInteraction) knowledgeInteraction).getArgument())));
 				break;
@@ -144,7 +144,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 					&& ((PostKnowledgeInteraction) knowledgeInteraction).getResult() != null) {
 				Binding additionalBinding = binding.clone();
 				additionalBinding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/resultgp")); // TODO
-				additionalBinding.put("patternType", bracketize(Vocab.HAS_GP.toString()));
+				additionalBinding.put("patternType", bracketize(Vocab.HAS_RES.toString()));
 
 				this.LOG.trace("{}", ((PostKnowledgeInteraction) knowledgeInteraction).getResult());
 
@@ -155,7 +155,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 					&& ((ReactKnowledgeInteraction) knowledgeInteraction).getResult() != null) {
 				Binding additionalBinding = binding.clone();
 				additionalBinding.put("gp", quotize(knowledgeInteractionInfo.getId() + "/resultgp")); // TODO
-				additionalBinding.put("patternType", quotize(Vocab.HAS_GP.toString()));
+				additionalBinding.put("patternType", quotize(Vocab.HAS_RES.toString()));
 				additionalBinding.put("pattern",
 						quotize(((ReactKnowledgeInteraction) knowledgeInteraction).getResult().getPattern()));
 				bindings.add(additionalBinding);
