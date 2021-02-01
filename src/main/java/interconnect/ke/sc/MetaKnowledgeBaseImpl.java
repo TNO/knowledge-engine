@@ -241,7 +241,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			assert false;
 			return null;
 		}
-		model.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
+		model.setNsPrefix("kb", Vocab.ONTO_URI);
 
 		StringWriter sw = new StringWriter();
 		model.write(sw, "turtle");

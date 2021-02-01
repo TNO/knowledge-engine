@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
+import interconnect.ke.sc.Vocab;
 
 public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
@@ -34,7 +35,7 @@ public class TestRequestMetadata {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
+		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		final CountDownLatch latch = new CountDownLatch(1);
