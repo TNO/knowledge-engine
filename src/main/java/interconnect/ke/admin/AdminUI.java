@@ -30,6 +30,7 @@ import interconnect.ke.api.SmartConnector;
 import interconnect.ke.api.binding.BindingSet;
 import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.sc.SmartConnectorBuilder;
+import interconnect.ke.sc.Vocab;
 
 /**
  * Knowledge Base that regularly prints an overview of the currently available
@@ -53,7 +54,7 @@ public class AdminUI implements KnowledgeBase {
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);
-		this.prefixes.setNsPrefix("kb", "https://www.tno.nl/energy/ontology/interconnect#");
+		this.prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
