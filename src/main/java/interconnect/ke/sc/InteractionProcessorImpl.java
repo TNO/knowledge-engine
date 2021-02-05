@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
@@ -46,6 +47,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aBindingSet != null : "the binding set should be non-null";
 
+		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
+
 		// TODO use RecipientSelector. In the MVP we interpret the recipient selector as
 		// a wildcard.
 
@@ -54,7 +57,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
 
 		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
-			otherKnowledgeInteractions.addAll(otherKB.getKnowledgeInteractions());
+			// Use the knowledge interactions from the other KB
+			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
+				// But filter on the communicative act. These have to match!
+				return myKnowledgeInteraction.getAct().matches(r.getKnowledgeInteraction().getAct());
+			});
+			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
@@ -118,6 +126,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		assert aPKI != null : "the knowledge interaction should be non-null";
 		assert someArguments != null : "the binding set should be non-null";
 
+		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
+
 		// TODO: Use RecipientSelector
 
 		// retrieve other knowledge bases
@@ -125,7 +135,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
 
 		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
-			otherKnowledgeInteractions.addAll(otherKB.getKnowledgeInteractions());
+			// Use the knowledge interactions from the other KB
+			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
+				// But filter on the communicative act. These have to match!
+				return myKnowledgeInteraction.getAct().matches(r.getKnowledgeInteraction().getAct());
+			});
+			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.

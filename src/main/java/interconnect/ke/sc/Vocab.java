@@ -24,5 +24,13 @@ public class Vocab {
 	public static final Property HAS_PATTERN = ResourceFactory.createProperty(ONTO_URI + "hasPattern");
 	public static final Property HAS_ARG = ResourceFactory.createProperty(ONTO_URI + "hasArgumentGraphPattern");
 	public static final Property HAS_RES = ResourceFactory.createProperty(ONTO_URI + "hasResultGraphPattern");
-
+	
+	public static final Resource COMMUNICATIVE_ACT = ResourceFactory.createProperty(ONTO_URI + "CommunicativeAct");
+	public static final Resource CONVERSION_ACT = ResourceFactory.createProperty(ONTO_URI + "ConversionAct");
+	public static final Resource NEW_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "NewKnowledgeAct");
+	public static final Resource RETRIEVE_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "RetrieveKnowledgeAct");
+	public static final Resource CHANGED_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "ChangedKnowledgeAct");
+	public static final Resource REMOVED_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "RemovedKnowledgeAct");
+	public static final Resource PERIODIC_ACT = ResourceFactory.createProperty(ONTO_URI + "PeriodicAct");
+	public static final Resource WHEN_CHANGED_ACT = ResourceFactory.createProperty(ONTO_URI + "WhenChangedAct");
 }
