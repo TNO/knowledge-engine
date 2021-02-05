@@ -48,11 +48,20 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 
 	private CompletableFuture<Void> updateStore() {
 		// retrieve ids from knowledge directory
-		Set<URI> ids = KeRuntime.knowledgeDirectory().getKnowledgeBaseIds();
+		Set<URI> newIds = KeRuntime.knowledgeDirectory().getKnowledgeBaseIds();
 
 		Set<CompletableFuture<?>> futures = new HashSet<>();
 
-		for (URI id : ids) {
+		// remove other knowledgebases that are no longer available.
+		Set<URI> noLongerAvailableIds = new HashSet<>(this.otherKnowledgeBases.keySet());
+		noLongerAvailableIds.removeAll(newIds);
+
+		for (URI id : noLongerAvailableIds) {
+			this.otherKnowledgeBases.remove(id);
+		}
+
+		// update the information with new or already existing other knowledge bases.
+		for (URI id : newIds) {
 
 			if (!id.equals(this.sc.getKnowledgeBaseId())) {
 
