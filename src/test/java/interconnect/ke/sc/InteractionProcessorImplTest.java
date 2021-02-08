@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import interconnect.ke.api.AskResult;
+import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
@@ -79,7 +80,7 @@ public class InteractionProcessorImplTest {
 	@Test
 	void test() throws InterruptedException, ExecutionException, URISyntaxException {
 
-		AskKnowledgeInteraction askInteraction = new AskKnowledgeInteraction(null,
+		AskKnowledgeInteraction askInteraction = new AskKnowledgeInteraction(new CommunicativeAct(),
 				new GraphPattern(this.graphPattern1));
 
 		CompletableFuture<AskResult> future = this.interactionProcessor
@@ -120,7 +121,7 @@ public class InteractionProcessorImplTest {
 
 				// create/add second
 				List<KnowledgeInteractionInfo> someKIs2 = new ArrayList<>();
-				AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(null,
+				AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(new CommunicativeAct(),
 						new GraphPattern(InteractionProcessorImplTest.this.graphPattern2));
 
 				KnowledgeInteractionInfo knowledgeInteractionInfo;
@@ -134,7 +135,7 @@ public class InteractionProcessorImplTest {
 
 				// create/add third
 				List<KnowledgeInteractionInfo> someKIs3 = new ArrayList<>();
-				answerKnowledgeInteraction = new AnswerKnowledgeInteraction(null,
+				answerKnowledgeInteraction = new AnswerKnowledgeInteraction(new CommunicativeAct(),
 						new GraphPattern(InteractionProcessorImplTest.this.graphPattern3));
 
 				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/3"),
