@@ -38,7 +38,6 @@ public class TestAskAnswer {
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 		admin = new AdminUI();
-		admin.start();
 	}
 
 	@Test

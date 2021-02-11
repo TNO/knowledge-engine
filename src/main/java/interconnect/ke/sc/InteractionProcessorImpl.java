@@ -43,7 +43,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
 			RecipientSelector aSelector, BindingSet aBindingSet) {
-
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aBindingSet != null : "the binding set should be non-null";
 

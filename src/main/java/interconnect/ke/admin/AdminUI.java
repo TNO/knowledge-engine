@@ -3,26 +3,22 @@ package interconnect.ke.admin;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import interconnect.ke.api.AskResult;
 import interconnect.ke.api.CommunicativeAct;
 import interconnect.ke.api.GraphPattern;
 import interconnect.ke.api.KnowledgeBase;
@@ -36,12 +32,13 @@ import interconnect.ke.sc.Vocab;
  * Knowledge Base that regularly prints an overview of the currently available
  * Knowledge Bases within the network.
  *
+ * We use Apache Jena's API extensively to work with the results of our ask.
+ *
  */
 public class AdminUI implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
-	private static final String NONE = "<none>";
 	private static final int SLEEPTIME = 2;
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
@@ -50,6 +47,10 @@ public class AdminUI implements KnowledgeBase {
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private AskKnowledgeInteraction aKI;
 
+	/**
+	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
+	 * available knowledge bases.
+	 */
 	public AdminUI() {
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
@@ -57,71 +58,11 @@ public class AdminUI implements KnowledgeBase {
 		this.prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
+		// create a new Smart Connector for this Admin UI
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
-	}
 
-	public void start() throws InterruptedException, BrokenBarrierException, TimeoutException {
-		LOG.info("Admin UI started.");
-
-		this.future = this.executorService.scheduleWithFixedDelay(() -> {
-
-			if (this.connected) {
-				LOG.debug("Retrieving other Knowledge Base info...");
-				this.sc.ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
-					try {
-						Model model = BindingSet.generateModel(this.aKI.getPattern(), askResult.getBindings());
-						model.setNsPrefixes(this.prefixes);
-
-//						LOG.info("{}", this.getRDF(model));
-
-						LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-						LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
-						LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-						if (!model.isEmpty()) {
-
-							Set<Resource> kbs = this.getKnowledgeBaseURIs(model);
-
-							int i = 0;
-							for (Resource kbRes : kbs) {
-								i++;
-
-								if (i > 1) {
-									LOG.info("");
-								}
-
-								LOG.info("Knowledge Base <{}>", kbRes);
-
-								LOG.info("\t* Name: {}", this.getName(model, kbRes));
-								LOG.info("\t* Description: {}", this.getDescription(model, kbRes));
-
-								Set<Resource> kiResources = this.getKnowledgeInteractionURIs(model, kbRes);
-
-								for (Resource kiRes : kiResources) {
-									String knowledgeInteractionType = this.getKnowledgeInteractionType(model, kiRes);
-									LOG.info("\t* {}{}", knowledgeInteractionType,
-											(this.isMeta(model, kiRes) ? " (meta)" : ""));
-									if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
-											|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
-										LOG.info("\t\t- GraphPattern: {}", this.getGraphPattern(model, kiRes));
-									} else if (knowledgeInteractionType.equals("PostKnowledgeInteraction")
-											|| knowledgeInteractionType.equals("ReactKnowledgeInteraction")) {
-										LOG.info("\t\t- Argument GP: {}", this.getArgument(model, kiRes));
-										LOG.info("\t\t- Result GP: {}", this.getResult(model, kiRes));
-									}
-								}
-							}
-
-						} else {
-							LOG.info("No other knowledge bases found.");
-						}
-
-					} catch (Throwable e) {
-						LOG.error("{}", e);
-					}
-
-				});
-			}
-		}, 0, SLEEPTIME, TimeUnit.SECONDS);
+		// we wait for the Smart Connector to be ready, before registering our Knowledge
+		// Interactions and starting the Ask job.
 	}
 
 	@Override
@@ -141,21 +82,114 @@ public class AdminUI implements KnowledgeBase {
 
 	@Override
 	public String getKnowledgeBaseDescription() {
-		return "Displays an overview of all the Knowledge Bases in the network and their interactions.";
+		return "Prints an overview of all the available Knowledge Bases to the console every few seconds.";
 	}
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
 
-		LOG.info("Smart connector ready.");
+		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
+		// first define your graph pattern
 		GraphPattern gp = new GraphPattern(this.prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . "
+						+ "?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . "
+						+ "?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . "
+						+ "?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+
+		// create the correct Knowledge Interaction
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+
+		// register the knowledge interaction with the smart connector.
 		this.sc.register(this.aKI);
 
 		this.connected = true;
 
+		// job that regularly retrieves and prints all available knowledge bases.
+		this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * The actual job (runnable) that retrieves and prints the available Knowledge
+	 * Bases.
+	 *
+	 * @author nouwtb
+	 *
+	 */
+	class AskRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				if (AdminUI.this.connected) {
+					LOG.info("Retrieving other Knowledge Base info...");
+
+					// execute actual *ask* and use previously defined Knowledge Interaction
+					CompletableFuture<AskResult> askFuture = AdminUI.this.sc.ask(AdminUI.this.aKI, new BindingSet());
+
+					LOG.info("test");
+					// when result available, we print the knowledge bases to the console.
+					askFuture.thenAccept(askResult -> {
+						try {
+							this.printKnowledgeBases(askResult);
+						} catch (Throwable e) {
+							LOG.error("{}", e);
+						}
+					});
+				}
+			} catch (Throwable t) {
+				LOG.error("An error occurred while running the job.", t);
+			}
+
+		}
+
+		private void printKnowledgeBases(AskResult askResult) throws ParseException {
+
+			// using the BindingSet#generateModel() helper method, we can combine the graph
+			// pattern and the bindings for its variables into a valid RDF Model.
+			Model model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
+			model.setNsPrefixes(AdminUI.this.prefixes);
+
+//			LOG.info("{}", this.getRDF(model));
+
+			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+			LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
+			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+			if (!model.isEmpty()) {
+				Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
+
+				int i = 0;
+				for (Resource kbRes : kbs) {
+					i++;
+
+					if (i > 1) {
+						LOG.info("");
+					}
+
+					LOG.info("Knowledge Base <{}>", kbRes);
+
+					LOG.info("\t* Name: {}", Util.getName(model, kbRes));
+					LOG.info("\t* Description: {}", Util.getDescription(model, kbRes));
+
+					Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
+
+					for (Resource kiRes : kiResources) {
+						String knowledgeInteractionType = Util.getKnowledgeInteractionType(model, kiRes);
+						LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
+						if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
+								|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
+							LOG.info("\t\t- GraphPattern: {}", Util.getGraphPattern(model, kiRes));
+						} else if (knowledgeInteractionType.equals("PostKnowledgeInteraction")
+								|| knowledgeInteractionType.equals("ReactKnowledgeInteraction")) {
+							LOG.info("\t\t- Argument GP: {}", Util.getArgument(model, kiRes));
+							LOG.info("\t\t- Result GP: {}", Util.getResult(model, kiRes));
+						}
+					}
+				}
+			} else {
+				LOG.info("No other knowledge bases found.");
+			}
+		}
 	}
 
 	@Override
@@ -178,82 +212,6 @@ public class AdminUI implements KnowledgeBase {
 		LOG.info("Our Smart Connector has been succesfully stopped.");
 	}
 
-	private Set<Resource> getKnowledgeBaseURIs(Model m) {
-
-		ResIterator iter = m.listResourcesWithProperty(RDF.type,
-				m.createResource(this.prefixes.expandPrefix("kb:KnowledgeBase")));
-
-		Set<Resource> kbs = new HashSet<>();
-
-		while (iter.hasNext()) {
-			kbs.add(iter.next());
-		}
-		return kbs;
-	}
-
-	private String getName(Model m, Resource r) {
-		return this.getProperty(m, r, this.prefixes.expandPrefix("kb:hasName"));
-	}
-
-	private String getDescription(Model m, Resource r) {
-		return this.getProperty(m, r, this.prefixes.expandPrefix("kb:hasDescription"));
-	}
-
-	private Set<Resource> getKnowledgeInteractionURIs(Model m, Resource r) {
-		StmtIterator kiIter = m.listStatements(r,
-				m.getProperty(this.prefixes.expandPrefix("kb:hasKnowledgeInteraction")), (RDFNode) null);
-
-		Set<Resource> kis = new HashSet<>();
-
-		while (kiIter.hasNext()) {
-			kis.add(kiIter.next().getObject().asResource());
-		}
-		return kis;
-	}
-
-	private String getKnowledgeInteractionType(Model m, Resource r) {
-		return r.getPropertyResourceValue(RDF.type).getLocalName();
-	}
-
-	private boolean isMeta(Model model, Resource kiRes) {
-
-		return kiRes.getProperty(model.createProperty(this.prefixes.expandPrefix("kb:isMeta"))).getObject().asLiteral()
-				.getBoolean();
-
-	}
-
-	private String getGraphPattern(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasGraphPattern")));
-		return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
-
-	}
-
-	private String getArgument(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasArgumentGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
-		} else {
-			return NONE;
-		}
-	}
-
-	private String getResult(Model model, Resource kiRes) {
-
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(this.prefixes.expandPrefix("kb:hasResultGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().toString();
-		} else {
-			return NONE;
-		}
-	}
-
-	private String getProperty(Model m, Resource r, String propertyURI) {
-		return r.getProperty(m.getProperty(propertyURI)).getObject().toString();
-	}
-
 	private String getRDF(Model model) {
 		StringWriter sw = new StringWriter();
 		model.write(sw, "turtle");
@@ -263,6 +221,6 @@ public class AdminUI implements KnowledgeBase {
 	public void close() {
 		this.sc.stop();
 		this.future.cancel(true);
-
 	}
+
 }
