@@ -1,50 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>interconnect.ke</groupId>
-	<artifactId>smartconnector</artifactId>
+	<name>Knowledge Engine</name>
+	<groupId>eu.interconnectproject.knowledge_engine</groupId>
+	<artifactId>ke-parent</artifactId>
+	<packaging>pom</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>${project.artifactId}</name>
-	<description>The Smart Connector component.</description>
+	<description>This artifact is a suite of tools for orchestrating semantic data exchange through a knowledge network.</description>
 
-	<dependencies>
-		<!-- logging -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-
-		<!-- unit tests -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.7.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.7.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- jena -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<version>3.17.0</version>
-			<type>pom</type>
-		</dependency>
-
-		<!-- graph algorithms -->
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>1.5.0</version>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>smart-connector</module>
+		<module>admin-ui</module>
+	</modules>
 
 	<build>
 		<plugins>
