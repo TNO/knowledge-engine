@@ -89,16 +89,17 @@ public class TestAskAnswer {
 		LOG.trace("After kb2 register");
 		Thread.sleep(10000);
 
-		BindingSet result = null;
+		BindingSet bindings = null;
 		try {
 			LOG.trace("Before ask.");
-			result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get().getBindings();
+			AskResult result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get();
+			bindings = result.getBindings();
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
 
-		Iterator<Binding> iter = result.iterator();
+		Iterator<Binding> iter = bindings.iterator();
 
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();

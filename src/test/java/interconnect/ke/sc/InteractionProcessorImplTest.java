@@ -121,8 +121,8 @@ public class InteractionProcessorImplTest {
 
 				// create/add second
 				List<KnowledgeInteractionInfo> someKIs2 = new ArrayList<>();
-				AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(new CommunicativeAct(),
-						new GraphPattern(InteractionProcessorImplTest.this.graphPattern2));
+				AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
+						new CommunicativeAct(), new GraphPattern(InteractionProcessorImplTest.this.graphPattern2));
 
 				KnowledgeInteractionInfo knowledgeInteractionInfo;
 				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/2"),
@@ -179,15 +179,32 @@ public class InteractionProcessorImplTest {
 				BindingSet bindings = new BindingSet();
 
 				Binding b = new Binding();
-				b.put("s2", InteractionProcessorImplTest.this.subject2);
-				b.put("o2", InteractionProcessorImplTest.this.object2);
+
+				String varSubjectName = "<unknown>";
+				String varObjectName = "<unknown>";
+				String subjectBinding = "<unknown>";
+				String objectBinding = "<unknown>";
+				if (askMessage.getToKnowledgeBase().equals(InteractionProcessorImplTest.this.knowledgeBaseId2)) {
+					varSubjectName = "s2";
+					varObjectName = "o2";
+					subjectBinding = InteractionProcessorImplTest.this.subject2;
+					objectBinding = InteractionProcessorImplTest.this.object2;
+				} else if (askMessage.getToKnowledgeBase().equals(InteractionProcessorImplTest.this.knowledgeBaseId3)) {
+					varSubjectName = "s3";
+					varObjectName = "o3";
+					subjectBinding = InteractionProcessorImplTest.this.subject3;
+					objectBinding = InteractionProcessorImplTest.this.object3;
+				}
+
+				b.put(varSubjectName, subjectBinding);
+				b.put(varObjectName, objectBinding);
 				bindings.add(b);
 
 				AnswerMessage msg;
 				try {
-					msg = new AnswerMessage(InteractionProcessorImplTest.this.knowledgeBaseId2,
-							new URI("https://www.tno.nl/ki2"), InteractionProcessorImplTest.this.knowledgeBaseId1,
-							new URI("https://www.tno.nl/ki1"), askMessage.getMessageId(), bindings);
+					msg = new AnswerMessage(askMessage.getToKnowledgeBase(), askMessage.getToKnowledgeInteraction(),
+							InteractionProcessorImplTest.this.knowledgeBaseId1, new URI("https://www.tno.nl/ki1"),
+							askMessage.getMessageId(), bindings);
 					future.complete(msg);
 				} catch (URISyntaxException e) {
 					fail("No exception should occur.", e);

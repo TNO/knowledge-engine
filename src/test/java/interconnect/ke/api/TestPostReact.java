@@ -36,6 +36,7 @@ public class TestPostReact {
 		int wait = 6;
 		final CountDownLatch kb2Initialized = new CountDownLatch(1);
 		final CountDownLatch kb2ReceivedKnowledge = new CountDownLatch(1);
+		final CountDownLatch kb1ReceivedPostResult = new CountDownLatch(1);
 
 		kb1 = new MockedKnowledgeBase("kb1") {
 			private PostKnowledgeInteraction ki;
@@ -66,11 +67,12 @@ public class TestPostReact {
 
 				try {
 					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
+					PostResult result = this.getSmartConnector().post(this.ki, bindingSet).get();
+					LOG.info("After post!");
+					kb1ReceivedPostResult.countDown();
 				} catch (Exception e) {
 					LOG.error("Erorr", e);
 				}
-				this.getSmartConnector().post(this.ki, bindingSet);
-				LOG.trace("After post!");
 			}
 		};
 
@@ -103,7 +105,10 @@ public class TestPostReact {
 		};
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
-				"Should execute the tests within " + wait + " seconds.");
+				"KB2 should receive knowledge within " + wait + " seconds.");
+
+		assertTrue(kb1ReceivedPostResult.await(wait, TimeUnit.SECONDS),
+				"KB1 should receive PostResult within " + wait + " seconds.");
 
 	}
 

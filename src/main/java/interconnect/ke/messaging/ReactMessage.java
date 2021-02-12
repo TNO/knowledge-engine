@@ -8,13 +8,13 @@ import interconnect.ke.api.binding.BindingSet;
 public class ReactMessage extends KnowledgeMessage {
 
 	private UUID replyToPostMessage;
-	private BindingSet bindings;
+	private BindingSet result;
 
 	public ReactMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, UUID replyToPostMessage, BindingSet bindings) {
 		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
 		this.replyToPostMessage = replyToPostMessage;
-		this.bindings = bindings;
+		this.result = bindings;
 	}
 
 	public UUID getReplyToPostMessage() {
@@ -22,15 +22,14 @@ public class ReactMessage extends KnowledgeMessage {
 	}
 
 	public BindingSet getBindings() {
-		return bindings;
+		return result;
 	}
 
 	@Override
 	public String toString() {
-		return "ReactMessage [replyToPostMessage=" + replyToPostMessage + ", bindings=" + bindings + ", messageId="
+		return "ReactMessage [replyToPostMessage=" + replyToPostMessage + ", bindings=" + result + ", messageId="
 				+ messageId + ", fromKnowledgeBase=" + fromKnowledgeBase + ", fromKnowledgeInteraction="
 				+ fromKnowledgeInteraction + ", toKnowledgeBase=" + toKnowledgeBase + ", toKnowledgeInteraction="
 				+ toKnowledgeInteraction + "]";
 	}
-
 }

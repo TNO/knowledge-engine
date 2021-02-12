@@ -1,8 +1,13 @@
 package interconnect.ke.api;
 
+import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import interconnect.ke.api.binding.Binding;
 import interconnect.ke.api.binding.BindingSet;
-import interconnect.ke.api.interaction.AskKnowledgeInteraction;
 import interconnect.ke.api.interaction.PostKnowledgeInteraction;
 
 /**
@@ -12,7 +17,9 @@ import interconnect.ke.api.interaction.PostKnowledgeInteraction;
  * {@link KnowledgeBase}s contributed etc.)
  */
 public class PostResult {
+
 	private final BindingSet bindings;
+	private final Map<URI, PostExchangeInfo> exchangeInfoPerKnowledgeBase;
 
 	/**
 	 * Create a {@link PostResult}.
@@ -23,8 +30,12 @@ public class PostResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public PostResult(BindingSet someBindings) {
+	public PostResult(BindingSet someBindings, Set<ExchangeInfo> exchangeInfos) {
 		this.bindings = someBindings;
+
+		exchangeInfoPerKnowledgeBase = exchangeInfos.stream()
+				.collect(Collectors.toMap(x -> x.getKnowledgeBaseId(), x -> (PostExchangeInfo) x));
+
 	}
 
 	/**
@@ -33,5 +44,9 @@ public class PostResult {
 	 */
 	public BindingSet getBindings() {
 		return this.bindings;
+	}
+
+	public Map<URI, PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
+		return Collections.unmodifiableMap(exchangeInfoPerKnowledgeBase);
 	}
 }
