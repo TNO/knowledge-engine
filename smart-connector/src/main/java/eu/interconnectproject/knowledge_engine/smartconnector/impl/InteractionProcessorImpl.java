@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;

@@ -20,12 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// import eu.interconnectproject.knowledge_engine.smartconnector.admin.AdminUI;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
-
 public class TestAskAnswer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer.class);
@@ -33,11 +27,8 @@ public class TestAskAnswer {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
-	// private static AdminUI admin;
-
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
-		// admin = new AdminUI();
 	}
 
 	@Test
@@ -89,16 +80,17 @@ public class TestAskAnswer {
 		LOG.trace("After kb2 register");
 		Thread.sleep(10000);
 
-		BindingSet result = null;
+		BindingSet bindings = null;
 		try {
 			LOG.trace("Before ask.");
-			result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get().getBindings();
+			AskResult result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get();
+			bindings = result.getBindings();
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
 
-		Iterator<Binding> iter = result.iterator();
+		Iterator<Binding> iter = bindings.iterator();
 
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
@@ -129,7 +121,5 @@ public class TestAskAnswer {
 		} else {
 			fail("KB2 should not be null!");
 		}
-
-		// admin.close();
 	}
 }

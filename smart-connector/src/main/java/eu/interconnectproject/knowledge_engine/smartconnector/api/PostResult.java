@@ -1,9 +1,10 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A {@link PostResult} contains the result of the
@@ -12,7 +13,9 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeI
  * {@link KnowledgeBase}s contributed etc.)
  */
 public class PostResult {
+
 	private final BindingSet bindings;
+	private final Map<URI, PostExchangeInfo> exchangeInfoPerKnowledgeBase;
 
 	/**
 	 * Create a {@link PostResult}.
@@ -23,8 +26,12 @@ public class PostResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public PostResult(BindingSet someBindings) {
+	public PostResult(BindingSet someBindings, Set<ExchangeInfo> exchangeInfos) {
 		this.bindings = someBindings;
+
+		exchangeInfoPerKnowledgeBase = exchangeInfos.stream()
+				.collect(Collectors.toMap(x -> x.getKnowledgeBaseId(), x -> (PostExchangeInfo) x));
+
 	}
 
 	/**
@@ -33,5 +40,9 @@ public class PostResult {
 	 */
 	public BindingSet getBindings() {
 		return this.bindings;
+	}
+
+	public Map<URI, PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
+		return Collections.unmodifiableMap(exchangeInfoPerKnowledgeBase);
 	}
 }
