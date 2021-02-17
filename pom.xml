@@ -11,6 +11,7 @@
 	<modules>
 		<module>smart-connector</module>
 		<module>admin-ui</module>
+		<module>examples</module>
 	</modules>
 
 	<build>
