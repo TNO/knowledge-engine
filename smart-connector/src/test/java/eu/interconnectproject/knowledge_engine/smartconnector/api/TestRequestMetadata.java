@@ -72,7 +72,7 @@ public class TestRequestMetadata {
 			}
 
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
-				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();
+				AskResult result = this.ask(this.ki, new BindingSet()).get();
 
 				LOG.info("Bindings: {}", result.getBindings());
 

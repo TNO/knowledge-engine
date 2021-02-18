@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestAskAnswer {
+public class TestAskAnswer2 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer2.class);
 
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -38,15 +38,13 @@ public class TestAskAnswer {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		int wait = 2;
-		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
+		var kn = new KnowledgeNetwork();
+		kb1 = new MockedKnowledgeBase("kb1");
+		kn.addKB(kb1);
+		kb2 = new MockedKnowledgeBase("kb2");
+		kn.addKB(kb2);
 
-		kb1 = new MockedKnowledgeBase("kb1") {
-			@Override
-			public void smartConnectorReady(SmartConnector aSC) {
-				LOG.info("smartConnector of {} ready.", this.name);
-			}
-		};
+		kn.startAndWaitForReady();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
@@ -62,24 +60,13 @@ public class TestAskAnswer {
 			return bindingSet;
 		});
 
-		Thread.sleep(5000);
-
-		kb2 = new MockedKnowledgeBase("kb2") {
-			@Override
-			public void smartConnectorReady(SmartConnector aSC) {
-				LOG.info("smartConnector of {} ready.", this.name);
-
-			}
-
-		};
-
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
-
 		kb2.register(askKI);
-		LOG.trace("After kb2 register");
-		Thread.sleep(10000);
 
+		kn.waitForUpToDate();
+
+		// start testing!
 		BindingSet bindings = null;
 		try {
 			LOG.trace("Before ask.");
@@ -99,16 +86,11 @@ public class TestAskAnswer {
 		assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
-		kb2ReceivedData.countDown();
-
-		assertTrue(kb2ReceivedData.await(wait, TimeUnit.SECONDS),
-				"KB2 should have initialized within " + wait + " seconds.");
-
 	}
 
 	@AfterAll
 	public static void cleanup() {
-		LOG.info("Clean up: {}", TestAskAnswer.class.getSimpleName());
+		LOG.info("Clean up: {}", TestAskAnswer2.class.getSimpleName());
 		if (kb1 != null) {
 			kb1.stop();
 		} else {

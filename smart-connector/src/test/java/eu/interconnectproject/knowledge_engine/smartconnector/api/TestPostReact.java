@@ -62,7 +62,7 @@ public class TestPostReact {
 
 				try {
 					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
-					PostResult result = this.getSmartConnector().post(this.ki, bindingSet).get();
+					PostResult result = this.post(this.ki, bindingSet).get();
 					LOG.info("After post!");
 					kb1ReceivedPostResult.countDown();
 				} catch (Exception e) {

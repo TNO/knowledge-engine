@@ -75,7 +75,7 @@ public class GraphPattern {
 
 	public ElementPathBlock getGraphPattern() throws ParseException {
 
-		LOG.debug("prefixes: {}- pattern: {}", this.prefixes, this.pattern);
+		LOG.trace("prefixes: {}- pattern: {}", this.prefixes, this.pattern);
 
 		ElementGroup eg;
 		ARQParser parser = new ARQParser(new StringReader(this.pattern));
