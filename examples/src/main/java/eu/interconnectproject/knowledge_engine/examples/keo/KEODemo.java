@@ -2,6 +2,9 @@ package eu.interconnectproject.knowledge_engine.examples.keo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -13,9 +16,11 @@ import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
@@ -38,6 +43,8 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 
 	private PrefixMappingMem prefixes;
 
+	private static final String EX_DATA = "https://www.interconnectproject.eu/knowledge-engine/data/example/keo/";
+
 	public KEODemo(String mqttURI, String topic) throws MqttException, URISyntaxException {
 		this.setupMQTT(mqttURI);
 		this.connectMQTT();
@@ -46,9 +53,11 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);
 		this.prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
+		this.prefixes.setNsPrefix("om", "http://www.ontology-of-units-of-measure.org/resource/om-2/");
 		this.prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
-		this.knowledgeBaseId = new URI("https://www.interconnectproject.eu/knowledgebase/example/keo");
+		this.prefixes.setNsPrefix("ex-data", EX_DATA);
+		this.knowledgeBaseId = new URI("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/keo");
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}
 
@@ -102,10 +111,29 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 		LOG.info("MESSAGE ARRIVED in topic {}: {}", topic, message);
 
 		var bindings = new BindingSet();
+		
+		var jsonObj = new JSONObject(message.toString());
 
-		// TODO: Parse the `message` and fill in the bindings for:
-		//  - ?observation (can we use the message id?)
-		//  - ?value (use message.data.power.number and message.data.power.scale)
+		String msgId = jsonObj.getString("id");
+
+		int number = jsonObj.getJSONObject("data").getJSONObject("power").getInt("number");
+		int scale = jsonObj.getJSONObject("data").getJSONObject("power").getInt("scale");
+		String actorId = jsonObj.getJSONObject("data").getString("actorId");
+		double value = number * Math.pow(10, scale);
+
+		var binding = new Binding();
+
+		binding.put("sensor", "<" + EX_DATA + "actor-" + actorId + ">");
+		binding.put("observation", "<" + EX_DATA + "observation-" + msgId + ">");
+		binding.put("result", "<" + EX_DATA + "result-" + msgId + ">");
+		binding.put("value", "\"" + Double.toString(value) + "\"^^<http://www.w3.org/2001/XMLSchema#float>");
+		// We record the current time. This is not necessarily the time of the
+		// observation.
+		binding.put("time", "\"" + ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT ) + "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
+
+		bindings.add(binding);
+
+		LOG.info("Posting binding: {}", binding);
 
 		this.sc.post(this.pkiPower, bindings);
 	}
@@ -138,10 +166,12 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 			new GraphPattern(
 				this.prefixes,
 				"?observation rdf:type sosa:Observation ." +
-				"?observation sosa:madeBySensor <https://www.interconnectproject.eu/knowledgebase/example/keo/eebus-submeter-1> ." +
-				"?observation sosa:hasFeatureOfInterest <https://www.interconnectproject.eu/knowledgebase/example/keo/grid-transformer-1> ." +
+				"?observation sosa:madeBySensor ?sensor ." +
 				"?observation sosa:observedProperty saref:Power ." +
-				"?observation sosa:hasSimpleResult ?value ." // TODO: hasResult with units
+				"?observation sosa:hasResult ?result ." + 
+				"?observation sosa:resultTime ?time ." + 
+				"?result om:hasNumericalValue ?value ." + 
+				"?result om:hasUnit om:watt ."
 			),
 			null
 		);
