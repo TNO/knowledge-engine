@@ -163,14 +163,13 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 		LOG.info("Smart connector ready.");
 		this.pkiPower = new PostKnowledgeInteraction(
 			new CommunicativeAct(),
-			new GraphPattern(
-				this.prefixes,
-				"?observation rdf:type sosa:Observation ." +
-				"?observation sosa:madeBySensor ?sensor ." +
-				"?observation sosa:observedProperty saref:Power ." +
-				"?observation sosa:hasResult ?result ." + 
-				"?observation sosa:resultTime ?time ." + 
-				"?result om:hasNumericalValue ?value ." + 
+			new GraphPattern(this.prefixes,
+				"?observation rdf:type sosa:Observation .",
+				"?observation sosa:madeBySensor ?sensor .",
+				"?observation sosa:observedProperty saref:Power .",
+				"?observation sosa:hasResult ?result .",
+				"?observation sosa:resultTime ?time .",
+				"?result om:hasNumericalValue ?value .",
 				"?result om:hasUnit om:watt ."
 			),
 			null
