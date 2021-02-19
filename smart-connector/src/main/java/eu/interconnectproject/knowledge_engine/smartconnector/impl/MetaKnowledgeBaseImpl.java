@@ -56,7 +56,17 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase .",
+				"?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .",
+				"?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasGraphPattern ?gp .",
+				"?ki ?patternType ?gp .",
+				"?gp rdf:type kb:GraphPattern .",
+				"?gp kb:hasPattern ?pattern ."
+			);
 
 		// create answer knowledge interaction
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
