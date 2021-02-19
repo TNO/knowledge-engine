@@ -6,11 +6,25 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdfconnection.SparqlQueryConnection;
+import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
@@ -59,7 +73,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
-				return myKnowledgeInteraction.getAct().matches(r.getKnowledgeInteraction().getAct());
+				return communicativeActMatcher(anAKI, r);
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
@@ -137,7 +151,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
-				return myKnowledgeInteraction.getAct().matches(r.getKnowledgeInteraction().getAct());
+				return communicativeActMatcher(aPKI, r);
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
@@ -203,6 +217,58 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public void unsetMessageRouter() {
 		this.messageRouter = null;
+	}
+
+	/**
+	 * We need the KnowledgeInteractionInfo objects, because they contain ID
+	 * information that we use to construct unique identifiers for the temporary
+	 * model.
+	 * 
+	 * @param myKI
+	 * @param otherKI
+	 * @return {@code true} if the communicative acts of the given
+	 *         KnowledgeInteractions match, {@code false} otherwise.
+	 */
+	private boolean communicativeActMatcher(MyKnowledgeInteractionInfo myKI, KnowledgeInteractionInfo otherKI) {
+		boolean doTheyMatch = false;
+
+		Model m = ModelFactory.createDefaultModel();
+		m.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null);
+
+		CommunicativeAct myAct = myKI.getKnowledgeInteraction().getAct();
+		Resource myActResource = ResourceFactory.createResource(myKI.id + "/act");
+
+		m.add(myActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
+
+		Resource myRequirementPurpose = ResourceFactory.createResource(myActResource + "/requirement");
+		Resource mySatisfactionPurpose = ResourceFactory.createResource(myActResource + "/satisfaction");
+
+		m.add(myActResource, Vocab.HAS_REQ, myRequirementPurpose);
+		m.add(mySatisfactionPurpose, Vocab.HAS_SAT, mySatisfactionPurpose);
+
+		// give the purposes the correct types
+		for (Resource r : myAct.getRequirementPurposes()) {
+			m.add(myRequirementPurpose, RDF.type, r);
+		}
+		for (Resource r : myAct.getSatisfactionPurposes()) {
+			m.add(mySatisfactionPurpose, RDF.type, r);
+		}
+
+		// apply the reasoner
+		InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), m);
+
+		// FILTER NOT EXISTS { ?person foaf:name ?name }
+
+		ParameterizedSparqlString queryString = new ParameterizedSparqlString(
+				"ASK WHERE { ?req rdf:type ?someClass . FILTER NOT EXISTS {?sat rdf:type ?someClass .}}");
+
+		queryString.setIri("req", myRequirementPurpose.toString());
+		queryString.setIri("sat", mySatisfactionPurpose.toString());
+		QueryExecution qe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+
+		doTheyMatch = !qe.execAsk();
+
+		return doTheyMatch;
 	}
 
 }

@@ -6,6 +6,8 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 public class Vocab {
 
+	public static final String ONTOLOGY_RESOURCE_LOCATION = "/src/main/resources/knowledgebase.ttl";
+
 	public static final String ONTO_URI = "https://www.tno.nl/energy/ontology/interconnect#";
 
 	public static final Resource KNOWLEDGE_BASE = ResourceFactory.createResource(ONTO_URI + "KnowledgeBase");
@@ -15,6 +17,20 @@ public class Vocab {
 	public static final Resource POST_KI = ResourceFactory.createResource(ONTO_URI + "PostKnowledgeInteraction");
 	public static final Resource ANSWER_KI = ResourceFactory.createResource(ONTO_URI + "AnswerKnowledgeInteraction");
 	public static final Resource ASK_KI = ResourceFactory.createResource(ONTO_URI + "AskKnowledgeInteraction");
+	public static final Resource COMMUNICATIVE_ACT = ResourceFactory.createResource(ONTO_URI + "CommunicativeAct");
+	public static final Resource PURPOSE = ResourceFactory.createResource(ONTO_URI + "Purpose");
+	public static final Resource INFORM_PURPOSE = ResourceFactory.createResource(ONTO_URI + "InformPurpose");
+	public static final Resource CONVERSION_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "ConversionPurpose");
+	public static final Resource NEW_KNOWLEDGE_PURPOSE = ResourceFactory
+			.createProperty(ONTO_URI + "NewKnowledgePurpose");
+	public static final Resource RETRIEVE_KNOWLEDGE_PURPOSE = ResourceFactory
+			.createProperty(ONTO_URI + "RetrieveKnowledgePurpose");
+	public static final Resource CHANGED_KNOWLEDGE_PURPOSE = ResourceFactory
+			.createProperty(ONTO_URI + "ChangedKnowledgePurpose");
+	public static final Resource REMOVED_KNOWLEDGE_PURPOSE = ResourceFactory
+			.createProperty(ONTO_URI + "RemovedKnowledgePurpose");
+	public static final Resource PERIODIC_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "PeriodicPurpose");
+	public static final Resource WHEN_CHANGED_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "WhenChangedPurpose");
 
 	public static final Property HAS_GP = ResourceFactory.createProperty(ONTO_URI + "hasGraphPattern");
 	public static final Property HAS_NAME = ResourceFactory.createProperty(ONTO_URI + "hasName");
@@ -24,13 +40,7 @@ public class Vocab {
 	public static final Property HAS_PATTERN = ResourceFactory.createProperty(ONTO_URI + "hasPattern");
 	public static final Property HAS_ARG = ResourceFactory.createProperty(ONTO_URI + "hasArgumentGraphPattern");
 	public static final Property HAS_RES = ResourceFactory.createProperty(ONTO_URI + "hasResultGraphPattern");
-	
-	public static final Resource COMMUNICATIVE_ACT = ResourceFactory.createProperty(ONTO_URI + "CommunicativeAct");
-	public static final Resource CONVERSION_ACT = ResourceFactory.createProperty(ONTO_URI + "ConversionAct");
-	public static final Resource NEW_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "NewKnowledgeAct");
-	public static final Resource RETRIEVE_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "RetrieveKnowledgeAct");
-	public static final Resource CHANGED_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "ChangedKnowledgeAct");
-	public static final Resource REMOVED_KNOWLEDGE_ACT = ResourceFactory.createProperty(ONTO_URI + "RemovedKnowledgeAct");
-	public static final Resource PERIODIC_ACT = ResourceFactory.createProperty(ONTO_URI + "PeriodicAct");
-	public static final Resource WHEN_CHANGED_ACT = ResourceFactory.createProperty(ONTO_URI + "WhenChangedAct");
+	public static final Property HAS_REQ = ResourceFactory.createProperty(ONTO_URI + "hasRequirement");
+	public static final Property HAS_SAT = ResourceFactory.createProperty(ONTO_URI + "hasSatisfaction");
+
 }
