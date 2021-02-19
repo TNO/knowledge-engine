@@ -101,7 +101,6 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		LOG.info("MESSAGE ARRIVED in topic {}: {}", topic, message);
 
-
 		var bindings = new BindingSet();
 
 		// TODO: Parse the `message` and fill in the bindings for:
@@ -133,15 +132,16 @@ public class KEODemo implements MqttCallback, KnowledgeBase {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
+		LOG.info("Smart connector ready.");
 		this.pkiPower = new PostKnowledgeInteraction(
 			new CommunicativeAct(),
 			new GraphPattern(
 				this.prefixes,
 				"?observation rdf:type sosa:Observation ." +
 				"?observation sosa:madeBySensor <https://www.interconnectproject.eu/knowledgebase/example/keo/eebus-submeter-1> ." +
-				"?observation sosa:hasFeatureOfInterest <https://www.interconnectproject.eu/knowledgebase/example/keo/something-1> ." +
+				"?observation sosa:hasFeatureOfInterest <https://www.interconnectproject.eu/knowledgebase/example/keo/grid-transformer-1> ." +
 				"?observation sosa:observedProperty saref:Power ." +
-				"?observation sosa:hasSimpleResult ?value ."
+				"?observation sosa:hasSimpleResult ?value ." // TODO: hasResult with units
 			),
 			null
 		);
