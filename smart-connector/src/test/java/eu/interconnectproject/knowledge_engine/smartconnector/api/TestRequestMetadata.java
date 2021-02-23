@@ -107,7 +107,7 @@ public class TestRequestMetadata {
 			}
 		};
 
-		int wait = 3;
+		int wait = 5;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
 
 	}

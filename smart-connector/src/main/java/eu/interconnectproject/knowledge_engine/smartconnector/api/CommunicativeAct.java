@@ -1,5 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,10 +32,7 @@ public class CommunicativeAct {
 	private final Set<Resource> satisfactionPurposes;
 
 	public CommunicativeAct() {
-		requirementPurposes = new HashSet<Resource>();
-		requirementPurposes.add(Vocab.INFORM_PURPOSE);
-		satisfactionPurposes = new HashSet<Resource>();
-		satisfactionPurposes.add(Vocab.INFORM_PURPOSE);
+		this(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)));
 	}
 
 	/**
