@@ -26,4 +26,5 @@ public interface MetaKnowledgeBase {
 	CompletableFuture<OtherKnowledgeBase> getOtherKnowledgeBase(URI knowledgeBaseId);
 
 	boolean isMetaKnowledgeInteraction(URI id);
+	void setOtherKnowledgeBaseStore(OtherKnowledgeBaseStore otherKnowledgeBaseStore);
 }

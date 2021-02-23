@@ -50,6 +50,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final MessageRouter messageRouter;
 	private final GraphPattern metaGraphPattern;
 	private final KnowledgeBaseStore knowledgeBaseStore;
+	private OtherKnowledgeBaseStore otherKnowledgeBaseStore;
+
 
 	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
 			KnowledgeBaseStore aKnowledgeBaseStore) {
@@ -88,6 +90,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		// create ask knowledge interaction
 		AskKnowledgeInteraction aKI2 = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(aKI2, true);
+	}
+
+	@Override
+	public void setOtherKnowledgeBaseStore(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
+		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 	}
 
 	@Override

@@ -39,10 +39,19 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 
 	@Override
 	public CompletableFuture<Void> start() {
+		// Do a first update to get to know all peers in the network.
 		CompletableFuture<Void> future = this.updateStore();
-		this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
-			this.updateStore();
-		}, this.delay, this.delay, TimeUnit.SECONDS);
+
+		// When it is done with the first update, schedule subsequent updates with a
+		// `this.delay` seconds delay between them.
+		future.thenRun(() -> {
+			// For this branch, the goal is to remove the following statement, and
+			// have the tests still pass...
+			this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
+				this.updateStore();
+			}, this.delay, this.delay, TimeUnit.SECONDS);
+		});
+
 		return future;
 	}
 

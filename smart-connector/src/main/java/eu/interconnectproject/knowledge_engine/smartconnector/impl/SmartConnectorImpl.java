@@ -76,6 +76,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.interactionProcessor = new InteractionProcessorImpl(this, this.otherKnowledgeBaseStore,
 				this.myKnowledgeBaseStore, this.metaKnowledgeBase);
 
+		this.metaKnowledgeBase.setOtherKnowledgeBaseStore(this.otherKnowledgeBaseStore);
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.messageRouter.registerInteractionProcessor(this.interactionProcessor);
