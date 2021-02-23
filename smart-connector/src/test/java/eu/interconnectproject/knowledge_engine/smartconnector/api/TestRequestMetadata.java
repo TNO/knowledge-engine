@@ -61,17 +61,24 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				GraphPattern gp = new GraphPattern(prefixes,
-					"?kb rdf:type kb:KnowledgeBase .",
-					"?kb kb:hasName ?name .",
-					"?kb kb:hasDescription ?description .",
-					"?kb kb:hasKnowledgeInteraction ?ki .",
-					"?ki rdf:type ?kiType .",
-					"?ki kb:isMeta ?isMeta .",
-					"?ki kb:hasGraphPattern ?gp .",
-					"?ki ?patternType ?gp .",
-					"?gp rdf:type kb:GraphPattern .",
-					"?gp kb:hasPattern ?pattern ."
+						"?kb rdf:type kb:KnowledgeBase .",
+						"?kb kb:hasName ?name .",
+						"?kb kb:hasDescription ?description .",
+						"?kb kb:hasKnowledgeInteraction ?ki .",
+						"?ki rdf:type ?kiType .",
+						"?ki kb:isMeta ?isMeta .",
+						"?ki kb:hasCommunicativeAct ?act .",
+						"?act rdf:type kb:CommunicativeAct .",
+						"?act kb:hasRequirement ?req .",
+						"?act kb:hasSatisfaction ?sat .",
+						"?req rdf:type ?reqType .",
+						"?sat rdf:type ?satType .",
+						"?ki kb:hasGraphPattern ?gp .",
+						"?ki ?patternType ?gp .",
+						"?gp rdf:type kb:GraphPattern .",
+						"?gp kb:hasPattern ?pattern ."
 				);
+
 				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 				aSC.register(this.ki);
 
@@ -100,7 +107,7 @@ public class TestRequestMetadata {
 			}
 		};
 
-		int wait = 2;
+		int wait = 3;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
 
 	}

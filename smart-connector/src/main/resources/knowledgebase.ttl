@@ -174,12 +174,12 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 :CommunicativeAct rdf:type owl:Class ;
                   rdfs:subClassOf [ rdf:type owl:Restriction ;
                                     owl:onProperty :hasRequirement ;
-                                    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                     owl:onClass :Purpose
                                   ] ,
                                   [ rdf:type owl:Restriction ;
                                     owl:onProperty :hasSatisfaction ;
-                                    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                     owl:onClass :Purpose
                                   ] ;
                   rdfs:comment "The communicative act is part of a Knowledge Interaction and describes the purposes of why data is exchanged. It distinguishes between the purposes it requires and the purposes it satisfies."@en .

@@ -28,7 +28,7 @@ public class TestPostReact {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		int wait = 6;
+		int wait = 8;
 		final CountDownLatch kb2Initialized = new CountDownLatch(1);
 		final CountDownLatch kb2ReceivedKnowledge = new CountDownLatch(1);
 		final CountDownLatch kb1ReceivedPostResult = new CountDownLatch(1);

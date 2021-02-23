@@ -1,7 +1,12 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.util.FmtUtils;
 
 /**
  * The bindings of a set of variables.
@@ -12,11 +17,23 @@ import java.util.Map;
  * validate the values.
  */
 public class Binding {
-	// TODO: Implement/extend (Hash)Map<String, String> for easier iteration?
 
 	private final Map<String, String> map = new HashMap<>();
 
 	public Binding() {
+	}
+
+	/**
+	 * Construct a Binding from a QuerySolution
+	 * 
+	 * @param qs
+	 */
+	public Binding(QuerySolution qs) {
+		Iterator<String> vars = qs.varNames();
+		while (vars.hasNext()) {
+			String var = vars.next();
+			this.put(var, FmtUtils.stringForNode(qs.get(var).asNode(), (PrefixMapping) null));
+		}
 	}
 
 	/**
