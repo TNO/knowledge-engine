@@ -35,26 +35,36 @@ public class GraphPattern {
 	 */
 	private final String pattern;
 
-	public GraphPattern(PrefixMapping aPrefixMapping, String aPattern) {
+	/**
+	 *
+	 * @param aPrefixMapping       A prefix mapping with prefixes that are allowed
+	 *                             to be used in the pattern.
+	 * @param somePatternFragments Strings that, when concatenated, contain a
+	 *                             SPARQL 1.1 Basic Graph Pattern
+	 *                             {@linkplain https://www.w3.org/TR/sparql11-query/}.
+	 *                             It encodes a particular type of knowledge about
+	 *                             which the {@link KnowledgeBase} wants to
+	 *                             communicate with other {@link KnowledgeBase}.
+	 *                             Cannot be null.
+	 */
+	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) {
 		this.prefixes = aPrefixMapping;
-		this.pattern = aPattern;
+		this.pattern = String.join("", somePatternFragments);
 	}
 
 	/**
 	 * Create a {@link GraphPattern}.
 	 *
-	 * @param aPattern A string that contains a SPARQL 1.1 Basic Graph Pattern
-	 *                 {@linkplain https://www.w3.org/TR/sparql11-query/}. It
-	 *                 encodes a particular type of knowledge about which the
-	 *                 {@link KnowledgeBase} wants to communicate with other
-	 *                 {@link KnowledgeBase}. Cannot be null.
+	 * @param somePatternFragments Strings that, when concatenated, contain a SPARQL
+	 *                             1.1 Basic Graph Pattern
+	 *                             {@linkplain https://www.w3.org/TR/sparql11-query/}.
+	 *                             It encodes a particular type of knowledge about
+	 *                             which the {@link KnowledgeBase} wants to
+	 *                             communicate with other {@link KnowledgeBase}.
+	 *                             Cannot be null.
 	 */
-	public GraphPattern(String aPattern) {
-		if (aPattern == null) {
-			throw new IllegalArgumentException("The given pattern should be non-null.");
-		}
-		this.prefixes = PrefixMapping.Standard;
-		this.pattern = aPattern;
+	public GraphPattern(String... somePatternFragments) {
+		this(PrefixMapping.Standard, somePatternFragments);
 	}
 
 	/**

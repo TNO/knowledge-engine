@@ -63,8 +63,24 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
-
+				"?kb rdf:type kb:KnowledgeBase .",
+				"?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .",
+				"?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasCommunicativeAct ?act .",
+				"?act rdf:type kb:CommunicativeAct .",
+				"?act kb:hasRequirement ?req .",
+				"?act kb:hasSatisfaction ?sat .",
+				"?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .",
+				"?ki kb:hasGraphPattern ?gp .",
+				"?ki ?patternType ?gp .",
+				"?gp rdf:type kb:GraphPattern .",
+				"?gp kb:hasPattern ?pattern ."
+			);
+		
 		// create answer knowledge interaction
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(aKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);

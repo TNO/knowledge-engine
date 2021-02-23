@@ -22,7 +22,9 @@ public class TestUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
 
 	public static final GraphPattern SAREF_MEASUREMENT_PATTERN = new GraphPattern(
-			"?m <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Measurement> . ?m <https://saref.etsi.org/core/hasValue> ?v");
+			"?m <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Measurement> .",
+			"?m <https://saref.etsi.org/core/hasValue> ?v ."
+	);
 
 	private static final String KE_PREFIX = "https://www.interconnectproject.eu/";
 
