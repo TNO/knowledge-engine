@@ -6,6 +6,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 
 public class PostMessage extends KnowledgeMessage {
 
+	/**
+	 * Variable names of the React side are used.
+	 * (Proactive side does the translations)
+	 */
 	private BindingSet argument;
 
 	public PostMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,

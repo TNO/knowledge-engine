@@ -5,13 +5,22 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -21,19 +30,17 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
@@ -56,7 +63,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
 
 		// create answer knowledge interaction
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
@@ -85,82 +92,103 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	}
 
 	private BindingSet fillMetaBindings() {
-		BindingSet bindings = new BindingSet();
 
-		for (KnowledgeInteractionInfo knowledgeInteractionInfo : this.knowledgeBaseStore.getKnowledgeInteractions()) {
+		// first create a RDF version of this KnowledgeBase
+		Model m = ModelFactory.createDefaultModel();
 
-			this.LOG.trace("Creating meta info for: {}", knowledgeInteractionInfo);
+		Resource kb = m.createResource(this.myKnowledgeBaseId.toString());
+		m.add(kb, RDF.type, Vocab.KNOWLEDGE_BASE);
+		m.add(kb, Vocab.HAS_NAME, m.createLiteral(this.knowledgeBaseStore.getKnowledgeBaseName()));
+		m.add(kb, Vocab.HAS_DESCR, m.createLiteral(this.knowledgeBaseStore.getKnowledgeBaseDescription()));
 
-			Binding binding = new Binding();
-			binding.put("kb", bracketize(this.myKnowledgeBaseId.toString()));
-			binding.put("name", quotize(this.knowledgeBaseStore.getKnowledgeBaseName()));
-			binding.put("description", quotize(this.knowledgeBaseStore.getKnowledgeBaseDescription()));
-			// binding.put("sc", "TODO"); // TODO
-			// binding.put("endpoint", "TODO"); // TODO
-			binding.put("ki", bracketize(knowledgeInteractionInfo.getId().toString()));
-			binding.put("isMeta", Boolean.toString(knowledgeInteractionInfo.isMeta()));
-			var knowledgeInteraction = knowledgeInteractionInfo.getKnowledgeInteraction();
+		Set<MyKnowledgeInteractionInfo> myKIs = this.knowledgeBaseStore.getKnowledgeInteractions();
 
-			switch (knowledgeInteractionInfo.getType()) {
+		for (KnowledgeInteractionInfo myKI : myKIs) {
+			Resource ki = m.createResource(myKI.getId().toString());
+			m.add(kb, Vocab.HAS_KI, ki);
+			m.add(ki, RDF.type, Vocab.KNOWLEDGE_INTERACTION);
+			m.add(ki, Vocab.IS_META, ResourceFactory.createTypedLiteral(myKI.isMeta()));
+			Resource act = m.createResource(myKI.getId().toString() + "/act");
+			m.add(ki, Vocab.HAS_ACT, act);
+			Resource req = m.createResource(act.toString() + "/req");
+			m.add(act, Vocab.HAS_REQ, req);
+			Resource sat = m.createResource(act.toString() + "/sat");
+			m.add(act, Vocab.HAS_SAT, sat);
+			for (Resource r : myKI.getKnowledgeInteraction().getAct().getRequirementPurposes()) {
+				m.add(req, RDF.type, r);
+			}
+			for (Resource r : myKI.getKnowledgeInteraction().getAct().getSatisfactionPurposes()) {
+				m.add(sat, RDF.type, r);
+			}
+
+			switch (myKI.getType()) {
 			case ASK:
-				binding.put("kiType", bracketize(Vocab.ASK_KI.toString()));
-				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/gp"));
-				binding.put("patternType", bracketize(Vocab.HAS_GP.toString()));
-				binding.put("pattern",
-						quotize(this.convertToPattern(((AskKnowledgeInteraction) knowledgeInteraction).getPattern())));
+				m.add(ki, RDF.type, Vocab.ASK_KI);
+				Resource gp = m.createResource(myKI.getId() + "/gp");
+				m.add(ki, Vocab.HAS_GP, gp);
+				m.add(gp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((AskKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
 				break;
 			case ANSWER:
-				binding.put("kiType", bracketize(Vocab.ANSWER_KI.toString()));
-				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/gp"));
-				binding.put("patternType", bracketize(Vocab.HAS_GP.toString()));
-				binding.put("pattern", quotize(
-						this.convertToPattern(((AnswerKnowledgeInteraction) knowledgeInteraction).getPattern())));
+				m.add(ki, RDF.type, Vocab.ANSWER_KI);
+				gp = m.createResource(myKI.getId() + "/gp");
+				m.add(ki, Vocab.HAS_GP, gp);
+				m.add(gp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((AnswerKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
 				break;
 			case POST:
-				binding.put("kiType", bracketize(Vocab.POST_KI.toString()));
-				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/argumentgp"));
-				binding.put("patternType", bracketize(Vocab.HAS_ARG.toString()));
-				binding.put("pattern", quotize(
-						this.convertToPattern(((PostKnowledgeInteraction) knowledgeInteraction).getArgument())));
+				m.add(ki, RDF.type, Vocab.POST_KI);
+				Resource argGp = m.createResource(myKI.getId() + "/argumentgp");
+				m.add(ki, Vocab.HAS_GP, argGp);
+				m.add(ki, Vocab.HAS_ARG, argGp);
+				m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument())));
+
+				Resource resGp = m.createResource(myKI.getId() + "/resultgp");
+				m.add(ki, Vocab.HAS_GP, resGp);
+				m.add(ki, Vocab.HAS_RES, resGp);
+				m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult())));
 				break;
 			case REACT:
-				binding.put("kiType", bracketize(Vocab.REACT_KI.toString()));
-				binding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/argumentgp"));
-				binding.put("patternType", bracketize(Vocab.HAS_ARG.toString()));
-				binding.put("pattern", quotize(
-						this.convertToPattern(((ReactKnowledgeInteraction) knowledgeInteraction).getArgument())));
+				m.add(ki, RDF.type, Vocab.REACT_KI);
+				argGp = m.createResource(myKI.getId() + "/argumentgp");
+				m.add(ki, Vocab.HAS_GP, argGp);
+				m.add(ki, Vocab.HAS_ARG, argGp);
+				m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument())));
+
+				resGp = m.createResource(myKI.getId() + "/resultgp");
+				m.add(ki, Vocab.HAS_GP, resGp);
+				m.add(ki, Vocab.HAS_RES, resGp);
+				m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
+				m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this
+						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult())));
 				break;
 			default:
-				this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.",
-						knowledgeInteractionInfo.getType());
+				this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
 				assert false;
 			}
-			bindings.add(binding);
-
-			// Also add another binding for the resultPattern if we're processing a
-			// POST/REACT Knowledge Interaction and there actually is a result graph
-			// pattern.
-			if (knowledgeInteractionInfo.getType() == Type.POST
-					&& ((PostKnowledgeInteraction) knowledgeInteraction).getResult() != null) {
-				Binding additionalBinding = binding.clone();
-				additionalBinding.put("gp", bracketize(knowledgeInteractionInfo.getId() + "/resultgp")); // TODO
-				additionalBinding.put("patternType", bracketize(Vocab.HAS_RES.toString()));
-
-				this.LOG.trace("{}", ((PostKnowledgeInteraction) knowledgeInteraction).getResult());
-
-				additionalBinding.put("pattern",
-						quotize(((PostKnowledgeInteraction) knowledgeInteraction).getResult().getPattern()));
-				bindings.add(additionalBinding);
-			} else if (knowledgeInteractionInfo.getType() == Type.REACT
-					&& ((ReactKnowledgeInteraction) knowledgeInteraction).getResult() != null) {
-				Binding additionalBinding = binding.clone();
-				additionalBinding.put("gp", quotize(knowledgeInteractionInfo.getId() + "/resultgp")); // TODO
-				additionalBinding.put("patternType", quotize(Vocab.HAS_RES.toString()));
-				additionalBinding.put("pattern",
-						quotize(((ReactKnowledgeInteraction) knowledgeInteraction).getResult().getPattern()));
-				bindings.add(additionalBinding);
-			}
 		}
+
+		System.out.println("------------------------");
+		m.write(System.out, "turtle");
+		System.out.println("------------------------");
+
+		// then use the Knowledge Interaction as a query to retrieve the bindings.
+		Query q = QueryFactory.create("SELECT * WHERE {" + this.convertToPattern(this.metaGraphPattern) + "}");
+		QueryExecution qe = QueryExecutionFactory.create(q);
+		ResultSet rs = qe.execSelect();
+		BindingSet bindings = new BindingSet(rs);
+		qe.close();
+
+		LOG.info("BindingSet: {}", bindings);
+
 		return bindings;
 	}
 
@@ -278,6 +306,35 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 					+ ") then the boolean should be true.";
 
 			this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
+
+			// retrieve acts
+			Resource act = model.getProperty(ki, Vocab.HAS_ACT).getObject().asResource();
+			Resource req = model.getProperty(act, Vocab.HAS_REQ).getObject().asResource();
+			Resource sat = model.getProperty(act, Vocab.HAS_SAT).getObject().asResource();
+
+			ExtendedIterator<Resource> reqTypes = model.listObjectsOfProperty(req, RDF.type)
+					.mapWith(RDFNode::asResource);
+			ExtendedIterator<Resource> satTypes = model.listObjectsOfProperty(sat, RDF.type)
+					.mapWith(RDFNode::asResource);
+
+			Set<Resource> reqPurposes = new HashSet<>();
+			Resource r = null;
+			while (reqTypes.hasNext()) {
+				r = reqTypes.next();
+				reqPurposes.add(r);
+			}
+			reqTypes.close();
+
+			Set<Resource> satPurposes = new HashSet<>();
+			while (satTypes.hasNext()) {
+				r = satTypes.next();
+				satPurposes.add(r);
+			}
+			satTypes.close();
+
+			CommunicativeAct actObject = new CommunicativeAct(reqPurposes, satPurposes);
+
+			// fill knowledge interactions
 			try {
 
 				if (kiType.equals(Vocab.ASK_KI) || kiType.equals(Vocab.ANSWER_KI)) {
@@ -285,8 +342,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 					String graphPatternString = model.listObjectsOfProperty(graphPattern, Vocab.HAS_PATTERN).next()
 							.asLiteral().getString();
 					if (kiType.equals(Vocab.ASK_KI)) {
-						AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(
-								new CommunicativeAct(), new GraphPattern(graphPatternString));
+						AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(actObject,
+								new GraphPattern(graphPatternString));
 
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
 								new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction, isMeta);
@@ -294,7 +351,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					} else if (kiType.equals(Vocab.ANSWER_KI)) {
 						AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
-								new CommunicativeAct(), new GraphPattern(graphPatternString));
+								actObject, new GraphPattern(graphPatternString));
 
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
 								new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction, isMeta);
@@ -328,8 +385,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 						this.LOG.trace("{} - {}", argumentGraphPatternString, resultGraphPatternString);
 
-						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(
-								new CommunicativeAct(),
+						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(actObject,
 								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
 										: null),
 								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));
@@ -337,8 +393,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 								new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction, isMeta);
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					} else if (kiType.equals(Vocab.REACT_KI)) {
-						ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(
-								new CommunicativeAct(),
+						ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(actObject,
 								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
 										: null),
 								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));

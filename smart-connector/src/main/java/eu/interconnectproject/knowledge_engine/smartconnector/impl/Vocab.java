@@ -17,6 +17,7 @@ public class Vocab {
 	public static final Resource POST_KI = ResourceFactory.createResource(ONTO_URI + "PostKnowledgeInteraction");
 	public static final Resource ANSWER_KI = ResourceFactory.createResource(ONTO_URI + "AnswerKnowledgeInteraction");
 	public static final Resource ASK_KI = ResourceFactory.createResource(ONTO_URI + "AskKnowledgeInteraction");
+	public static final Resource GRAPH_PATTERN = ResourceFactory.createResource(ONTO_URI + "GraphPattern");
 	public static final Resource COMMUNICATIVE_ACT = ResourceFactory.createResource(ONTO_URI + "CommunicativeAct");
 	public static final Resource PURPOSE = ResourceFactory.createResource(ONTO_URI + "Purpose");
 	public static final Resource INFORM_PURPOSE = ResourceFactory.createResource(ONTO_URI + "InformPurpose");
@@ -32,6 +33,7 @@ public class Vocab {
 	public static final Resource PERIODIC_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "PeriodicPurpose");
 	public static final Resource WHEN_CHANGED_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "WhenChangedPurpose");
 
+	public static final Property HAS_ACT = ResourceFactory.createProperty(ONTO_URI + "hasCommunicativeAct");
 	public static final Property HAS_GP = ResourceFactory.createProperty(ONTO_URI + "hasGraphPattern");
 	public static final Property HAS_NAME = ResourceFactory.createProperty(ONTO_URI + "hasName");
 	public static final Property HAS_DESCR = ResourceFactory.createProperty(ONTO_URI + "hasDescription");
