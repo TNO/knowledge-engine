@@ -233,8 +233,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		boolean doTheyMatch = false;
 
 		Model m = ModelFactory.createDefaultModel();
-		m.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null);
+		m.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null, "turtle");
 
+		assert !m.isEmpty();
+		
 		CommunicativeAct myAct = myKI.getKnowledgeInteraction().getAct();
 		Resource myActResource = ResourceFactory.createResource(myKI.id + "/act");
 
@@ -260,7 +262,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// FILTER NOT EXISTS { ?person foaf:name ?name }
 
 		ParameterizedSparqlString queryString = new ParameterizedSparqlString(
-				"ASK WHERE { ?req rdf:type ?someClass . FILTER NOT EXISTS {?sat rdf:type ?someClass .}}");
+				"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .}}");
 
 		queryString.setIri("req", myRequirementPurpose.toString());
 		queryString.setIri("sat", mySatisfactionPurpose.toString());

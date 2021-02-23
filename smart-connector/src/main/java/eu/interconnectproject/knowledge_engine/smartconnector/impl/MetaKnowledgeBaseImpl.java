@@ -106,10 +106,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		for (KnowledgeInteractionInfo myKI : myKIs) {
 			Resource ki = m.createResource(myKI.getId().toString());
 			m.add(kb, Vocab.HAS_KI, ki);
-			m.add(ki, RDF.type, Vocab.KNOWLEDGE_INTERACTION);
+//			m.add(ki, RDF.type, Vocab.KNOWLEDGE_INTERACTION);
 			m.add(ki, Vocab.IS_META, ResourceFactory.createTypedLiteral(myKI.isMeta()));
 			Resource act = m.createResource(myKI.getId().toString() + "/act");
 			m.add(ki, Vocab.HAS_ACT, act);
+			m.add(act, RDF.type, Vocab.COMMUNICATIVE_ACT);
 			Resource req = m.createResource(act.toString() + "/req");
 			m.add(act, Vocab.HAS_REQ, req);
 			Resource sat = m.createResource(act.toString() + "/sat");
@@ -144,15 +145,17 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				m.add(ki, Vocab.HAS_GP, argGp);
 				m.add(ki, Vocab.HAS_ARG, argGp);
 				m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
-				m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this
-						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument())));
+				GraphPattern argument = ((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument();
+				if (argument != null)
+					m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(argument)));
 
 				Resource resGp = m.createResource(myKI.getId() + "/resultgp");
 				m.add(ki, Vocab.HAS_GP, resGp);
 				m.add(ki, Vocab.HAS_RES, resGp);
 				m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
-				m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this
-						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult())));
+				GraphPattern result = ((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult();
+				if (result != null)
+					m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(result)));
 				break;
 			case REACT:
 				m.add(ki, RDF.type, Vocab.REACT_KI);
@@ -160,15 +163,17 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 				m.add(ki, Vocab.HAS_GP, argGp);
 				m.add(ki, Vocab.HAS_ARG, argGp);
 				m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
-				m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this
-						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument())));
+				argument = ((ReactKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument();
+				if (argument != null)
+					m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(argument)));
 
 				resGp = m.createResource(myKI.getId() + "/resultgp");
 				m.add(ki, Vocab.HAS_GP, resGp);
 				m.add(ki, Vocab.HAS_RES, resGp);
 				m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
-				m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this
-						.convertToPattern(((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult())));
+				result = ((ReactKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult();
+				if (result != null)
+					m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(result)));
 				break;
 			default:
 				this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
@@ -176,18 +181,19 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			}
 		}
 
-		System.out.println("------------------------");
-		m.write(System.out, "turtle");
-		System.out.println("------------------------");
+//		System.out.println("------------------------");
+//		m.write(System.out, "turtle");
+//		System.out.println("------------------------");
 
 		// then use the Knowledge Interaction as a query to retrieve the bindings.
 		Query q = QueryFactory.create("SELECT * WHERE {" + this.convertToPattern(this.metaGraphPattern) + "}");
-		QueryExecution qe = QueryExecutionFactory.create(q);
+		LOG.trace("Query: {}", q);
+		QueryExecution qe = QueryExecutionFactory.create(q, m);
 		ResultSet rs = qe.execSelect();
 		BindingSet bindings = new BindingSet(rs);
 		qe.close();
 
-		LOG.info("BindingSet: {}", bindings);
+		LOG.trace("BindingSet: {}", bindings);
 
 		return bindings;
 	}

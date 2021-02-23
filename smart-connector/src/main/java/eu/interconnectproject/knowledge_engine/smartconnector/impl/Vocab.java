@@ -6,7 +6,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 public class Vocab {
 
-	public static final String ONTOLOGY_RESOURCE_LOCATION = "/src/main/resources/knowledgebase.ttl";
+	public static final String ONTOLOGY_RESOURCE_LOCATION = "/knowledgebase.ttl";
 
 	public static final String ONTO_URI = "https://www.tno.nl/energy/ontology/interconnect#";
 

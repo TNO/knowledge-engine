@@ -1,9 +1,12 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
+
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 /**
  * This class provides information about *why* data is being exchanged. So, it
@@ -28,8 +31,10 @@ public class CommunicativeAct {
 	private final Set<Resource> satisfactionPurposes;
 
 	public CommunicativeAct() {
-		requirementPurposes = null;
-		satisfactionPurposes = null;
+		requirementPurposes = new HashSet<Resource>();
+		requirementPurposes.add(Vocab.INFORM_PURPOSE);
+		satisfactionPurposes = new HashSet<Resource>();
+		satisfactionPurposes.add(Vocab.INFORM_PURPOSE);
 	}
 
 	/**
