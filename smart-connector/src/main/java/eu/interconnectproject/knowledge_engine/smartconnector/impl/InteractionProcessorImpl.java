@@ -236,7 +236,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		m.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null, "turtle");
 
 		assert !m.isEmpty();
-		
+
+		// first add my knowledge interaction communicative act
 		CommunicativeAct myAct = myKI.getKnowledgeInteraction().getAct();
 		Resource myActResource = ResourceFactory.createResource(myKI.id + "/act");
 
@@ -256,19 +257,49 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			m.add(mySatisfactionPurpose, RDF.type, r);
 		}
 
-		// apply the reasoner
+		// then add the other knowledge interaction communicative act
+		CommunicativeAct otherAct = otherKI.getKnowledgeInteraction().getAct();
+		Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
+
+		m.add(otherActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
+
+		Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
+		Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
+
+		m.add(otherActResource, Vocab.HAS_REQ, myRequirementPurpose);
+		m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, mySatisfactionPurpose);
+
+		// give the purposes the correct types
+		for (Resource r : otherAct.getRequirementPurposes()) {
+			m.add(otherRequirementPurpose, RDF.type, r);
+		}
+		for (Resource r : otherAct.getSatisfactionPurposes()) {
+			m.add(otherSatisfactionPurpose, RDF.type, r);
+		}
+
+		// then apply the reasoner
 		InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), m);
 
-		// FILTER NOT EXISTS { ?person foaf:name ?name }
-
+		// query the model from both my and the other perspective (both should match)
+		// TODO can we do this with a single query execution? This might be a lot
+		// faster. either we set multiple iris for the same params. Or we change the ASK
+		// to include myReq/otherReq and mySat/otherSat vars.
 		ParameterizedSparqlString queryString = new ParameterizedSparqlString(
 				"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .}}");
 
+		// my perspective
 		queryString.setIri("req", myRequirementPurpose.toString());
-		queryString.setIri("sat", mySatisfactionPurpose.toString());
-		QueryExecution qe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+		queryString.setIri("sat", otherSatisfactionPurpose.toString());
+		QueryExecution myQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
 
-		doTheyMatch = !qe.execAsk();
+		queryString.clearParams();
+
+		// other perspective
+		queryString.setIri("req", otherRequirementPurpose.toString());
+		queryString.setIri("sat", mySatisfactionPurpose.toString());
+		QueryExecution otherQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+
+		doTheyMatch = !myQe.execAsk() && !otherQe.execAsk();
 
 		return doTheyMatch;
 	}

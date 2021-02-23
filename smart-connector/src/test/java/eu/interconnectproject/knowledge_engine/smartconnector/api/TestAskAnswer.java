@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
@@ -19,6 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class TestAskAnswer {
 
@@ -49,7 +54,11 @@ public class TestAskAnswer {
 		};
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
-		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
+
+		CommunicativeAct act1 = new CommunicativeAct(
+				new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
+		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(act1, gp1);
 		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
 			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
 
@@ -74,7 +83,9 @@ public class TestAskAnswer {
 		};
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
-		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
+		CommunicativeAct act2 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
+		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(act2, gp2);
 
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
