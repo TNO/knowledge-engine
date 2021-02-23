@@ -266,8 +266,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
 		Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
 
-		m.add(otherActResource, Vocab.HAS_REQ, myRequirementPurpose);
-		m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, mySatisfactionPurpose);
+		m.add(otherActResource, Vocab.HAS_REQ, otherRequirementPurpose);
+		m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, otherSatisfactionPurpose);
 
 		// give the purposes the correct types
 		for (Resource r : otherAct.getRequirementPurposes()) {
@@ -301,6 +301,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		doTheyMatch = !myQe.execAsk() && !otherQe.execAsk();
 
+		myQe.close();
+		otherQe.close();
+		
 		return doTheyMatch;
 	}
 
