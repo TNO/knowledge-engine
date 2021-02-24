@@ -33,4 +33,21 @@ public interface OtherKnowledgeBaseStore {
 	 */
 	Set<OtherKnowledgeBase> getOtherKnowledgeBases();
 
+	/**
+	 * Update an already existing knowledge base with changed data.
+	 * @param kb The knowledge base that has changed.
+	 */
+	void updateKnowledgeBase(OtherKnowledgeBase kb);
+	
+	/**
+	 * Add a new knowledge base.
+	 * @param kb The new knowledge base.
+	 */
+	void addKnowledgeBase(OtherKnowledgeBase kb);
+	
+	/**
+	 * Remove a knowledge base
+	 * @param kb The knowledge base that is to be removed.
+	 */
+	void removeKnowledgeBase(OtherKnowledgeBase kb);
 }

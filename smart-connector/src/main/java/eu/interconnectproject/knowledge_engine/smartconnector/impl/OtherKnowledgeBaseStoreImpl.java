@@ -47,9 +47,14 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 		future.thenRun(() -> {
 			// For this branch, the goal is to remove the following statement, and
 			// have the tests still pass...
-			this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
-				this.updateStore();
-			}, this.delay, this.delay, TimeUnit.SECONDS);
+			// this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
+			// 	this.updateStore();
+			// }, this.delay, this.delay, TimeUnit.SECONDS);
+
+			// Tell the meta knowledge base to POST information about our novel
+			// knowledge base to the peers
+			// TODO: Do we want to skip ourselves?
+			this.metaKnowledgeBase.postNewKnowledgeBase(this.getOtherKnowledgeBases());
 		});
 
 		return future;
@@ -101,7 +106,48 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 
 	@Override
 	public void stop() {
-		this.scheduledFuture.cancel(false);
+		// this.scheduledFuture.cancel(false);
 	}
 
+	@Override
+	public void addKnowledgeBase(OtherKnowledgeBase kb) {
+		if (this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to add a knowledge base {}, but it is already in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.put(kb.getId(), kb);
+		} catch (Throwable t) {
+			this.LOG.error("Adding an other knowledgebase should succeed.", t);
+		}
+	}
+	
+	@Override
+	public void updateKnowledgeBase(OtherKnowledgeBase kb) {
+		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to update knowledge base {}, but it is not in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.put(kb.getId(), kb);
+		} catch (Throwable t) {
+			this.LOG.error("Updating an other knowledgebase should succeed.", t);
+		}
+	}
+
+	@Override
+	public void removeKnowledgeBase(OtherKnowledgeBase kb) {
+		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to remove knowledge base {}, but it isn't even in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.remove(kb.getId());
+		} catch (Throwable t) {
+			this.LOG.error("Removing an other knowledgebase should succeed.", t);
+		}
+	}
 }

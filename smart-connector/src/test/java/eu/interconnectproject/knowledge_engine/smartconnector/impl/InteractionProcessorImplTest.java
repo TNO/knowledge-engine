@@ -163,6 +163,24 @@ public class InteractionProcessorImplTest {
 			// TODO Auto-generated method stub
 
 		}
+
+		@Override
+		public void updateKnowledgeBase(OtherKnowledgeBase kb) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void addKnowledgeBase(OtherKnowledgeBase kb) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void removeKnowledgeBase(OtherKnowledgeBase kb) {
+			// TODO Auto-generated method stub
+
+		}
 	}
 
 	class TestMessageRouter implements MessageRouter {

@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
@@ -27,6 +28,14 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 
 	private static final String ASK_SUFFIX = "/meta/knowledgeinteractions/ask";
 	private static final String ANSWER_SUFFIX = "/meta/knowledgeinteractions/answer";
+
+	private static final String POST_NEW_SUFFIX = "/meta/knowledgeinteractions/post/new";
+	private static final String POST_CHANGED_SUFFIX = "/meta/knowledgeinteractions/post/changed";
+	private static final String POST_REMOVED_SUFFIX = "/meta/knowledgeinteractions/post/removed";
+
+	private static final String REACT_NEW_SUFFIX = "/meta/knowledgeinteractions/react/new";
+	private static final String REACT_CHANGED_SUFFIX = "/meta/knowledgeinteractions/react/changed";
+	private static final String REACT_REMOVED_SUFFIX = "/meta/knowledgeinteractions/react/removed";
 
 	private final Logger LOG;
 	private final KnowledgeBase knowledgeBase;
@@ -200,9 +209,19 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		try {
 			if (isMeta) {
 				if (aKI instanceof AskKnowledgeInteraction) {
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ASK);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ASK, null);
 				} else if (aKI instanceof AnswerKnowledgeInteraction) {
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ANSWER);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ANSWER, null);
+				} else if (aKI instanceof PostKnowledgeInteraction) {
+					var satisfactionPurposes = aKI.getAct().getSatisfactionPurposes();
+					assert satisfactionPurposes.size() == 1 : "POST KI must have exactly 1 satisfaction purpose.";
+					var purpose = satisfactionPurposes.iterator().next();
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, purpose);
+				} else if (aKI instanceof ReactKnowledgeInteraction) {
+					var requirementPurposes = aKI.getAct().getRequirementPurposes();
+					assert requirementPurposes.size() == 1 : "REACT KI must have exactly 1 requirement purpose.";
+					var purpose = requirementPurposes.iterator().next();
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.REACT, purpose);
 				} else {
 					assert false : "Meta KI IDs for POST/REACT are currently not implemented.";
 					return null;
@@ -219,7 +238,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType) {
+	public URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType, Resource purpose) {
 		try {
 			switch (kiType) {
 			case ASK:
@@ -227,14 +246,61 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 			case ANSWER:
 				return new URI(knowledgeBaseId.toString() + ANSWER_SUFFIX);
 			case POST:
-			case REACT:
+				if (purpose.equals(Vocab.NEW_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + POST_NEW_SUFFIX);
+				} else if (purpose.equals(Vocab.CHANGED_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + POST_CHANGED_SUFFIX);
+				} else if (purpose.equals(Vocab.REMOVED_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + POST_REMOVED_SUFFIX);
+				} else {
+					assert false : "Invalid purpose for meta POST interaction: " + purpose;
+					return null;
+				}
+				case REACT:
+				if (purpose.equals(Vocab.NEW_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + REACT_NEW_SUFFIX);
+				} else if (purpose.equals(Vocab.CHANGED_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + REACT_CHANGED_SUFFIX);
+				} else if (purpose.equals(Vocab.REMOVED_KNOWLEDGE_PURPOSE)) {
+					return new URI(knowledgeBaseId.toString() + REACT_REMOVED_SUFFIX);
+				} else {
+					assert false : "Invalid purpose for meta REACT interaction: " + purpose;
+					return null;
+				}
 			default:
-				assert false : "Meta KI IDs for POST/REACT are currently not implemented.";
+				assert false : "Unknown KnowledgeInteractionInfo.Type while generating meta ID.";
 				return null;
 			}
 		} catch (URISyntaxException e) {
 			assert false : "Could not generate URI for KnowledgeInteraction";
 			return null;
 		}
+	}
+
+	@Override
+	public Resource getPurpose(URI knowledgeBaseId, URI knowledgeInteractionId) {
+		String kbId = knowledgeBaseId.toString();
+		String kiId = knowledgeInteractionId.toString();
+		assert kiId.startsWith(kbId) : "Meta knowledge interaction should start with its knowledge base's ID.";
+		
+		String suffix = kiId.substring(kbId.length());
+	
+		if (suffix.equals(ASK_SUFFIX) || suffix.equals(ANSWER_SUFFIX)) {
+			return Vocab.INFORM_PURPOSE;
+		} else if (suffix.equals(POST_NEW_SUFFIX)) {
+			return Vocab.NEW_KNOWLEDGE_PURPOSE;
+		} else if (suffix.equals(POST_CHANGED_SUFFIX)) {
+			return Vocab.CHANGED_KNOWLEDGE_PURPOSE;
+		} else if (suffix.equals(POST_REMOVED_SUFFIX)) {
+			return Vocab.REMOVED_KNOWLEDGE_PURPOSE;
+		} else if (suffix.equals(REACT_NEW_SUFFIX)) {
+			return Vocab.NEW_KNOWLEDGE_PURPOSE;
+		} else if (suffix.equals(REACT_CHANGED_SUFFIX)) {
+			return Vocab.CHANGED_KNOWLEDGE_PURPOSE;
+		} else if (suffix.equals(REACT_REMOVED_SUFFIX)) {
+			return Vocab.REMOVED_KNOWLEDGE_PURPOSE;
+		}
+		assert false : "Invalid suffix: " + suffix;
+		return Vocab.PURPOSE;
 	}
 }

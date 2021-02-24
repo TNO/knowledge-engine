@@ -120,6 +120,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(anAskKI, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -137,6 +138,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(anAskKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -159,6 +161,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -176,6 +179,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(anAnswerKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -193,6 +197,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(aPostKI, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -210,6 +215,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(aPostKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -231,6 +237,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -248,6 +255,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(aReactKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -423,6 +431,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		this.isStopped = true;
 
+		this.metaKnowledgeBase.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases());
+
 		this.otherKnowledgeBaseStore.stop();
 
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
@@ -478,4 +488,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		return this.messageRouter;
 	}
 
+	private void knowledgeBaseChanged() {
+		this.metaKnowledgeBase.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases());
+	}
 }
