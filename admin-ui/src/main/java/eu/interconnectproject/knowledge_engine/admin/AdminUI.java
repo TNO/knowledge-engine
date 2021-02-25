@@ -92,10 +92,23 @@ public class AdminUI implements KnowledgeBase {
 
 		// first define your graph pattern
 		GraphPattern gp = new GraphPattern(this.prefixes,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . "
-						+ "?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . "
-						+ "?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . "
-						+ "?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+			"?kb rdf:type kb:KnowledgeBase .",
+			"?kb kb:hasName ?name .",
+			"?kb kb:hasDescription ?description .",
+			"?kb kb:hasKnowledgeInteraction ?ki .",
+			"?ki rdf:type ?kiType .",
+			"?ki kb:isMeta ?isMeta .",
+			"?ki kb:hasCommunicativeAct ?act .",
+			"?act rdf:type kb:CommunicativeAct .",
+			"?act kb:hasRequirement ?req .",
+			"?act kb:hasSatisfaction ?sat .",
+			"?req rdf:type ?reqType .",
+			"?sat rdf:type ?satType .",
+			"?ki kb:hasGraphPattern ?gp .",
+			"?ki ?patternType ?gp .",
+			"?gp rdf:type kb:GraphPattern .",
+			"?gp kb:hasPattern ?pattern ."
+		);
 
 		// create the correct Knowledge Interaction
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);

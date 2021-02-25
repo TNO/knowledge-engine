@@ -7,18 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 
 public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
-
-	private final long delay = 3;
 	private final MetaKnowledgeBase metaKnowledgeBase;
-	private ScheduledFuture<?> scheduledFuture;
 	private final SmartConnectorImpl sc;
 
 	private final Logger LOG;
@@ -38,15 +33,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 	}
 
 	@Override
-	public CompletableFuture<Void> start() {
-		CompletableFuture<Void> future = this.updateStore();
-		this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
-			this.updateStore();
-		}, this.delay, this.delay, TimeUnit.SECONDS);
-		return future;
-	}
-
-	private CompletableFuture<Void> updateStore() {
+	public CompletableFuture<Void> populate() {
 		// retrieve ids from knowledge directory
 		Set<URI> newIds = KeRuntime.knowledgeDirectory().getKnowledgeBaseIds();
 
@@ -91,8 +78,44 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 	}
 
 	@Override
-	public void stop() {
-		this.scheduledFuture.cancel(false);
+	public void addKnowledgeBase(OtherKnowledgeBase kb) {
+		if (this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to add a knowledge base {}, but it is already in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.put(kb.getId(), kb);
+		} catch (Throwable t) {
+			this.LOG.error("Adding an other knowledgebase should succeed.", t);
+		}
+	}
+	
+	@Override
+	public void updateKnowledgeBase(OtherKnowledgeBase kb) {
+		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to update knowledge base {}, but it is not in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.put(kb.getId(), kb);
+		} catch (Throwable t) {
+			this.LOG.error("Updating an other knowledgebase should succeed.", t);
+		}
 	}
 
+	@Override
+	public void removeKnowledgeBase(OtherKnowledgeBase kb) {
+		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
+			LOG.warn("Tried to remove knowledge base {}, but it isn't even in my store! Skipped it.", kb.getId());
+			return;
+		}
+
+		try {
+			this.otherKnowledgeBases.remove(kb.getId());
+		} catch (Throwable t) {
+			this.LOG.error("Removing an other knowledgebase should succeed.", t);
+		}
+	}
 }

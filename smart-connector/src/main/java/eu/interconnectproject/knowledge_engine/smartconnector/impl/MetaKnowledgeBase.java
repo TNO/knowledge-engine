@@ -1,6 +1,7 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
@@ -26,4 +27,26 @@ public interface MetaKnowledgeBase {
 	CompletableFuture<OtherKnowledgeBase> getOtherKnowledgeBase(URI knowledgeBaseId);
 
 	boolean isMetaKnowledgeInteraction(URI id);
+	void setOtherKnowledgeBaseStore(OtherKnowledgeBaseStore otherKnowledgeBaseStore);
+	
+	/**
+	 * Inform all knowledge bases in {@param otherKnowledgeBases} about the fact
+	 * that this knowledge base just appeared.
+	 * @param otherKnowledgeBases
+	 */
+	CompletableFuture<Void> postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
+
+	/**
+	 * Inform all knowledge bases in {@param otherKnowledgeBases} about the fact
+	 * that this knowledge base just changed.
+	 * @param otherKnowledgeBases
+	 */
+	CompletableFuture<Void> postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
+
+	/**
+	 * Inform all knowledge bases in {@param otherKnowledgeBases} about the fact
+	 * that this knowledge base just left.
+	 * @param otherKnowledgeBases
+	 */
+	CompletableFuture<Void> postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
 }

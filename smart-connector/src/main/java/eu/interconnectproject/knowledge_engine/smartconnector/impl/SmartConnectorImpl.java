@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -76,6 +77,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.interactionProcessor = new InteractionProcessorImpl(this, this.otherKnowledgeBaseStore,
 				this.myKnowledgeBaseStore, this.metaKnowledgeBase);
 
+		this.metaKnowledgeBase.setOtherKnowledgeBaseStore(this.otherKnowledgeBaseStore);
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.messageRouter.registerInteractionProcessor(this.interactionProcessor);
@@ -119,6 +121,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(anAskKI, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -136,6 +139,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(anAskKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -158,6 +162,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -175,6 +180,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(anAnswerKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -192,6 +198,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(aPostKI, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -209,6 +216,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(aPostKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -230,6 +238,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -247,6 +256,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		this.myKnowledgeBaseStore.unregister(aReactKI);
+		this.knowledgeBaseChanged();
 	}
 
 	/**
@@ -422,7 +432,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		this.isStopped = true;
 
-		this.otherKnowledgeBaseStore.stop();
+		try {
+			this.metaKnowledgeBase.postRemovedKnowledgeBase(
+				this.otherKnowledgeBaseStore.getOtherKnowledgeBases()
+			).get(); // Block on the future. (TODO: Timeout?)
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("An error occured while informing peers about our " +
+				"termination. Proceeding to stop the smart connector regardless.", e);
+		}
 
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
 
@@ -442,13 +459,20 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	}
 
 	void communicationReady() {
-		this.otherKnowledgeBaseStore.start().thenRun(() -> {
-			this.knowledgeBaseExecutorService.execute(() -> {
-				try {
-					this.myKnowledgeBase.smartConnectorReady(this);
-				} catch (Throwable t) {
-					this.LOG.error("KnowledgeBase threw exception", t);
-				}
+		// Populate the initial knowledge base store.
+		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
+			// Then tell the other knowledge bases about our existence.
+			this.metaKnowledgeBase.postNewKnowledgeBase(otherKnowledgeBaseStore.getOtherKnowledgeBases()).thenRun(() -> {
+				// When that is done, and all peers have acknowledged our existence, we
+				// can proceed to inform the knowledge base that this smart connector is
+				// ready for action!
+				this.knowledgeBaseExecutorService.execute(() -> {
+					try {
+						this.myKnowledgeBase.smartConnectorReady(this);
+					} catch (Throwable t) {
+						this.LOG.error("KnowledgeBase threw exception", t);
+					}
+				});
 			});
 		});
 	}
@@ -477,4 +501,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		return this.messageRouter;
 	}
 
+	private CompletableFuture<Void> knowledgeBaseChanged() {
+		return this.metaKnowledgeBase.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases());
+	}
 }

@@ -8,6 +8,11 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 public class ReactMessage extends KnowledgeMessage {
 
 	private UUID replyToPostMessage;
+
+	/**
+	 * Variable names of the React side are used. (Proactive side does the
+	 * translations)
+	 */
 	private BindingSet result;
 
 	public ReactMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,

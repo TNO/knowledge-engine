@@ -68,9 +68,25 @@
                          rdfs:range :KnowledgeInteraction .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect#hasPurpose
+:hasPurpose rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf owl:topObjectProperty .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasRequirement
+:hasRequirement rdf:type owl:ObjectProperty ;
+                rdfs:subPropertyOf :hasPurpose ;
+                owl:propertyDisjointWith :hasSatisfaction .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#hasResultGraphPattern
 :hasResultGraphPattern rdf:type owl:ObjectProperty ;
                        rdfs:subPropertyOf :hasGraphPattern .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction
+:hasSatisfaction rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf :hasPurpose .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasSmartConnector
@@ -148,21 +164,31 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
                          rdfs:comment "An ask knowledge interaction declares the shape of knowledge that a knowledge base possibly asks its smart connector for."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ChangedKnowledgeAct
-:ChangedKnowledgeAct rdf:type owl:Class ;
-                     rdfs:subClassOf :InformAct ;
-                     rdfs:comment "This communicative act is used when the purpose is to inform (or be informed) about knowledge that is updated. (Vaguely the 'U' in CRUD.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#ChangedKnowledgePurpose
+:ChangedKnowledgePurpose rdf:type owl:Class ;
+                         rdfs:subClassOf :InformPurpose ;
+                         rdfs:comment "The purpose is to inform (or be informed) about knowledge that is updated. (Vaguely the 'U' in CRUD.)"@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct
 :CommunicativeAct rdf:type owl:Class ;
-                  rdfs:comment "The communicative act should describe the reason of why data is exchanged. It should be from a neutral perspective (so not from the proactive/reactive side only)."@en .
+                  rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasRequirement ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:onClass :Purpose
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasSatisfaction ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:onClass :Purpose
+                                  ] ;
+                  rdfs:comment "The communicative act is part of a Knowledge Interaction and describes the purposes of why data is exchanged. It distinguishes between the purposes it requires and the purposes it satisfies."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ConversionAct
-:ConversionAct rdf:type owl:Class ;
-               rdfs:subClassOf :CommunicativeAct ;
-               rdfs:comment "The communicative act is used when the purpose of the knowledge interaction is to convert knowledge to a different representation. (E.g., converting Fahrenheit to Celsius.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#ConversionPurpose
+:ConversionPurpose rdf:type owl:Class ;
+                   rdfs:subClassOf :Purpose ;
+                   rdfs:comment "The purpose of the knowledge interaction is to convert knowledge to a different representation. (E.g., converting Fahrenheit to Celsius.)"@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#GraphPattern
@@ -176,10 +202,10 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
               rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#InformAct
-:InformAct rdf:type owl:Class ;
-           rdfs:subClassOf :CommunicativeAct ;
-           rdfs:comment "This communicative act is used when the goal is to inform or be informed about changes in (availability of) knowledge. (Vaguely CRUD.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#InformPurpose
+:InformPurpose rdf:type owl:Class ;
+               rdfs:subClassOf :Purpose ;
+               rdfs:comment "The purpose is to inform or be informed about changes in (availability of) knowledge. (Vaguely CRUD.)"@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase
@@ -238,17 +264,17 @@ Examples include:
                       rdfs:comment "A knowledge interaction is a declaration of how a knowledge base interacts with its smart connector."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#NewKnowledgeAct
-:NewKnowledgeAct rdf:type owl:Class ;
-                 rdfs:subClassOf :InformAct ;
-                 rdfs:comment "This communicative act is used when the purpose is to inform (or be informed) about knowledge that is created. (Vaguely the 'C' in CRUD.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#NewKnowledgePurpose
+:NewKnowledgePurpose rdf:type owl:Class ;
+                     rdfs:subClassOf :InformPurpose ;
+                     rdfs:comment "The purpose is to inform (or be informed) about knowledge that is created. (Vaguely the 'C' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#PeriodicAct
-:PeriodicAct rdf:type owl:Class ;
-             rdfs:subClassOf :CommunicativeAct ;
-             owl:disjointWith :WhenChangedAct ;
-             rdfs:comment "This communicative act is used when the purpose is to periodically exchange knowledge through the interaction. E.g., hourly measurements."@en .
+###  https://www.tno.nl/energy/ontology/interconnect#PeriodicPurpose
+:PeriodicPurpose rdf:type owl:Class ;
+                 rdfs:subClassOf :Purpose ;
+                 owl:disjointWith :WhenChangedPurpose ;
+                 rdfs:comment "The purpose is to periodically exchange knowledge through the interaction. E.g., hourly measurements."@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#PostKnowledgeInteraction
@@ -268,6 +294,11 @@ Examples include:
                           rdfs:seeAlso :ReactKnowledgeInteraction .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect#Purpose
+:Purpose rdf:type owl:Class ;
+         rdfs:comment "The purpose of a particular exchange of information from the perspective of a KnowledgeBase. The purpose is used to define the purposes a communicative act requires and the purposes a communicative act satisfies. These together allow the Knowledge Engine to determine whether two Knowledge Interactions match or not." .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#ReactKnowledgeInteraction
 :ReactKnowledgeInteraction rdf:type owl:Class ;
                            owl:equivalentClass [ rdf:type owl:Restriction ;
@@ -285,16 +316,16 @@ Examples include:
                            rdfs:seeAlso :PostKnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#RemovedKnowledgeAct
-:RemovedKnowledgeAct rdf:type owl:Class ;
-                     rdfs:subClassOf :InformAct ;
-                     rdfs:comment "This communicative act is used when the purpose is to inform (or be informed) about knowledge that is removed. (Vaguely the 'D' in CRUD.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#RemovedKnowledgePurpose
+:RemovedKnowledgePurpose rdf:type owl:Class ;
+                         rdfs:subClassOf :InformPurpose ;
+                         rdfs:comment "The purpose is to inform (or be informed) about knowledge that is removed. (Vaguely the 'D' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#RetrieveKnowledgeAct
-:RetrieveKnowledgeAct rdf:type owl:Class ;
-                      rdfs:subClassOf :InformAct ;
-                      rdfs:comment "This communicative act is used when the purpose is to inform (or be informed) about knowledge that is retrieved. (Vaguely the 'R' in CRUD.)"@en .
+###  https://www.tno.nl/energy/ontology/interconnect#RetrieveKnowledgePurpose
+:RetrieveKnowledgePurpose rdf:type owl:Class ;
+                          rdfs:subClassOf :InformPurpose ;
+                          rdfs:comment "The purpose is retrieving knowledge (or being retrieved). (Vaguely the 'R' in CRUD.)"@en .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#ServiceDescription
@@ -330,10 +361,10 @@ Examples include:
                                     ] .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#WhenChangedAct
-:WhenChangedAct rdf:type owl:Class ;
-                rdfs:subClassOf :CommunicativeAct ;
-                rdfs:comment "This communicative act is used when the purpose of the knowledge exchange is to only send updates when the knowledge changes. E.g., to only send a message when a toggle is toggled."@en .
+###  https://www.tno.nl/energy/ontology/interconnect#WhenChangedPurpose
+:WhenChangedPurpose rdf:type owl:Class ;
+                    rdfs:subClassOf :Purpose ;
+                    rdfs:comment "The purpose of the knowledge exchange is to only send updates when the knowledge changes. E.g., to only send a message when a toggle is toggled."@en .
 
 
 #################################################################
