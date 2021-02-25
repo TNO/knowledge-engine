@@ -3,6 +3,8 @@ package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 import java.net.URI;
 import java.util.Set;
 
+import org.apache.jena.rdf.model.Resource;
+
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
@@ -72,5 +74,7 @@ public interface KnowledgeBaseStore {
 
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
-	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType);
+	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType, Resource purpose);
+
+	Resource getPurpose(URI knowledgeBaseId, URI knowledgeInteractionId);
 }

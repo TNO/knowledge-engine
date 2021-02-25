@@ -19,18 +19,30 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeD
 public interface OtherKnowledgeBaseStore {
 
 	/**
-	 * Start the updating of the store.
+	 * Populate the store by sending ASK messages about metadata to all peers.
 	 */
-	CompletableFuture<Void> start();
-
-	/**
-	 * Stop the updating of the store.
-	 */
-	void stop();
+	CompletableFuture<Void> populate();
 
 	/**
 	 * @return The current list of {@link OtherKnowledgeBase}s.
 	 */
 	Set<OtherKnowledgeBase> getOtherKnowledgeBases();
 
+	/**
+	 * Update an already existing knowledge base with changed data.
+	 * @param kb The knowledge base that has changed.
+	 */
+	void updateKnowledgeBase(OtherKnowledgeBase kb);
+	
+	/**
+	 * Add a new knowledge base.
+	 * @param kb The new knowledge base.
+	 */
+	void addKnowledgeBase(OtherKnowledgeBase kb);
+	
+	/**
+	 * Remove a knowledge base
+	 * @param kb The knowledge base that is to be removed.
+	 */
+	void removeKnowledgeBase(OtherKnowledgeBase kb);
 }
