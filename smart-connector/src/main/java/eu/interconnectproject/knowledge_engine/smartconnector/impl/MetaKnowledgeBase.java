@@ -34,19 +34,19 @@ public interface MetaKnowledgeBase {
 	 * that this knowledge base just appeared.
 	 * @param otherKnowledgeBases
 	 */
-	void postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
+	CompletableFuture<Void> postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
 
 	/**
 	 * Inform all knowledge bases in {@param otherKnowledgeBases} about the fact
 	 * that this knowledge base just changed.
 	 * @param otherKnowledgeBases
 	 */
-	void postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
+	CompletableFuture<Void> postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
 
 	/**
 	 * Inform all knowledge bases in {@param otherKnowledgeBases} about the fact
 	 * that this knowledge base just left.
 	 * @param otherKnowledgeBases
 	 */
-	void postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
+	CompletableFuture<Void> postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases);
 }

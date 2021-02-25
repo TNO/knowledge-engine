@@ -7,18 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 
 public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
-
-	private final long delay = 3;
 	private final MetaKnowledgeBase metaKnowledgeBase;
-	private ScheduledFuture<?> scheduledFuture;
 	private final SmartConnectorImpl sc;
 
 	private final Logger LOG;
@@ -38,29 +33,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 	}
 
 	@Override
-	public CompletableFuture<Void> start() {
-		// Do a first update to get to know all peers in the network.
-		CompletableFuture<Void> future = this.updateStore();
-
-		// When it is done with the first update, schedule subsequent updates with a
-		// `this.delay` seconds delay between them.
-		future.thenRun(() -> {
-			// For this branch, the goal is to remove the following statement, and
-			// have the tests still pass...
-			// this.scheduledFuture = KeRuntime.executorService().scheduleWithFixedDelay(() -> {
-			// 	this.updateStore();
-			// }, this.delay, this.delay, TimeUnit.SECONDS);
-
-			// Tell the meta knowledge base to POST information about our novel
-			// knowledge base to the peers
-			// TODO: Do we want to skip ourselves?
-			this.metaKnowledgeBase.postNewKnowledgeBase(this.getOtherKnowledgeBases());
-		});
-
-		return future;
-	}
-
-	private CompletableFuture<Void> updateStore() {
+	public CompletableFuture<Void> populate() {
 		// retrieve ids from knowledge directory
 		Set<URI> newIds = KeRuntime.knowledgeDirectory().getKnowledgeBaseIds();
 
@@ -102,11 +75,6 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 		}
 
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
-	}
-
-	@Override
-	public void stop() {
-		// this.scheduledFuture.cancel(false);
 	}
 
 	@Override

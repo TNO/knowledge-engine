@@ -19,14 +19,9 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeD
 public interface OtherKnowledgeBaseStore {
 
 	/**
-	 * Start the updating of the store.
+	 * Populate the store by sending ASK messages about metadata to all peers.
 	 */
-	CompletableFuture<Void> start();
-
-	/**
-	 * Stop the updating of the store.
-	 */
-	void stop();
+	CompletableFuture<Void> populate();
 
 	/**
 	 * @return The current list of {@link OtherKnowledgeBase}s.

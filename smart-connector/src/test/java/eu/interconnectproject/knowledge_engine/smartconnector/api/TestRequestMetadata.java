@@ -1,14 +1,16 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -19,9 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class TestRequestMetadata {
@@ -93,21 +92,19 @@ public class TestRequestMetadata {
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
 				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();
 
-				LOG.info("Bindings: {}", result.getBindings());
+				LOG.trace("Bindings: {}", result.getBindings());
 
 				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
 
-				ResIterator i = m.listSubjectsWithProperty(RDF.type,
-						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"));
-				assertTrue(i.hasNext(), "Should have at least 1 PostKnowledgeInteraction.");
-				i.next();
-				assertTrue(!i.hasNext(), "Should have at most 1 PostKnowledgeInteraction.");
+				List<Resource> i = m.listSubjectsWithProperty(RDF.type,
+						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction")).toList();
+				assertEquals(3 + 1, i.size());
 				latch.countDown();
 
 			}
 		};
 
-		int wait = 5;
+		int wait = 20;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
 
 	}

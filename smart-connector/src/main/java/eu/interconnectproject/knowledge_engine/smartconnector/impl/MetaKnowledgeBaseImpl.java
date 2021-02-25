@@ -113,66 +113,50 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	}
 
 	@Override
-	public void postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
-		// Prepare the meta bindings once
-		var myMetaBindings = this.fillMetaBindings();
-		// And also my KI id. We re-use this every time.
-		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
-			KnowledgeInteractionInfo.Type.POST, Vocab.NEW_KNOWLEDGE_PURPOSE);
-
-		// Then send messages to all knowledge peers
-		for (OtherKnowledgeBase kb : otherKnowledgeBases) {
-			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
-				KnowledgeInteractionInfo.Type.REACT, Vocab.NEW_KNOWLEDGE_PURPOSE);
-			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(), toKnowledgeInteraction, myMetaBindings);
-			try {
-				this.messageRouter.sendPostMessage(msg);
-			} catch (IOException e) {
-				this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
-			}
-		}
+	public CompletableFuture<Void> postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
+		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.NEW_KNOWLEDGE_PURPOSE);
 	}
 
 	@Override
-	public void postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
-		// Prepare the meta bindings once
-		var myMetaBindings = this.fillMetaBindings();
-		// And also my KI id. We re-use this every time.
-		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
-			KnowledgeInteractionInfo.Type.POST, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
-
-		// Then send messages to all knowledge peers
-		for (OtherKnowledgeBase kb : otherKnowledgeBases) {
-			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
-				KnowledgeInteractionInfo.Type.REACT, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
-			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(), toKnowledgeInteraction, myMetaBindings);
-			try {
-				this.messageRouter.sendPostMessage(msg);
-			} catch (IOException e) {
-				this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
-			}
-		}
+	public CompletableFuture<Void> postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
+		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
 	}
 
 	@Override
-	public void postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
+	public CompletableFuture<Void> postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
+		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
+	}
+
+	private CompletableFuture<Void> postInformToKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases, Resource purpose) {
 		// Prepare the meta bindings once
 		var myMetaBindings = this.fillMetaBindings();
 		// And also my KI id. We re-use this every time.
-		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
-			KnowledgeInteractionInfo.Type.POST, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
+		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(
+			this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.POST, purpose
+		);
+
+		// We keep track of all the interactions in this set of futures.
+		var futures = new HashSet<CompletableFuture<ReactMessage>>();
 
 		// Then send messages to all knowledge peers
 		for (OtherKnowledgeBase kb : otherKnowledgeBases) {
-			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
-				KnowledgeInteractionInfo.Type.REACT, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
+			// Construct the knowledge interaction ID of the receiving side.
+			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(
+				kb.getId(), KnowledgeInteractionInfo.Type.REACT, purpose
+			);
+
+			// Construct and send the message, and keep track of the future.
 			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(), toKnowledgeInteraction, myMetaBindings);
 			try {
-				this.messageRouter.sendPostMessage(msg);
+				futures.add(this.messageRouter.sendPostMessage(msg));
 			} catch (IOException e) {
 				this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
 			}
 		}
+		// Return a future that completes when all futures in it have completed.
+		return CompletableFuture.allOf(
+			futures.toArray(new CompletableFuture<?>[futures.size()])
+		);
 	}
 
 	@Override
@@ -325,10 +309,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	public ReactMessage processPostFromMessageRouter(PostMessage aPostMessage) {
 		assert aPostMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId);
 
-
 		// Parse the incoming PostMessage and inform `this.otherKnowledgeBaseStore`
 		
-		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getBindings(), aPostMessage.getFromKnowledgeBase());
+		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getBindings());
+		assert otherKB.getId().equals(aPostMessage.getFromKnowledgeBase());
 
 		var purpose = this.knowledgeBaseStore.getPurpose(aPostMessage.getFromKnowledgeBase(), aPostMessage.getFromKnowledgeInteraction());
 
@@ -369,7 +353,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 					.thenApply(answerMsg -> {
 						try {
 							this.LOG.trace("Received message: {}", answerMsg);
-							return this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), answerMsg.getFromKnowledgeBase());
+							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings());
+							assert otherKB.getId().equals(answerMsg.getFromKnowledgeBase());
+							return otherKB;
 						} catch (Throwable t) {
 							this.LOG.error("The construction of other knowledge base should succeed.", t);
 							// TODO do we want to complete the future exceptionally, here? Because we have a
@@ -385,7 +371,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		}
 	}
 
-	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings, URI knowledgeBaseId) {
+	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings) {
 		assert !bindings.isEmpty() : "An answer meta message should always have at least a single binding.";
 
 		Model model;
@@ -537,8 +523,14 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 		}
 
-		return new OtherKnowledgeBase(knowledgeBaseId, name, description, knowledgeInteractions, null);
+		URI kbId = null;
+		try {
+			kbId = new URI(kb.getURI());
+		} catch (URISyntaxException e) {
+			LOG.error("Invalid URI for knowledge base: " + kb.getURI(), e);
+		}
 
+		return new OtherKnowledgeBase(kbId, name, description, knowledgeInteractions, null);
 	}
 
 	@Override
