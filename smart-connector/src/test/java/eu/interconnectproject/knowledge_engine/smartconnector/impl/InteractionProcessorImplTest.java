@@ -153,15 +153,9 @@ public class InteractionProcessorImplTest {
 		}
 
 		@Override
-		public CompletableFuture<Void> start() {
+		public CompletableFuture<Void> populate() {
 			// TODO Auto-generated method stub
 			return null;
-		}
-
-		@Override
-		public void stop() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
