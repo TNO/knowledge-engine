@@ -59,7 +59,22 @@ public class KnowledgeNetwork {
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
 		GraphPattern gp = new GraphPattern(this.prefixMapping,
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasGraphPattern ?gp . ?ki ?patternType ?gp . ?gp rdf:type kb:GraphPattern . ?gp kb:hasPattern ?pattern .");
+				"?kb rdf:type kb:KnowledgeBase .",
+				"?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .",
+				"?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasCommunicativeAct ?act .",
+				"?act rdf:type kb:CommunicativeAct .",
+				"?act kb:hasRequirement ?req .",
+				"?act kb:hasSatisfaction ?sat .",
+				"?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .",
+				"?ki kb:hasGraphPattern ?gp .",
+				"?ki ?patternType ?gp .",
+				"?gp rdf:type kb:GraphPattern .",
+				"?gp kb:hasPattern ?pattern .");
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);

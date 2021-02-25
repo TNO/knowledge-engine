@@ -70,6 +70,7 @@ public class TestPostReact {
 				}
 			}
 		};
+		kb1.start();
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
@@ -98,6 +99,7 @@ public class TestPostReact {
 				kb2Initialized.countDown();
 			}
 		};
+		kb2.start();
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
 				"KB2 should receive knowledge within " + wait + " seconds.");

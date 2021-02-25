@@ -44,14 +44,13 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 
-				GraphPattern gp = new GraphPattern(prefixes,
-					"?obs rdf:type saref:Measurement .",
-					"?obs saref:hasTemp ?temp ."
-				);
+				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
+						"?obs saref:hasTemp ?temp .");
 				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(ki);
 			}
 		};
+		kb1.start();
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 
@@ -59,24 +58,13 @@ public class TestRequestMetadata {
 
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes,
-						"?kb rdf:type kb:KnowledgeBase .",
-						"?kb kb:hasName ?name .",
-						"?kb kb:hasDescription ?description .",
-						"?kb kb:hasKnowledgeInteraction ?ki .",
-						"?ki rdf:type ?kiType .",
-						"?ki kb:isMeta ?isMeta .",
-						"?ki kb:hasCommunicativeAct ?act .",
-						"?act rdf:type kb:CommunicativeAct .",
-						"?act kb:hasRequirement ?req .",
-						"?act kb:hasSatisfaction ?sat .",
-						"?req rdf:type ?reqType .",
-						"?sat rdf:type ?satType .",
-						"?ki kb:hasGraphPattern ?gp .",
-						"?ki ?patternType ?gp .",
-						"?gp rdf:type kb:GraphPattern .",
-						"?gp kb:hasPattern ?pattern ."
-				);
+				GraphPattern gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .",
+						"?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
+						"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
+						"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
+						"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+						"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
+						"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
 
 				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 				aSC.register(this.ki);
@@ -96,13 +84,17 @@ public class TestRequestMetadata {
 
 				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
 
-				List<Resource> i = m.listSubjectsWithProperty(RDF.type,
-						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction")).toList();
+				List<Resource> i = m
+						.listSubjectsWithProperty(RDF.type,
+								ResourceFactory
+										.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
+						.toList();
 				assertEquals(3 + 1, i.size());
 				latch.countDown();
 
 			}
 		};
+		kb2.start();
 
 		int wait = 20;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");

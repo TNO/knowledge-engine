@@ -44,6 +44,7 @@ public class TestAskAnswer2 {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
+		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");

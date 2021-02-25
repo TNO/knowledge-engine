@@ -52,6 +52,7 @@ public class TestAskAnswer {
 				LOG.info("smartConnector of {} ready.", this.name);
 			}
 		};
+		kb1.start();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 
@@ -70,7 +71,6 @@ public class TestAskAnswer {
 
 			return bindingSet;
 		});
-
 		Thread.sleep(5000);
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -79,8 +79,8 @@ public class TestAskAnswer {
 				LOG.info("smartConnector of {} ready.", this.name);
 
 			}
-
 		};
+		kb2.start();
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		CommunicativeAct act2 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
