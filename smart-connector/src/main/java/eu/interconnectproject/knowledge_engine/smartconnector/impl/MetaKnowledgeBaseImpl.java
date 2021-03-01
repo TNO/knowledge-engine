@@ -311,7 +311,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 
 		// Parse the incoming PostMessage and inform `this.otherKnowledgeBaseStore`
 		
-		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getBindings());
+		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getArgument());
 		assert otherKB.getId().equals(aPostMessage.getFromKnowledgeBase());
 
 		var purpose = this.knowledgeBaseStore.getPurpose(aPostMessage.getFromKnowledgeBase(), aPostMessage.getFromKnowledgeInteraction());

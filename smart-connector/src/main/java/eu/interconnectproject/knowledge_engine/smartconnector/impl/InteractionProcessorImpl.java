@@ -187,7 +187,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				} else {
 					var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 					// TODO This should happen in the single thread for the knowledge base
-					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getBindings());
+					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getArgument());
 				}
 
 				ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,

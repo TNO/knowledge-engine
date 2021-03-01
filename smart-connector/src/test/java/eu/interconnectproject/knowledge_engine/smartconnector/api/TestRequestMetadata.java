@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -44,10 +45,8 @@ public class TestRequestMetadata {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 
-				GraphPattern gp = new GraphPattern(prefixes,
-					"?obs rdf:type saref:Measurement .",
-					"?obs saref:hasTemp ?temp ."
-				);
+				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
+						"?obs saref:hasTemp ?temp .");
 				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
 				aSC.register(ki);
 			}
@@ -59,24 +58,13 @@ public class TestRequestMetadata {
 
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes,
-						"?kb rdf:type kb:KnowledgeBase .",
-						"?kb kb:hasName ?name .",
-						"?kb kb:hasDescription ?description .",
-						"?kb kb:hasKnowledgeInteraction ?ki .",
-						"?ki rdf:type ?kiType .",
-						"?ki kb:isMeta ?isMeta .",
-						"?ki kb:hasCommunicativeAct ?act .",
-						"?act rdf:type kb:CommunicativeAct .",
-						"?act kb:hasRequirement ?req .",
-						"?act kb:hasSatisfaction ?sat .",
-						"?req rdf:type ?reqType .",
-						"?sat rdf:type ?satType .",
-						"?ki kb:hasGraphPattern ?gp .",
-						"?ki ?patternType ?gp .",
-						"?gp rdf:type kb:GraphPattern .",
-						"?gp kb:hasPattern ?pattern ."
-				);
+				GraphPattern gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .",
+						"?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
+						"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
+						"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
+						"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+						"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
+						"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
 
 				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 				aSC.register(this.ki);
@@ -92,19 +80,27 @@ public class TestRequestMetadata {
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
 				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();
 
-				LOG.trace("Bindings: {}", result.getBindings());
+				LOG.info("Bindings: {}", result.getBindings());
 
 				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
 
-				List<Resource> i = m.listSubjectsWithProperty(RDF.type,
-						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction")).toList();
+				List<Resource> i = m
+						.listSubjectsWithProperty(RDF.type,
+								ResourceFactory
+										.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
+						.toList();
+
 				assertEquals(3 + 1, i.size());
+
+				assertTrue(m.listStatements((Resource) null, Vocab.HAS_RES, (RDFNode) null).hasNext());
+				assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
+
 				latch.countDown();
 
 			}
 		};
 
-		int wait = 20;
+		int wait = 25;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
 
 	}

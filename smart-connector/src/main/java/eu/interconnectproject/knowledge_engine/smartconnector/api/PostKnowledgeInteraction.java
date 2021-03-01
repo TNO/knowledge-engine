@@ -8,6 +8,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
  * An object of this class represents that the associated {@link KnowledgeBase}
  * will possibly post knowledge of the shape `argument` to the network, and
  * expects a result of the shape `result`.
+ * 
+ * The argument is mandatory, but the result is optional.
  */
 public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 

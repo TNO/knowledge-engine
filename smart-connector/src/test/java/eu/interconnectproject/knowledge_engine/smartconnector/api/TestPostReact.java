@@ -75,7 +75,7 @@ public class TestPostReact {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 
-				GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+				GraphPattern gp = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 				ReactKnowledgeInteraction ki = new ReactKnowledgeInteraction(new CommunicativeAct(), gp, null);
 
 				aSC.register(ki, (ReactHandler) (anRKI, argument) -> {
@@ -85,8 +85,8 @@ public class TestPostReact {
 					Iterator<Binding> iter = argument.iterator();
 					Binding b = iter.next();
 
-					assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
-					assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
+					assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
+					assertEquals("<https://www.tno.nl/example/c>", b.get("e"), "Binding of 'e' is incorrect.");
 
 					assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
