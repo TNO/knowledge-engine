@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
@@ -80,12 +81,17 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 			if (this.kiIter.hasNext()) {
 				KnowledgeInteractionInfo ki = this.kiIter.next();
 				if (this.myKnowledgeInteraction.getType() == Type.ASK && ki.getType() == Type.ANSWER) {
-					AnswerKnowledgeInteraction aKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
-					if (this.matches(((AskKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
-							.getPattern(), aKI.getPattern())) {
+					AnswerKnowledgeInteraction answerKI = (AnswerKnowledgeInteraction) ki.getKnowledgeInteraction();
+					AskKnowledgeInteraction askKI = (AskKnowledgeInteraction) this.myKnowledgeInteraction
+							.getKnowledgeInteraction();
+					if (this.matches(askKI.getPattern(), answerKI.getPattern())) {
+
+						BindingSet transformedAskBindingSet = GraphPatternMatcher
+								.transformBindingSet(askKI.getPattern(), answerKI.getPattern(), bindingSet);
 
 						AskMessage askMessage = new AskMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
-								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
+								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(),
+								transformedAskBindingSet);
 						try {
 							this.answerMessageFuture = this.messageRouter.sendAskMessage(askMessage);
 							this.previousSend = Instant.now();
@@ -93,8 +99,11 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								try {
 									this.answerMessageFuture = null;
 
+									BindingSet transformedAnswerBindingSet = GraphPatternMatcher.transformBindingSet(
+											answerKI.getPattern(), askKI.getPattern(), aMessage.getBindings());
+
 									// TODO make sure there are no duplicates
-									this.allBindings.addAll(aMessage.getBindings());
+									this.allBindings.addAll(transformedAnswerBindingSet);
 
 									this.exchangeInfos.add(convertMessageToExchangeInfo(aMessage));
 
@@ -117,19 +126,29 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 					ReactKnowledgeInteraction rKI = (ReactKnowledgeInteraction) ki.getKnowledgeInteraction();
 
-					if (this.matches(((PostKnowledgeInteraction) this.myKnowledgeInteraction.getKnowledgeInteraction())
-							.getArgument(), rKI.getArgument())) {
+					PostKnowledgeInteraction pKI = (PostKnowledgeInteraction) this.myKnowledgeInteraction
+							.getKnowledgeInteraction();
+					if (this.matches(pKI.getArgument(), rKI.getArgument())) {
+
+						BindingSet transformedArgBindingSet = GraphPatternMatcher.transformBindingSet(pKI.getArgument(),
+								rKI.getArgument(), bindingSet);
 
 						PostMessage postMessage = new PostMessage(this.myKnowledgeInteraction.getKnowledgeBaseId(),
-								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(), bindingSet);
+								this.myKnowledgeInteraction.getId(), ki.getKnowledgeBaseId(), ki.getId(),
+								transformedArgBindingSet);
 						try {
 							this.reactMessageFuture = this.messageRouter.sendPostMessage(postMessage);
 							this.reactMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.reactMessageFuture = null;
 
+									if (rKI.getResult() != null && pKI.getResult() != null) {
+
+										BindingSet transformedResBindingSet = GraphPatternMatcher.transformBindingSet(
+												rKI.getResult(), pKI.getResult(), aMessage.getResult());
+										this.allBindings.addAll(transformedResBindingSet);
+									}
 									// TODO make sure there are no duplicates
-									this.allBindings.addAll(aMessage.getBindings());
 									this.previousSend = Instant.now();
 									this.exchangeInfos.add(convertMessageToExchangeInfo(bindingSet, aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
@@ -172,12 +191,17 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet argument, ReactMessage aMessage) {
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), argument, aMessage.getBindings(), this.previousSend,
+				aMessage.getFromKnowledgeInteraction(), argument, aMessage.getResult(), this.previousSend,
 				Instant.now(), Status.SUCCEEDED, null);
 	}
 
 	private boolean matches(GraphPattern gp1, GraphPattern gp2) {
-		return GraphPatternMatcher.checkIsomorph(gp1, gp2);
+		try {
+			return GraphPatternMatcher.areIsomorphic(gp1, gp2);
+		} catch (ParseException e) {
+			LOG.error("Graph pattern parsing should succeed.", e);
+		}
+		return false;
 	}
 
 }

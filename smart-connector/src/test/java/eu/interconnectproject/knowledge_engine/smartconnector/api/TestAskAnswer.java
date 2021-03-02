@@ -55,8 +55,7 @@ public class TestAskAnswer {
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 
-		CommunicativeAct act1 = new CommunicativeAct(
-				new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+		CommunicativeAct act1 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(act1, gp1);
 		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
@@ -106,8 +105,11 @@ public class TestAskAnswer {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
+		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
+				"The variable names should follow the graph pattern of the current KB.");
+
+		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 		kb2ReceivedData.countDown();

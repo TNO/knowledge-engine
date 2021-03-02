@@ -92,21 +92,19 @@ public class InteractionProcessorImplTest {
 		Iterator<Binding> iterator = bindings.iterator();
 
 		Binding b;
-		for (int i = 1; i < 3; i++) // we expect two bindings, but we do not know the ordering.
+		for (int i = 1; i <= 2; i++) // we expect two bindings, but we do not know the ordering.
 		{
 			assertTrue(iterator.hasNext(), "there should be a binding number " + i);
 			b = iterator.next();
 			assertNotNull(b);
-			if (b.containsKey("s2")) {
-				assertTrue(b.get("s2").equals(this.subject2));
-				assertTrue(b.containsKey("o2"));
-				assertTrue(b.get("o2").equals(this.object2));
-			} else if (b.containsKey("s3")) {
-				assertTrue(b.get("s3").equals(this.subject3));
-				assertTrue(b.containsKey("o3"));
-				assertTrue(b.get("o3").equals(this.object3));
+			if (b.get("s1").equals(this.subject2)) {
+				assertTrue(b.containsKey("o1"));
+				assertTrue(b.get("o1").equals(this.object2));
+			} else if (b.get("s1").equals(this.subject3)) {
+				assertTrue(b.containsKey("o1"));
+				assertTrue(b.get("o1").equals(this.object3));
 			} else {
-				fail("Every binding should contain either s2 or s3.");
+				fail("Every binding should contain either s1 and equal either subject2 or 3.");
 			}
 		}
 	}
