@@ -31,20 +31,20 @@ public class TestGraphPatternMatch {
 	private static final Logger LOG = LoggerFactory.getLogger(TestGraphPatternMatch.class);
 
 	@Test
-	public void test() throws ParseException {
+	public void testSimpleIsomorphisms() throws ParseException {
 
 		GraphPattern gp1 = new GraphPattern("?a ?p1 ?b. ?a <p1> ?b.");
 		GraphPattern gp2 = new GraphPattern("?c ?p2 ?d. ?c <p1> ?d.");
 
-		TypedVF2IsomorphismTester tester = new TypedVF2IsomorphismTester();
-		LOG.info("Are isomorph? {}", GraphPatternMatcher.areIsomorphic(gp1, gp2));
+		assertTrue(GraphPatternMatcher.areIsomorphic(gp1, gp2));
 		Map<Integer, Integer> isomorphism = GraphPatternMatcher.getIsomorphisms(gp1, gp2);
 		LOG.info("iso: {}", isomorphism);
+		assertTrue(!isomorphism.isEmpty());
 
 	}
 
 	@Test
-	public void testElementEquality() throws ParseException {
+	public void testMultipleIsomorphisms() throws ParseException {
 
 		String[][] positivePairs = new String[][] {
 
@@ -94,7 +94,6 @@ public class TestGraphPatternMatch {
 			GraphPattern ks2 = new GraphPattern(pair[1]);
 
 			boolean doesMatch = GraphPatternMatcher.areIsomorphic(ks1, ks2);
-
 			LOG.info("SSpace graph should be equal: {}", doesMatch);
 			assertTrue(doesMatch);
 
@@ -149,25 +148,7 @@ public class TestGraphPatternMatch {
 	}
 
 	@Test
-	public void test2() {
-		var prefixes = new PrefixMappingMem();
-		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
-		GraphPattern gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
-
-		System.out.println(convertToPattern(gp));
-
-		assertTrue(true);
-	}
-
-	@Test
-	public void test3() {
+	public void testMetadataBindingSetTransformation() {
 		String[] patterns = new String[] {
 				"?kb1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki1 . ?ki1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act1 . ?act1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req1 . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat1 . ?req1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType1 . ?sat1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp1 . ?ki1 ?patternType1 ?gp1 . ?gp1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp1 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern1 . ",
 				"?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name2 . ?kb2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description2 . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki2 . ?ki2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act2 . ?act2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req2 . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat2 . ?req2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType2 . ?sat2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp2 . ?ki2 ?patternType2 ?gp2 . ?gp2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp2 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern2 . " };
@@ -187,8 +168,42 @@ public class TestGraphPatternMatch {
 		BindingSet fromBindingSet = new BindingSet(rs);
 		qe.close();
 
+		for (Binding binding : fromBindingSet) {
+			assertTrue(binding.containsKey("kb1"));
+			assertTrue(binding.containsKey("name1"));
+			assertTrue(binding.containsKey("description1"));
+			assertTrue(binding.containsKey("ki1"));
+			assertTrue(binding.containsKey("kiType1"));
+			assertTrue(binding.containsKey("isMeta1"));
+			assertTrue(binding.containsKey("act1"));
+			assertTrue(binding.containsKey("req1"));
+			assertTrue(binding.containsKey("sat1"));
+			assertTrue(binding.containsKey("reqType1"));
+			assertTrue(binding.containsKey("satType1"));
+			assertTrue(binding.containsKey("gp1"));
+			assertTrue(binding.containsKey("patternType1"));
+			assertTrue(binding.containsKey("pattern1"));
+		}
+
 		BindingSet toBindingSet = GraphPatternMatcher.transformBindingSet(gp1, gp2, fromBindingSet);
 
+		for (Binding binding : toBindingSet) {
+			assertTrue(binding.containsKey("kb2"));
+			assertTrue(binding.containsKey("name2"));
+			assertTrue(binding.containsKey("description2"));
+			assertTrue(binding.containsKey("ki2"));
+			assertTrue(binding.containsKey("kiType2"));
+			assertTrue(binding.containsKey("isMeta2"));
+			assertTrue(binding.containsKey("act2"));
+			assertTrue(binding.containsKey("req2"));
+			assertTrue(binding.containsKey("sat2"));
+			assertTrue(binding.containsKey("reqType2"));
+			assertTrue(binding.containsKey("satType2"));
+			assertTrue(binding.containsKey("gp2"));
+			assertTrue(binding.containsKey("patternType2"));
+			assertTrue(binding.containsKey("pattern2"));
+		}
+		
 		LOG.info("{}", fromBindingSet);
 		LOG.info("{}", toBindingSet);
 

@@ -169,7 +169,7 @@ public class GraphPatternMatcher {
 			toBindingSet.add(toBinding);
 		}
 
-		LOG.info("Transformed size {} into size {} or {} into {}.", fromBindingSet.size(), toBindingSet.size(),
+		LOG.debug("Transformed size {} into size {} or {} into {}.", fromBindingSet.size(), toBindingSet.size(),
 				fromBindingSet, toBindingSet);
 
 		return toBindingSet;
