@@ -1,10 +1,16 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An {@link AskResult} contains the result of the
@@ -13,6 +19,8 @@ import java.util.stream.Collectors;
  * {@link KnowledgeBase}s contributed etc.)
  */
 public class AskResult {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AskResult.class);
 
 	private final BindingSet bindings;
 	private final Map<URI, AskExchangeInfo> exchangeInfoPerKnowledgeBase;
@@ -46,4 +54,29 @@ public class AskResult {
 		return Collections.unmodifiableMap(exchangeInfoPerKnowledgeBase);
 	}
 
+	public Duration getTotalExchangeTime() {
+
+		Map<URI, AskExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
+
+		if (!infos.isEmpty()) {
+			Instant start = Instant.MAX;
+			Instant end = Instant.MIN;
+
+			// find the earliest and latest instant among the exchange infos.
+			for (AskExchangeInfo info : infos.values()) {
+
+				if (info.getExchangeStart().isBefore(start)) {
+					start = info.getExchangeStart();
+				}
+
+				if (info.getExchangeEnd().isAfter(end)) {
+					end = info.getExchangeEnd();
+				}
+			}
+			return Duration.between(start, end);
+		} else {
+			return Duration.ofMillis(0);
+		}
+
+	}
 }

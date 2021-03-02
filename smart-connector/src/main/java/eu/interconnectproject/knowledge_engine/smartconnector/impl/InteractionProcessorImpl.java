@@ -1,22 +1,22 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdfconnection.SparqlQueryConnection;
+import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -42,6 +42,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final KnowledgeBaseStore myKnowledgeBaseStore;
 	private final MetaKnowledgeBase metaKnowledgeBase;
 
+	private final Model ontology;
+	private final Reasoner reasoner;
+
 	private final LoggerProvider loggerProvider;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
@@ -52,6 +55,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 		this.metaKnowledgeBase = metaKnowledgeBase;
+
+		ontology = ModelFactory.createDefaultModel();
+		ontology.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null,
+				"turtle");
+		assert !this.ontology.isEmpty();
+
+		reasoner = ReasonerRegistry.getRDFSSimpleReasoner().bindSchema(this.ontology);
 	}
 
 	@Override
@@ -230,12 +240,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 *         KnowledgeInteractions match, {@code false} otherwise.
 	 */
 	private boolean communicativeActMatcher(MyKnowledgeInteractionInfo myKI, KnowledgeInteractionInfo otherKI) {
+
+		Instant start = Instant.now();
+
 		boolean doTheyMatch = false;
 
 		Model m = ModelFactory.createDefaultModel();
-		m.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null, "turtle");
-
-		assert !m.isEmpty();
 
 		// first add my knowledge interaction communicative act
 		CommunicativeAct myAct = myKI.getKnowledgeInteraction().getAct();
@@ -278,7 +288,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// then apply the reasoner
-		InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner(), m);
+		InfModel infModel = ModelFactory
+				.createInfModel(this.reasoner.bind(m.getGraph()));
 
 		// query the model from both my and the other perspective (both should match)
 		// TODO can we do this with a single query execution? This might be a lot
@@ -303,7 +314,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		myQe.close();
 		otherQe.close();
-		
+
+		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
+
 		return doTheyMatch;
 	}
 

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -92,10 +94,13 @@ public class TestAskAnswer {
 
 		BindingSet bindings = null;
 		try {
-			LOG.trace("Before ask.");
+			Instant start = Instant.now();
+			
+			LOG.trace("Before ask");
 			AskResult result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
-			LOG.trace("After ask.");
+			
+			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(), result.getTotalExchangeTime().toMillis());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
