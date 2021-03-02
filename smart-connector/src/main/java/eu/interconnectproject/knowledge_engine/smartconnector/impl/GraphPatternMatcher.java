@@ -1,24 +1,20 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
-import org.jgrapht.Graph;
-import org.jgrapht.GraphMapping;
-import org.jgrapht.alg.isomorphism.VF2GraphIsomorphismInspector;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.ucla.sspace.graph.DirectedMultigraph;
+import edu.ucla.sspace.graph.DirectedTypedEdge;
 import edu.ucla.sspace.graph.SimpleDirectedTypedEdge;
 import edu.ucla.sspace.graph.isomorphism.TypedVF2IsomorphismTester;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
@@ -28,83 +24,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 public class GraphPatternMatcher {
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphPatternMatcher.class);
-
-	private static VertexComparator vertexComparator = new VertexComparator();
-	private static EdgeComparator edgeComparator = new EdgeComparator();
-
-	/**
-	 * Checks if the knowledge represented by this graph pattern is isomorph to the
-	 * given knowledge. In other words, variables and ordering of the triple
-	 * patterns are ignored when determining isomorphisms.
-	 * 
-	 * @param someKnowledge The knowledge to find an isomorphism with from this
-	 *                      knowledge.
-	 * @return Whether the given knowledge is isomorph with this knowledge.
-	 * @throws ParseException
-	 */
-	public static VF2GraphIsomorphismInspector<Node, NodeEdgeOld> getIsomorphisms(ElementPathBlock epb1,
-			ElementPathBlock epb2) {
-
-		Graph<Node, NodeEdgeOld> g1 = convertToJGraph(epb1);
-		Graph<Node, NodeEdgeOld> g2 = convertToJGraph(epb2);
-		VF2GraphIsomorphismInspector<Node, NodeEdgeOld> inspect = new VF2GraphIsomorphismInspector<Node, NodeEdgeOld>(
-				g1, g2, vertexComparator, edgeComparator);
-
-		return inspect;
-	}
-
-	/**
-	 * Checks if the knowledge represented by this graph pattern is isomorph to the
-	 * given knowledge. In other words, variables and ordering of the triple
-	 * patterns are ignored when determining isomorphisms.
-	 * 
-	 * @param someKnowledge The knowledge to find an isomorphism with from this
-	 *                      knowledge.
-	 * @return Whether the given knowledge is isomorph with this knowledge.
-	 * @throws ParseException
-	 */
-	public static boolean checkIsomorph(ElementPathBlock epb1, ElementPathBlock epb2) {
-
-		VF2GraphIsomorphismInspector<Node, NodeEdgeOld> iso = getIsomorphisms(epb1, epb2);
-
-		Iterator<GraphMapping<Node, NodeEdgeOld>> mappings = iso.getMappings();
-
-		boolean isomorph = mappings.hasNext();
-		LOG.trace("graphs {} and {} isomorph? {}", epb1, epb2, isomorph);
-		return isomorph;
-	}
-
-	/**
-	 * Convert the given pattern to a JGraphT graph so that it can be used for
-	 * isomorphism testing.
-	 * 
-	 * @param epb The graph pattern to convert into a JGraphT.
-	 * @return An JGraphT Graph object.
-	 */
-	public static Graph<Node, NodeEdgeOld> convertToJGraph(ElementPathBlock epb) {
-
-		// unfortunately, we cannot use a #DirectedPseudograph graph (which allows
-		// multiple edges between vertices), because it is not supported by the JGraphT
-		// isomorphism algorithm. We could consider using NetworkX together with Jython.
-		org.jgrapht.Graph<Node, NodeEdgeOld> g = new DefaultDirectedGraph<>(NodeEdgeOld.class);
-
-		List<TriplePath> triples = epb.getPattern().getList();
-		for (TriplePath t : triples) {
-
-			Node subject = t.getSubject();
-			Node predicate = t.getPredicate();
-			Node object = t.getObject();
-
-			boolean success = g.addVertex(subject);
-			success = g.addVertex(object);
-			NodeEdgeOld e = new NodeEdgeOld(predicate);
-			success = g.addEdge(subject, object, e);
-			if (!success)
-				LOG.warn("Adding edge {} between {} and {} to the graph should succeed.", e, subject, object);
-		}
-
-		return g;
-	}
 
 	/**
 	 * Transform all the variable names in a bindingset from one knowledge
@@ -120,72 +39,134 @@ public class GraphPatternMatcher {
 			BindingSet fromBindingSet) {
 
 		LOG.trace("Looking for isomorphisms between: {} and {}", fromVarNameGP, toVarNameGP);
-		ElementPathBlock fromEpb;
-		ElementPathBlock toEpb;
 
 		// first create a mapping from varible name to variable name
 		Map<String, String> varMapping = new HashMap<String, String>();
-		try {
 
-			fromEpb = fromVarNameGP.getGraphPattern();
-			toEpb = toVarNameGP.getGraphPattern();
+		// convert graphs
+		GraphInfo from = new GraphInfo(fromVarNameGP);
+		GraphInfo to = new GraphInfo(toVarNameGP);
 
-			// convert graphs
-			GraphInfo from = new GraphInfo(fromVarNameGP);
-			GraphInfo to = new GraphInfo(toVarNameGP);
+		TypedVF2IsomorphismTester tester = new TypedVF2IsomorphismTester();
+		Map<Integer, Integer> mapping = tester.findIsomorphism(from.getGraph(), to.getGraph());
 
-			TypedVF2IsomorphismTester tester = new TypedVF2IsomorphismTester();
-			Map<Integer, Integer> mapping = tester.findIsomorphism(from.getGraph(), to.getGraph());
+		if (!mapping.isEmpty()) {
 
-			if (!mapping.isEmpty()) {
+			// store the mapping between variable node vertices.
+			for (Integer fromVertexIdx : from.getGraph().vertices()) {
 
-				GraphMapping<Node, NodeEdgeOld> mapping = iter.next();
+				Node fromNode = from.getIntToNodeMap().get(fromVertexIdx);
+				Integer toVertexIdx = mapping.get(fromVertexIdx);
+				Node toNode = to.getIntToNodeMap().get(toVertexIdx);
 
-				for (Node vertex : fromGraph.vertexSet()) {
-					Node n = mapping.getVertexCorrespondence(vertex, true);
-
-					if (vertex.isVariable()) {
-						varMapping.put(vertex.getName(), n.getName());
-					}
-
-					LOG.trace("Node: {} - {}", vertex, n);
+				if (fromNode.isVariable() && toNode.isVariable()) {
+					varMapping.put(fromNode.getName(), toNode.getName());
 				}
 
-				for (NodeEdgeOld edge : fromGraph.edgeSet()) {
-					NodeEdgeOld e = mapping.getEdgeCorrespondence(edge, true);
-
-					if (e.getNode().isVariable()) {
-						varMapping.put(edge.getNode().getName(), e.getNode().getName());
-					}
-
-					LOG.trace("Edge: {} - {}", edge, e);
-				}
-
-				LOG.trace("mapping: {}", mapping);
-
+				LOG.trace("Node: {} - {}", fromNode, toNode);
 			}
 
-			LOG.debug("Has more than one mapping? {}", iter.hasNext());
-			LOG.debug("Found the following variable mapping: {}", varMapping);
+			// now store the mapping between variable node edges. Look at JGraphTs
+			// implementation of the getEdgeCorrespondence method.
+			for (DirectedTypedEdge<NodeEdge> fromEdge : from.getGraph().edges()) {
 
-		} catch (ParseException e) {
-			LOG.error("Parsing graph patterns should succeed.", e);
+				Integer fromEdgeSource = fromEdge.from();
+				Integer fromEdgeTarget = fromEdge.to();
+				Map<Integer, Node> fromIntToNodeMap = from.getIntToNodeMap();
+
+				if (fromEdge.edgeType().getNode().isVariable()) {
+
+					Set<Node> fromEdgeNodes = getEdgeNodesBetween(fromVarNameGP, fromIntToNodeMap.get(fromEdgeSource),
+							fromIntToNodeMap.get(fromEdgeTarget));
+
+					LOG.trace("Found {} number of nodes for from edge {} ({}).", fromEdgeNodes.size(), fromEdgeNodes,
+							fromEdge);
+
+					Node fromEdgeNode = null;
+					for (Node node : fromEdgeNodes) {
+						if (node.isVariable() && fromEdgeNode == null) {
+
+							// check if the current candidate is not already mapped to another edge.
+							if (!varMapping.containsValue(node.getName())) {
+								fromEdgeNode = node;
+							} else {
+								LOG.trace("Predicate variable {} is already mapped, so we skip this one.",
+										node.getName());
+							}
+						}
+					}
+
+					Integer toEdgeSource = mapping.get(fromEdgeSource);
+					Integer toEdgeTarget = mapping.get(fromEdgeTarget);
+
+					/*
+					 * Unfortunately, S-Space keeps a *static* collection of edgetypes for
+					 * performance reasons and this means we cannot retrieve the exact Node from the
+					 * toGraph (because it was replaced by the same variable node of the from
+					 * graph). So, how do we get to the edges between the two nodes? Probably using
+					 * the Graph Patterns themselves.
+					 */
+//					Set<DirectedTypedEdge<NodeEdge>> toEdgeSet = to.getGraph().getEdges(toEdgeSource, toEdgeTarget,
+//							edgeSet);
+
+					Map<Integer, Node> toIntToNodeMap = to.getIntToNodeMap();
+					Set<Node> toEdgeNodes = getEdgeNodesBetween(toVarNameGP, toIntToNodeMap.get(toEdgeSource),
+							toIntToNodeMap.get(toEdgeTarget));
+
+					LOG.trace("Found {} number of nodes for to edge {}.", toEdgeNodes.size(), toEdgeNodes);
+
+					assert !toEdgeNodes.isEmpty() : "If the source " + fromEdgeSource + ", " + toEdgeSource
+							+ " and target " + fromEdgeSource + ", " + toEdgeSource
+							+ " of an edge are isomorph, the mapped source and target should have at least a single edge between them.";
+
+					Node toEdge = null;
+					for (Node node : toEdgeNodes) {
+						if (node.isVariable() && toEdge == null) {
+
+							// check if the current candidate is not already mapped to another edge.
+							if (!varMapping.containsValue(node.getName())) {
+								toEdge = node;
+							} else {
+								LOG.trace("Predicate variable {} is already mapped, so we skip this one.",
+										node.getName());
+							}
+						}
+					}
+
+					if (toEdge != null) {
+						varMapping.put(fromEdgeNode.getName(), toEdge.getName());
+
+						LOG.trace("Edge: {} - {}", fromEdgeNode, toEdge);
+					} else {
+						assert false : "The two graph patterns " + fromVarNameGP + " and " + toVarNameGP
+								+ " match, so the variable edge " + fromEdge
+								+ " should be mappable to another variable edge.";
+					}
+				}
+			}
+
+			LOG.trace("Isomorphism {} gave rise to variable mapping: {}", mapping, varMapping);
+
+		} else {
+			LOG.trace("No isomorphisms found.");
 		}
-		LOG.debug("Variable mapping: {}", varMapping);
 
 		// now transform the from bindingset to the to bindingset using the variable
 		// mapping.
 		BindingSet toBindingSet = new BindingSet();
 
-		Binding to;
-		for (Binding from : fromBindingSet) {
-			to = new Binding();
+		Binding toBinding;
+		for (Binding fromBinding : fromBindingSet) {
+			toBinding = new Binding();
 			for (Map.Entry<String, String> twoVars : varMapping.entrySet()) {
-				if (from.containsKey(twoVars.getKey())) {
-					to.put(twoVars.getValue(), from.get(twoVars.getKey()));
+				if (fromBinding.containsKey(twoVars.getKey())) {
+					toBinding.put(twoVars.getValue(), fromBinding.get(twoVars.getKey()));
+				} else {
+					// the binding could be partial, so not every mapped variable should be
+					// available in the binding.
 				}
 			}
-			toBindingSet.add(to);
+			toBindingSet.add(toBinding);
 		}
 
 		LOG.info("Transformed size {} into size {} or {} into {}.", fromBindingSet.size(), toBindingSet.size(),
@@ -195,93 +176,27 @@ public class GraphPatternMatcher {
 
 	}
 
-	/**
-	 * Specific Edge comparator, because in RDF edges who's Node's are equal, are
-	 * still different edges, while vertices who's Node's are equal are the same
-	 * Nodes.
-	 */
-	private static class EdgeComparator implements Comparator<NodeEdgeOld> {
+	private static Set<Node> getEdgeNodesBetween(GraphPattern gp, Node source, Node target) {
+		ElementPathBlock epb;
+		Set<Node> nodeSet = new HashSet<>();
+		try {
+			epb = gp.getGraphPattern();
+			List<TriplePath> triples = epb.getPattern().getList();
+			for (TriplePath t : triples) {
 
-		/**
-		 * If both are variables or blank nodes return 0. Otherwise, check if the nodes
-		 * are actually equal value wise and return 0, otherwise -1.
-		 */
-		public int compare(NodeEdgeOld n1, NodeEdgeOld n2) {
+				Node subject = t.getSubject();
+				Node predicate = t.getPredicate();
+				Node object = t.getObject();
 
-			if (n1.getNode().isVariable() && n2.getNode().isVariable())
-				return 0;
-			else if (n1.getNode().isBlank() && n2.getNode().isBlank())
-				return 0;
+				if (subject.equals(source) && object.equals(target)) {
+					nodeSet.add(predicate);
+				}
 
-			return n1.getNode().equals(n2.getNode()) ? 0 : -1;
+			}
+		} catch (ParseException e1) {
+			LOG.error("Graph pattern {} should be parseable.", gp);
 		}
-	}
-
-	/**
-	 * Used in the VF2 isomorphism algorithm of JGraphT to compare vertices.
-	 * 
-	 * @author nouwtb
-	 *
-	 */
-	private static class VertexComparator implements Comparator<Node> {
-
-		/**
-		 * If both are variables or both are blank nodes, return 0. If they are actually
-		 * equal, return 0, otherwise return -1.
-		 */
-		public int compare(Node n1, Node n2) {
-
-			if (n1.isVariable() && n2.isVariable())
-				return 0;
-			else if (n1.isBlank() && n2.isBlank())
-				return 0;
-
-			return n1.equals(n2) ? 0 : -1;
-		}
-	}
-
-	/**
-	 * An edge object to capture the node and distinguish from the vertex nodes.
-	 * This is necessary, because we want to have the default Object equals()
-	 * method, instead of the Node's equals() method. Object's equals() method just
-	 * checks using the {@code ==} operator, instead of actually looking at the
-	 * label of the node. For edges of the graph, this is the correct behaviour, but
-	 * for vertices in the graph this is not.
-	 * 
-	 * @author nouwtb
-	 *
-	 */
-	private static class NodeEdgeOld extends DefaultEdge {
-
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * The node that represents this edge.
-		 */
-		private Node n;
-
-		/**
-		 * Create a new edge node
-		 * 
-		 * @param aNode The node this edge node holds.
-		 */
-		public NodeEdgeOld(Node aNode) {
-			this.n = aNode;
-		}
-
-		/**
-		 * @return the node of the edge node.
-		 */
-		public Node getNode() {
-			return this.n;
-		}
-
-		/**
-		 * Return a human readable string.
-		 */
-		public String toString() {
-			return this.n.toString();
-		}
+		return nodeSet;
 	}
 
 	private static class NodeEdge {
@@ -289,7 +204,6 @@ public class GraphPatternMatcher {
 		private Node n;
 
 		public NodeEdge(Node n) {
-			super();
 			this.n = n;
 		}
 
@@ -308,7 +222,7 @@ public class GraphPatternMatcher {
 		@Override
 		public int hashCode() {
 			if (this.n.isVariable()) {
-				return 31;
+				return 31; // TODO this is not good performance wise
 			} else {
 				return this.n.hashCode();
 			}
@@ -318,10 +232,14 @@ public class GraphPatternMatcher {
 		public String toString() {
 			if (this.n.isVariable()) {
 
-				return "?var";
+				return n.getName();
 			} else {
 				return this.n.toString();
 			}
+		}
+
+		public Node getNode() {
+			return n;
 		}
 
 	}
@@ -395,7 +313,6 @@ public class GraphPatternMatcher {
 
 		private DirectedMultigraph<NodeEdge> graph;
 		private Map<Integer, Node> intToNodeMap;
-		private Map<Node, Integer> nodeToIntMap;
 
 		public GraphInfo(GraphPattern gp) {
 
@@ -407,8 +324,7 @@ public class GraphPatternMatcher {
 				this.graph = new DirectedMultigraph<>();
 
 				this.intToNodeMap = new HashMap<>();
-				this.nodeToIntMap = new HashMap<>();
-
+				Map<Node, Integer> nodeToIntMap = new HashMap<>();
 				List<TriplePath> triples = epb.getPattern().getList();
 
 				int fromVertexCounter = 1;
@@ -456,11 +372,6 @@ public class GraphPatternMatcher {
 		public Map<Integer, Node> getIntToNodeMap() {
 			return intToNodeMap;
 		}
-
-		public Map<Node, Integer> getNodeToIntMap() {
-			return nodeToIntMap;
-		}
-
 	}
 
 }

@@ -6,6 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -76,8 +83,8 @@ public class TestGraphPatternMatch {
 				},
 
 				new String[] {
-						"?kb1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki1 . ?ki1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act1 . ?act1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req1 . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat1 . ?req1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType1 . ?sat1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp1 . ?ki1 ?patternType ?gp1 . ?gp1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp1 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern1 . ",
-						"?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name2 . ?kb2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki2 . ?ki2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act2 . ?act2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req2 . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat2 . ?req2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType2 . ?sat2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp2 . ?ki2 ?patternType ?gp2 . ?gp2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp2 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern2 . " }
+						"?kb1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki1 . ?ki1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act1 . ?act1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req1 . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat1 . ?req1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType1 . ?sat1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp1 . ?ki1 ?patternType1 ?gp1 . ?gp1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp1 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern1 . ",
+						"?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name2 . ?kb2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki2 . ?ki2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act2 . ?act2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req2 . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat2 . ?req2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType2 . ?sat2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp2 . ?ki2 ?patternType2 ?gp2 . ?gp2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp2 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern2 . " }
 
 				// @formatter: on
 		};
@@ -157,6 +164,34 @@ public class TestGraphPatternMatch {
 		System.out.println(convertToPattern(gp));
 
 		assertTrue(true);
+	}
+
+	@Test
+	public void test3() {
+		String[] patterns = new String[] {
+				"?kb1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description1 . ?kb1 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki1 . ?ki1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act1 . ?act1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req1 . ?act1 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat1 . ?req1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType1 . ?sat1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType1 . ?ki1 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp1 . ?ki1 ?patternType1 ?gp1 . ?gp1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp1 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern1 . ",
+				"?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasName> ?name2 . ?kb2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasDescription> ?description2 . ?kb2 <https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction> ?ki2 . ?ki2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#isMeta> ?isMeta2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct> ?act2 . ?act2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct> . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasRequirement> ?req2 . ?act2 <https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction> ?sat2 . ?req2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType2 . ?sat2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType2 . ?ki2 <https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern> ?gp2 . ?ki2 ?patternType2 ?gp2 . ?gp2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#GraphPattern> . ?gp2 <https://www.tno.nl/energy/ontology/interconnect#hasPattern> ?pattern2 . " };
+
+		GraphPattern gp1 = new GraphPattern(patterns[0]);
+		GraphPattern gp2 = new GraphPattern(patterns[1]);
+
+		Model m = ModelFactory.createDefaultModel();
+
+		m.read(this.getClass().getResourceAsStream("/metadata.ttl"), null, "turtle");
+
+		// then use the Knowledge Interaction as a query to retrieve the bindings.
+		Query q = QueryFactory.create("SELECT * WHERE {" + this.convertToPattern(gp1) + "}");
+		LOG.trace("Query: {}", q);
+		QueryExecution qe = QueryExecutionFactory.create(q, m);
+		ResultSet rs = qe.execSelect();
+		BindingSet fromBindingSet = new BindingSet(rs);
+		qe.close();
+
+		BindingSet toBindingSet = GraphPatternMatcher.transformBindingSet(gp1, gp2, fromBindingSet);
+
+		LOG.info("{}", fromBindingSet);
+		LOG.info("{}", toBindingSet);
+
 	}
 
 	private String convertToPattern(GraphPattern gp) {

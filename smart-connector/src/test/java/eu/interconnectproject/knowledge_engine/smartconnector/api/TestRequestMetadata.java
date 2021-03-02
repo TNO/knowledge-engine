@@ -92,7 +92,6 @@ public class TestRequestMetadata {
 
 				assertEquals(3 + 1, i.size());
 
-				assertTrue(m.listStatements((Resource) null, Vocab.HAS_RES, (RDFNode) null).hasNext());
 				assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
 
 				latch.countDown();
