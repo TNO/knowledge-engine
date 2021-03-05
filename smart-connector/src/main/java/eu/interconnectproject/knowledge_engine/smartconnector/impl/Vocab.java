@@ -32,6 +32,7 @@ public class Vocab {
 			.createProperty(ONTO_URI + "RemovedKnowledgePurpose");
 	public static final Resource PERIODIC_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "PeriodicPurpose");
 	public static final Resource WHEN_CHANGED_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "WhenChangedPurpose");
+	public static final Resource ACTUATION_PURPOSE = ResourceFactory.createProperty(ONTO_URI + "ActuationPurpose");
 
 	public static final Property HAS_ACT = ResourceFactory.createProperty(ONTO_URI + "hasCommunicativeAct");
 	public static final Property HAS_GP = ResourceFactory.createProperty(ONTO_URI + "hasGraphPattern");
