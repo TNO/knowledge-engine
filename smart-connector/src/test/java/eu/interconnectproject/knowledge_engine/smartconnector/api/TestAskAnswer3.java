@@ -124,5 +124,11 @@ public class TestAskAnswer3 {
 		} else {
 			fail("KB2 should not be null!");
 		}
+
+		if (kb3 != null) {
+			kb3.stop();
+		} else {
+			fail("KB3 should not be null!");
+		}
 	}
 }

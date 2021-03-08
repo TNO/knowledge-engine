@@ -96,12 +96,13 @@ public class TestAskAnswer {
 		BindingSet bindings = null;
 		try {
 			Instant start = Instant.now();
-			
+
 			LOG.trace("Before ask");
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
-			
-			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(), result.getTotalExchangeTime().toMillis());
+
+			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(),
+					result.getTotalExchangeTime().toMillis());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}

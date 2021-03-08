@@ -83,10 +83,13 @@ public class TestAskAnswer2 {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
+		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
+				"The variable names should follow the graph pattern of the current KB.");
 
-		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
+
+		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 	}
 
 	@AfterAll
