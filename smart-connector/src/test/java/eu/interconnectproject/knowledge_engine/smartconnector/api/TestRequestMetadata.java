@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -80,7 +81,7 @@ public class TestRequestMetadata {
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
 				AskResult result = this.ask(this.ki, new BindingSet()).get();
 
-				LOG.trace("Bindings: {}", result.getBindings());
+				LOG.info("Bindings: {}", result.getBindings());
 
 				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
 
@@ -90,13 +91,16 @@ public class TestRequestMetadata {
 										.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
 						.toList();
 				assertEquals(3 + 1, i.size());
+
+				assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
+
 				latch.countDown();
 
 			}
 		};
 		kb2.start();
 
-		int wait = 20;
+		int wait = 25;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
 
 	}

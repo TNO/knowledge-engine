@@ -18,7 +18,7 @@ public class PostMessage extends KnowledgeMessage {
 		this.argument = bindings;
 	}
 
-	public BindingSet getBindings() {
+	public BindingSet getArgument() {
 		return argument;
 	}
 

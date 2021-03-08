@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -93,10 +95,13 @@ public class TestAskAnswer {
 
 		BindingSet bindings = null;
 		try {
-			LOG.trace("Before ask.");
+			Instant start = Instant.now();
+			
+			LOG.trace("Before ask");
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
-			LOG.trace("After ask.");
+			
+			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(), result.getTotalExchangeTime().toMillis());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -106,8 +111,11 @@ public class TestAskAnswer {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("a"), "Binding of 'a' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("c"), "Binding of 'c' is incorrect.");
+		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
+				"The variable names should follow the graph pattern of the current KB.");
+
+		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 		kb2ReceivedData.countDown();

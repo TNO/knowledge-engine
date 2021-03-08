@@ -80,7 +80,7 @@ public class BindingSet extends HashSet<Binding> {
 
 							// newN = NodeFactoryExtra.parseNode(repr);
 						} else {
-							LOG.error("The variable {} in the Knowledge should be bound.", n.getName());
+							LOG.error("The variable {} should be bound.", n.getName());
 						}
 					}
 					newNodes[i] = newN;

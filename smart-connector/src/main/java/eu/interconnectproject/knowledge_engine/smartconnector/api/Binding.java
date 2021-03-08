@@ -92,6 +92,10 @@ public class Binding {
 		return b;
 	}
 
+	public int size() {
+		return this.map.size();
+	}
+
 	@Override
 	public String toString() {
 		return "Binding [" + (this.map != null ? "map=" + this.map : "") + "]";

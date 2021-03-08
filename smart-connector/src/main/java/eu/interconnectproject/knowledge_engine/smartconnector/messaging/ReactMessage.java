@@ -26,7 +26,7 @@ public class ReactMessage extends KnowledgeMessage {
 		return replyToPostMessage;
 	}
 
-	public BindingSet getBindings() {
+	public BindingSet getResult() {
 		return result;
 	}
 
