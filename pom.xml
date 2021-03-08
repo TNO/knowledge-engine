@@ -12,6 +12,7 @@
 		<module>smart-connector</module>
 		<module>admin-ui</module>
 		<module>examples</module>
+		<module>restapi</module>
 	</modules>
 
 	<build>
