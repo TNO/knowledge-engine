@@ -324,7 +324,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 			return sb.toString();
 		} catch (ParseException pe) {
-			this.LOG.error("The graph pattern should be parseable.", pe);
+			LOG.error("The graph pattern should be parseable.", pe);
 		}
 		return "<errorgraphpattern>";
 	}
