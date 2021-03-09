@@ -62,7 +62,7 @@ public class TestPostReact {
 
 				try {
 					Thread.sleep(4000); // we wait with posting until all Smart Connectors are up-to-date.
-					PostResult result = this.getSmartConnector().post(this.ki, bindingSet).get();
+					PostResult result = this.post(this.ki, bindingSet).get();
 					LOG.info("After post!");
 					kb1ReceivedPostResult.countDown();
 				} catch (Exception e) {
@@ -70,6 +70,7 @@ public class TestPostReact {
 				}
 			}
 		};
+		kb1.start();
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
@@ -98,6 +99,7 @@ public class TestPostReact {
 				kb2Initialized.countDown();
 			}
 		};
+		kb2.start();
 
 		assertTrue(kb2ReceivedKnowledge.await(wait, TimeUnit.SECONDS),
 				"KB2 should receive knowledge within " + wait + " seconds.");
