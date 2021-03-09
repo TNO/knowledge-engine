@@ -51,6 +51,7 @@ public class TestRequestMetadata {
 				aSC.register(ki);
 			}
 		};
+		kb1.start();
 
 		kb2 = new MockedKnowledgeBase("kb2") {
 
@@ -78,7 +79,7 @@ public class TestRequestMetadata {
 			}
 
 			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
-				AskResult result = this.getSmartConnector().ask(this.ki, new BindingSet()).get();
+				AskResult result = this.ask(this.ki, new BindingSet()).get();
 
 				LOG.info("Bindings: {}", result.getBindings());
 
@@ -89,7 +90,6 @@ public class TestRequestMetadata {
 								ResourceFactory
 										.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
 						.toList();
-
 				assertEquals(3 + 1, i.size());
 
 				assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
@@ -98,6 +98,7 @@ public class TestRequestMetadata {
 
 			}
 		};
+		kb2.start();
 
 		int wait = 25;
 		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
