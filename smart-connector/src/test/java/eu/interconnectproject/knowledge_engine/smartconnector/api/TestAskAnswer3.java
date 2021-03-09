@@ -27,6 +27,7 @@ public class TestAskAnswer3 {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 	private static MockedKnowledgeBase kb3;
+	private static MockedKnowledgeBase kb4;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -46,6 +47,8 @@ public class TestAskAnswer3 {
 		kn.addKB(kb2);
 		kb3 = new MockedKnowledgeBase("kb3");
 		kn.addKB(kb3);
+		kb4 = new MockedKnowledgeBase("kb4");
+		kn.addKB(kb4);
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
@@ -78,6 +81,20 @@ public class TestAskAnswer3 {
 			return bindingSet;
 		});
 
+		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g.");
+		AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
+		kb4.register(aKI4, (AnswerHandler) (anAKI, aBindingSet) -> {
+			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+
+			BindingSet bindingSet = new BindingSet();
+			Binding binding = new Binding();
+			binding.put("f", "<https://www.tno.nl/example/f>");
+			binding.put("g", "<https://www.tno.nl/example/g>");
+			bindingSet.add(binding);
+
+			return bindingSet;
+		});
+
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
@@ -94,10 +111,12 @@ public class TestAskAnswer3 {
 			LOG.trace("After ask.");
 			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().keySet();
 
-			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
-					"The result should come from kb1 and kb3 and not: " + kbIds);
+			assertEquals(
+					new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId(),
+							kb4.getKnowledgeBaseId())),
+					kbIds, "The result should come from kb1, kb3, kb4 and not: " + kbIds);
 
-			assertEquals(bindings.size(), 2);
+			assertEquals(3, bindings.size());
 
 			for (Binding b : bindings) {
 				assertTrue(b.containsKey("x"));
@@ -129,6 +148,12 @@ public class TestAskAnswer3 {
 			kb3.stop();
 		} else {
 			fail("KB3 should not be null!");
+		}
+		
+		if (kb4 != null) {
+			kb4.stop();
+		} else {
+			fail("KB4 should not be null!");
 		}
 	}
 }
