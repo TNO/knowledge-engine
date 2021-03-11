@@ -33,8 +33,16 @@ paths:
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is succesfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     delete:
       summary: Delete the Smart Connector belonging to the given Knowledge Base
       tags:
@@ -49,8 +57,16 @@ paths:
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/ki/ask:
     put:
       summary: Register a Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -89,8 +105,16 @@ paths:
                     type: string
         '400':
           description: If the Ask Knowledge Interaction is not successfully registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     delete:
       summary: Unregister the given Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -113,8 +137,16 @@ paths:
           description: If the Ask Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the Ask Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/ki/answer:
     put:
       summary: Register an Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -153,8 +185,16 @@ paths:
                     type: string
         '400':
           description: If registering the Answer Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     delete:
       summary: Unregister the Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -177,8 +217,17 @@ paths:
           description: If the Answer Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the  Answer Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be
+          found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/ki/post:
     put:
       summary: Register a Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -219,8 +268,16 @@ paths:
                     type: string
         '400':
           description: If registering the Post Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     delete:
       summary: Unregister the Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -243,8 +300,16 @@ paths:
           description: If the Post Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the Post Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/ki/react:
     put:
       summary: Register a React Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -278,8 +343,16 @@ paths:
                     type: string
         '400':
           description: If registering the React Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     delete:
       summary: Unregister the React Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -302,8 +375,16 @@ paths:
           description: If the React Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering React Knowledge Interaction failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/ask:
     put:
       summary: Execute the given Ask Knowledge Interaction with the given binding set.
@@ -350,8 +431,16 @@ paths:
                       type: string
         '400':
           description: If the ask failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/post:
     put:
       summary: Execute the given Post Knowledge Interaction with the given binding set.
@@ -398,6 +487,10 @@ paths:
                       type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/answer:
     get:
       summary: Start waiting for a request to answer the given Knowledge Interaction for the given Knowledge Base. Note that this is a long polling http call. It will block until an answer is expected in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further requests.
@@ -432,8 +525,16 @@ paths:
                       type: string
         '400':
           description: If a problem occurred. Please reinitiate this long polling http call.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     put:
       summary: Send the answer of the last long polling answer request back to the Smart Connector.
       tags:
@@ -468,8 +569,16 @@ paths:
           description: If the answer is successfully processed by your smart connector.
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
   /sc/react:
     get:
       summary: Start waiting for a request to react to the given Knowledge Interaction for the given Knowledge Base. Note that this is a long polling http call. It will block until an reaction is expected in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further requests.
@@ -504,8 +613,16 @@ paths:
                       type: string
         '400':
           description: If a problem occurred. Please reinitiate this long polling http call.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
     put:
       summary: Send the result of the last long polling react request back to the smart connector.
       tags:
@@ -540,5 +657,20 @@ paths:
           description: If the reaction is successfully processed by your smart connector.
         '400':
           description: If the reaction was not successfully processed by the Knowledge Base's smart connector.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralError'
+components:
+  schemas:
+    GeneralError:
+      type: object
+      properties:
+        message:
+          type: string
