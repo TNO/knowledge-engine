@@ -105,9 +105,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(AskKnowledgeInteraction anAskKI) {
+	public URI register(AskKnowledgeInteraction anAskKI) {
 		this.kis.add(anAskKI);
-		this.getSC().register(anAskKI);
+		return this.getSC().register(anAskKI);
 	}
 
 	@Override
@@ -117,9 +117,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
+	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
 		this.kis.add(anAnswerKI);
-		this.getSC().register(anAnswerKI, aAnswerHandler);
+		return this.getSC().register(anAnswerKI, aAnswerHandler);
 	}
 
 	@Override
@@ -130,9 +130,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(PostKnowledgeInteraction aPostKI) {
+	public URI register(PostKnowledgeInteraction aPostKI) {
 		this.kis.add(aPostKI);
-		this.getSC().register(aPostKI);
+		return this.getSC().register(aPostKI);
 	}
 
 	@Override
@@ -142,9 +142,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
+	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
 		this.kis.add(anReactKI);
-		this.getSC().register(anReactKI, aReactHandler);
+		return this.getSC().register(anReactKI, aReactHandler);
 	}
 
 	@Override
@@ -328,7 +328,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 		}
 		return "<errorgraphpattern>";
 	}
-	
+
 	public void start() {
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}
