@@ -49,6 +49,8 @@ paths:
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully deleted.
+        '404':
+          description: If there is no Smart Connector for the given Knowledge-Base-Id.
   /sc/ki/ask:
     put:
       summary: Register a Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -87,6 +89,8 @@ paths:
                     type: string
         '400':
           description: If the Ask Knowledge Interaction is not successfully registered.
+        '404':
+          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
     delete:
       summary: Unregister the given Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -109,11 +113,20 @@ paths:
           description: If the Ask Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the Ask Knowledge Interaction failed.
+        '404':
+          description: If a Knowledge Interaction or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/ki/answer:
     put:
       summary: Register an Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
         - knowledge interaction
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -140,6 +153,8 @@ paths:
                     type: string
         '400':
           description: If registering the Answer Knowledge Interaction failed.
+        '404':
+          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
     delete:
       summary: Unregister the Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -162,11 +177,20 @@ paths:
           description: If the Answer Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the  Answer Knowledge Interaction failed.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/ki/post:
     put:
       summary: Register a Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
         - knowledge interaction
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -195,6 +219,8 @@ paths:
                     type: string
         '400':
           description: If registering the Post Knowledge Interaction failed.
+        '404':
+          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
     delete:
       summary: Unregister the Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -217,6 +243,8 @@ paths:
           description: If the Post Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering the Post Knowledge Interaction failed.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/ki/react:
     put:
       summary: Register a React Knowledge Interaction with the Smart Connector of the given Knowledge Base
@@ -250,6 +278,8 @@ paths:
                     type: string
         '400':
           description: If registering the React Knowledge Interaction failed.
+        '404':
+          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
     delete:
       summary: Unregister the React Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -272,6 +302,8 @@ paths:
           description: If the React Knowledge Interaction is succesfully unregistered.
         '400':
           description: If unregistering React Knowledge Interaction failed.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/ask:
     put:
       summary: Execute the given Ask Knowledge Interaction with the given binding set.
@@ -318,6 +350,8 @@ paths:
                       type: string
         '400':
           description: If the ask failed.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/post:
     put:
       summary: Execute the given Post Knowledge Interaction with the given binding set.
@@ -362,6 +396,8 @@ paths:
                       type: string
                     var2:
                       type: string
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/answer:
     get:
       summary: Start waiting for a request to answer the given Knowledge Interaction for the given Knowledge Base. Note that this is a long polling http call. It will block until an answer is expected in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further requests.
@@ -396,6 +432,8 @@ paths:
                       type: string
         '400':
           description: If a problem occurred. Please reinitiate this long polling http call.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
     put:
       summary: Send the answer of the last long polling answer request back to the Smart Connector.
       tags:
@@ -430,6 +468,8 @@ paths:
           description: If the answer is successfully processed by your smart connector.
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
   /sc/react:
     get:
       summary: Start waiting for a request to react to the given Knowledge Interaction for the given Knowledge Base. Note that this is a long polling http call. It will block until an reaction is expected in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further requests.
@@ -464,6 +504,8 @@ paths:
                       type: string
         '400':
           description: If a problem occurred. Please reinitiate this long polling http call.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
     put:
       summary: Send the result of the last long polling react request back to the smart connector.
       tags:
@@ -498,3 +540,5 @@ paths:
           description: If the reaction is successfully processed by your smart connector.
         '400':
           description: If the reaction was not successfully processed by the Knowledge Base's smart connector.
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
