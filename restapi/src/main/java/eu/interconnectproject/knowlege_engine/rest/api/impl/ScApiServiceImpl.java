@@ -1,6 +1,7 @@
 package eu.interconnectproject.knowlege_engine.rest.api.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
@@ -9,6 +10,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 import eu.interconnectproject.knowlege_engine.rest.api.ApiResponseMessage;
 import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowlege_engine.rest.api.ScApiService;
@@ -21,10 +23,17 @@ public class ScApiServiceImpl extends ScApiService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ScApiServiceImpl.class);
 
+	private Map<eu.interconnectproject.knowlege_engine.rest.model.SmartConnector, SmartConnector> connectors;
+
 	@Override
 	public Response scAskPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
 			List<Object> requestBody, SecurityContext securityContext) throws NotFoundException {
-		// do some magic!
+		
+		
+//		var sc = new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector();
+		
+		
+		
 		LOG.info("scAskPost()");
 		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scAskPost!")).build();
 	}
@@ -56,7 +65,7 @@ public class ScApiServiceImpl extends ScApiService {
 	public Response scHandlePost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
 			InlineObject1 inlineObject1, SecurityContext securityContext) throws NotFoundException {
 		// do some magic!
-		LOG.info("scHandlePost()");		
+		LOG.info("scHandlePost()");
 		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scHandlePost!")).build();
 	}
 

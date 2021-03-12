@@ -33,12 +33,6 @@
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback-version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
 			<version>${logback-version}</version>
 			<scope>compile</scope>
@@ -120,6 +114,12 @@
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.1</version>
 		</dependency>
+
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -142,7 +142,7 @@
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<configOptions>
- 								<!-- <sourceFolder>src/bla/java</sourceFolder> -->
+								<!-- <sourceFolder>src/bla/java</sourceFolder> -->
 								<implFolder>dummy</implFolder>
 							</configOptions>
 						</configuration>
