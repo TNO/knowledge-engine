@@ -409,18 +409,18 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the ask was succesfull it returns all found variable bindings.
+          description: If the ask was succesfull it returns all found variable bindings together with additional exchange info.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    var1:
-                      type: string
-                    var2:
-                      type: string
+                type: object
+                properties:
+                  bindingSet:
+                    $ref: '#/components/schemas/BindingSet'
+                  exchangeInfos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AskExchangeInfo'
         '400':
           description: If the ask failed.
           content:
@@ -455,10 +455,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BindingSet'
+              type: object
+              properties:
+                bindingSet:
+                  $ref: '#/components/schemas/BindingSet'
+                exchangeInfos:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PostExchangeInfo'
       responses:
         '200':
-          description: If the post was succesfull it optionally returns all result variable bindings.
+          description: If the post was succesfull it optionally returns all result variable bindings together with all exchange infos.
           content:
             application/json:
               schema:
@@ -563,4 +570,65 @@ components:
               type: string
             var2:
               type: string
-      
+    AskResult:
+      type: object
+      properties:
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        exchangeInfo:
+          type: array
+          items:
+            $ref: '#/components/schemas/AskExchangeInfo'
+    PostResult:
+      type: object
+      properties:
+        resultBindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        exchangeInfo:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostExchangeInfo'
+    AskExchangeInfo:
+      type: object
+      properties:
+        initiator:
+          type: string
+        knowledgeBaseId:
+          type: string
+        knowledgeInteractionId:
+          type: string
+        exchangeStart:
+          type: string
+          format: date-time
+        exchangeEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+        failedMessage:
+          type: string
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    PostExchangeInfo:
+      type: object
+      properties:
+        initiator:
+          type: string
+        knowledgeBaseId:
+          type: string
+        knowledgeInteractionId:
+          type: string
+        exchangeStart:
+          type: string
+          format: date-time
+        exchangeEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+        failedMessage:
+          type: string
+        argumentBindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        resultBindingSet:
+          $ref: '#/components/schemas/BindingSet'
