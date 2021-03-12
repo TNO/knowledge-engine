@@ -3,22 +3,44 @@ info:
   title: InterConnect Knowledge Engine REST Developer API
   description: This API describes how Smart Connectors are instantiated, Knowledge Interactions are (un)registered and data is exchanged. Each Smart Connector is coupled with a Knowledge Base Id, so every rest call uses this Knowledge Base Id to identify yourself.
   version: 0.0.1-SNAPSHOT
-servers:
-  - url: http://www.interconnectproject.eu/ke
-    description: Main InterConnect server
 paths:
   /sc:
-    put:
-      summary: Create a new Smart Connector for the given Knowledge Base.
+    get:
+      summary: Either get all available Smart Connectors or a specific one if the Knowledge-Base-Id is provided.
       tags:
         - smart connector life cycle
       parameters:
         - name: Knowledge-Base-Id
           in: header
-          required: true
-          description: The knowledge base id for whome a smart connector should be created.
+          required: false
+          description: The knowledge base id who's smart connector information you would like to have.
           schema:
             type: string
+      responses:
+        '200':
+          description: Either a single Smart Connector or multiple ones.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SmartConnector'
+        '404':
+          description: If there is no Smart Connector for the given Knowledge-Base-Id.
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: If a problem occurred.
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Create a new Smart Connector for the given Knowledge Base.
+      tags:
+        - smart connector life cycle
       requestBody:
         required: true
         content: 
@@ -26,6 +48,8 @@ paths:
             schema:
               type: object
               properties:
+                knowledgeBaseId:
+                  type: string
                 knowledgeBaseName:
                   type: string
                 knowledgeBaseDescription:
@@ -33,16 +57,12 @@ paths:
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is succesfully created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
     delete:
       summary: Delete the Smart Connector belonging to the given Knowledge Base
       tags:
@@ -57,21 +77,37 @@ paths:
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully deleted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
+            text/plain:
+              schema:
+                type: string
+  /sc/ki:
+    get:
+      summary: Get all KnowledgeInteractions for a given Knowledge-Base-Id
+      tags:
+       - knowledge interaction life cycle
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The Knowledge Base Id that is registering a Knowledge Interaction.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: If the Knowledge Interactions were succesfully returned.
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GeneralError'
-  /sc/ki/ask:
-    put:
-      summary: Register a Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workaround'
+    post:
+      summary: Register a Knowledge Interaction with the Smart Connector of the given Knowledge Base Id.
       tags:
-       - knowledge interaction
+       - knowledge interaction life cycle
       parameters:
         - name: Knowledge-Base-Id
           in: header
@@ -80,45 +116,43 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                knowledgeInteractionType:
-                  type: string
-                communicativeAct: 
-                  type: array
-                  items:
-                    type: string
-                graphPattern:
-                  type: string
+              $ref: '#/components/schemas/Workaround'
+            example:
+              knowledgeInteractionType: AskKnowledgeInteraction
+              communicativeAct:
+                requiredPurpose:
+                  - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
+                satisfiedPurpose:
+                  - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
+              graphPattern: "?s ?p ?o"
       responses:
         '200':
-          description: If the Ask Knowledge Interaction is succesfully registered.
+          description: If theKnowledge Interaction is succesfully registered, it returns the knowledge interaction id.
           content:
-            application/json:
+            text/plain:
               schema:
-                type: object
-                properties:
-                  knowledgeInteractionId:
-                    type: string
+                type: string
+                example: http://.../knowledgeInteractionId
         '400':
-          description: If the Ask Knowledge Interaction is not successfully registered.
+          description: If the Knowledge Interaction is not successfully registered.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
     delete:
-      summary: Unregister the given Ask Knowledge Interaction with the Smart Connector of the given Knowledge Base
+      summary: Unregister the given Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
-        - knowledge interaction
+        - knowledge interaction life cycle
       parameters:
         - name: Knowledge-Base-Id
           in: header
@@ -134,258 +168,21 @@ paths:
             type: string
       responses:
         '200':
-          description: If the Ask Knowledge Interaction is succesfully unregistered.
+          description: If the Knowledge Interaction is succesfully unregistered.
         '400':
-          description: If unregistering the Ask Knowledge Interaction failed.
+          description: If unregistering the Knowledge Interaction failed.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
         '404':
           description: If a Knowledge Interaction or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
-  /sc/ki/answer:
-    put:
-      summary: Register an Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      parameters:
-        - name: Knowledge-Base-Id
-          in: header
-          required: true
-          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                knowledgeInteractionType:
-                  type: string
-                communicativeAct: 
-                  type: array
-                  items:
-                    type: string
-                graphPattern:
-                  type: string
-      responses:
-        '200':
-          description: If the Answer Knowledge Interaction is succesfully registered.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  knowledgeInteractionId:
-                    type: string
-        '400':
-          description: If registering the Answer Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-    delete:
-      summary: Unregister the Answer Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      parameters:
-        - name: Knowledge-Base-Id
-          in: header
-          required: true
-          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-        - name: Knowledge-Interaction-Id
-          in: header
-          required: true
-          description: The Knowledge Interaction id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: If the Answer Knowledge Interaction is succesfully unregistered.
-        '400':
-          description: If unregistering the  Answer Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-  /sc/ki/post:
-    put:
-      summary: Register a Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      parameters:
-        - name: Knowledge-Base-Id
-          in: header
-          required: true
-          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                knowledgeInteractionType:
-                  type: string
-                communicativeAct: 
-                  type: array
-                  items:
-                    type: string
-                argumentGraphPattern:
-                  type: string
-                resultGraphPattern:
-                  type: string
-      responses:
-        '200':
-          description: If the Post Knowledge Interaction is succesfully registered.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  knowledgeInteractionId:
-                    type: string
-        '400':
-          description: If registering the Post Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-    delete:
-      summary: Unregister the Post Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      parameters:
-        - name: Knowledge-Base-Id
-          in: header
-          required: true
-          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-        - name: Knowledge-Interaction-Id
-          in: header
-          required: true
-          description: The Knowledge Interaction Id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: If the Post Knowledge Interaction is succesfully unregistered.
-        '400':
-          description: If unregistering the Post Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-  /sc/ki/react:
-    put:
-      summary: Register a React Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                knowledgeInteractionType:
-                  type: string
-                communicativeAct: 
-                  type: array
-                  items:
-                    type: string
-                argumentGraphPattern:
-                  type: string
-                resultGraphPattern:
-                  type: string
-      responses:
-        '200':
-          description: If the React Knowledge Interaction is succesfully registered.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  knowledgeInteractionId:
-                    type: string
-        '400':
-          description: If registering the React Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-    delete:
-      summary: Unregister the React Knowledge Interaction with the Smart Connector of the given Knowledge Base
-      tags:
-        - knowledge interaction
-      parameters:
-        - name: Knowledge-Base-Id
-          in: header
-          required: true
-          description: The Knowledge Base id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-        - name: Knowledge-Interaction-Id
-          in: header
-          required: true
-          description: The Knowledge Interaction id of the Knowledge Interaction that should be deleted.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: If the React Knowledge Interaction is succesfully unregistered.
-        '400':
-          description: If unregistering React Knowledge Interaction failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
-        '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
   /sc/ask:
-    put:
+    post:
       summary: Execute the given Ask Knowledge Interaction with the given binding set.
       tags:
         - proactive
@@ -409,32 +206,25 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the ask was succesfull it returns all found variable bindings together with additional exchange info.
+          description: If the ask was succesfull it returns all found variable bindings together with additional exchange info. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bindingSet:
-                    $ref: '#/components/schemas/BindingSet'
-                  exchangeInfos:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AskExchangeInfo'
+                $ref: '#/components/schemas/AskResult'
         '400':
           description: If the ask failed.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
   /sc/post:
-    put:
+    post:
       summary: Execute the given Post Knowledge Interaction with the given binding set.
       tags:
         - proactive
@@ -455,31 +245,24 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                bindingSet:
-                  $ref: '#/components/schemas/BindingSet'
-                exchangeInfos:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/PostExchangeInfo'
+              $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the post was succesfull it optionally returns all result variable bindings together with all exchange infos.
+          description: If the post was succesfull it optionally returns all result variable bindings together with all exchange infos. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BindingSet'
+                $ref: '#/components/schemas/PostResult'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
-      description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. <b>Maybe introduce a <i>handle request id</i> to know which handle request we are reacting to in the <i>put</i> method of this path. </b>
+      description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. The <i>handle request id</i> should be used when sending the result to the server. It allows the server to know which handle request you are reacting to in the <i>post</i> method of this path. </b>
       tags:
         - reactive
       parameters:
@@ -499,6 +282,8 @@ paths:
                 properties:
                   knowledgeInteractionId:
                     type: string
+                  handleRequestId:
+                    type: integer
                   bindingSet:
                     $ref: '#/components/schemas/BindingSet'
         '202':
@@ -506,18 +291,18 @@ paths:
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
         '410':
           description: This long polling connection has stopped because the server will shut down, please do <b>not</b> reinitiate this request.
         '500':
           description: If a problem occurred. Please reinitiate this long polling http call.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
-    put:
+                type: string
+    post:
       summary: Send the answer or reaction of the last long polling handle request back to the Smart Connector of the given Knowledge-Base-Id.
       tags:
         - reactive
@@ -538,28 +323,37 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BindingSet'
+              type: object
+              properties:
+                handleRequestId:
+                  type: integer
+                bindingSet:
+                  $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
           description: If the answer is successfully processed by your smart connector.
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/GeneralError'
+                type: string
 components:
   schemas:
-    GeneralError:
+    SmartConnector:
       type: object
       properties:
-        errorMessage:
+        knowledgeBaseId:
+          type: string
+        knowledgeBaseName:
+          type: string
+        knowledgeBaseDescription:
           type: string
     BindingSet:
       type: array
@@ -570,6 +364,64 @@ components:
               type: string
             var2:
               type: string
+    KnowledgeInteraction:
+      type: object
+      discriminator:
+        propertyName: knowledgeInteractionType
+      properties:
+        knowledgeInteractionType:
+          type: string
+        communicativeAct:
+          $ref: '#/components/schemas/CommunicativeAct'
+    Workaround:
+      oneOf:
+        - $ref: '#/components/schemas/AskKnowledgeInteraction'
+        - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
+        - $ref: '#/components/schemas/PostKnowledgeInteraction'
+        - $ref: '#/components/schemas/ReactKnowledgeInteraction'
+    AskKnowledgeInteraction:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - type: object
+          properties:
+            graphPattern:
+              type: string
+    AnswerKnowledgeInteraction:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - type: object
+          properties:
+            graphPattern:
+              type: string
+    PostKnowledgeInteraction:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - type: object
+          properties:
+            argumentGraphPattern:
+              type: string
+            resultGraphPattern:
+              type: string
+    ReactKnowledgeInteraction:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - type: object
+          properties:
+            argumentGraphPattern:
+              type: string
+            resultGraphPattern:
+              type: string
+    CommunicativeAct:
+      type: object
+      properties:
+        requiredPurposes:
+          type: array
+          items:
+            type: string
+        satisfiedPurposes:
+          type: array
+          items:
+            type: string
     AskResult:
       type: object
       properties:
@@ -588,47 +440,41 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PostExchangeInfo'
+    ExchangeInfo:
+      type: object
+      properties:
+        initiator:
+          type: string
+          enum:
+            - knowledgeBase
+            - reasoner
+        knowledgeBaseId:
+          type: string
+        knowledgeInteractionId:
+          type: string
+        exchangeStart:
+          type: string
+          format: date-time
+        exchangeEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+        failedMessage:
+          type: string
     AskExchangeInfo:
-      type: object
-      properties:
-        initiator:
-          type: string
-        knowledgeBaseId:
-          type: string
-        knowledgeInteractionId:
-          type: string
-        exchangeStart:
-          type: string
-          format: date-time
-        exchangeEnd:
-          type: string
-          format: date-time
-        status:
-          type: string
-        failedMessage:
-          type: string
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
+      allOf:
+        - $ref: '#/components/schemas/ExchangeInfo'
+        - type: object
+          properties:
+            bindingSet: 
+              $ref: '#/components/schemas/BindingSet'
     PostExchangeInfo:
-      type: object
-      properties:
-        initiator:
-          type: string
-        knowledgeBaseId:
-          type: string
-        knowledgeInteractionId:
-          type: string
-        exchangeStart:
-          type: string
-          format: date-time
-        exchangeEnd:
-          type: string
-          format: date-time
-        status:
-          type: string
-        failedMessage:
-          type: string
-        argumentBindingSet:
-          $ref: '#/components/schemas/BindingSet'
-        resultBindingSet:
-          $ref: '#/components/schemas/BindingSet'
+      allOf:
+        - $ref: '#/components/schemas/ExchangeInfo'
+        - type: object
+          properties:
+            argumentBindingSet:
+              $ref: '#/components/schemas/BindingSet'
+            resultBindingSet:
+              $ref: '#/components/schemas/BindingSet'
