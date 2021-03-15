@@ -56,7 +56,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: If the Smart Connector for the given Knowledge Base is succesfully created.
+          description: If the Smart Connector for the given Knowledge Base is successfully created.
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
           content:
@@ -97,7 +97,7 @@ paths:
             type: string
       responses:
         '200':
-          description: If the Knowledge Interactions were succesfully returned.
+          description: If the Knowledge Interactions were successfully returned.
           content:
             application/json:
               schema:
@@ -131,7 +131,7 @@ paths:
               graphPattern: "?s ?p ?o"
       responses:
         '200':
-          description: If theKnowledge Interaction is succesfully registered, it returns the knowledge interaction id.
+          description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
           content:
             text/plain:
               schema:
@@ -168,7 +168,7 @@ paths:
             type: string
       responses:
         '200':
-          description: If the Knowledge Interaction is succesfully unregistered.
+          description: If the Knowledge Interaction is successfully unregistered.
         '400':
           description: If unregistering the Knowledge Interaction failed.
           content:
@@ -206,7 +206,7 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the ask was succesfull it returns all found variable bindings together with additional exchange info. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
+          description: If the ask was successful it returns all found variable bindings together with additional exchange info. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json:
               schema:
@@ -248,7 +248,7 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the post was succesfull it optionally returns all result variable bindings together with all exchange infos. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
+          description: If the post was successful it optionally returns all result variable bindings together with all exchange infos. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json:
               schema:
@@ -358,12 +358,9 @@ components:
     BindingSet:
       type: array
       items:
-          type: object
-          properties:
-            var1:
-              type: string
-            var2:
-              type: string
+        type: object
+        additionalProperties:
+          type: string
     KnowledgeInteraction:
       type: object
       discriminator:
