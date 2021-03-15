@@ -29,6 +29,7 @@ public class ScApiServiceImpl extends ScApiService {
 	private static final Logger LOG = LoggerFactory.getLogger(ScApiServiceImpl.class);
 
 	private Map<URI, SmartConnector> connectors = new HashMap<>();
+	private Map<URI, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> models = new HashMap<>();
 
 	@Override
 	public Response scPost(InlineObject req, SecurityContext securityContext) throws NotFoundException {
@@ -87,21 +88,32 @@ public class ScApiServiceImpl extends ScApiService {
 
 		// Store it in the map.
 		this.connectors.put(kbId, sc);
+		this.models.put(kbId, new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector()
+			.knowledgeBaseId(kbId.toString())
+			.knowledgeBaseName(kbName)
+			.knowledgeBaseDescription(kbDescription)
+		);
 
 		return Response.ok().build();
 	}
 
 	@Override
-	public Response scAskPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
-			List<Map<String, String>> requestBody, SecurityContext securityContext) throws NotFoundException {
-		
-		
-//		var sc = new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector();
-		
-		
-		
-		LOG.info("scAskPost()");
-		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scAskPost!")).build();
+	public Response scGet(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
+		if (knowledgeBaseId == null) {
+			return Response.ok().entity(this.models.values()).build();
+		} else {
+			URI kbId;
+			try {
+				kbId = new URI(knowledgeBaseId);
+			} catch (URISyntaxException e) {
+				return Response.status(404).entity("Knowledge base not found, because its ID must be a valid URI.").build();
+			}
+			if (this.models.containsKey(kbId)) {
+				return Response.ok().entity(new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector[] { this.models.get(kbId) }).build();
+			} else {
+				return Response.status(404).entity("Knowledge base not found.").build();
+			}
+		}
 	}
 
 	@Override
@@ -111,12 +123,13 @@ public class ScApiServiceImpl extends ScApiService {
 		LOG.info("scDelete()");
 		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scDelete!")).build();
 	}
-
+	
 	@Override
-	public Response scGet(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
+	public Response scAskPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
+	List<Map<String, String>> requestBody, SecurityContext securityContext) throws NotFoundException {
 		// do some magic!
-		LOG.info("scGet()");
-		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scGet!")).build();
+		LOG.info("scAskPost()");
+		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scAskPost!")).build();
 	}
 
 	@Override
