@@ -27,7 +27,7 @@ public class ScApiServiceImpl extends ScApiService {
 
 	@Override
 	public Response scAskPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
-			List<Object> requestBody, SecurityContext securityContext) throws NotFoundException {
+			List<Map<String, String>> requestBody, SecurityContext securityContext) throws NotFoundException {
 		
 		
 //		var sc = new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector();
@@ -101,7 +101,7 @@ public class ScApiServiceImpl extends ScApiService {
 
 	@Override
 	public Response scPostPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
-			List<Object> requestBody, SecurityContext securityContext) throws NotFoundException {
+			List<Map<String, String>> requestBody, SecurityContext securityContext) throws NotFoundException {
 		// do some magic!
 		LOG.info("scPostPost()");
 		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scPostPost!")).build();
