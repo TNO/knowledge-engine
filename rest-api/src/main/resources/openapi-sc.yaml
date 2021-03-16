@@ -261,6 +261,7 @@ paths:
                 type: string
   /sc/handle:
     get:
+      deprecated: true
       summary: Start waiting for a handle request for the given Knowledge Base Id.
       description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. The <i>handle request id</i> should be used when sending the result to the server. It allows the server to know which handle request you are reacting to in the <i>post</i> method of this path. </b>
       tags:

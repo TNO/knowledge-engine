@@ -124,6 +124,8 @@
 		</dependency>
 	</dependencies>
 
+
+
 	<build>
 		<plugins>
 			<plugin>
@@ -143,9 +145,12 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
+							<generateApis>true</generateApis>
+							<apisToGenerate>KnowledgeInteractionLifeCycle,Proactive,SmartConnectorLifeCycle</apisToGenerate>
 							<configOptions>
-								<!-- <sourceFolder>src/bla/java</sourceFolder> -->
 								<implFolder>dummy</implFolder>
+								<strictSpec>true</strictSpec>
+								<useTags>true</useTags>
 							</configOptions>
 						</configuration>
 					</execution>
