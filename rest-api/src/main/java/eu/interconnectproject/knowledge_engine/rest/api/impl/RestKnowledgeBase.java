@@ -1,27 +1,39 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.servlet.AsyncContext;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
@@ -31,51 +43,171 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeI
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class RestKnowledgeBase implements KnowledgeBase {
+
+	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBase.class);
 
 	private String knowledgeBaseId;
 	private String knowledgeBaseName;
 	private String knowledgeBaseDescription;
 
+	private AtomicInteger handleRequestId;
+
+	/**
+	 * Can be null, if no connection with the client is available.
+	 */
 	private AsyncContext asyncContext;
+
+	/**
+	 * The Smart connector of this KB asks us to handle a certain request
+	 * (Ask,Post). These should be send to the asyncContext, but if it is not
+	 * available, it will be placed on a queue.
+	 */
 	private Queue<HandleRequest> toBeProcessedHandleRequests;
+
+	/**
+	 * The client has received the handle request and it is currently being
+	 * processed, once it has been processed and the results come in, we send the
+	 * data to the smart connector.
+	 */
 	private Map<String, HandleRequest> beingProcessedHandleRequests;
-	private ReactHandler reactHandler;
+	private ObjectMapper om = new ObjectMapper();
 	private SmartConnector sc;
-	private Map<URI, KnowledgeInteraction> knowledgeInteractions = new HashMap<>();
+	private Map<URI, KnowledgeInteraction> knowledgeInteractions;
+
+	private AnswerHandler answerHandler = new AnswerHandler() {
+
+		@Override
+		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			List<Map<String, String>> bindings = convertBindingSetToListOfMaps(aBindingSet);
+
+			int myHandleRequestId = handleRequestId.incrementAndGet();
+
+			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
+					KnowledgeInteractionInfo.Type.ANSWER, bindings, future);
+
+			toBeProcessedByKnowledgeBase(hr);
+
+			try {
+				return future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("An error occurred while handling request {} for knowledge base {}.", hr,
+						RestKnowledgeBase.this.getKnowledgeBaseId());
+			}
+			return new BindingSet();
+		}
+	};
+
+	private ReactHandler reactHandler = new ReactHandler() {
+
+		@Override
+		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			List<Map<String, String>> bindings = convertBindingSetToListOfMaps(aBindingSet);
+			int myHandleRequestId = handleRequestId.incrementAndGet();
+			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
+					KnowledgeInteractionInfo.Type.REACT, bindings, future);
+
+			toBeProcessedByKnowledgeBase(hr);
+
+			try {
+				return future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("An error occurred while handling request {} for knowledge base {}.", hr,
+						RestKnowledgeBase.this.getKnowledgeBaseId());
+			}
+			return new BindingSet();
+		}
+	};
+
+	public List<Map<String, String>> convertBindingSetToListOfMaps(BindingSet bs) {
+
+		List<Map<String, String>> bindings = new ArrayList<>();
+		Map<String, String> binding;
+		for (Binding b : bs) {
+			binding = new HashMap<String, String>();
+			for (String var : b.getVariables()) {
+				binding.put(var, b.get(var));
+			}
+		}
+		return bindings;
+	}
+
+	public BindingSet convertListOfMapsToBindingSet(List<Map<String, String>> bs) {
+
+		BindingSet bindings = new BindingSet();
+		Binding binding;
+		for (Map<String, String> b : bs) {
+			binding = new Binding();
+
+			for (String var : b.keySet()) {
+				binding.put(var, b.get(var));
+			}
+		}
+		return bindings;
+	}
 
 	public RestKnowledgeBase(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
+		this.knowledgeInteractions = new HashMap<>();
+		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(2);
+		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<String, HandleRequest>());
+		this.handleRequestId = new AtomicInteger(0);
+
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}
 
-	private AnswerHandler handler = new AnswerHandler() {
+	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {
 
-		@Override
-		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+		try {
+			if (asyncContext != null) {
+				// immediately process
+				PrintWriter writer = asyncContext.getResponse().getWriter();
 
-//			CompletableFuture future = doSomeThing();
+				// TODO what about knowledgeInteractionId?
+				InlineObject1 object = new InlineObject1().bindingSet(handleRequest.getBindingSet())
+						.handleRequestId(handleRequest.getHandleRequestId());
 
-			CompletableFuture<BindingSet> future2 = new CompletableFuture<>();
-			// toBeProcessedByKnowledgeBase(future2);
+				writer.write(this.om.writeValueAsString(object));
 
-			try {
-				return future2.get();
-			} catch (InterruptedException | ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// TODO do we need to writer.flush()?
+				this.asyncContext.complete();
+				this.asyncContext = null;
+
+			} else {
+				// add to queue
+				this.toBeProcessedHandleRequests.add(handleRequest);
 			}
-			return null;
+		} catch (IOException e) {
+			LOG.error("{}", e);
 		}
+	}
 
-	};
+	public boolean hasAsyncContext() {
+		return this.asyncContext != null;
+	}
+
+	public void handleRequest(AsyncContext asyncContext) {
+
+		this.asyncContext = asyncContext;
+		HandleRequest hr = toBeProcessedHandleRequests.poll();
+		if (hr != null) {
+			// there is a handle request waiting
+			toBeProcessedByKnowledgeBase(hr);
+		}
+	}
 
 	public boolean register(Workaround workaround) {
-		var ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()), toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
+		var ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
+				toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
 
 		String type = workaround.getKnowledgeInteractionType();
 		if (type.equals("AskKnowledgeInteraction")) {
@@ -84,14 +216,16 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
 			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(workaround.getGraphPattern()));
-			URI kiId = this.sc.register(answerKI, this.handler);
+			URI kiId = this.sc.register(answerKI, this.answerHandler);
 			this.knowledgeInteractions.put(kiId, answerKI);
 		} else if (type.equals("PostKnowledgeInteraction")) {
-			var postKI = new PostKnowledgeInteraction(ca, new GraphPattern(workaround.getArgumentGraphPattern()), new GraphPattern(workaround.getResultGraphPattern()));
+			var postKI = new PostKnowledgeInteraction(ca, new GraphPattern(workaround.getArgumentGraphPattern()),
+					new GraphPattern(workaround.getResultGraphPattern()));
 			URI kiId = this.sc.register(postKI);
 			this.knowledgeInteractions.put(kiId, postKI);
 		} else if (type.equals("ReactKnowledgeInteraction")) {
-			var reactKI = new ReactKnowledgeInteraction(ca, new GraphPattern(workaround.getArgumentGraphPattern()), new GraphPattern(workaround.getResultGraphPattern()));
+			var reactKI = new ReactKnowledgeInteraction(ca, new GraphPattern(workaround.getArgumentGraphPattern()),
+					new GraphPattern(workaround.getResultGraphPattern()));
 			URI kiId = this.sc.register(reactKI, this.reactHandler);
 			this.knowledgeInteractions.put(kiId, reactKI);
 		} else {
@@ -110,20 +244,20 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	public Workaround getKnowledgeInteraction(String knowledgeInteractionId) {
 		throw new RuntimeException("TODO");
 	}
-	
+
 	public Set<Workaround> getKnowledgeInteractions() {
 		throw new RuntimeException("TODO");
 	}
-	
+
 	public boolean delete(String knowledgeInteractionId) {
 		throw new RuntimeException("TODO");
 	}
-	
+
 	public AskResult ask(String kiId, List<Map<String, String>> bindings) {
 		throw new RuntimeException("TODO");
 		// this.sc.ask(new URI(kiId), bindings);
 	}
-	
+
 	public PostResult post(String kiId, List<Map<String, String>> bindings) {
 		throw new RuntimeException("TODO");
 		// this.sc.post(ki, bindings)

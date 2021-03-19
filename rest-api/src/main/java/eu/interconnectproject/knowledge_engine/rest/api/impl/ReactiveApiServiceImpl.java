@@ -1,13 +1,15 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.AsyncContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -25,12 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import io.swagger.annotations.ApiParam;
 
 @Path("/sc")
 public class ReactiveApiServiceImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReactiveApiServiceImpl.class);
+
+	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@GET
 	@Path("/handle")
@@ -41,32 +46,38 @@ public class ReactiveApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext,
 			@Context HttpServletRequest servletRequest) throws NotFoundException, IOException {
 
+//		asyncResponse.cancel();
+
+		LOG.info("scHandleGet() called!");
 		assert servletRequest.isAsyncStarted();
 		final AsyncContext asyncContext = servletRequest.getAsyncContext();
-		final ServletOutputStream s = asyncContext.getResponse().getOutputStream();
 
-		s.setWriteListener(new WriteListener() {
-			volatile boolean done = false;
+		ServletResponse r = asyncContext.getResponse();
+		assert r instanceof HttpServletResponse;
+		HttpServletResponse httpResponse = (HttpServletResponse) r;
 
-			public void onWritePossible() throws IOException {
-				while (s.isReady()) {
-					if (done) {
-						asyncContext.complete();
-						asyncResponse.isCancelled();
-						break;
-					} else {
-						s.write(12);
-						done = true;
-					}
-				}
+		// TODO can we wrap the servletresponse in a JAX-RS response?
+		try {
+			new URI(knowledgeBaseId);
+		} catch (URISyntaxException e) {
+			httpResponse.sendError(400, "Smart Connector not found, because its ID must be a valid URI.");
+		}
+
+		if (manager.hasKB(knowledgeBaseId)) {
+
+			RestKnowledgeBase kb = manager.getKB(knowledgeBaseId);
+
+			if (!kb.hasAsyncContext()) {
+				kb.handleRequest(asyncContext);
+			} else {
+				httpResponse.sendError(500,
+						"Only one connection per Knowledge-Base-Id is allowed and we already have one.");
+				asyncContext.complete();
 			}
-
-			@Override
-			public void onError(Throwable t) {
-				LOG.error("AN error occurred.");
-
-			}
-		});
+		} else {
+			httpResponse.sendError(404,
+					"If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.");
+		}
 	}
 
 	@POST
@@ -78,6 +89,38 @@ public class ReactiveApiServiceImpl {
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 			@ApiParam(value = "") @Valid List<Map<String, String>> requestBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
+
+		LOG.info("scHandlePost() called {}", requestBody);
+
+		if (knowledgeBaseId == null) {
+			return Response.status(400)
+					.entity("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId)
+					.build();
+		}
+
+		try {
+			new URI(knowledgeBaseId);
+		} catch (URISyntaxException e) {
+			return Response.status(400)
+					.entity("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId)
+					.build();
+		}
+
+		if (manager.hasKB(knowledgeBaseId)) {
+			// knowledgebase exists
+			RestKnowledgeBase kb = manager.getKB(knowledgeBaseId);
+
+			Workaround ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+			if (ki != null) {
+				// knowledge interaction exists
+
+			}
+
+		} else {
+			return Response.status(400).entity(
+					"If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.")
+					.build();
+		}
 
 		return Response.serverError().build();
 	}
