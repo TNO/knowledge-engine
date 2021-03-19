@@ -11,13 +11,13 @@
 	</parent>
 
 	<properties>
-		<java.version>1.7</java.version>
+		<java.version>11</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<swagger-core-version>1.5.18</swagger-core-version>
 		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
 		<jetty-version>9.2.9.v20150224</jetty-version>
-		<jersey2-version>2.22.2</jersey2-version>
+		<jersey2-version>2.30.1</jersey2-version>
 		<jackson-version>2.9.9</jackson-version>
 		<junit-version>4.13.1</junit-version>
 		<logback-version>1.1.7</logback-version>
@@ -35,7 +35,12 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet</artifactId>
-			<version>2.22.2</version>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+    <groupId>org.glassfish.jersey.inject</groupId>
+				<artifactId>jersey-hk2</artifactId>
+				<version>${jersey2-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -100,19 +105,19 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
-			<version>9.4.0.v20161208</version>
+			<version>${jetty-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>9.4.0.v20161208</version>
+			<version>${jetty-version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.0.v20161208</version>
+			<version>${jetty-version}</version>
 		</dependency>
 
 		<!-- Add XML suport -->
@@ -182,5 +187,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
