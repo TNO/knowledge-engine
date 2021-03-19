@@ -22,19 +22,11 @@ public class Main {
 		ctx.setContextPath("/");
 		server.setHandler(ctx);
 
-//		ServletHolder serHol2 = ctx.addServlet(AsyncServlet.class, "/rest/sc/handle");
-//		serHol2.setInitOrder(1);
-
 		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/rest/*");
 		serHol.setInitOrder(1);
-//		serHol.setInitParameter("jersey.config.server.provider.packages",
-//				"eu.interconnectproject.knowlege_engine.rest");
-		serHol.setInitParameter("javax.ws.rs.Application" , "eu.interconnectproject.knowlege_engine.rest.api.impl.Application");
+		serHol.setInitParameter("jersey.config.server.provider.packages",
+				"eu.interconnectproject.knowlege_engine.rest");
 
-		ServletHandler sh = serHol.getServletHandler();
-		
-		LOG.info("Filters: {}", Arrays.asList(sh.getFilters()));
-		
 		try {
 			server.start();
 			server.join();

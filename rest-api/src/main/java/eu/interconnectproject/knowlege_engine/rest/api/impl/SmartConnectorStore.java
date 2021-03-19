@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 
-@Singleton
-@Path("singleton-configuration-service")
 public class SmartConnectorStore {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorStore.class);
@@ -23,8 +21,17 @@ public class SmartConnectorStore {
 	private Map<URI, SmartConnector> connectors = new HashMap<>();
 	private Map<URI, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> models = new HashMap<>();
 
-	public SmartConnectorStore() {
+	private static SmartConnectorStore instance;
+
+	private SmartConnectorStore() {
 		LOG.info("Store initialized!");
+	}
+
+	public static SmartConnectorStore newInstance() {
+		if (instance == null) {
+			instance = new SmartConnectorStore();
+		}
+		return instance;
 	}
 
 	public boolean containsSC(URI knowledgeBaseId) {
@@ -34,9 +41,8 @@ public class SmartConnectorStore {
 	public void putSC(URI knowledgeBaseId, SmartConnector sc) {
 		this.connectors.put(knowledgeBaseId, sc);
 	}
-	
-	public SmartConnector getSC(URI knowledgeBaseId)
-	{
+
+	public SmartConnector getSC(URI knowledgeBaseId) {
 		return this.connectors.get(knowledgeBaseId);
 	}
 
@@ -51,7 +57,7 @@ public class SmartConnectorStore {
 	public Set<eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> getKBs() {
 		return new HashSet<>(this.models.values());
 	}
-	
+
 	public eu.interconnectproject.knowlege_engine.rest.model.SmartConnector getKB(URI knowledgeBaseId) {
 		return this.models.get(knowledgeBaseId);
 	}

@@ -20,6 +20,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class ProactiveApiServiceImpl extends ProactiveApiService {
+	
+	private SmartConnectorStore store = SmartConnectorStore.newInstance();
+	
     @Override
     public Response scAskPost( @NotNull String knowledgeBaseId,  @NotNull String knowledgeInteractionId, List<Map<String, String>> requestBody, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
