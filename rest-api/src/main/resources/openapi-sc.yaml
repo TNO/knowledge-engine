@@ -124,9 +124,9 @@ paths:
             example:
               knowledgeInteractionType: AskKnowledgeInteraction
               communicativeAct:
-                requiredPurpose:
+                requiredPurposes:
                   - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
-                satisfiedPurpose:
+                satisfiedPurposes:
                   - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
               graphPattern: "?s ?p ?o"
       responses:

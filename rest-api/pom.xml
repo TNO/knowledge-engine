@@ -132,6 +132,14 @@
 			<artifactId>smart-connector</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
+		<!-- jena -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<version>3.17.0</version>
+			<type>pom</type>
+		</dependency>
 	</dependencies>
 
 

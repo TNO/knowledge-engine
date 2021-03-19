@@ -23,9 +23,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	@Override
 	public Response scDelete(@NotNull String knowledgeBaseId, SecurityContext securityContext)
 			throws NotFoundException {
-		URI kbId;
 		try {
-			kbId = new URI(knowledgeBaseId);
+			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
 			return Response.status(400).entity("Smart Connector not found, because its ID must be a valid URI.")
 					.build();
@@ -46,9 +45,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 		if (knowledgeBaseId == null) {
 			return Response.ok().entity(convertToModel(this.manager.getKBs())).build();
 		} else {
-			URI kbId;
 			try {
-				kbId = new URI(knowledgeBaseId);
+				new URI(knowledgeBaseId);
 			} catch (URISyntaxException e) {
 				return Response.status(400).entity("Smart Connector not found, because its ID must be a valid URI.")
 						.build();
@@ -61,10 +59,13 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 		}
 	}
 
-	private SmartConnector[] convertToModel(Set<RestKnowledgeBase> kBs) {
-
-		throw new RuntimeException("Not yet implemented!");
-
+	private eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[] convertToModel(Set<RestKnowledgeBase> kbs) {
+		return kbs.stream().map((restKb) -> {
+			return new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
+				.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
+				.knowledgeBaseName(restKb.getKnowledgeBaseName())
+				.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription());
+		}).toArray(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[]::new);
 	}
 
 	@Override
