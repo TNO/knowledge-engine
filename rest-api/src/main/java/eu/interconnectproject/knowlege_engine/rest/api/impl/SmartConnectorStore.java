@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Singleton;
-import javax.ws.rs.Path;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,28 +35,37 @@ public class SmartConnectorStore {
 		return connectors.containsKey(knowledgeBaseId);
 	}
 
-	public void putSC(URI knowledgeBaseId, SmartConnector sc) {
+	public void putSC(URI knowledgeBaseId, SmartConnector sc, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector scModel) {
 		this.connectors.put(knowledgeBaseId, sc);
+		this.models.put(knowledgeBaseId, scModel);
 	}
 
 	public SmartConnector getSC(URI knowledgeBaseId) {
 		return this.connectors.get(knowledgeBaseId);
 	}
 
-	public boolean hasKB(URI knowledgeBaseId) {
+	public boolean hasSC(URI knowledgeBaseId) {
 		return this.models.containsKey(knowledgeBaseId);
 	}
 
-	public void putKB(URI knowledgeBaseId, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector scModel) {
-		this.models.put(knowledgeBaseId, scModel);
-	}
-
-	public Set<eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> getKBs() {
+	public Set<eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> getSCModels() {
 		return new HashSet<>(this.models.values());
 	}
 
-	public eu.interconnectproject.knowlege_engine.rest.model.SmartConnector getKB(URI knowledgeBaseId) {
+	public eu.interconnectproject.knowlege_engine.rest.model.SmartConnector getSCModel(URI knowledgeBaseId) {
 		return this.models.get(knowledgeBaseId);
 	}
 
+	public boolean deleteSC(URI knowledgeBaseId) {
+		SmartConnector sc = this.connectors.remove(knowledgeBaseId);
+		if (sc == null) {
+			return false;
+		}
+		sc.stop();
+		eu.interconnectproject.knowlege_engine.rest.model.SmartConnector model = this.models.remove(knowledgeBaseId);
+		if (model == null) {
+			return false;
+		}
+		return true;
+	}
 }

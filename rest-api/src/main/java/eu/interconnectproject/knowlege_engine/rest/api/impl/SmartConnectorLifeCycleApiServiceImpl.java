@@ -3,7 +3,6 @@ package eu.interconnectproject.knowlege_engine.rest.api.impl;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -11,7 +10,6 @@ import javax.ws.rs.core.SecurityContext;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowlege_engine.rest.api.ApiResponseMessage;
 import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowlege_engine.rest.api.SmartConnectorLifeCycleApiService;
 import eu.interconnectproject.knowlege_engine.rest.model.InlineObject;
@@ -25,14 +23,25 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	@Override
 	public Response scDelete(@NotNull String knowledgeBaseId, SecurityContext securityContext)
 			throws NotFoundException {
-		// do some magic!
-		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "scDelete!")).build();
+		URI kbId;
+		try {
+			kbId = new URI(knowledgeBaseId);
+		} catch (URISyntaxException e) {
+			return Response.status(404).entity("Knowledge base not found, because its ID must be a valid URI.").build();
+		}
+		boolean deleted = store.deleteSC(kbId);
+		
+		if (!deleted) {
+			return Response.status(404).entity("Deletion of smart connector failed.").build();
+		}
+
+		return Response.ok().build();
 	}
 
 	@Override
 	public Response scGet(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
 		if (knowledgeBaseId == null) {
-			return Response.ok().entity(this.store.getKBs()).build();
+			return Response.ok().entity(this.store.getSCModels()).build();
 		} else {
 			URI kbId;
 			try {
@@ -40,8 +49,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			} catch (URISyntaxException e) {
 				return Response.status(404).entity("Knowledge base not found, because its ID must be a valid URI.").build();
 			}
-			if (this.store.hasKB(kbId)) {
-				return Response.ok().entity(new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector[] { this.store.getKB(kbId) }).build();
+			if (this.store.hasSC(kbId)) {
+				return Response.ok().entity(new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector[] { this.store.getSCModel(kbId) }).build();
 			} else {
 				return Response.status(404).entity("Knowledge base not found.").build();
 			}
@@ -104,8 +113,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 		}).create();
 
 		// Store it in the map.
-		this.store.putSC(kbId, sc);
-		this.store.putKB(kbId, new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector()
+		this.store.putSC(kbId, sc, new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector()
 			.knowledgeBaseId(kbId.toString())
 			.knowledgeBaseName(kbName)
 			.knowledgeBaseDescription(kbDescription)
