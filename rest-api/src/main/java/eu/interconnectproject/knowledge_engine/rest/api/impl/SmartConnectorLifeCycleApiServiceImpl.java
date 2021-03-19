@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowlege_engine.rest.api.impl;
+package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,9 +10,9 @@ import javax.ws.rs.core.SecurityContext;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
-import eu.interconnectproject.knowlege_engine.rest.api.SmartConnectorLifeCycleApiService;
-import eu.interconnectproject.knowlege_engine.rest.model.InlineObject;
+import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.api.SmartConnectorLifeCycleApiService;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCycleApiService {
@@ -50,7 +50,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 				return Response.status(404).entity("Knowledge base not found, because its ID must be a valid URI.").build();
 			}
 			if (this.store.hasSC(kbId)) {
-				return Response.ok().entity(new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector[] { this.store.getSCModel(kbId) }).build();
+				return Response.ok().entity(new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[] { this.store.getSCModel(kbId) }).build();
 			} else {
 				return Response.status(404).entity("Knowledge base not found.").build();
 			}
@@ -113,7 +113,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 		}).create();
 
 		// Store it in the map.
-		this.store.putSC(kbId, sc, new eu.interconnectproject.knowlege_engine.rest.model.SmartConnector()
+		this.store.putSC(kbId, sc, new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
 			.knowledgeBaseId(kbId.toString())
 			.knowledgeBaseName(kbName)
 			.knowledgeBaseDescription(kbDescription)

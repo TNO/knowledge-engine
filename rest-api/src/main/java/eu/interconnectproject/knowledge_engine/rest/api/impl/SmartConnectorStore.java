@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowlege_engine.rest.api.impl;
+package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public class SmartConnectorStore {
 	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorStore.class);
 
 	private Map<URI, SmartConnector> connectors = new HashMap<>();
-	private Map<URI, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> models = new HashMap<>();
+	private Map<URI, eu.interconnectproject.knowledge_engine.rest.model.SmartConnector> models = new HashMap<>();
 
 	private static SmartConnectorStore instance;
 
@@ -35,7 +35,7 @@ public class SmartConnectorStore {
 		return connectors.containsKey(knowledgeBaseId);
 	}
 
-	public void putSC(URI knowledgeBaseId, SmartConnector sc, eu.interconnectproject.knowlege_engine.rest.model.SmartConnector scModel) {
+	public void putSC(URI knowledgeBaseId, SmartConnector sc, eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
 		this.connectors.put(knowledgeBaseId, sc);
 		this.models.put(knowledgeBaseId, scModel);
 	}
@@ -48,11 +48,11 @@ public class SmartConnectorStore {
 		return this.models.containsKey(knowledgeBaseId);
 	}
 
-	public Set<eu.interconnectproject.knowlege_engine.rest.model.SmartConnector> getSCModels() {
+	public Set<eu.interconnectproject.knowledge_engine.rest.model.SmartConnector> getSCModels() {
 		return new HashSet<>(this.models.values());
 	}
 
-	public eu.interconnectproject.knowlege_engine.rest.model.SmartConnector getSCModel(URI knowledgeBaseId) {
+	public eu.interconnectproject.knowledge_engine.rest.model.SmartConnector getSCModel(URI knowledgeBaseId) {
 		return this.models.get(knowledgeBaseId);
 	}
 
@@ -62,7 +62,7 @@ public class SmartConnectorStore {
 			return false;
 		}
 		sc.stop();
-		eu.interconnectproject.knowlege_engine.rest.model.SmartConnector model = this.models.remove(knowledgeBaseId);
+		eu.interconnectproject.knowledge_engine.rest.model.SmartConnector model = this.models.remove(knowledgeBaseId);
 		if (model == null) {
 			return false;
 		}

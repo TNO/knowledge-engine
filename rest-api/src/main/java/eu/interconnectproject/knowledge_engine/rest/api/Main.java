@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowlege_engine.rest.api;
+package eu.interconnectproject.knowledge_engine.rest.api;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -22,7 +22,7 @@ public class Main {
 		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/rest/*");
 		serHol.setInitOrder(1);
 		serHol.setInitParameter("jersey.config.server.provider.packages",
-				"eu.interconnectproject.knowlege_engine.rest");
+				"eu.interconnectproject.knowledge_engine.rest");
 
 		try {
 			server.start();

@@ -144,9 +144,9 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.interconnectproject.knowlege_engine.rest</packageName>
-							<apiPackage>eu.interconnectproject.knowlege_engine.rest.api</apiPackage>
-							<modelPackage>eu.interconnectproject.knowlege_engine.rest.model</modelPackage>
+							<packageName>eu.interconnectproject.knowledge_engine.rest</packageName>
+							<apiPackage>eu.interconnectproject.knowledge_engine.rest.api</apiPackage>
+							<modelPackage>eu.interconnectproject.knowledge_engine.rest.model</modelPackage>
 							<inputSpec>${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>

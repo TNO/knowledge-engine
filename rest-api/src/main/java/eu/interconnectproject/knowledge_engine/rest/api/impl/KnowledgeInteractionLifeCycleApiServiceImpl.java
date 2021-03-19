@@ -1,12 +1,12 @@
-package eu.interconnectproject.knowlege_engine.rest.api.impl;
+package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
-import eu.interconnectproject.knowlege_engine.rest.api.*;
-import eu.interconnectproject.knowlege_engine.rest.model.*;
+import eu.interconnectproject.knowledge_engine.rest.api.*;
+import eu.interconnectproject.knowledge_engine.rest.model.*;
 
-import eu.interconnectproject.knowlege_engine.rest.model.Workaround;
+import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 
 import java.util.List;
-import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 
 import java.io.InputStream;
 

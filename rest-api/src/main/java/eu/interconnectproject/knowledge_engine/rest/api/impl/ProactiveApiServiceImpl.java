@@ -1,15 +1,15 @@
-package eu.interconnectproject.knowlege_engine.rest.api.impl;
+package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
-import eu.interconnectproject.knowlege_engine.rest.api.*;
-import eu.interconnectproject.knowlege_engine.rest.model.*;
+import eu.interconnectproject.knowledge_engine.rest.api.*;
+import eu.interconnectproject.knowledge_engine.rest.model.*;
 
-import eu.interconnectproject.knowlege_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
 import java.util.List;
 import java.util.Map;
-import eu.interconnectproject.knowlege_engine.rest.model.PostResult;
+import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 
 import java.util.List;
-import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 
 import java.io.InputStream;
 

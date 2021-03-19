@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowlege_engine.rest.api.impl;
+package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,7 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowlege_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import io.swagger.annotations.ApiParam;
 
 @Path("/sc")
