@@ -2,6 +2,8 @@ package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,13 +21,16 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import eu.interconnectproject.knowledge_engine.rest.model.WorkaroundWithId;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
@@ -35,6 +40,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeI
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class RestKnowledgeBase implements KnowledgeBase {
@@ -194,14 +200,115 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 	}
 	
-	public AskResult ask(String kiId, List<Map<String, String>> bindings) {
-		throw new RuntimeException("TODO");
-		// this.sc.ask(new URI(kiId), bindings);
+	public AskResult ask(String kiId, List<Map<String, String>> bindings) throws URISyntaxException, InterruptedException, ExecutionException {
+		KnowledgeInteraction ki;
+		try {
+			ki = this.knowledgeInteractions.get(new URI(kiId));
+		} catch (URISyntaxException e1) {
+			assert false : "Encountered invalid URI for knowledge interaction.: " + kiId;
+			throw e1;
+		}
+
+		// ASK the bindings to the smart connector and wait for a response. If
+		// anything misbehaves, this will throw and it's up to the caller of this
+		// method to handle it.
+		var askResult = this.sc.ask((AskKnowledgeInteraction) ki, listToBindingSet(bindings)).get();
+
+		return new AskResult()
+			.bindingSet(this.bindingSetToList(askResult.getBindings()))
+			.exchangeInfo(askResult.getExchangeInfoPerKnowledgeBase().values().stream()
+				.map(aei -> new AskExchangeInfo()
+					.bindingSet(this.bindingSetToList(aei.getBindings()))
+					.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
+					.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
+					.initiator(toInitiatorEnumAsk(aei.getInitiator()))
+					.exchangeStart(Date.from(aei.getExchangeStart()))
+					.exchangeEnd(Date.from(aei.getExchangeEnd()))
+					.status(aei.getStatus().toString()) // Is this human readable or a number?
+					.failedMessage(aei.getFailedMessage())
+				)
+				.collect(Collectors.toList())
+		);
 	}
 	
-	public PostResult post(String kiId, List<Map<String, String>> bindings) {
-		throw new RuntimeException("TODO");
-		// this.sc.post(ki, bindings)
+	public PostResult post(String kiId, List<Map<String, String>> bindings) throws URISyntaxException, InterruptedException, ExecutionException {
+		KnowledgeInteraction ki;
+		try {
+			ki = this.knowledgeInteractions.get(new URI(kiId));
+		} catch (URISyntaxException e1) {
+			assert false : "Encountered invalid URI for knowledge interaction.: " + kiId;
+			throw e1;
+		}
+
+		// POST the bindings to the smart connector and wait for a response. If
+		// anything misbehaves, this will throw and it's up to the caller of this
+		// method to handle it.
+		var postResult = this.sc.post((PostKnowledgeInteraction) ki, listToBindingSet(bindings)).get();
+		
+		return new PostResult()
+			.resultBindingSet(this.bindingSetToList(postResult.getBindings()))
+			.exchangeInfo(postResult.getExchangeInfoPerKnowledgeBase().values().stream()
+				.map(pei ->  new PostExchangeInfo()
+					.argumentBindingSet(this.bindingSetToList(pei.getArgument()))
+					.resultBindingSet(this.bindingSetToList(pei.getResult()))
+					.knowledgeBaseId(pei.getKnowledgeBaseId().toString())
+					.knowledgeInteractionId(pei.getKnowledgeInteractionId().toString())
+					.initiator(toInitiatorEnumPost(pei.getInitiator()))
+					.exchangeStart(Date.from(pei.getExchangeStart()))
+					.exchangeEnd(Date.from(pei.getExchangeEnd()))
+					.status(pei.getStatus().toString()) // Is this human readable or a number?
+					.failedMessage(pei.getFailedMessage())
+				)
+				.collect(Collectors.toList())
+			);
+	}
+
+	private PostExchangeInfo.InitiatorEnum toInitiatorEnumPost(Initiator initiator) {
+		switch (initiator) {
+		case KNOWLEDGEBASE:
+			return PostExchangeInfo.InitiatorEnum.KNOWLEDGEBASE;
+		case REASONER:
+			return PostExchangeInfo.InitiatorEnum.REASONER;
+		default:
+			assert false;
+			return null;
+		}
+	}
+
+	private AskExchangeInfo.InitiatorEnum toInitiatorEnumAsk(Initiator initiator) {
+		switch (initiator) {
+		case KNOWLEDGEBASE:
+			return AskExchangeInfo.InitiatorEnum.KNOWLEDGEBASE;
+		case REASONER:
+			return AskExchangeInfo.InitiatorEnum.REASONER;
+		default:
+			assert false;
+			return null;
+		}
+	}
+
+	private BindingSet listToBindingSet(List<Map<String, String>> listBindings) {
+		var bindings = new BindingSet();
+		listBindings.forEach((listBinding) -> {
+			var binding = new Binding();
+			listBinding.forEach((k, v) -> {
+				binding.put(k, v);
+			});
+			bindings.add(binding);
+		});
+		return bindings;
+	}
+
+	private List<Map<String, String>> bindingSetToList(BindingSet bindings) {
+		var listBindings = new ArrayList<Map<String, String>>(bindings.size());
+		bindings.forEach((binding) -> {
+			Map<String, String> listBinding = new HashMap<>();
+			binding.forEach((k, v) -> {
+				listBinding.put(k, v);
+			});
+			listBindings.add(listBinding);
+		});
+		return listBindings;
 	}
 
 	@Override
