@@ -90,7 +90,7 @@ public class ReactiveApiServiceImpl {
 			@ApiParam(value = "") @Valid List<Map<String, String>> requestBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
-		LOG.info("scHandlePost() called {}", requestBody);
+		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);
 
 		if (knowledgeBaseId == null) {
 			return Response.status(400)
@@ -113,7 +113,8 @@ public class ReactiveApiServiceImpl {
 			Workaround ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 			if (ki != null) {
 				// knowledge interaction exists
-
+				
+				kb.finishHandleRequest(knowledgeInteractionId);
 			}
 
 		} else {

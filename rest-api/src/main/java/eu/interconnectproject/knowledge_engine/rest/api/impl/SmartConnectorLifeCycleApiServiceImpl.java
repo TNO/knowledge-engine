@@ -2,21 +2,25 @@ package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.api.SmartConnectorLifeCycleApiService;
 import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
+import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCycleApiService {
+
+	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorLifeCycleApiServiceImpl.class);
 
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
@@ -42,6 +46,9 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 
 	@Override
 	public Response scGet(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
+
+		LOG.info("scGet called: {}", knowledgeBaseId);
+
 		if (knowledgeBaseId == null) {
 			return Response.ok().entity(convertToModel(this.manager.getKBs())).build();
 		} else {
@@ -52,19 +59,22 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 						.build();
 			}
 			if (this.manager.hasKB(knowledgeBaseId)) {
-				return Response.ok().entity(convertToModel(this.manager.getKBs())).build();
+				Set<RestKnowledgeBase> connectors = new HashSet<>();
+				connectors.add(this.manager.getKB(knowledgeBaseId));
+				return Response.ok().entity(convertToModel(connectors)).build();
 			} else {
 				return Response.status(404).entity("Knowledge base not found.").build();
 			}
 		}
 	}
 
-	private eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[] convertToModel(Set<RestKnowledgeBase> kbs) {
+	private eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[] convertToModel(
+			Set<RestKnowledgeBase> kbs) {
 		return kbs.stream().map((restKb) -> {
 			return new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
-				.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
-				.knowledgeBaseName(restKb.getKnowledgeBaseName())
-				.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription());
+					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
+					.knowledgeBaseName(restKb.getKnowledgeBaseName())
+					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription());
 		}).toArray(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[]::new);
 	}
 

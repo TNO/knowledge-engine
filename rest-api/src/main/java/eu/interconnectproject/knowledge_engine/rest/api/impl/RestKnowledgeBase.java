@@ -209,6 +209,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 	}
 
+	/**
+	 * Called when the REST client sends us some bindings as an answer or reaction.
+	 * 
+	 * @param knowledgeInteractionId
+	 */
+	public void finishHandleRequest(String knowledgeInteractionId) {
+
+	}
+
 	public String register(Workaround workaround) {
 		var ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
 				toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
