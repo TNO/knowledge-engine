@@ -92,7 +92,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
-			List<Map<String, String>> bindings = convertBindingSetToListOfMaps(aBindingSet);
+			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 
@@ -117,7 +117,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
-			List<Map<String, String>> bindings = convertBindingSetToListOfMaps(aBindingSet);
+			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
 					KnowledgeInteractionInfo.Type.REACT, bindings, future);
@@ -133,33 +133,6 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return new BindingSet();
 		}
 	};
-
-	public List<Map<String, String>> convertBindingSetToListOfMaps(BindingSet bs) {
-
-		List<Map<String, String>> bindings = new ArrayList<>();
-		Map<String, String> binding;
-		for (Binding b : bs) {
-			binding = new HashMap<String, String>();
-			for (String var : b.getVariables()) {
-				binding.put(var, b.get(var));
-			}
-		}
-		return bindings;
-	}
-
-	public BindingSet convertListOfMapsToBindingSet(List<Map<String, String>> bs) {
-
-		BindingSet bindings = new BindingSet();
-		Binding binding;
-		for (Map<String, String> b : bs) {
-			binding = new Binding();
-
-			for (String var : b.keySet()) {
-				binding.put(var, b.get(var));
-			}
-		}
-		return bindings;
-	}
 
 	public RestKnowledgeBase(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
