@@ -262,7 +262,7 @@ paths:
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
-      description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. The <i>handle request id</i> should be used when sending the result to the server. It allows the server to know which handle request you are reacting to in the <i>post</i> method of this path. </b>
+      description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. The <i>handle request id</i> (which is unique per Knowledge Base Id) should be used when sending the result back to the server. It allows the server to know which handle request you are reacting to in the <i>post</i> method of this path. </b>
       tags:
         - reactive
       parameters:
@@ -288,6 +288,8 @@ paths:
                     $ref: '#/components/schemas/BindingSet'
         '202':
           description: No problems, but please reinitiate the long polling request.
+        '400':
+          description: Only one connection per Knowledge-Base-Id is allowed and we already have one.  
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:

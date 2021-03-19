@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.Set;
 
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.shared.PrefixMapping;
@@ -71,6 +72,10 @@ public class Binding {
 	 */
 	public String get(String aVariableName) {
 		return this.map.get(aVariableName);
+	}
+
+	public Set<String> getVariables() {
+		return this.map.keySet();
 	}
 
 	private void validateEntry(String aVariableName, String aValue) throws IllegalArgumentException {
