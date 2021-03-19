@@ -2,10 +2,12 @@ package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import eu.interconnectproject.knowledge_engine.rest.api.*;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
+import eu.interconnectproject.knowledge_engine.rest.model.WorkaroundWithId;
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -30,23 +32,42 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
 		}
 
-		if (!restKb.register(workaround)) {
-			
+		String kiId = restKb.register(workaround);
+		if (kiId == null) {
+			return Response.status(400).entity("The registration of the knowledge interaction failed, probably because the request was invalid.").build();
 		}
 
-		return Response.ok().build();
+		return Response.ok().entity(kiId).build();
 	}
 
 	@Override
 	public Response scKiDelete(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
 			SecurityContext securityContext) throws NotFoundException {
-		// do some magic!
-		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+		var restKb = manager.getKB(knowledgeBaseId);
+
+		if (restKb == null) {
+			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+		}
+
+		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			return Response.status(404).entity("Smart connector found, but the given knowledge interaction ID is unknown.").build();
+		}
+
+		restKb.delete(knowledgeInteractionId);
+
+		return Response.ok().build();
 	}
 
 	@Override
 	public Response scKiGet(@NotNull String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
-		// do some magic!
-		return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+		var restKb = manager.getKB(knowledgeBaseId);
+
+		if (restKb == null) {
+			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+		}
+
+		Set<WorkaroundWithId> kis = restKb.getKnowledgeInteractions();
+
+		return Response.ok().entity(kis).build();
 	}
 }

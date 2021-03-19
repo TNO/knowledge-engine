@@ -378,6 +378,13 @@ components:
         - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
         - $ref: '#/components/schemas/PostKnowledgeInteraction'
         - $ref: '#/components/schemas/ReactKnowledgeInteraction'
+    WorkaroundWithId:
+      allOf:
+        - $ref: '#/components/schemas/Workaround'
+        - type: object
+          properties:
+            knowledgeInteractionId:
+              type: string
     AskKnowledgeInteraction:
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteraction'
