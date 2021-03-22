@@ -2,7 +2,9 @@ package eu.interconnectproject.knowledge_engine.rest.api.client_example;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,8 +15,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineResponse200;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -27,10 +33,12 @@ public class Client {
 	public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 	private static final String SC = "/sc";
 	private static final String KI = "/sc/ki";
+	private static final String HANDLE = "/sc/handle";
 	
 	private OkHttpClient okClient;
 	private final String baseUrl;
 	private final ObjectMapper mapper = new ObjectMapper();
+	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
 	public Client(String aBaseUrl) {
 		this.baseUrl = aBaseUrl;
@@ -137,6 +145,61 @@ public class Client {
 		return this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
+	public void startHandle(String kbId) {
+		Request request = new Request.Builder()
+			.url(this.baseUrl + HANDLE)
+			.get()
+			.header("Knowledge-Base-Id", kbId)
+			.build();
+
+		// Do the request asynchronously, and schedule a callback.
+		this.okClient.newCall(request).enqueue(new Callback() {
+			@Override
+			public void onFailure(Call call, IOException e) {
+				LOG.error("Something went wrong during a handle call. Not repolling.", e);
+			}
+
+			@Override
+			public void onResponse(Call call, Response response) throws IOException {
+				if (response.code() ==  202) {
+					LOG.info("Received 202 from GET /sc/handle. Repolling.");
+					// Do another call to wait for a new task.
+					startHandle(kbId);
+				} else if (response.code() == 200) {
+					LOG.info("Received 200 from GET /sc/handle. Sending response and then repolling.");
+					
+					InlineResponse200 knowledgeRequest = mapper.readValue(response.body().string(), new TypeReference<InlineResponse200>(){});
+					String kiId = knowledgeRequest.getKnowledgeInteractionId();
+					var handler = knowledgeHandlers.get(kiId);
+					var knowledgeResponse = handler.handle(knowledgeRequest);
+					var otherKbId = "TODO"; // TODO: Somehow get the KB ID of the interested knowledge base.
+					postKnowledgeResponse(otherKbId, knowledgeResponse);
+					startHandle(kbId);
+				}
+			}
+		});
+	}
+
+	public void postKnowledgeResponse(String otherKbId, InlineObject1 knowledgeResponse) {
+		RequestBody body;
+		try {
+			body = RequestBody.create(mapper.writeValueAsString(knowledgeResponse), JSON);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Could not serialize as JSON.");
+		}
+		Request request = new Request.Builder()
+				.url(this.baseUrl + HANDLE)
+				.post(body)
+				.header("Knowledge-Base-Id", otherKbId)
+				.build();
+		try {
+			this.okClient.newCall(request).execute();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not POST the knowledge response.");
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		var client = new Client("http://localhost:8080/rest");
 		
@@ -162,6 +225,7 @@ public class Client {
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
 		);
+		// TODO: Add a knowledge handler to client.knowledgeHandlers
 		LOG.info("Made new KI with ID {}", ki2);
 	}
 }
