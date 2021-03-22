@@ -8,6 +8,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
@@ -19,17 +22,17 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class Client {
+	private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-	public static final MediaType JSON
-    = MediaType.get("application/json; charset=utf-8");
-	private OkHttpClient okClient;
-	private final String baseUrl;
+	public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 	private static final String SC = "/sc";
 	private static final String KI = "/sc/ki";
-
+	
+	private OkHttpClient okClient;
+	private final String baseUrl;
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	private Client(String aBaseUrl) {
+	public Client(String aBaseUrl) {
 		this.baseUrl = aBaseUrl;
 		this.okClient = new OkHttpClient();
 	}
@@ -88,7 +91,7 @@ public class Client {
 		}
 	}
 
-	private void postKi(String kbId, String type, String graphPattern, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
+	private String postKi(String kbId, String type, String graphPattern, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
 		var workaround = new Workaround()
 			.knowledgeInteractionType(type)
 			.communicativeAct(new CommunicativeAct()
@@ -110,26 +113,28 @@ public class Client {
 				.header("Knowledge-Base-Id", kbId)
 				.build();
 		try {
-			this.okClient.newCall(request).execute();
+			var response = this.okClient.newCall(request).execute();
+			return response.body().string();
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new RuntimeException("Could not POST the new KI.");
 		}
 	}
 
-	private void postKiAsk(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
-		this.postKi(kbId, "AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
+	public String postKiAsk(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
+		return this.postKi(kbId, "AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
-	private void postKiAnswer(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
-		this.postKi(kbId, "AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
+	public String postKiAnswer(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
+		return this.postKi(kbId, "AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
-	private void postKiPost(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
-		this.postKi(kbId, "PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
+	public String postKiPost(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
+		return this.postKi(kbId, "PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
-	private void postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
-		this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
+	public String postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
+		return this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -141,20 +146,22 @@ public class Client {
 
 		// Post a new SC with a POST KI.
 		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb", "A knowledge base", "A very descriptive piece of text.");
-		client.postKiPost("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb",
+		String ki1 = client.postKiPost("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb",
 			"?a ?b ?c.",
 			"",
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
 		);
+		LOG.info("Made new KI with ID {}", ki1);
 
 		// Post another SC with a REACT KI.
 		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb", "Another knowledge base", "Another very descriptive piece of text.");
-		client.postKiReact("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb",
+		String ki2 = client.postKiReact("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb",
 			"?a ?b ?c.",
 			"",
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
 		);
+		LOG.info("Made new KI with ID {}", ki2);
 	}
 }
