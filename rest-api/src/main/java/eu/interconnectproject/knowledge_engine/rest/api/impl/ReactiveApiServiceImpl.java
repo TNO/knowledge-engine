@@ -3,8 +3,6 @@ package eu.interconnectproject.knowledge_engine.rest.api.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletResponse;
@@ -27,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import io.swagger.annotations.ApiParam;
 
@@ -87,7 +86,7 @@ public class ReactiveApiServiceImpl {
 	public Response scHandlePost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "") @Valid List<Map<String, String>> requestBody,
+			@ApiParam(value = "") @Valid InlineObject1 requestBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
 		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);
@@ -110,11 +109,16 @@ public class ReactiveApiServiceImpl {
 			// knowledgebase exists
 			RestKnowledgeBase kb = manager.getKB(knowledgeBaseId);
 
-			Workaround ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
-			if (ki != null) {
+			if (kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 				// knowledge interaction exists
 				
-				kb.finishHandleRequest(knowledgeInteractionId);
+				kb.finishHandleRequest(knowledgeInteractionId, requestBody);
+			}
+			else
+			{
+				return Response.status(400)
+						.entity("Knowledge Interaction not found, because its ID must match an existing KI: " + knowledgeInteractionId)
+						.build();
 			}
 
 		} else {

@@ -11,20 +11,30 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+
+import org.apache.jena.atlas.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.constraints.*;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeInteractionLifeCycleApiService {
 
+	private static final Logger LOG = LoggerFactory.getLogger(ReactiveApiServiceImpl.class);
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
 	public Response scKiPost(@NotNull String knowledgeBaseId, Workaround workaround, SecurityContext securityContext)
 			throws NotFoundException {
+
+		LOG.info("scKiPost called: {}", workaround);
+
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			return Response.status(400).entity("Smart connector not found, because its ID must be a valid URI.").build();
+			return Response.status(400).entity("Smart connector not found, because its ID must be a valid URI.")
+					.build();
 		}
 		var restKb = manager.getKB(knowledgeBaseId);
 
@@ -34,7 +44,9 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 
 		String kiId = restKb.register(workaround);
 		if (kiId == null) {
-			return Response.status(400).entity("The registration of the knowledge interaction failed, probably because the request was invalid.").build();
+			return Response.status(400).entity(
+					"The registration of the knowledge interaction failed, probably because the request was invalid.")
+					.build();
 		}
 
 		return Response.ok().entity(kiId).build();
@@ -50,7 +62,8 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		}
 
 		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
-			return Response.status(404).entity("Smart connector found, but the given knowledge interaction ID is unknown.").build();
+			return Response.status(404)
+					.entity("Smart connector found, but the given knowledge interaction ID is unknown.").build();
 		}
 
 		restKb.delete(knowledgeInteractionId);
