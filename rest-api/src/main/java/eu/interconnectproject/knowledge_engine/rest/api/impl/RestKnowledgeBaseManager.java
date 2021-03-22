@@ -45,6 +45,7 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public void deleteKB(String knowledgeBaseId) {
-		this.restKnowledgeBases.remove(knowledgeBaseId);
+		var rkb = this.restKnowledgeBases.remove(knowledgeBaseId);
+		rkb.stop();
 	}
 }

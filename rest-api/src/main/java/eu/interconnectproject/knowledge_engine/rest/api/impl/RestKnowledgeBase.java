@@ -506,4 +506,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// Do nothing. The REST API doesn't provide these signals (yet).
 	}
 
+	public void stop() {
+		this.sc.stop();
+	}
 }
