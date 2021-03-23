@@ -133,7 +133,8 @@ public class Client {
 		return this.postKi(kbId, "AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
-	public String postKiAnswer(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
+	public String postKiAnswer(String kbId, String graphPattern, List<String> requires, List<String> satisfies, KnowledgeHandler handler) {
+		this.knowledgeHandlers.put(kbId, handler);
 		return this.postKi(kbId, "AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
@@ -141,11 +142,12 @@ public class Client {
 		return this.postKi(kbId, "PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
-	public String postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
+	public String postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies, KnowledgeHandler handler) {
+		this.knowledgeHandlers.put(kbId, handler);
 		return this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
-	public void startHandle(String kbId) {
+	public void startLongPoll(String kbId) {
 		Request request = new Request.Builder()
 			.url(this.baseUrl + HANDLE)
 			.get()
@@ -164,7 +166,7 @@ public class Client {
 				if (response.code() ==  202) {
 					LOG.info("Received 202 from GET /sc/handle. Repolling.");
 					// Do another call to wait for a new task.
-					startHandle(kbId);
+					startLongPoll(kbId);
 				} else if (response.code() == 200) {
 					LOG.info("Received 200 from GET /sc/handle. Sending response and then repolling.");
 					
@@ -172,15 +174,14 @@ public class Client {
 					String kiId = knowledgeRequest.getKnowledgeInteractionId();
 					var handler = knowledgeHandlers.get(kiId);
 					var knowledgeResponse = handler.handle(knowledgeRequest);
-					var otherKbId = "TODO"; // TODO: Somehow get the KB ID of the interested knowledge base.
-					postKnowledgeResponse(otherKbId, knowledgeResponse);
-					startHandle(kbId);
+					postKnowledgeResponse(kbId, knowledgeResponse);
+					startLongPoll(kbId);
 				}
 			}
 		});
 	}
 
-	public void postKnowledgeResponse(String otherKbId, InlineObject1 knowledgeResponse) {
+	public void postKnowledgeResponse(String kbId, InlineObject1 knowledgeResponse) {
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(knowledgeResponse), JSON);
@@ -190,7 +191,7 @@ public class Client {
 		Request request = new Request.Builder()
 				.url(this.baseUrl + HANDLE)
 				.post(body)
-				.header("Knowledge-Base-Id", otherKbId)
+				.header("Knowledge-Base-Id", kbId)
 				.build();
 		try {
 			this.okClient.newCall(request).execute();
@@ -211,7 +212,7 @@ public class Client {
 		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb", "A knowledge base", "A very descriptive piece of text.");
 		String ki1 = client.postKiPost("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb",
 			"?a ?b ?c.",
-			"",
+			"?d ?e ?f.",
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
 		);
@@ -221,11 +222,18 @@ public class Client {
 		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb", "Another knowledge base", "Another very descriptive piece of text.");
 		String ki2 = client.postKiReact("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb",
 			"?a ?b ?c.",
-			"",
+			"?d ?e ?f.",
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
-			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
+			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
+			new KnowledgeHandler() {
+				@Override
+				public InlineObject1 handle(InlineResponse200 knowledgeRequest) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			}
 		);
-		// TODO: Add a knowledge handler to client.knowledgeHandlers
+
 		LOG.info("Made new KI with ID {}", ki2);
 	}
 }
