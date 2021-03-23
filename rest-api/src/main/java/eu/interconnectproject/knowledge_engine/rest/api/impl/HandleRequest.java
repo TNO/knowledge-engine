@@ -19,10 +19,10 @@ public class HandleRequest {
 	private KnowledgeInteractionInfo.Type type;
 	private Type knowledgeInteractionType;
 
-	public HandleRequest(int handleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionInfo.Type type,
+	public HandleRequest(int aHandleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionInfo.Type type,
 			List<Map<String, String>> aBindingSet, CompletableFuture<BindingSet> future) {
 		this.future = future;
-
+		this.handleRequestId = aHandleRequestId;
 		this.knowledgeInteractionType = type;
 		this.knowledgeInteraction = aKI;
 		this.bindingSet = aBindingSet;

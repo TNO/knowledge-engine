@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
 import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
+import eu.interconnectproject.knowledge_engine.rest.model.InlineResponse200;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
@@ -78,7 +79,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * processed, once it has been processed and the results come in, we send the
 	 * data to the smart connector.
 	 */
-	private Map<String, HandleRequest> beingProcessedHandleRequests;
+	private Map<Integer, HandleRequest> beingProcessedHandleRequests;
 	private ObjectMapper om = new ObjectMapper();
 	private SmartConnector sc;
 	private Map<URI, KnowledgeInteraction> knowledgeInteractions;
@@ -91,7 +92,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
+			int previous = handleRequestId.get();
+			
 			int myHandleRequestId = handleRequestId.incrementAndGet();
+			
+			int next = handleRequestId.get();
+			
+			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
 					KnowledgeInteractionInfo.Type.ANSWER, bindings, future);
@@ -137,7 +144,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
 		this.knowledgeInteractions = new HashMap<>();
 		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(2);
-		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<String, HandleRequest>());
+		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
@@ -147,18 +154,32 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		try {
 			if (asyncContext != null) {
+				this.beingProcessedHandleRequests.put(handleRequest.getHandleRequestId(), handleRequest);
 				// immediately process
 				PrintWriter writer = asyncContext.getResponse().getWriter();
 
-				// TODO what about knowledgeInteractionId?
-				InlineObject1 object = new InlineObject1().bindingSet(handleRequest.getBindingSet())
-						.handleRequestId(handleRequest.getHandleRequestId());
+				// retrieve corresponding KnowledgeInteractionId
 
-				writer.write(this.om.writeValueAsString(object));
+				if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
 
-				// TODO do we need to writer.flush()?
-				this.asyncContext.complete();
-				this.asyncContext = null;
+					String knowledgeInteractionId = null;
+					for (Map.Entry<URI, KnowledgeInteraction> entry : this.knowledgeInteractions.entrySet()) {
+						if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
+							knowledgeInteractionId = entry.getKey().toString();
+						}
+					}
+					assert knowledgeInteractionId != null;
+
+					InlineResponse200 object = new InlineResponse200().bindingSet(handleRequest.getBindingSet())
+							.handleRequestId(handleRequest.getHandleRequestId())
+							.knowledgeInteractionId(knowledgeInteractionId);
+
+					writer.write(this.om.writeValueAsString(object));
+
+					// TODO do we need to writer.flush()? Apparently not!
+					this.asyncContext.complete();
+					this.asyncContext = null;
+				}
 
 			} else {
 				// add to queue
@@ -178,9 +199,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.asyncContext = asyncContext;
 		HandleRequest hr = toBeProcessedHandleRequests.poll();
 		if (hr != null) {
+			beingProcessedHandleRequests.put(hr.getHandleRequestId(), hr);
 			// there is a handle request waiting
 			toBeProcessedByKnowledgeBase(hr);
 		}
+	}
+
+	public boolean hasHandleRequestId(int handleRequestId) {
+		return this.beingProcessedHandleRequests.containsKey(handleRequestId);
 	}
 
 	/**
@@ -190,7 +216,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * @param requestBody
 	 */
 	public void finishHandleRequest(String knowledgeInteractionId, InlineObject1 requestBody) {
-		throw new RuntimeException("TODO");
+
+		int handleRequestId = requestBody.getHandleRequestId();
+		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
+		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
+		hr.getFuture().complete(bs);
+
 	}
 
 	public String register(Workaround workaround) {

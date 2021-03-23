@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
-import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import io.swagger.annotations.ApiParam;
 
 @Path("/sc")
@@ -86,8 +85,8 @@ public class ReactiveApiServiceImpl {
 	public Response scHandlePost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "") @Valid InlineObject1 requestBody,
-			@Context SecurityContext securityContext) throws NotFoundException {
+			@ApiParam(value = "") @Valid InlineObject1 requestBody, @Context SecurityContext securityContext)
+			throws NotFoundException {
 
 		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);
 
@@ -111,13 +110,21 @@ public class ReactiveApiServiceImpl {
 
 			if (kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 				// knowledge interaction exists
-				
-				kb.finishHandleRequest(knowledgeInteractionId, requestBody);
-			}
-			else
-			{
+
+				if (kb.hasHandleRequestId(requestBody.getHandleRequestId())) {
+
+					kb.finishHandleRequest(knowledgeInteractionId, requestBody);
+
+					return Response.ok().build();
+				} else {
+					return Response.status(404).entity("Handle request id " + requestBody.getHandleRequestId()
+							+ " not found. Are you sure it is still being processed?").build();
+				}
+
+			} else {
 				return Response.status(400)
-						.entity("Knowledge Interaction not found, because its ID must match an existing KI: " + knowledgeInteractionId)
+						.entity("Knowledge Interaction not found, because its ID must match an existing KI: "
+								+ knowledgeInteractionId)
 						.build();
 			}
 
@@ -126,8 +133,6 @@ public class ReactiveApiServiceImpl {
 					"If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.")
 					.build();
 		}
-
-		return Response.serverError().build();
 	}
 
 }

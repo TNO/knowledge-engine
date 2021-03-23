@@ -341,7 +341,7 @@ paths:
               schema:
                 type: string
         '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          description: If a Handle Request Id or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
             text/plain:
               schema:
