@@ -190,9 +190,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
 			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
-			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
-			m.write(System.out, "turtle");
-			System.out.println("-----------------------");
+//			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
+//			m.write(System.out, "turtle");
+//			System.out.println("-----------------------");
 
 			for (MockedKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
@@ -262,13 +262,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 									.getString();
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
-							Resource gp2 = ki.getRequiredProperty(Vocab.HAS_RES).getObject().asResource();
-							String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
-							String resPatternFromObject = convertToPattern(postKI.getResult());
-
-							sameKI |= argPatternFromRDF.equals(argPatternFromObject)
-									&& resPatternFromRDF.equals(resPatternFromObject);
+							boolean resultPatternsEqual = false;
+							if (ki.hasProperty(Vocab.HAS_RES)) {
+								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
+								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+										.getString();
+								String resPatternFromObject = convertToPattern(postKI.getResult());
+								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
+							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
+								resultPatternsEqual = true;
+							}
+			
+							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 
 						} else if (isOfType(ki, Vocab.REACT_KI) && someKi instanceof ReactKnowledgeInteraction) {
 							var reactKI = (ReactKnowledgeInteraction) someKi;
@@ -278,13 +283,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 									.getString();
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
-							Resource gp2 = ki.getRequiredProperty(Vocab.HAS_RES).getObject().asResource();
-							String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
-							String resPatternFromObject = convertToPattern(reactKI.getResult());
+							boolean resultPatternsEqual = false;
+							if (ki.hasProperty(Vocab.HAS_RES)) {
+								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
+								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+										.getString();
+								String resPatternFromObject = convertToPattern(reactKI.getResult());
+								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
+							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {
+								resultPatternsEqual = true;
+							}
 
-							sameKI |= argPatternFromRDF.equals(argPatternFromObject)
-									&& resPatternFromRDF.equals(resPatternFromObject);
+							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 						}
 					}
 					isSame &= sameKI;
@@ -328,7 +338,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 		}
 		return "<errorgraphpattern>";
 	}
-	
+
 	public void start() {
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}
