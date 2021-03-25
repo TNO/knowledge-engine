@@ -1,10 +1,10 @@
 package eu.interconnectproject.knowledge_engine.rest.api.client_example;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +18,7 @@ import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -33,6 +34,8 @@ public class Client {
 	private static final String SC = "/sc";
 	private static final String KI = "/sc/ki";
 	private static final String HANDLE = "/sc/handle";
+	private static final String POST = "/sc/post";
+	private static final String ASK = "/sc/ask";
 	
 	private OkHttpClient okClient;
 	private final String baseUrl;
@@ -142,8 +145,10 @@ public class Client {
 	}
 
 	public String postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies, KnowledgeHandler handler) {
-		this.knowledgeHandlers.put(kbId, handler);
-		return this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
+		String kiId = this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
+		this.knowledgeHandlers.put(kiId, handler);
+
+		return kiId;
 	}
 
 	public void startLongPoll(String kbId) {
@@ -154,7 +159,10 @@ public class Client {
 			.build();
 
 		// Do the request asynchronously, and schedule a callback.
-		this.okClient.newCall(request).enqueue(new Callback() {
+		this.okClient
+			// Rebuild the okhttp client to configure the timeout.
+			.newBuilder().readTimeout(500, TimeUnit.SECONDS).build()
+			.newCall(request).enqueue(new Callback() {
 			@Override
 			public void onFailure(Call call, IOException e) {
 				LOG.error("Something went wrong during a handle call. Not repolling.", e);
@@ -173,14 +181,14 @@ public class Client {
 					String kiId = handleRequest.getKnowledgeInteractionId();
 					var handler = knowledgeHandlers.get(kiId);
 					var handleResult = handler.handle(handleRequest);
-					postKnowledgeResponse(kbId, handleResult);
+					postKnowledgeResponse(kbId, kiId, handleResult);
 					startLongPoll(kbId);
 				}
 			}
 		});
 	}
 
-	public void postKnowledgeResponse(String kbId, HandleResponse handleResult) {
+	public void postKnowledgeResponse(String kbId, String kiId, HandleResponse handleResult) {
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(handleResult), JSON);
@@ -191,6 +199,7 @@ public class Client {
 				.url(this.baseUrl + HANDLE)
 				.post(body)
 				.header("Knowledge-Base-Id", kbId)
+				.header("Knowledge-Interaction-Id", kiId)
 				.build();
 		try {
 			this.okClient.newCall(request).execute();
@@ -200,39 +209,25 @@ public class Client {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		var client = new Client("http://localhost:8080/rest");
-		
-		// First remove all existing smart connectors (a bit nuclear, but it does
-		// the trick)
-		client.flushAll();
-
-		// Post a new SC with a POST KI.
-		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb", "A knowledge base", "A very descriptive piece of text.");
-		String ki1 = client.postKiPost("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb",
-			"?a ?b ?c.",
-			"?d ?e ?f.",
-			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
-			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose")
-		);
-		LOG.info("Made new KI with ID {}", ki1);
-
-		// Post another SC with a REACT KI.
-		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb", "Another knowledge base", "Another very descriptive piece of text.");
-		String ki2 = client.postKiReact("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/another-kb",
-			"?a ?b ?c.",
-			"?d ?e ?f.",
-			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
-			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
-			new KnowledgeHandler() {
-				@Override
-				public HandleResponse handle(HandleRequest handleRequest) {
-					// TODO Auto-generated method stub
-					return null;
-				}
-			}
-		);
-
-		LOG.info("Made new KI with ID {}", ki2);
+	public PostResult postPost(String kbId, String kiId, List<Map<String, String>> bindings) {
+		RequestBody body;
+		try {
+			body = RequestBody.create(mapper.writeValueAsString(bindings), JSON);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Could not serialize as JSON.");
+		}
+		Request request = new Request.Builder()
+				.url(this.baseUrl + POST)
+				.post(body)
+				.header("Knowledge-Base-Id", kbId)
+				.header("Knowledge-Interaction-Id", kiId)
+				.build();
+		try {
+			var response = this.okClient.newCall(request).execute();
+			return mapper.readValue(response.body().string(), new TypeReference<PostResult>(){});
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not POST the knowledge response.");
+		}
 	}
 }
