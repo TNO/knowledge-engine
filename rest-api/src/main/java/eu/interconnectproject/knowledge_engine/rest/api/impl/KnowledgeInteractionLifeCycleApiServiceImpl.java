@@ -33,13 +33,13 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			return Response.status(400).entity("Smart connector not found, because its ID must be a valid URI.")
+			return Response.status(400).entity("Smart connector not found, because its KB ID must be a valid URI.")
 					.build();
 		}
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
 		}
 
 		String kiId = restKb.register(workaround);
@@ -58,12 +58,12 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
 		}
 
 		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			return Response.status(404)
-					.entity("Smart connector found, but the given knowledge interaction ID is unknown.").build();
+					.entity("Smart connector found, but the given knowledge interaction KB ID is unknown.").build();
 		}
 
 		restKb.delete(knowledgeInteractionId);
@@ -76,7 +76,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
 		}
 
 		Set<WorkaroundWithId> kis = restKb.getKnowledgeInteractions();

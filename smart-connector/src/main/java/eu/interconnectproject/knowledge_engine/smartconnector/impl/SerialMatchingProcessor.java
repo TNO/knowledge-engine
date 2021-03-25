@@ -104,8 +104,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 									// TODO make sure there are no duplicates
 									this.allBindings.addAll(transformedAnswerBindingSet);
-
-									this.exchangeInfos.add(convertMessageToExchangeInfo(aMessage));
+									
+									this.exchangeInfos.add(convertMessageToExchangeInfo(transformedAnswerBindingSet, aMessage));
 
 									this.checkOtherKnowledgeInteraction(bindingSet);
 								} catch (Throwable t) {
@@ -142,15 +142,18 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								try {
 									this.reactMessageFuture = null;
 
-									if (rKI.getResult() != null && pKI.getResult() != null) {
+									BindingSet transformedResultBindingSet = new BindingSet();
+									if (pKI.getResult() != null) {
+										assert rKI.getResult() != null; 
 
-										BindingSet transformedResBindingSet = GraphPatternMatcher.transformBindingSet(
+										transformedResultBindingSet = GraphPatternMatcher.transformBindingSet(
 												rKI.getResult(), pKI.getResult(), aMessage.getResult());
-										this.allBindings.addAll(transformedResBindingSet);
+										this.allBindings.addAll(transformedResultBindingSet);
 									}
 									// TODO make sure there are no duplicates
 									this.previousSend = Instant.now();
-									this.exchangeInfos.add(convertMessageToExchangeInfo(bindingSet, aMessage));
+									
+									this.exchangeInfos.add(convertMessageToExchangeInfo(bindingSet, transformedResultBindingSet, aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
 									// throw an exception and it has nothing to do with receiving a message.
 									this.checkOtherKnowledgeInteraction(bindingSet);
@@ -181,17 +184,17 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		}
 	}
 
-	private AskExchangeInfo convertMessageToExchangeInfo(AnswerMessage aMessage) {
+	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage) {
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), aMessage.getBindings(), this.previousSend, Instant.now(),
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
 				Status.SUCCEEDED, null);
 	}
 
-	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet argument, ReactMessage aMessage) {
+	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings, BindingSet someConvertedResultBindings, ReactMessage aMessage) {
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), argument, aMessage.getResult(), this.previousSend,
+				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings, this.previousSend,
 				Instant.now(), Status.SUCCEEDED, null);
 	}
 
