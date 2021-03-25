@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowledge_engine.rest.api.client_example.post_react;
+package eu.interconnectproject.knowledge_engine.rest.api.client_example.ask_answer;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -13,35 +13,34 @@ import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 
 /**
  * This class provides a client of the REST API with a reactive knowledge
- * interaction (a REACT). To demonstrate, it should be used with
- * {@link PostingClient}. First launch this {@link ReactingClient}, and then
- * the {@link PostingClient}.
+ * interaction (an ANSWER). To demonstrate, it should be used with
+ * {@link AskingClient}. First launch this {@link AnsweringClient}, and then
+ * the {@link AskingClient}.
  */
-public class ReactingClient {
-	private static final Logger LOG = LoggerFactory.getLogger(ReactingClient.class);
+public class AnsweringClient {
+	private static final Logger LOG = LoggerFactory.getLogger(AnsweringClient.class);
 
-	private static final String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb";
+	private static String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/an-answering-kb";
 
 	public static void main(String[] args) throws InterruptedException {
 		var client = new RestApiClient("http://localhost:8080/rest");
 
-		// Post a SC with a REACT KI.
+		// Post a SC with a ANSWER KI.
 		client.postSc(KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
-		String ki = client.postKiReact(KB_ID,
+		String ki = client.postKiAnswer(KB_ID,
 			"?a ?b ?c.",
-			"?d ?e ?f.",
 			new KnowledgeHandler() {
 				@Override
 				public HandleResponse handle(HandleRequest handleRequest) {
 					LOG.info("I have to handle this request now: {}", handleRequest);
-					var bindings = Arrays.asList(Map.of("d", "<d>", "e", "<e>", "f", "<f>"));
+					var bindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>", "c", "<c>"));
 					return new HandleResponse().bindingSet(bindings).handleRequestId(handleRequest.getHandleRequestId());
 				}
 			}
 		);
 		LOG.info("Made new KI with ID {}", ki);
 
-		// Start long polling. This will trigger the handler when a POST is incoming.
+		// Start long polling. This will trigger the handler when an ASK is incoming.
 		client.startLongPoll(KB_ID);
 	}
 }
