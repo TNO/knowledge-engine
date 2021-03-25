@@ -121,11 +121,6 @@ paths:
               $ref: '#/components/schemas/KnowledgeInteraction'
             example:
               knowledgeInteractionType: AskKnowledgeInteraction
-              communicativeAct:
-                requiredPurposes:
-                  - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
-                satisfiedPurposes:
-                  - https://www.tno.nl/energy/ontology/interconnect#InformPurpose
               graphPattern: "?s ?p ?o"
       responses:
         '200':
@@ -134,7 +129,7 @@ paths:
             text/plain:
               schema:
                 type: string
-                example: http://.../knowledgeInteractionId
+                example: https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
         '400':
           description: If the Knowledge Interaction is not successfully registered.
           content:
@@ -200,6 +195,7 @@ paths:
           schema:
             type: string
       requestBody:
+        description: The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json:
             schema:
@@ -245,6 +241,7 @@ paths:
           schema:
             type: string
       requestBody:
+        description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json:
             schema:
@@ -337,6 +334,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/HandleResponse'
+        description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
       responses:
         '200':
           description: If the answer is successfully processed by your smart connector.
