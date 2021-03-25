@@ -11,8 +11,22 @@ public class RestServer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class);
 
+	private static final int DEFAULT_PORT = 8080;
+
 	public static void main(String[] args) {
-		Server server = new Server(8080);
+		int port = DEFAULT_PORT;
+
+		if (args.length > 0) {
+			try {
+				port = Integer.parseInt(args[0]);
+			} catch (NumberFormatException e) {
+				LOG.error("{} is not a valid port number.", args[0]);
+				System.exit(1);
+			}
+		}
+
+		LOG.info("Starting Knowledge Engine REST API on port {}.", port);
+		Server server = new Server(port);
 
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
