@@ -13,7 +13,7 @@ import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.api.ProactiveApiService;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
-import eu.interconnectproject.knowledge_engine.rest.model.WorkaroundWithId;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class ProactiveApiServiceImpl extends ProactiveApiService {
@@ -32,7 +32,7 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
 		}
 
-		WorkaroundWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
 			return Response.status(400)
 					.entity("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
@@ -62,7 +62,7 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
 		}
 		
-		WorkaroundWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
 			return Response.status(400)
 					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "

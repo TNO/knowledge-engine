@@ -101,7 +101,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Workaround'
+                  $ref: '#/components/schemas/KnowledgeInteractionWithId'
     post:
       summary: Register a Knowledge Interaction with the Smart Connector of the given Knowledge Base Id.
       tags:
@@ -118,7 +118,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Workaround'
+              $ref: '#/components/schemas/KnowledgeInteraction'
             example:
               knowledgeInteractionType: AskKnowledgeInteraction
               communicativeAct:
@@ -370,7 +370,7 @@ components:
         type: object
         additionalProperties:
           type: string
-    KnowledgeInteraction:
+    KnowledgeInteractionBase:
       type: object
       discriminator:
         propertyName: knowledgeInteractionType
@@ -379,36 +379,36 @@ components:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
-    Workaround:
+    KnowledgeInteraction:
       oneOf:
         - $ref: '#/components/schemas/AskKnowledgeInteraction'
         - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
         - $ref: '#/components/schemas/PostKnowledgeInteraction'
         - $ref: '#/components/schemas/ReactKnowledgeInteraction'
-    WorkaroundWithId:
+    KnowledgeInteractionWithId:
       allOf:
-        - $ref: '#/components/schemas/Workaround'
+        - $ref: '#/components/schemas/KnowledgeInteraction'
         - type: object
           properties:
             knowledgeInteractionId:
               type: string
     AskKnowledgeInteraction:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
           properties:
             graphPattern:
               type: string
     AnswerKnowledgeInteraction:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
           properties:
             graphPattern:
               type: string
     PostKnowledgeInteraction:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
           properties:
             argumentGraphPattern:
@@ -417,7 +417,7 @@ components:
               type: string
     ReactKnowledgeInteraction:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
           properties:
             argumentGraphPattern:

@@ -1,8 +1,8 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
 import eu.interconnectproject.knowledge_engine.rest.api.*;
-import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
-import eu.interconnectproject.knowledge_engine.rest.model.WorkaroundWithId;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 
 import java.net.URI;
@@ -25,7 +25,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scKiPost(@NotNull String knowledgeBaseId, Workaround workaround, SecurityContext securityContext)
+	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteraction workaround, SecurityContext securityContext)
 			throws NotFoundException {
 
 		LOG.info("scKiPost called: {}", workaround);
@@ -79,7 +79,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
 		}
 
-		Set<WorkaroundWithId> kis = restKb.getKnowledgeInteractions();
+		Set<KnowledgeInteractionWithId> kis = restKb.getKnowledgeInteractions();
 
 		return Response.ok().entity(kis).build();
 	}

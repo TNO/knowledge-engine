@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,8 +31,7 @@ import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
-import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
-import eu.interconnectproject.knowledge_engine.rest.model.WorkaroundWithId;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
@@ -161,7 +159,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
 
 					String knowledgeInteractionId = null;
-					for (Map.Entry<URI, KnowledgeInteraction> entry : this.knowledgeInteractions.entrySet()) {
+					for (var entry : this.knowledgeInteractions.entrySet()) {
 						if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
 							knowledgeInteractionId = entry.getKey().toString();
 						}
@@ -222,7 +220,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	public String register(Workaround workaround) {
+	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction workaround) {
 		var ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
 				toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
 
@@ -283,7 +281,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}).collect(Collectors.toSet());
 	}
 
-	public WorkaroundWithId getKnowledgeInteraction(String knowledgeInteractionId) {
+	public KnowledgeInteractionWithId getKnowledgeInteraction(String knowledgeInteractionId) {
 
 		URI kiId;
 		try {
@@ -300,17 +298,17 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	public Set<WorkaroundWithId> getKnowledgeInteractions() {
+	public Set<KnowledgeInteractionWithId> getKnowledgeInteractions() {
 		return this.knowledgeInteractions.entrySet().stream()
-				.map((Entry<URI, KnowledgeInteraction> e) -> this.kiToWorkAroundWithId(e.getKey(), e.getValue()))
+				.map(e -> this.kiToWorkAroundWithId(e.getKey(), e.getValue()))
 				.collect(Collectors.toSet());
 	}
 
-	private WorkaroundWithId kiToWorkAroundWithId(URI kiId, KnowledgeInteraction ki) {
+	private KnowledgeInteractionWithId kiToWorkAroundWithId(URI kiId, KnowledgeInteraction ki) {
 		var act = ki.getAct();
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
-		var wwid = new WorkaroundWithId().knowledgeInteractionId(kiId.toString())
+		var wwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
 				.communicativeAct(new eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct()
 						.requiredPurposes(requirements).satisfiedPurposes(satisfactions));
 
@@ -335,7 +333,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					ki);
 		}
 
-		return (WorkaroundWithId) wwid;
+		return (KnowledgeInteractionWithId) wwid;
 	}
 
 	public boolean hasKnowledgeInteraction(String knowledgeInteractionId) {
@@ -382,7 +380,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public AskResult ask(String kiId, List<Map<String, String>> bindings)
 			throws URISyntaxException, InterruptedException, ExecutionException {
-		KnowledgeInteraction ki;
+				KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
 		} catch (URISyntaxException e1) {
@@ -415,7 +413,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public PostResult post(String kiId, List<Map<String, String>> bindings)
 			throws URISyntaxException, InterruptedException, ExecutionException {
-		KnowledgeInteraction ki;
+				KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
 		} catch (URISyntaxException e1) {

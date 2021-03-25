@@ -17,7 +17,7 @@ import eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
-import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -99,7 +99,7 @@ public class Client {
 	}
 
 	private String postKi(String kbId, String type, String graphPattern, String argumentPattern, String resultPattern, List<String> requires, List<String> satisfies) {
-		var workaround = new Workaround()
+		var workaround = new KnowledgeInteraction()
 			.knowledgeInteractionType(type)
 			.communicativeAct(new CommunicativeAct()
 				.requiredPurposes(requires)
