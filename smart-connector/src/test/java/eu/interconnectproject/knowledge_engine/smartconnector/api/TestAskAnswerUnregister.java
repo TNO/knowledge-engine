@@ -7,9 +7,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -92,8 +90,8 @@ public class TestAskAnswerUnregister {
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 
 		// now unregister everything and register new stuff.
-		this.kb1.unregister(aKI);
-		this.kb2.unregister(askKI);
+		kb1.unregister(aKI);
+		kb2.unregister(askKI);
 
 		GraphPattern gp3 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/p> ?c.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
@@ -120,7 +118,7 @@ public class TestAskAnswerUnregister {
 			LOG.info("What happens if we ask a non-existing knwoledge interaction?");
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			success = true;
-		} catch (InterruptedException | ExecutionException e) {
+		} catch (InterruptedException | ExecutionException | AssertionError e) {
 			success = false;
 		}
 		assertFalse(success, "The ask should fail with a non existing knowledge interaction.");
@@ -138,15 +136,15 @@ public class TestAskAnswerUnregister {
 		Iterator<Binding> iter3 = bindings3.iterator();
 
 		assertTrue(iter3.hasNext(), "there should be at least 1 binding");
-		Binding b3 = iter.next();
+		Binding b3 = iter3.next();
 
 		assertTrue(!b3.containsKey("a") && !b3.containsKey("c"),
 				"The variable names should follow the graph pattern of the current KB.");
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/a>", b3.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/c>", b3.get("y"), "Binding of 'y' is incorrect.");
 
-		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
+		assertFalse(iter3.hasNext(), "This BindingSet should only have a single binding");
 
 	}
 
