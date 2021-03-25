@@ -87,7 +87,7 @@ public class GraphPatternMatcher {
 						if (node.isVariable() && fromEdgeNode == null) {
 
 							// check if the current candidate is not already mapped to another edge.
-							if (!varMapping.containsValue(node.getName())) {
+							if (!varMapping.containsKey(node.getName())) {
 								fromEdgeNode = node;
 							} else {
 								LOG.trace("Predicate variable {} is already mapped, so we skip this one.",
@@ -133,7 +133,7 @@ public class GraphPatternMatcher {
 						}
 					}
 
-					if (toEdge != null) {
+					if (toEdge != null && fromEdgeNode != null) {
 						varMapping.put(fromEdgeNode.getName(), toEdge.getName());
 
 						LOG.trace("Edge: {} - {}", fromEdgeNode, toEdge);
