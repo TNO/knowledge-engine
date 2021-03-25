@@ -43,7 +43,7 @@ public class TestPostReactPerformance {
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), kb2GP, null);
 
 		kb2.register(reactKI, (ReactHandler) (anRKI, argument) -> {
-			
+
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 			assertTrue(b.containsKey("d"));
@@ -67,19 +67,23 @@ public class TestPostReactPerformance {
 
 			try {
 				CompletableFuture<PostResult> futureResult = kb1.post(postKI, bindingSet);
-				futureResult.thenAccept((result) -> {
-
+//				futureResult.thenAccept((result) -> {
+//
 //					LOG.info("result: {}", result);
-					LOG.info("exchange time: {}ms", result.getTotalExchangeTime().toMillis());
-
-				});
+//					LOG.info("exchange time: {}ms", result.getTotalExchangeTime().toMillis());
+//
+//				});
 
 			} catch (Exception e) {
 				LOG.error("Erorr", e);
 			}
 		}
-		
-		LOG.info("{} posts finsihed in {}ms.", count, (System.nanoTime() - start) / 1000000);
+
+		long duration = (System.nanoTime() - start) / 1000000;
+
+		assertTrue(duration < 15000);
+
+		LOG.info("{} posts finsihed in {}ms.", count, duration);
 	}
 
 	@AfterAll
