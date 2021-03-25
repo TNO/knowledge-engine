@@ -1,8 +1,8 @@
 package eu.interconnectproject.knowledge_engine.rest.api.client_example;
 
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineResponse200;
+import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
+import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 
 public interface KnowledgeHandler {
-	public InlineObject1 handle(InlineResponse200 knowledgeRequest);
+	public HandleResponse handle(HandleRequest knowledgeRequest);
 }

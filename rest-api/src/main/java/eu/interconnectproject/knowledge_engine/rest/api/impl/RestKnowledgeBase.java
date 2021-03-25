@@ -30,8 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineResponse200;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
@@ -170,7 +168,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					}
 					assert knowledgeInteractionId != null;
 
-					InlineResponse200 object = new InlineResponse200().bindingSet(handleRequest.getBindingSet())
+					eu.interconnectproject.knowledge_engine.rest.model.HandleRequest object = new eu.interconnectproject.knowledge_engine.rest.model.HandleRequest().bindingSet(handleRequest.getBindingSet())
 							.handleRequestId(handleRequest.getHandleRequestId())
 							.knowledgeInteractionId(knowledgeInteractionId);
 
@@ -215,7 +213,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * @param knowledgeInteractionId
 	 * @param requestBody
 	 */
-	public void finishHandleRequest(String knowledgeInteractionId, InlineObject1 requestBody) {
+	public void finishHandleRequest(String knowledgeInteractionId, eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody) {
 
 		int handleRequestId = requestBody.getHandleRequestId();
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);

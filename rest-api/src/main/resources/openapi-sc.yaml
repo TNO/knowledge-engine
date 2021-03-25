@@ -1,7 +1,12 @@
 openapi: "3.0.0"
 info:
   title: InterConnect Knowledge Engine REST Developer API
-  description: This API describes how Smart Connectors are instantiated, Knowledge Interactions are (un)registered and data is exchanged. Each Smart Connector is coupled with a Knowledge Base Id, so every rest call uses this Knowledge Base Id to identify yourself.
+  
+  description:
+    This API describes how Smart Connectors are instantiated, Knowledge
+    Interactions are (un)registered and data is exchanged. Each Smart Connector
+    is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
+    Base Id to identify yourself.
   version: 0.0.1-SNAPSHOT
 paths:
   /sc:
@@ -13,12 +18,12 @@ paths:
         - name: Knowledge-Base-Id
           in: header
           required: false
-          description: The knowledge base id who's smart connector information you would like to have.
+          description: The knowledge base id who's Smart Connector information you would like to have.
           schema:
             type: string
       responses:
         '200':
-          description: Either a single Smart Connector or multiple ones.
+          description: A list of Smart Connectors. It will have only a single element if the Knowledge-Base-Id was provided.
           content:
             application/json:
               schema:
@@ -43,17 +48,10 @@ paths:
         - smart connector life cycle
       requestBody:
         required: true
-        content: 
+        content:
           application/json:
             schema:
-              type: object
-              properties:
-                knowledgeBaseId:
-                  type: string
-                knowledgeBaseName:
-                  type: string
-                knowledgeBaseDescription:
-                  type: string
+              $ref: '#/components/schemas/SmartConnector'
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
@@ -176,7 +174,9 @@ paths:
               schema:
                 type: string
         '404':
-          description: If a Knowledge Interaction or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          description: If a Knowledge Interaction or Knowledge Interaction for
+            the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be
+            found.
           content:
             text/plain:
               schema:
@@ -206,7 +206,10 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the ask was successful it returns all found variable bindings together with additional exchange info. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
+          description: If the ask was successful it returns all found variable
+            bindings together with additional exchange info. The exchange info
+            shows the other Knowledge Bases that contributed to the answer with
+            timing, initiator information.
           content:
             application/json:
               schema:
@@ -248,7 +251,10 @@ paths:
               $ref: '#/components/schemas/BindingSet'
       responses:
         '200':
-          description: If the post was successful it optionally returns all result variable bindings together with all exchange infos. The exchange info shows the other Knowledge Bases that contributed to the answer with timing, initiator information.
+          description: If the post was successful it optionally returns all
+            result variable bindings together with all exchange infos. The
+            exchange info shows the other Knowledge Bases that contributed to
+            the answer with timing, initiator information.
           content:
             application/json:
               schema:
@@ -262,7 +268,18 @@ paths:
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
-      description: Note that this is a long polling http call. It will block until the client is expected to handle something in which case it returns. When it returns, a new request to this same endpoint should be immediately made to receive further handle requests. (*** What if one or more handle requests came in in the meantime? ***) All handle requests (both for Answer and React Knowledge Interactions) for the given Knowledge-Base-Id will be received via a single long polling http connection. The Knowledge Interaction Id can be used to distinguish between different Knowledge Interactions. The <i>handle request id</i> (which is unique per Knowledge Base Id) should be used when sending the result back to the server. It allows the server to know which handle request you are reacting to in the <i>post</i> method of this path. </b>
+      description: Note that this is a long polling HTTP call.
+        It will block until the client is expected to handle something in which
+        case it returns. When it returns, a new request to this same endpoint
+        should be immediately made to receive further handle requests. (*** What
+        if one or more handle requests came in in the meantime? ***) All handle
+        requests (both for Answer and React Knowledge Interactions) for the
+        given Knowledge-Base-Id will be received via a single long polling http
+        connection. The Knowledge Interaction Id can be used to distinguish
+        between different Knowledge Interactions. The <i>handle request id</i>
+        (which is unique per Knowledge Base Id) should be used when sending the
+        result back to the server. It allows the server to know which handle
+        request you are reacting to in the <i>post</i> method of this path. </b>
       tags:
         - reactive
       parameters:
@@ -278,14 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  knowledgeInteractionId:
-                    type: string
-                  handleRequestId:
-                    type: integer
-                  bindingSet:
-                    $ref: '#/components/schemas/BindingSet'
+                $ref: '#/components/schemas/HandleRequest'
         '202':
           description: No problems, but please reinitiate the long polling request.
         '400':
@@ -305,7 +315,8 @@ paths:
               schema:
                 type: string
     post:
-      summary: Send the answer or reaction of the last long polling handle request back to the Smart Connector of the given Knowledge-Base-Id.
+      summary: Send the answer or reaction of the last long polling handle
+        request back to the Smart Connector of the given Knowledge-Base-Id.
       tags:
         - reactive
       parameters:
@@ -325,12 +336,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                handleRequestId:
-                  type: integer
-                bindingSet:
-                  $ref: '#/components/schemas/BindingSet'
+              $ref: '#/components/schemas/HandleResponse'
       responses:
         '200':
           description: If the answer is successfully processed by your smart connector.
@@ -341,7 +347,8 @@ paths:
               schema:
                 type: string
         '404':
-          description: If a Handle Request Id or Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          description: If a Handle Request Id or Knowledge Interaction for the
+            given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
             text/plain:
               schema:
@@ -484,3 +491,19 @@ components:
               $ref: '#/components/schemas/BindingSet'
             resultBindingSet:
               $ref: '#/components/schemas/BindingSet'
+    HandleRequest:
+      type: object
+      properties:
+        knowledgeInteractionId:
+          type: string
+        handleRequestId:
+          type: integer
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    HandleResponse:
+      type: object
+      properties:
+        handleRequestId:
+          type: integer
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'

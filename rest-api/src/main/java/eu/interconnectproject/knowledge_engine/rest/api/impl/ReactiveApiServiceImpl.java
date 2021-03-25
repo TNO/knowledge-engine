@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
 import io.swagger.annotations.ApiParam;
 
 @Path("/sc")
@@ -85,7 +84,7 @@ public class ReactiveApiServiceImpl {
 	public Response scHandlePost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "") @Valid InlineObject1 requestBody, @Context SecurityContext securityContext)
+			@ApiParam(value = "") @Valid eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody, @Context SecurityContext securityContext)
 			throws NotFoundException {
 
 		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);

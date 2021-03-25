@@ -14,9 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject1;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineResponse200;
+import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
+import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
 import eu.interconnectproject.knowledge_engine.rest.model.Workaround;
 import okhttp3.Call;
@@ -53,7 +52,7 @@ public class Client {
 	}
 
 	public void postSc(String kbId, String kbName, String kbDesc) {
-		var ilo = new InlineObject().knowledgeBaseId(kbId).knowledgeBaseName(kbName).knowledgeBaseDescription(kbDesc);
+		var ilo = new SmartConnector().knowledgeBaseId(kbId).knowledgeBaseName(kbName).knowledgeBaseDescription(kbDesc);
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(ilo), JSON);
@@ -170,21 +169,21 @@ public class Client {
 				} else if (response.code() == 200) {
 					LOG.info("Received 200 from GET /sc/handle. Sending response and then repolling.");
 					
-					InlineResponse200 knowledgeRequest = mapper.readValue(response.body().string(), new TypeReference<InlineResponse200>(){});
-					String kiId = knowledgeRequest.getKnowledgeInteractionId();
+					HandleRequest handleRequest = mapper.readValue(response.body().string(), new TypeReference<HandleRequest>(){});
+					String kiId = handleRequest.getKnowledgeInteractionId();
 					var handler = knowledgeHandlers.get(kiId);
-					var knowledgeResponse = handler.handle(knowledgeRequest);
-					postKnowledgeResponse(kbId, knowledgeResponse);
+					var handleResult = handler.handle(handleRequest);
+					postKnowledgeResponse(kbId, handleResult);
 					startLongPoll(kbId);
 				}
 			}
 		});
 	}
 
-	public void postKnowledgeResponse(String kbId, InlineObject1 knowledgeResponse) {
+	public void postKnowledgeResponse(String kbId, HandleResponse handleResult) {
 		RequestBody body;
 		try {
-			body = RequestBody.create(mapper.writeValueAsString(knowledgeResponse), JSON);
+			body = RequestBody.create(mapper.writeValueAsString(handleResult), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
@@ -227,7 +226,7 @@ public class Client {
 			Arrays.asList("https://www.tno.nl/energy/ontology/interconnect#InformPurpose"),
 			new KnowledgeHandler() {
 				@Override
-				public InlineObject1 handle(InlineResponse200 knowledgeRequest) {
+				public HandleResponse handle(HandleRequest handleRequest) {
 					// TODO Auto-generated method stub
 					return null;
 				}

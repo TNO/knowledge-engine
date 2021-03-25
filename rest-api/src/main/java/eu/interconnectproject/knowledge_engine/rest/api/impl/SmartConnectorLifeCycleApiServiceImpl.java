@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.api.SmartConnectorLifeCycleApiService;
-import eu.interconnectproject.knowledge_engine.rest.model.InlineObject;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnector;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
@@ -79,7 +78,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	}
 
 	@Override
-	public Response scPost(InlineObject inlineObject, SecurityContext securityContext) throws NotFoundException {
+	public Response scPost(SmartConnector inlineObject, SecurityContext securityContext) throws NotFoundException {
 		URI nonFinalKbId;
 		try {
 			nonFinalKbId = new URI(inlineObject.getKnowledgeBaseId());
