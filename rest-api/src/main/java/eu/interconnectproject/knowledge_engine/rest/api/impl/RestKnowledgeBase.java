@@ -221,8 +221,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction workaround) {
-		var ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
-				toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
+		CommunicativeAct ca;
+		if (workaround.getCommunicativeAct() != null) {
+			ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
+					toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
+		} else {
+			ca = new CommunicativeAct();
+		}
 
 		String type = workaround.getKnowledgeInteractionType();
 		URI kiId;

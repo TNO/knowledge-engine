@@ -372,6 +372,7 @@ components:
           type: string
     KnowledgeInteractionBase:
       type: object
+      required: [knowledgeInteractionType]
       discriminator:
         propertyName: knowledgeInteractionType
       properties:
@@ -393,6 +394,7 @@ components:
             knowledgeInteractionId:
               type: string
     AskKnowledgeInteraction:
+      required: [graphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
@@ -400,6 +402,7 @@ components:
             graphPattern:
               type: string
     AnswerKnowledgeInteraction:
+      required: [graphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
@@ -407,6 +410,7 @@ components:
             graphPattern:
               type: string
     PostKnowledgeInteraction:
+      required: [argumentGraphPattern, resultGraphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
@@ -416,6 +420,7 @@ components:
             resultGraphPattern:
               type: string
     ReactKnowledgeInteraction:
+      required: [argumentGraphPattern, resultGraphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
