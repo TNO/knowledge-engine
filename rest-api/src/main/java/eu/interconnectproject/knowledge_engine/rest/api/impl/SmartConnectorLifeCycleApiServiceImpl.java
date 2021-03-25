@@ -29,7 +29,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			return Response.status(400).entity("Smart Connector not found, because its ID must be a valid URI.")
+			return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
 					.build();
 		}
 
@@ -37,7 +37,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			manager.deleteKB(knowledgeBaseId);
 		} else {
 			return Response.status(404)
-					.entity("Deletion of smart connector failed, because smart connector could not be found.").build();
+				.entity("Deletion of knowledge base failed, because it could not be found.").build();
 		}
 
 		return Response.ok().build();
@@ -54,7 +54,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			try {
 				new URI(knowledgeBaseId);
 			} catch (URISyntaxException e) {
-				return Response.status(400).entity("Smart Connector not found, because its ID must be a valid URI.")
+				return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
 						.build();
 			}
 			if (this.manager.hasKB(knowledgeBaseId)) {
@@ -79,16 +79,13 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 
 	@Override
 	public Response scPost(SmartConnector inlineObject, SecurityContext securityContext) throws NotFoundException {
-		URI nonFinalKbId;
+		URI kbId;
 		try {
-			nonFinalKbId = new URI(inlineObject.getKnowledgeBaseId());
+			kbId = new URI(inlineObject.getKnowledgeBaseId());
 		} catch (URISyntaxException e) {
 			return Response.status(400).entity("Knowledge base ID must be a valid URI.").build();
 		}
 
-		// Not-so-nice hack to have it be a `final` variable and otherwise respond with
-		// status 400.
-		final URI kbId = nonFinalKbId;
 		final String kbDescription = inlineObject.getKnowledgeBaseDescription();
 		final String kbName = inlineObject.getKnowledgeBaseName();
 
@@ -96,7 +93,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			return Response.status(400).entity("That knowledge base ID is already in use.").build();
 		}
 
-		// Store it in the map.
+		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
 				.knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName).knowledgeBaseDescription(kbDescription));
 

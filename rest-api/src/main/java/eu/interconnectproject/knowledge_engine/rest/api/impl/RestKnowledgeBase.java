@@ -22,6 +22,7 @@ import javax.servlet.AsyncContext;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,23 +221,50 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction workaround) {
+	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction ki) {
 		CommunicativeAct ca;
-		if (workaround.getCommunicativeAct() != null) {
-			ca = new CommunicativeAct(toResources(workaround.getCommunicativeAct().getRequiredPurposes()),
-					toResources(workaround.getCommunicativeAct().getSatisfiedPurposes()));
+		if (ki.getCommunicativeAct() != null) {
+			ca = new CommunicativeAct(toResources(ki.getCommunicativeAct().getRequiredPurposes()),
+					toResources(ki.getCommunicativeAct().getSatisfiedPurposes()));
 		} else {
 			ca = new CommunicativeAct();
 		}
+		
+		// Verify the graph pattern(s) for syntax errors.
+		var patterns = new ArrayList<String>();
+		if (ki.getGraphPattern() != null) {
+			patterns.add(ki.getGraphPattern());
+		}
+		if (ki.getArgumentGraphPattern() != null) {
+			patterns.add(ki.getArgumentGraphPattern());
+		}
+		if (ki.getResultGraphPattern() != null) {
+			patterns.add(ki.getResultGraphPattern());
+		}
+		for (String pattern : patterns) {
+			var gp = new GraphPattern(pattern);
+			try {
+				gp.getGraphPattern();
+			} catch (ParseException e) {
+				// Rethrow as an IllegalArgumentException with the ParseException's extra debugging info.
+				throw new IllegalArgumentException(String.format("Invalid graph pattern '%s': %s", pattern, e.getMessage()));
+			}
+		}
 
-		String type = workaround.getKnowledgeInteractionType();
+		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
-			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(workaround.getGraphPattern()));
+			if (ki.getGraphPattern() == null) {
+				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
+			}
+			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(ki.getGraphPattern()));
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
-			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(workaround.getGraphPattern()));
+			if (ki.getGraphPattern() == null) {
+				throw new IllegalArgumentException("graphPattern must be given for ANSWER knowledge interactions.");
+			}
+			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(ki.getGraphPattern()));
 
 			kiId = this.sc.register(answerKI, this.answerHandler);
 
@@ -246,11 +274,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			GraphPattern argGP = null;
 			GraphPattern resGP = null;
 
-			if (workaround.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(workaround.getArgumentGraphPattern());
+			if (ki.getArgumentGraphPattern() != null) {
+				argGP = new GraphPattern(ki.getArgumentGraphPattern());
 			}
-			if (workaround.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(workaround.getResultGraphPattern());
+			if (ki.getResultGraphPattern() != null) {
+				resGP = new GraphPattern(ki.getResultGraphPattern());
+			}
+
+			if (resGP == null && argGP == null) {
+				throw new IllegalArgumentException("At least one of argumentGraphPattern and resultGraphPattern must be given for POST knowledge interactions.");
 			}
 
 			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP);
@@ -262,11 +294,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			GraphPattern argGP = null;
 			GraphPattern resGP = null;
 
-			if (workaround.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(workaround.getArgumentGraphPattern());
+			if (ki.getArgumentGraphPattern() != null) {
+				argGP = new GraphPattern(ki.getArgumentGraphPattern());
 			}
-			if (workaround.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(workaround.getResultGraphPattern());
+			if (ki.getResultGraphPattern() != null) {
+				resGP = new GraphPattern(ki.getResultGraphPattern());
+			}
+
+			if (resGP == null && argGP == null) {
+				throw new IllegalArgumentException("At least one of argumentGraphPattern and resultGraphPattern must be given for REACT knowledge interactions.");
 			}
 
 			var reactKI = new ReactKnowledgeInteraction(ca, argGP, resGP);
@@ -274,7 +310,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 			this.knowledgeInteractions.put(kiId, reactKI);
 		} else {
-			return null;
+			throw new IllegalArgumentException(String.format("Unexpected value for knowledgeInteractionType: %s. Must be one of: AskKnowledgeInteraction, AnswerKnowledgeInteraction, PostKnowledgeInteraction, ReactKnowledgeInteraction", type));
 		}
 
 		return kiId.toString();
@@ -294,7 +330,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 			assert this.knowledgeInteractions.containsKey(kiId);
 
-			return kiToWorkAroundWithId(kiId, this.knowledgeInteractions.get(kiId));
+			return kiToModelKiWithId(kiId, this.knowledgeInteractions.get(kiId));
 
 		} catch (URISyntaxException e) {
 			assert false : "There should never occur an invalid URI here because it should have been checked in the service implementation.";
@@ -305,32 +341,32 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public Set<KnowledgeInteractionWithId> getKnowledgeInteractions() {
 		return this.knowledgeInteractions.entrySet().stream()
-				.map(e -> this.kiToWorkAroundWithId(e.getKey(), e.getValue()))
+				.map(e -> this.kiToModelKiWithId(e.getKey(), e.getValue()))
 				.collect(Collectors.toSet());
 	}
 
-	private KnowledgeInteractionWithId kiToWorkAroundWithId(URI kiId, KnowledgeInteraction ki) {
+	private KnowledgeInteractionWithId kiToModelKiWithId(URI kiId, KnowledgeInteraction ki) {
 		var act = ki.getAct();
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
-		var wwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
+		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
 				.communicativeAct(new eu.interconnectproject.knowledge_engine.rest.model.CommunicativeAct()
 						.requiredPurposes(requirements).satisfiedPurposes(satisfactions));
 
 		if (ki instanceof AskKnowledgeInteraction) {
-			wwid.setKnowledgeInteractionType("AskKnowledgeInteraction");
-			wwid.setGraphPattern(((AskKnowledgeInteraction) ki).getPattern().getPattern());
+			kiwid.setKnowledgeInteractionType("AskKnowledgeInteraction");
+			kiwid.setGraphPattern(((AskKnowledgeInteraction) ki).getPattern().getPattern());
 		} else if (ki instanceof AnswerKnowledgeInteraction) {
-			wwid.setKnowledgeInteractionType("AnswerKnowledgeInteraction");
-			wwid.setGraphPattern(((AnswerKnowledgeInteraction) ki).getPattern().getPattern());
+			kiwid.setKnowledgeInteractionType("AnswerKnowledgeInteraction");
+			kiwid.setGraphPattern(((AnswerKnowledgeInteraction) ki).getPattern().getPattern());
 		} else if (ki instanceof PostKnowledgeInteraction) {
-			wwid.setKnowledgeInteractionType("PostKnowledgeInteraction");
-			wwid.setArgumentGraphPattern(((PostKnowledgeInteraction) ki).getArgument().getPattern());
-			wwid.setResultGraphPattern(((PostKnowledgeInteraction) ki).getResult().getPattern());
+			kiwid.setKnowledgeInteractionType("PostKnowledgeInteraction");
+			kiwid.setArgumentGraphPattern(((PostKnowledgeInteraction) ki).getArgument().getPattern());
+			kiwid.setResultGraphPattern(((PostKnowledgeInteraction) ki).getResult().getPattern());
 		} else if (ki instanceof ReactKnowledgeInteraction) {
-			wwid.setKnowledgeInteractionType("ReactKnowledgeInteraction");
-			wwid.setArgumentGraphPattern(((ReactKnowledgeInteraction) ki).getArgument().getPattern());
-			wwid.setResultGraphPattern(((ReactKnowledgeInteraction) ki).getResult().getPattern());
+			kiwid.setKnowledgeInteractionType("ReactKnowledgeInteraction");
+			kiwid.setArgumentGraphPattern(((ReactKnowledgeInteraction) ki).getArgument().getPattern());
+			kiwid.setResultGraphPattern(((ReactKnowledgeInteraction) ki).getResult().getPattern());
 		} else {
 			assert false : "Encountered unknown knowledge interaction subclass.";
 			LOG.error(
@@ -338,7 +374,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					ki);
 		}
 
-		return (KnowledgeInteractionWithId) wwid;
+		return (KnowledgeInteractionWithId) kiwid;
 	}
 
 	public boolean hasKnowledgeInteraction(String knowledgeInteractionId) {

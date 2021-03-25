@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,21 +27,31 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteraction workaround, SecurityContext securityContext)
 			throws NotFoundException {
 
+
 		LOG.info("scKiPost called: {}", workaround);
+
+		if (knowledgeBaseId == null) {
+			return Response.status(400).entity("Missing valid Knowledge-Base-Id header.").build();
+		}
 
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			return Response.status(400).entity("Smart connector not found, because its KB ID must be a valid URI.")
+			return Response.status(400).entity("Knowledge base not found, because its knowledge base ID must be a valid URI.")
 					.build();
 		}
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
+			return Response.status(404).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
 		}
 
-		String kiId = restKb.register(workaround);
+		String kiId;
+		try {
+			kiId = restKb.register(workaround);
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).entity(e.getMessage()).build();
+		}
 		if (kiId == null) {
 			return Response.status(400).entity(
 					"The registration of the knowledge interaction failed, probably because the request was invalid.")
@@ -58,12 +67,12 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
+			return Response.status(404).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
 		}
 
 		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			return Response.status(404)
-					.entity("Smart connector found, but the given knowledge interaction KB ID is unknown.").build();
+					.entity("Knowledge base found, but the given knowledge interaction knowledge base ID is unknown.").build();
 		}
 
 		restKb.delete(knowledgeInteractionId);
