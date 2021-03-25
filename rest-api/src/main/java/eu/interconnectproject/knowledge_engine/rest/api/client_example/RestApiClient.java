@@ -27,8 +27,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class Client {
-	private static final Logger LOG = LoggerFactory.getLogger(Client.class);
+public class RestApiClient {
+	private static final Logger LOG = LoggerFactory.getLogger(RestApiClient.class);
 
 	public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 	private static final String SC = "/sc";
@@ -42,7 +42,7 @@ public class Client {
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
-	public Client(String aBaseUrl) {
+	public RestApiClient(String aBaseUrl) {
 		this.baseUrl = aBaseUrl;
 		this.okClient = new OkHttpClient();
 	}

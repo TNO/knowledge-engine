@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowledge_engine.rest.api.client_example;
+package eu.interconnectproject.knowledge_engine.rest.api.client_example.post_react;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -7,16 +7,18 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiClient;
+
 /**
  * This class provides a client of the REST API with a proactive knowledge
  * interaction (a POST). To demonstrate, it should be used with
- * {@link ReactiveClient}. First launch the {@link ReactiveClient}, and then
- * this {@link ProactiveClient}.
+ * {@link ReactingClient}. First launch the {@link ReactingClient}, and then
+ * this {@link PostingClient}.
  */
-public class ProactiveClient {
-	private static final Logger LOG = LoggerFactory.getLogger(ProactiveClient.class);
+public class PostingClient {
+	private static final Logger LOG = LoggerFactory.getLogger(PostingClient.class);
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new Client("http://localhost:8080/rest");
+		var client = new RestApiClient("http://localhost:8080/rest");
 
 		// Post a new SC with a POST KI.
 		client.postSc("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-kb", "A knowledge base", "A very descriptive piece of text.");
