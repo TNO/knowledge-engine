@@ -1,6 +1,8 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -44,5 +46,37 @@ public class PostResult {
 
 	public Map<URI, PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
 		return Collections.unmodifiableMap(exchangeInfoPerKnowledgeBase);
+	}
+
+	public Duration getTotalExchangeTime() {
+
+		Map<URI, PostExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
+
+		if (!infos.isEmpty()) {
+			Instant start = Instant.MAX;
+			Instant end = Instant.MIN;
+
+			// find the earliest and latest instant among the exchange infos.
+			for (PostExchangeInfo info : infos.values()) {
+
+				if (info.getExchangeStart().isBefore(start)) {
+					start = info.getExchangeStart();
+				}
+
+				if (info.getExchangeEnd().isAfter(end)) {
+					end = info.getExchangeEnd();
+				}
+			}
+			return Duration.between(start, end);
+		} else {
+			return Duration.ofMillis(0);
+		}
+
+	}
+
+	@Override
+	public String toString() {
+		return "PostResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfoPerKnowledgeBase
+				+ "]";
 	}
 }
