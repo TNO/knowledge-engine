@@ -79,4 +79,10 @@ public class AskResult {
 		}
 
 	}
+
+	@Override
+	public String toString() {
+		return "AskResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfoPerKnowledgeBase
+				+ "]";
+	}
 }

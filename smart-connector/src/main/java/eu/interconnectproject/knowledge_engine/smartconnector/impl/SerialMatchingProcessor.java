@@ -138,6 +138,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								transformedArgBindingSet);
 						try {
 							this.reactMessageFuture = this.messageRouter.sendPostMessage(postMessage);
+							this.previousSend = Instant.now();
 							this.reactMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.reactMessageFuture = null;
@@ -148,10 +149,9 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 										transformedResultBindingSet = GraphPatternMatcher.transformBindingSet(
 												rKI.getResult(), pKI.getResult(), aMessage.getResult());
+										// TODO make sure there are no duplicates
 										this.allBindings.addAll(transformedResultBindingSet);
 									}
-									// TODO make sure there are no duplicates
-									this.previousSend = Instant.now();
 									
 									this.exchangeInfos.add(convertMessageToExchangeInfo(bindingSet, transformedResultBindingSet, aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
