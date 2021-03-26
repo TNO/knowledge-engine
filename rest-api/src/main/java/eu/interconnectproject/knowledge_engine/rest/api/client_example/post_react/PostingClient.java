@@ -45,5 +45,14 @@ public class PostingClient {
 		LOG.info("Sending POST: {}", moreBindings);
 		var moreResults = client.postPost(KB_ID, ki1, moreBindings);
 		LOG.info("Got POST result: {}", moreResults);
+
+		try {
+			var incorrectBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
+			LOG.info("Sending POST: {}", incorrectBindings);
+			client.postPost(KB_ID, ki1, incorrectBindings);
+		} catch (RuntimeException e) {
+			LOG.info("Encountered an expected RuntimeException:", e);
+			LOG.info("Everything worked as expected, the exception above was a test.");
+		}
 	}
 }

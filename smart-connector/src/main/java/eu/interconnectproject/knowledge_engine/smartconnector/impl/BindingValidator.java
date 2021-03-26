@@ -22,7 +22,7 @@ public class BindingValidator {
 			b.forEach((k, v) -> {
 				this.validateValidBindingValue(v);
 				if (!variables.contains(k)) {
-					throw new IllegalArgumentException(String.format("Given binding set uses key %s, but this does not occur as a variable in graph pattern %s.", k, pattern.getPattern()));
+					throw new IllegalArgumentException(String.format("Given binding set uses key '%s', but this does not occur as a variable in graph pattern '%s'.", k, pattern.getPattern()));
 				}
 			});
 		});
@@ -35,13 +35,13 @@ public class BindingValidator {
 			b.forEach((k, v) -> {
 				this.validateValidBindingValue(v);
 				if (!variables.contains(k)) {
-					throw new IllegalArgumentException(String.format("Given binding set uses key %s, but this does not occur as a variable in graph pattern %s.", k, pattern.getPattern()));
+					throw new IllegalArgumentException(String.format("Given binding set uses key '%s', but this does not occur as a variable in graph pattern '%s'.", k, pattern.getPattern()));
 				}
 				notSeenYet.remove(k);
 			});
 			if (!notSeenYet.isEmpty()) {
 				throw new IllegalArgumentException(String.format("Expected a complete binding, but was missing some variable(s) that ARE in the graph "
-					+ " pattern, but are missing from the binding, namely: %", notSeenYet.toString(), pattern.getPattern()));
+					+ "pattern ('%s'), but are missing from the binding, namely: %s. Note that the question mark should NOT be included in your binding keys.", pattern.getPattern(), notSeenYet.toString()));
 			}
 		});
 	}

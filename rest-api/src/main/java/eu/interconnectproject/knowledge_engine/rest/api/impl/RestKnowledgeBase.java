@@ -431,6 +431,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			throw e1;
 		}
 
+		if (!(ki instanceof PostKnowledgeInteraction)) {
+			throw new IllegalArgumentException(String.format("Knowledge interaction '%s' is not a POST knowledge interaction, but the request tried to use it as one.", kiId));
+		}
+
 		// POST the bindings to the smart connector and wait for a response. If
 		// anything misbehaves, this will throw and it's up to the caller of this
 		// method to handle it.
