@@ -22,7 +22,6 @@ import javax.servlet.AsyncContext;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,27 +227,6 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					toResources(ki.getCommunicativeAct().getSatisfiedPurposes()));
 		} else {
 			ca = new CommunicativeAct();
-		}
-		
-		// Verify the graph pattern(s) for syntax errors.
-		var patterns = new ArrayList<String>();
-		if (ki.getGraphPattern() != null) {
-			patterns.add(ki.getGraphPattern());
-		}
-		if (ki.getArgumentGraphPattern() != null) {
-			patterns.add(ki.getArgumentGraphPattern());
-		}
-		if (ki.getResultGraphPattern() != null) {
-			patterns.add(ki.getResultGraphPattern());
-		}
-		for (String pattern : patterns) {
-			var gp = new GraphPattern(pattern);
-			try {
-				gp.getGraphPattern();
-			} catch (ParseException e) {
-				// Rethrow as an IllegalArgumentException with the ParseException's extra debugging info.
-				throw new IllegalArgumentException(String.format("Invalid graph pattern '%s': %s", pattern, e.getMessage()));
-			}
 		}
 
 		String type = ki.getKnowledgeInteractionType();
