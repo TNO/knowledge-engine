@@ -1,7 +1,5 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -18,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import javax.servlet.AsyncContext;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
