@@ -240,7 +240,10 @@ public class RestApiClient {
 				.header("Knowledge-Interaction-Id", kiId)
 				.build();
 		try {
-			this.okClient.newCall(request).execute();
+			var response = this.okClient.newCall(request).execute();
+			if (!response.isSuccessful()) {
+				throw new RuntimeException("Failure while posting knowledge response. Message: " + response.body().string());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not POST the knowledge response.");
@@ -262,7 +265,11 @@ public class RestApiClient {
 				.build();
 		try {
 			var response = this.okClient.newCall(request).execute();
-			return mapper.readValue(response.body().string(), new TypeReference<PostResult>(){});
+			if (response.isSuccessful()) {
+				return mapper.readValue(response.body().string(), new TypeReference<PostResult>(){});
+			} else {
+				throw new RuntimeException("Failed request. Message: " + response.body().string());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not POST the POST message.");
@@ -288,7 +295,11 @@ public class RestApiClient {
 				.build();
 		try {
 			var response = this.okClient.newCall(request).execute();
-			return mapper.readValue(response.body().string(), new TypeReference<AskResult>(){});
+			if (response.isSuccessful()) {
+				return mapper.readValue(response.body().string(), new TypeReference<AskResult>(){});
+			} else {
+				throw new RuntimeException("Failed request. Message: " + response.body().string());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not POST the ASK message.");

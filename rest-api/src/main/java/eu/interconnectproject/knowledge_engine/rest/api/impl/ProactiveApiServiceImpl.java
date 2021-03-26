@@ -1,5 +1,6 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,13 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
 		}
 
+		try {
+			new URI(knowledgeInteractionId);
+		} catch (URISyntaxException e) {
+			return Response.status(400).entity("Knowledge interaction not found, because its ID must be a valid URI.")
+					.build();
+		}
+
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
 		}
@@ -46,6 +54,8 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			return Response.status(500)
 					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).entity(e.getMessage()).build();
 		}
 		return Response.ok().entity(ar).build();
 	}
@@ -56,6 +66,13 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 		var kb = this.store.getKB(knowledgeBaseId);
 		if (kb == null) {
 			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+		}
+
+		try {
+			new URI(knowledgeInteractionId);
+		} catch (URISyntaxException e) {
+			return Response.status(400).entity("Knowledge interaction not found, because its ID must be a valid URI.")
+					.build();
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
@@ -76,6 +93,8 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			return Response.status(500)
 					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).entity(e.getMessage()).build();
 		}
 		return Response.ok().entity(pr).build();
 	}

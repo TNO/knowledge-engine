@@ -37,10 +37,19 @@ public class AskingClient {
 		var result = client.postAsk(KB_ID, ki1);
 		LOG.info("Got ASK result: {}", result);
 
-		// ASK something else from the proactive side
-		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>", "c", "<c>"));
+		// ASK something else from the proactive side, with partial bindings
+		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
 		LOG.info("Sending ASK: {}", moreBindings);
 		var moreResults = client.postAsk(KB_ID, ki1, moreBindings);
 		LOG.info("Got ASK result: {}", moreResults);
+
+		try {
+			var incorrectBindings = Arrays.asList(Map.of("x", "<x>"));
+			LOG.info("Sending ASK: {}", incorrectBindings);
+			client.postAsk(KB_ID, ki1, incorrectBindings);
+		} catch (RuntimeException e) {
+			LOG.info("Encountered an expected RuntimeException:", e);
+			LOG.info("Everything worked as expected, the exception above was a test.");
+		}
 	}
 }
