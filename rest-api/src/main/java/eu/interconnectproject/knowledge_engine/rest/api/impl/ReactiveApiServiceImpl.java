@@ -150,7 +150,11 @@ public class ReactiveApiServiceImpl {
 
 				if (kb.hasHandleRequestId(requestBody.getHandleRequestId())) {
 
-					kb.finishHandleRequest(knowledgeInteractionId, requestBody);
+					try {
+						kb.finishHandleRequest(knowledgeInteractionId, requestBody);
+					} catch (IllegalArgumentException e) {
+						return Response.status(400).entity(e.getMessage()).build();
+					}
 
 					return Response.ok().build();
 				} else {

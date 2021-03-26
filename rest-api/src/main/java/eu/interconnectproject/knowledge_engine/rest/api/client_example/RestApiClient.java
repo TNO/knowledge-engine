@@ -240,7 +240,10 @@ public class RestApiClient {
 				.header("Knowledge-Interaction-Id", kiId)
 				.build();
 		try {
-			this.okClient.newCall(request).execute();
+			var response = this.okClient.newCall(request).execute();
+			if (!response.isSuccessful()) {
+				throw new RuntimeException("Failure while posting knowledge response. Message: " + response.body().string());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not POST the knowledge response.");

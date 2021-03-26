@@ -209,6 +209,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		int handleRequestId = requestBody.getHandleRequestId();
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
 		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
+		
+		hr.validateBindings(bs);
 		hr.getFuture().complete(bs);
 
 	}
