@@ -101,17 +101,17 @@ public class Thermostat {
 
 				BindingSet args = new BindingSet();
 				Binding i = new Binding();
-				i.put("id", "<https://www.tno.nl/example/room1>");
-				i.put("room", "room1");
+				i.put("room", "<https://www.tno.nl/example/room1>");
+				i.put("roomName", "room1");
 				i.put("act", "<https://www.tno.nl/example/act1>");
 				if (tempDouble < threshold) {
-					b.put("state", "on");
+					i.put("state", "on");
 					LOG.info("Thermostat: posting state: {}", "on");
 				} else if (tempDouble > threshold) {
-					b.put("state", "off");
+					i.put("state", "off");
 					LOG.info("Thermostat: posting state: {}", "off");
 				}
-				args.add(b);
+				args.add(i);
 				Thermostat.this.thermostat.post(thermostatPostKI, args);
 
 				return null;
