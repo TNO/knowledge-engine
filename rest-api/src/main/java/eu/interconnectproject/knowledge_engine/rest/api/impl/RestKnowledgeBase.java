@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.servlet.AsyncContext;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -29,9 +31,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
-import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
@@ -61,7 +63,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	/**
 	 * Can be null, if no connection with the client is available.
 	 */
-	private AsyncContext asyncContext;
+	private AsyncResponse asyncResponse;
 
 	/**
 	 * The Smart connector of this KB asks us to handle a certain request
@@ -89,11 +91,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
 			int previous = handleRequestId.get();
-			
+
 			int myHandleRequestId = handleRequestId.incrementAndGet();
-			
+
 			int next = handleRequestId.get();
-			
+
 			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
@@ -148,51 +150,47 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {
 
-		try {
-			if (asyncContext != null) {
-				this.beingProcessedHandleRequests.put(handleRequest.getHandleRequestId(), handleRequest);
-				// immediately process
-				PrintWriter writer = asyncContext.getResponse().getWriter();
+		if (asyncResponse != null) {
+			this.beingProcessedHandleRequests.put(handleRequest.getHandleRequestId(), handleRequest);
+			// immediately process
+			// retrieve corresponding KnowledgeInteractionId
+			if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
 
-				// retrieve corresponding KnowledgeInteractionId
-
-				if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
-
-					String knowledgeInteractionId = null;
-					for (var entry : this.knowledgeInteractions.entrySet()) {
-						if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
-							knowledgeInteractionId = entry.getKey().toString();
-						}
+				String knowledgeInteractionId = null;
+				for (var entry : this.knowledgeInteractions.entrySet()) {
+					if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
+						knowledgeInteractionId = entry.getKey().toString();
 					}
-					assert knowledgeInteractionId != null;
-
-					eu.interconnectproject.knowledge_engine.rest.model.HandleRequest object = new eu.interconnectproject.knowledge_engine.rest.model.HandleRequest().bindingSet(handleRequest.getBindingSet())
-							.handleRequestId(handleRequest.getHandleRequestId())
-							.knowledgeInteractionId(knowledgeInteractionId);
-
-					writer.write(this.om.writeValueAsString(object));
-
-					// TODO do we need to writer.flush()? Apparently not!
-					this.asyncContext.complete();
-					this.asyncContext = null;
 				}
+				assert knowledgeInteractionId != null;
 
-			} else {
-				// add to queue
-				this.toBeProcessedHandleRequests.add(handleRequest);
+				eu.interconnectproject.knowledge_engine.rest.model.HandleRequest object = new eu.interconnectproject.knowledge_engine.rest.model.HandleRequest()
+						.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
+						.knowledgeInteractionId(knowledgeInteractionId);
+
+				this.asyncResponse.resume(Response.status(200).entity(object).build());
+				this.asyncResponse = null;
 			}
-		} catch (IOException e) {
-			LOG.error("{}", e);
+
+		} else {
+			// add to queue
+			this.toBeProcessedHandleRequests.add(handleRequest);
 		}
+
 	}
 
-	public boolean hasAsyncContext() {
-		return this.asyncContext != null;
+	public boolean hasAsyncResponse() {
+		return this.asyncResponse != null;
 	}
 
-	public void handleRequest(AsyncContext asyncContext) {
+	public void resetAsyncResponse()
+	{
+		this.asyncResponse = null;
+	}
+	
+	public void waitForHandleRequest(AsyncResponse asyncResponse) {
 
-		this.asyncContext = asyncContext;
+		this.asyncResponse = asyncResponse;
 		HandleRequest hr = toBeProcessedHandleRequests.poll();
 		if (hr != null) {
 			beingProcessedHandleRequests.put(hr.getHandleRequestId(), hr);
@@ -211,7 +209,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * @param knowledgeInteractionId
 	 * @param requestBody
 	 */
-	public void finishHandleRequest(String knowledgeInteractionId, eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody) {
+	public void finishHandleRequest(String knowledgeInteractionId,
+			eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody) {
 
 		int handleRequestId = requestBody.getHandleRequestId();
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
@@ -305,8 +304,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public Set<KnowledgeInteractionWithId> getKnowledgeInteractions() {
 		return this.knowledgeInteractions.entrySet().stream()
-				.map(e -> this.kiToWorkAroundWithId(e.getKey(), e.getValue()))
-				.collect(Collectors.toSet());
+				.map(e -> this.kiToWorkAroundWithId(e.getKey(), e.getValue())).collect(Collectors.toSet());
 	}
 
 	private KnowledgeInteractionWithId kiToWorkAroundWithId(URI kiId, KnowledgeInteraction ki) {
@@ -385,7 +383,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public AskResult ask(String kiId, List<Map<String, String>> bindings)
 			throws URISyntaxException, InterruptedException, ExecutionException {
-				KnowledgeInteraction ki;
+		KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
 		} catch (URISyntaxException e1) {
@@ -418,7 +416,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public PostResult post(String kiId, List<Map<String, String>> bindings)
 			throws URISyntaxException, InterruptedException, ExecutionException {
-				KnowledgeInteraction ki;
+		KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
 		} catch (URISyntaxException e1) {

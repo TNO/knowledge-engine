@@ -294,7 +294,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HandleRequest'
         '202':
-          description: No problems, but please reinitiate the long polling request.
+          description: No problems, but please reinitiate the long polling request. To prevent very long open connections (which might cause problems for some systems), we regularly return with status code 202 to renew the long polling connection. Note that no handlerequests will be missed, because these are queued automatically.
         '400':
           description: Only one connection per Knowledge-Base-Id is allowed and we already have one.  
         '404':
