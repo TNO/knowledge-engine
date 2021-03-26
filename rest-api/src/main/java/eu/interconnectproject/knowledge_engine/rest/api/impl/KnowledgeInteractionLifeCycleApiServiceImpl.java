@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,6 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	@Override
 	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteraction workaround, SecurityContext securityContext)
 			throws NotFoundException {
-
-
 		LOG.info("scKiPost called: {}", workaround);
 
 		if (knowledgeBaseId == null) {
@@ -43,7 +42,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
+			return Response.status(404).entity("Could not add knowledge interaction, because the given knowledge base ID is unknown.").build();
 		}
 
 		String kiId;
@@ -53,8 +52,8 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			return Response.status(400).entity(e.getMessage()).build();
 		}
 		if (kiId == null) {
-			return Response.status(400).entity(
-					"The registration of the knowledge interaction failed, probably because the request was invalid.")
+			return Response.status(500).entity(
+					"The registration of the knowledge interaction failed, because of an internal error.")
 					.build();
 		}
 
