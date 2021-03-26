@@ -59,6 +59,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	private final boolean knowledgeBaseIsThreadSafe;
 	private final ExecutorService knowledgeBaseExecutorService;
 
+	private final BindingValidator bindingValidator = new BindingValidator();
+
 	/**
 	 * Create a {@link SmartConnectorImpl}
 	 *
@@ -312,6 +314,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
 
+		this.bindingValidator.validatePartialBindings(anAKI.getPattern(), aBindingSet);
+
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.ASK;
 
@@ -393,6 +397,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 
 		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
+
+		this.bindingValidator.validateCompleteBindings(aPKI.getArgument(), someArguments);
 
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.POST;

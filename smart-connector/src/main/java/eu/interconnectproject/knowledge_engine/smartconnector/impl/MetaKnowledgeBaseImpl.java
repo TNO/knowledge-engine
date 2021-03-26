@@ -284,25 +284,18 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	}
 
 	private String convertToPattern(GraphPattern gp) {
+		Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
 
-		try {
+		StringBuilder sb = new StringBuilder();
 
-			Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
+		while (iter.hasNext()) {
 
-			StringBuilder sb = new StringBuilder();
-
-			while (iter.hasNext()) {
-
-				TriplePath tp = iter.next();
-				sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
-				sb.append(" . ");
-			}
-
-			return sb.toString();
-		} catch (ParseException pe) {
-			this.LOG.error("The graph pattern should be parseable.", pe);
+			TriplePath tp = iter.next();
+			sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
+			sb.append(" . ");
 		}
-		return "<errorgraphpattern>";
+
+		return sb.toString();
 	}
 
 	@Override

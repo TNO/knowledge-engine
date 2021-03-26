@@ -407,6 +407,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			throw e1;
 		}
 
+		if (!(ki instanceof AskKnowledgeInteraction)) {
+			throw new IllegalArgumentException(String.format("Knowledge interaction '%s' is not an ASK knowledge interaction, but the request tried to use it as one.", kiId));
+		}
 		// ASK the bindings to the smart connector and wait for a response. If
 		// anything misbehaves, this will throw and it's up to the caller of this
 		// method to handle it.
@@ -419,13 +422,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 								.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
 								.initiator(toInitiatorEnumAsk(aei.getInitiator()))
 								.exchangeStart(Date.from(aei.getExchangeStart()))
-								.exchangeEnd(Date.from(aei.getExchangeEnd())).status(aei.getStatus().toString()) // Is
-																													// this
-																													// human
-																													// readable
-																													// or
-																													// a
-																													// number?
+								.exchangeEnd(Date.from(aei.getExchangeEnd()))
+								.status(aei.getStatus().toString())
 								.failedMessage(aei.getFailedMessage()))
 						.collect(Collectors.toList()));
 	}
@@ -453,13 +451,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 								.knowledgeInteractionId(pei.getKnowledgeInteractionId().toString())
 								.initiator(toInitiatorEnumPost(pei.getInitiator()))
 								.exchangeStart(Date.from(pei.getExchangeStart()))
-								.exchangeEnd(Date.from(pei.getExchangeEnd())).status(pei.getStatus().toString()) // Is
-																													// this
-																													// human
-																													// readable
-																													// or
-																													// a
-																													// number?
+								.exchangeEnd(Date.from(pei.getExchangeEnd())).status(pei.getStatus().toString())
 								.failedMessage(pei.getFailedMessage()))
 						.collect(Collectors.toList()));
 	}

@@ -1,8 +1,12 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.io.StringReader;
-import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.lang.arq.ARQParser;
@@ -29,6 +33,8 @@ public class GraphPattern {
 
 	private final PrefixMapping prefixes;
 
+	private final ElementPathBlock epb;
+
 	/**
 	 * According to Basic Graph Pattern syntax in SPARQL 1.1
 	 * {@linkplain https://www.w3.org/TR/sparql11-query/}
@@ -51,7 +57,11 @@ public class GraphPattern {
 	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) throws IllegalArgumentException {
 		this.prefixes = aPrefixMapping;
 		this.pattern = String.join("", somePatternFragments);
-		this.validate();
+		try {
+			this.epb = this.parseGraphPattern();
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(String.format("Invalid graph pattern: %s", this.pattern), e);
+		}
 	}
 
 	/**
@@ -70,14 +80,6 @@ public class GraphPattern {
 		this(PrefixMapping.Standard, somePatternFragments);
 	}
 
-	public void validate() {
-		try {
-			this.getGraphPattern();
-		} catch (ParseException e) {
-			throw new IllegalArgumentException(String.format("Invalid graph pattern: %s", this.pattern), e);
-		}
-	}
-
 	/**
 	 * @return A string that contains a SPARQL 1.1 Basic Graph Pattern
 	 *         {@linkplain https://www.w3.org/TR/sparql11-query/}.
@@ -90,11 +92,30 @@ public class GraphPattern {
 	 * @return A list of all the variable names (excluding the '?') occurring in
 	 *         this {@link GraphPattern}.
 	 */
-	public List<String> getVariables() {
-		throw new RuntimeException("Unimplemented");
+	public Set<String> getVariables() {
+		var triples = this.getGraphPattern().getPattern().getList();
+		return triples.stream()
+			// Redirect the subjects, predicates and objects to a single stream of nodes.
+			.flatMap(t -> Stream.of(t.getSubject(), t.getPredicate(), t.getObject()))
+			// Map the nodes to variable names if they're variables, and otherwise `null`.
+			.map(n -> {
+				if (n instanceof Node_Variable) {
+					return ((Node_Variable) n).getName();
+				} else {
+					return null;
+				}
+			})
+			// Filter out the nulls.
+			.filter(Objects::nonNull)
+			// Collect them into a set.
+			.collect(Collectors.toSet());
 	}
 
-	public ElementPathBlock getGraphPattern() throws ParseException {
+	public ElementPathBlock getGraphPattern() {
+		return this.epb;
+	}
+
+	public ElementPathBlock parseGraphPattern() throws ParseException {
 
 		LOG.trace("prefixes: {}- pattern: {}", this.prefixes, this.pattern);
 

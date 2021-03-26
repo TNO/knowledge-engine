@@ -13,7 +13,6 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
@@ -22,9 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucla.sspace.graph.isomorphism.TypedVF2IsomorphismTester;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.GraphPatternMatcher;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class TestGraphPatternMatch {
 
@@ -210,25 +207,18 @@ public class TestGraphPatternMatch {
 	}
 
 	private String convertToPattern(GraphPattern gp) {
+		Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
 
-		try {
+		StringBuilder sb = new StringBuilder();
 
-			Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
+		while (iter.hasNext()) {
 
-			StringBuilder sb = new StringBuilder();
-
-			while (iter.hasNext()) {
-
-				TriplePath tp = iter.next();
-				sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
-				sb.append(" . ");
-			}
-
-			return sb.toString();
-		} catch (ParseException pe) {
-			LOG.error("The graph pattern should be parseable.", pe);
+			TriplePath tp = iter.next();
+			sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
+			sb.append(" . ");
 		}
-		return "<errorgraphpattern>";
+
+		return sb.toString();
 	}
 
 }

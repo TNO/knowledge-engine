@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.apache.jena.sparql.lang.arq.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

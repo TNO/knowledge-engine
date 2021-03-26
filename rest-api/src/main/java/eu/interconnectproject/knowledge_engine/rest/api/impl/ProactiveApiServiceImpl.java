@@ -54,6 +54,8 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			return Response.status(500)
 					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).entity(e.getMessage()).build();
 		}
 		return Response.ok().entity(ar).build();
 	}
