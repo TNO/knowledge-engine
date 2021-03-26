@@ -3,6 +3,10 @@ package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.sse.SSEParseException;
+
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 
@@ -53,7 +57,13 @@ public class BindingValidator {
 	 * @param value
 	 */
 	public void validateValidBindingValue(String value) {
-		// TODO: Throw it if a VALUE of one of the bindings is not an
-	 	// unprefixed IRI or a literal.
+		try {
+			var node = SSE.parseNode(value, new PrefixMappingMem());
+			if (!(node.isLiteral() || node.isURI())) {
+				throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
+			}
+		} catch (SSEParseException spe) {
+			throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
+		}
 	}
 }

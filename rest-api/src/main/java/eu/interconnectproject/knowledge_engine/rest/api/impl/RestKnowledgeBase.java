@@ -210,9 +210,17 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
 		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
 		
-		hr.validateBindings(bs);
-		hr.getFuture().complete(bs);
+		// TODO: Can this be moved to somewhere internal so that it can also be
+		// caught in the Java developer api?
+		// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
+		try {
+			hr.validateBindings(bs);
+		} catch (IllegalArgumentException e) {
+			hr.getFuture().completeExceptionally(e);
+			throw e;
+		}
 
+		hr.getFuture().complete(bs);
 	}
 
 	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction ki) {
