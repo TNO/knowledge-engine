@@ -46,10 +46,12 @@ public class GraphPattern {
 	 *                             which the {@link KnowledgeBase} wants to
 	 *                             communicate with other {@link KnowledgeBase}.
 	 *                             Cannot be null.
+	 * @throws ParseException
 	 */
-	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) {
+	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) throws IllegalArgumentException {
 		this.prefixes = aPrefixMapping;
 		this.pattern = String.join("", somePatternFragments);
+		this.validate();
 	}
 
 	/**
@@ -62,9 +64,18 @@ public class GraphPattern {
 	 *                             which the {@link KnowledgeBase} wants to
 	 *                             communicate with other {@link KnowledgeBase}.
 	 *                             Cannot be null.
+	 * @throws ParseException
 	 */
 	public GraphPattern(String... somePatternFragments) {
 		this(PrefixMapping.Standard, somePatternFragments);
+	}
+
+	public void validate() {
+		try {
+			this.getGraphPattern();
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(String.format("Invalid graph pattern: %s", this.pattern), e);
+		}
 	}
 
 	/**
