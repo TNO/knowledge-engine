@@ -81,7 +81,11 @@ public class TestPostReactPerformance {
 
 		long duration = (System.nanoTime() - start) / 1000000;
 
-		assertTrue(duration < 15000);
+		// this depends a lot on the machine that runs this code. Not really suitable as
+		// a test. We might want to use some other metric where we measure the time for
+		// a single post and then multiply that by some number to find the maximum. That
+		// would adapt to slower machines.
+//		assertTrue(duration < 15000);
 
 		LOG.info("{} posts finsihed in {}ms.", count, duration);
 	}

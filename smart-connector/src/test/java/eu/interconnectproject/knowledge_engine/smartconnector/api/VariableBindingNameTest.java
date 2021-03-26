@@ -3,6 +3,7 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URI;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +21,8 @@ class VariableBindingNameTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(VariableBindingNameTest.class);
 
-	private MockedKnowledgeBase sensor;
-	private MockedKnowledgeBase thermostat;
+	private static MockedKnowledgeBase sensor;
+	private static MockedKnowledgeBase thermostat;
 
 	@Test
 	void test() {
@@ -146,4 +148,20 @@ class VariableBindingNameTest {
 
 	}
 
+	@AfterAll
+	public static void cleanup() {
+		LOG.info("Clean up: {}", VariableBindingNameTest.class.getSimpleName());
+		if (sensor != null) {
+			sensor.stop();
+		} else {
+			fail("Sensor should not be null!");
+		}
+
+		if (thermostat != null) {
+
+			thermostat.stop();
+		} else {
+			fail("Thermostat should not be null!");
+		}
+	}
 }

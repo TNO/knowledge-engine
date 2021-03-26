@@ -5,6 +5,8 @@ If that sounds like you, we have good news: you don't have to bother with most o
 
 This section explains the Java Developer API of the Knowledge Engine. The requirements of the Knowledge Engine are described in Test Cases and can be found [here](./04_test_cases.md).
 
+Note that there is also a [REST Developer API](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/master/rest-api/src/main/resources/openapi-sc.yaml) available.
+
 We provide an implementation of a SmartConnector that you can instantiate as a Java object.
 You are responsible for:
 
@@ -21,7 +23,7 @@ The following subsections further explain how a SmartConnector can be instantiat
 TODO: Show how to instantiate a `SmartConnector`, and explain that it needs network ports.
 
 ```java
-SmartConnector sc = new SmartConnectorImpl();
+SmartConnector sc = SmartConnectorBuilder.newSmartConnector(...).create();
 ```
 TODO: Update with new constructor to show the configuration.
 
@@ -71,7 +73,7 @@ When querying the network for the pattern, the variables (`?measurement`, `?room
 For example, if we know that there's a room called `https://www.example.org/kitchen`, we can set up the bindings as such:
 ```java
 Set<Binding> queryBindings = new HashSet<Binding>();
-queryBindings.add(new Binding(new String[][] {{ "room", "<https://www.example.org/kitchen>" }}));
+queryBindings.add(new Binding(new String\[][] {{ "room", "<https://www.example.org/kitchen>" }}));
 ```
 and subsequently query for matches:
 ```java
