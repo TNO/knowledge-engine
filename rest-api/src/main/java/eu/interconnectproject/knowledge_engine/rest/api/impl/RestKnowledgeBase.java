@@ -91,11 +91,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
 			int previous = handleRequestId.get();
-
 			int myHandleRequestId = handleRequestId.incrementAndGet();
-
 			int next = handleRequestId.get();
-
 			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
