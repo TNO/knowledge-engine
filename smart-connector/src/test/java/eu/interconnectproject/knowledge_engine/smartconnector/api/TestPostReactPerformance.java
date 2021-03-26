@@ -1,6 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -41,37 +41,45 @@ public class TestPostReactPerformance {
 
 		GraphPattern kb2GP = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), kb2GP, null);
+		long bindingCount = 10000;
+		long count = 1000;
 
 		kb2.register(reactKI, (ReactHandler) (anRKI, argument) -> {
 
 			Iterator<Binding> iter = argument.iterator();
-			Binding b = iter.next();
-			assertTrue(b.containsKey("d"));
-			assertTrue(b.containsKey("e"));
-			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
+			int idx = 0;
+			while (iter.hasNext()) {
+				idx++;
+				Binding b = iter.next();
+				assertTrue(b.containsKey("d"));
+				assertTrue(b.containsKey("e"));
+			}
+			assertEquals(bindingCount, idx, "This BindingSet should have exactly " + bindingCount + " binding(s).");
 			return new BindingSet();
 		});
 
 		kn.waitForUpToDate();
 
-		long count = 1000;
 		LOG.info("start posting");
+
+		BindingSet bs = new BindingSet();
+		Binding b;
+		for (int i = 0; i < bindingCount; i++) {
+			b = new Binding();
+			b.put("a", "<https://www.tno.nl/example/a" + i + ">");
+			b.put("c", "<https://www.tno.nl/example/c" + i + ">");
+			bs.add(b);
+		}
+
 		// exchange data
 		long start = System.nanoTime();
 		for (int i = 0; i < count; i++) {
-			BindingSet bindingSet = new BindingSet();
-			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a" + i + ">");
-			binding.put("c", "<https://www.tno.nl/example/c" + i + ">");
-			bindingSet.add(binding);
 
 			try {
-				CompletableFuture<PostResult> futureResult = kb1.post(postKI, bindingSet);
+				CompletableFuture<PostResult> futureResult = kb1.post(postKI, bs);
 //				futureResult.thenAccept((result) -> {
-//
 //					LOG.info("result: {}", result);
 //					LOG.info("exchange time: {}ms", result.getTotalExchangeTime().toMillis());
-//
 //				});
 
 			} catch (Exception e) {
