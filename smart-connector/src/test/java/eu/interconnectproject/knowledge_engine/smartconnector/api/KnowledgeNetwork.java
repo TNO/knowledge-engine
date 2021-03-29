@@ -58,23 +58,13 @@ public class KnowledgeNetwork {
 		LOG.debug("Everyone is ready!");
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
-		GraphPattern gp = new GraphPattern(this.prefixMapping,
-				"?kb rdf:type kb:KnowledgeBase .",
-				"?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .",
-				"?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .",
-				"?ki kb:isMeta ?isMeta .",
-				"?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .",
-				"?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .",
-				"?req rdf:type ?reqType .",
-				"?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .",
-				"?ki ?patternType ?gp .",
-				"?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
+		GraphPattern gp = new GraphPattern(this.prefixMapping, "?kb rdf:type kb:KnowledgeBase .",
+				"?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
+				"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
+				"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
@@ -91,16 +81,22 @@ public class KnowledgeNetwork {
 
 		while (!allUpToDate) {
 			count++;
-			LOG.trace("Checking up to date knowledge bases.");
+			LOG.info("Checking up to date knowledge bases.");
 			allUpToDate = true;
+			boolean kbUpToDate;
 			for (MockedKnowledgeBase kb : this.knowledgeBases) {
-				allUpToDate &= kb.isUpToDate(this.knowledgeInteractionMetadata.get(kb), this.knowledgeBases);
+				LOG.info("Before isUpToDate");
+				kbUpToDate = kb.isUpToDate(this.knowledgeInteractionMetadata.get(kb), this.knowledgeBases);
+				LOG.info("After isUpToDate");
+				allUpToDate &= kbUpToDate;
+				if (kbUpToDate) {
+					LOG.info("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
+				}
 			}
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("An error occured while waiting for up-to-date.", e);
 			}
 		}
 		LOG.info("Everyone is up to date after {} rounds!", count);

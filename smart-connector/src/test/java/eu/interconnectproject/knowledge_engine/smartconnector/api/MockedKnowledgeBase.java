@@ -187,7 +187,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 		// ask and check the result.
 		try {
+			LOG.trace("before ask metadata");
 			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
+			LOG.trace("after ask metadata");
 			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
 //			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
