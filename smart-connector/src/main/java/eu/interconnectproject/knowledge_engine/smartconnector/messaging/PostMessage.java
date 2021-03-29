@@ -24,9 +24,10 @@ public class PostMessage extends KnowledgeMessage {
 
 	@Override
 	public String toString() {
-		return "PostMessage [bindings=" + argument + ", messageId=" + messageId + ", fromKnowledgeBase="
-				+ fromKnowledgeBase + ", fromKnowledgeInteraction=" + fromKnowledgeInteraction + ", toKnowledgeBase="
-				+ toKnowledgeBase + ", toKnowledgeInteraction=" + toKnowledgeInteraction + "]";
+		return "PostMessage [getToKnowledgeBase()=" + getToKnowledgeBase() + ", getToKnowledgeInteraction()="
+				+ getToKnowledgeInteraction() + ", getFromKnowledgeBase()=" + getFromKnowledgeBase()
+				+ ", getFromKnowledgeInteraction()=" + getFromKnowledgeInteraction() + ", getMessageId()="
+				+ getMessageId() + ", getArgument()=" + getArgument() + "]";
 	}
 
 }

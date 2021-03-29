@@ -176,6 +176,13 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 				}
 			} else {
 				if (this.answerFuture != null) {
+					
+					LOG.debug("Exchanged data with the following {} KBs:", this.exchangeInfos.size());
+					for(ExchangeInfo ex: this.exchangeInfos)
+					{
+						LOG.debug("\t- {}", ex.getKnowledgeBaseId());
+					}
+					
 					this.answerFuture.complete(new AskResult(this.allBindings, this.exchangeInfos));
 				} else if (this.reactFuture != null) {
 					this.reactFuture.complete(new PostResult(this.allBindings, this.exchangeInfos));

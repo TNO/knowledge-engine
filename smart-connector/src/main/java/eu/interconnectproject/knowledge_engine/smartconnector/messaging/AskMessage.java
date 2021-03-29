@@ -25,9 +25,10 @@ public class AskMessage extends KnowledgeMessage {
 
 	@Override
 	public String toString() {
-		return "AskMessage [bindings=" + bindings + ", messageId=" + messageId + ", fromKnowledgeBase="
-				+ fromKnowledgeBase + ", fromKnowledgeInteraction=" + fromKnowledgeInteraction + ", toKnowledgeBase="
-				+ toKnowledgeBase + ", toKnowledgeInteraction=" + toKnowledgeInteraction + "]";
+		return "AskMessage [getToKnowledgeBase()=" + getToKnowledgeBase() + ", getToKnowledgeInteraction()="
+				+ getToKnowledgeInteraction() + ", getFromKnowledgeBase()=" + getFromKnowledgeBase()
+				+ ", getFromKnowledgeInteraction()=" + getFromKnowledgeInteraction() + ", getMessageId()="
+				+ getMessageId() + ", getBindings()=" + getBindings() + "]";
 	}
 
 }

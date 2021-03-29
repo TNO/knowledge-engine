@@ -1,8 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -12,22 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 
 /**
  * The {@link SmartConnectorImpl} is the main component of the KnowledgeEngine.
