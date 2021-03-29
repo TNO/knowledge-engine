@@ -102,13 +102,13 @@ public class Thermostat {
 				BindingSet args = new BindingSet();
 				Binding i = new Binding();
 				i.put("room", "<https://www.tno.nl/example/room1>");
-				i.put("roomName", "room1");
+				i.put("roomName", "\"room1\"");
 				i.put("act", "<https://www.tno.nl/example/act1>");
 				if (tempDouble < threshold) {
-					i.put("state", "on");
+					i.put("state", "\"on\"");
 					LOG.info("Thermostat: posting state: {}", "on");
 				} else if (tempDouble > threshold) {
-					i.put("state", "off");
+					i.put("state", "\"off\"");
 					LOG.info("Thermostat: posting state: {}", "off");
 				}
 				args.add(i);
@@ -129,7 +129,7 @@ public class Thermostat {
 				Binding b = i.next();
 				String state = b.get("state");
 				LOG.info("Heating: Received state: {}", state);
-				heatingRunnable.turnedOn.set(state.equals("on") ? true : false);
+				heatingRunnable.turnedOn.set(state.equals("\"on\"") ? true : false);
 				return null;
 			}
 		});
@@ -150,7 +150,7 @@ public class Thermostat {
 					while (true) {
 
 						b.put("id", "<https://www.tno.nl/example/room1>");
-						b.put("room", "room1");
+						b.put("room", "\"room1\"");
 						b.put("obs", "<https://www.tno.nl/example/obs1>");
 						String temp = Integer.toString(Thermostat.this.r.temperature.get());
 						b.put("temp", temp);

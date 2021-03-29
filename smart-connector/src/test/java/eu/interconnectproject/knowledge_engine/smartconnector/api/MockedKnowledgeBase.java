@@ -70,7 +70,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
-		LOG.info(this.name + " ready");
+		LOG.debug(this.name + " ready");
 		this.readyPhaser.arriveAndAwaitAdvance();
 	}
 
