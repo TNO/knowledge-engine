@@ -46,6 +46,9 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 		this.openAskMessages.put(askMessage.getMessageId(), future);
 		messageDispatcher.send(askMessage);
+
+		LOG.debug("Sent AskMessage: {}", askMessage);
+
 		return future;
 	}
 
@@ -58,6 +61,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
 		this.openPostMessages.put(postMessage.getMessageId(), future);
 		messageDispatcher.send(postMessage);
+		LOG.debug("Sent PostMessage: {}", postMessage);
+
 		return future;
 	}
 
@@ -133,6 +138,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					+ ", but I don't remember sending a message with that ID");
 		} else {
 			future.complete(answerMessage);
+			LOG.debug("Received AnswerMessage: {}", answerMessage);
 		}
 	}
 
@@ -150,6 +156,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			assert reactMessage != null;
 			assert future != null;
 			future.complete(reactMessage);
+			LOG.debug("Received ReactMessage: {}", reactMessage);
 		}
 	}
 

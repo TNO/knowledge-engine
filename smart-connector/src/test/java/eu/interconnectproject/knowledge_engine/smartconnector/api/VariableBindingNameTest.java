@@ -96,7 +96,7 @@ class VariableBindingNameTest {
 		BindingSet bs = new BindingSet();
 		Binding b = new Binding();
 		b.put("id1", "<https://www.tno.nl/example/room1>");
-		b.put("room1", "room1");
+		b.put("room1", "\"room1\"");
 		b.put("obs1", "<https://www.tno.nl/example/obs1>");
 		String temp = Double.toString(21.5);
 		b.put("temp1", temp);
