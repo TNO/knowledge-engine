@@ -115,7 +115,7 @@ public class GraphPattern {
 		return this.epb;
 	}
 
-	public ElementPathBlock parseGraphPattern() throws ParseException {
+	private ElementPathBlock parseGraphPattern() throws ParseException {
 
 		LOG.trace("prefixes: {}- pattern: {}", this.prefixes, this.pattern);
 
