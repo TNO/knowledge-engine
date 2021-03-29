@@ -114,9 +114,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public URI register(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
-
 		URI kiId = this.myKnowledgeBaseStore.register(anAskKI, false);
 		this.knowledgeBaseChanged();
+		LOG.info("Registered Ask KI <{}>.", kiId);
 		return kiId;
 	}
 
@@ -133,8 +133,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAskKI).getId();
 		this.myKnowledgeBaseStore.unregister(anAskKI);
+		LOG.info("Unregistered Ask KI <{}>.", kiId);
 		this.knowledgeBaseChanged();
 	}
 
@@ -157,9 +158,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		this.checkStopped();
-
 		URI kiId = this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
 		this.knowledgeBaseChanged();
+		LOG.info("Registered Answer KI <{}>.", kiId);
 		return kiId;
 	}
 
@@ -176,8 +177,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAnswerKI).getId();
 		this.myKnowledgeBaseStore.unregister(anAnswerKI);
+		LOG.info("Unregistered Answer KI <{}>.", kiId);
 		this.knowledgeBaseChanged();
 	}
 
@@ -195,9 +197,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public URI register(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
-
 		URI kiId = this.myKnowledgeBaseStore.register(aPostKI, false);
 		this.knowledgeBaseChanged();
+		LOG.info("Registered Post KI <{}>.", kiId);
 		return kiId;
 	}
 
@@ -214,9 +216,10 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aPostKI).getId();
 		this.myKnowledgeBaseStore.unregister(aPostKI);
 		this.knowledgeBaseChanged();
+		LOG.info("Unregistered Post KI <{}>.", kiId);
 	}
 
 	/**
@@ -237,9 +240,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public URI register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
 		this.checkStopped();
-
 		URI kiId = this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
 		this.knowledgeBaseChanged();
+		LOG.info("Registered React KI <{}>.", kiId);
 		return kiId;
 	}
 
@@ -256,9 +259,10 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(ReactKnowledgeInteraction aReactKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aReactKI).getId();
 		this.myKnowledgeBaseStore.unregister(aReactKI);
 		this.knowledgeBaseChanged();
+		LOG.info("Unregistered React KI <{}>.", kiId);
 	}
 
 	/**
