@@ -53,13 +53,8 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 			if (!id.equals(this.sc.getKnowledgeBaseId())) {
 
 				// retrieve metadata about other knowledge base
-				CompletableFuture<OtherKnowledgeBase> otherKnowledgeBaseFuture = this.metaKnowledgeBase
-						.getOtherKnowledgeBase(id);
-
-				futures.add(otherKnowledgeBaseFuture);
-
-				// when finished, add it to the store.
-				otherKnowledgeBaseFuture.thenAccept(otherKnowledgeBase -> {
+				CompletableFuture<Void> otherKnowledgeBaseFuture = this.metaKnowledgeBase
+						.getOtherKnowledgeBase(id).thenAccept(otherKnowledgeBase -> {
 
 					assert otherKnowledgeBase != null : "The other knowledge base should be non-null.";
 
@@ -69,6 +64,8 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 						this.LOG.error("Adding an other knowledgebase should succeed.", t);
 					}
 				});
+
+				futures.add(otherKnowledgeBaseFuture);
 			} else {
 				this.LOG.trace("Skipping myself: {}", this.sc.getKnowledgeBaseId());
 			}
@@ -90,7 +87,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 			this.LOG.error("Adding an other knowledgebase should succeed.", t);
 		}
 	}
-	
+
 	@Override
 	public void updateKnowledgeBase(OtherKnowledgeBase kb) {
 		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
