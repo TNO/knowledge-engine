@@ -32,7 +32,7 @@ A knowledge base with **humans in the loop** could, for example, use a smartphon
 
 (Adapted from a quote in the motion picture *Into the Wild* (2007): *"Happiness is only real when shared"*.)
 
-TODO: Maybe also tell how it is less flexible to have a hard link from Service A to Service B, than it is to have a soft link (via the Knowledge they consume/produce) between Service A and Service B, because then Service C can also tune in.
+<!-- TODO: Maybe also tell how it is less flexible to have a hard link from Service A to Service B, than it is to have a soft link (via the Knowledge they consume/produce) between Service A and Service B, because then Service C can also tune in. -->
 
 As hinted to above, several knowledge bases that *share* knowledge provide more value than the same knowledge bases that are siloed: The whole is greater than the sum of the parts.
 
@@ -48,11 +48,11 @@ To their surprise, it is now necessary to install another app!
 In the example above, there were three physical devices: The phone and the two light bulbs.
 However, the phone contained two 'knowledge bases' and the knowledge for both light bulb systems was completely siloed:
 
-![](./img/silos.png)
+![two apps talking a different protocol to different lamps](./img/silos.png)
 
 It would be convenient if the silos exchanged information, or better, if there was a single generic app that can communicate with both bulbs:
 
-![](./img/exchanging.png)
+![one app that can talk to both light bulbs, using the other app as an intermediary](./img/exchanging.png)
 
 Because of these obvious advantages, combining knowledge bases like this is becoming increasingly common.
 Currently, these combinations are often hand-made, and it would be convenient to make this easier.
@@ -135,14 +135,15 @@ One knowledge interaction describes a single capability of a knowledge base.
 
 There are four types of knowledge interactions:
 
-- __Ask__: A graph pattern that describes the 'shape' of knowledge that the smart connector will request from the network.
-- __Answer__: A graph pattern that describes the 'shape' of knowledge that the smart connector can provide the network with.
-- __Post__: Whenever this knowledge base decides, it posts knowledge in the form of the argument graph pattern and expects (optional) knowledge in the form of the result graph pattern.
-- __React__: Whenever a smart connector receives the request from the network, it allows the Knowledge Base to react to the knowledge conforming to the argument graph pattern and send knowledge back to the Knowledge Network in the form of the resultgraph patterns.
+- __ASK__: A graph pattern that describes the 'shape' of knowledge that the smart connector will request from the network.
+- __ANSWER__: A graph pattern that describes the 'shape' of knowledge that the smart connector can provide the network with.
+- __POST__: Whenever this knowledge base decides, it posts knowledge in the form of the argument graph pattern and expects (optional) knowledge in the form of the result graph pattern.
+- __REACT__: Whenever a smart connector receives the request from the network, it allows the Knowledge Base to react to the knowledge conforming to the argument graph pattern and send knowledge back to the Knowledge Network in the form of the resultgraph patterns.
 
-For example, the Post Knowledge Interaction of a temperature sensor is:
+For example, the POST Knowledge Interaction of a temperature sensor is:
 
-- argument: ```sparql
+- argument:
+```sparql
 ?obs rdf:type sosa:Observation . 
 ?obs sosa:hasFeatureOfInterest ?room_id . 
 ?obs sosa:observedProperty saref:Temperature . 
@@ -150,16 +151,17 @@ For example, the Post Knowledge Interaction of a temperature sensor is:
 ?room_id rdf:type saref:Room . 
 ?room_id saref:hasName ?room . 
 ```
+
 - result: `<empty>` 
 
-The result graph pattern is expressed as a [SPARQL graph pattern](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
+The argument graph pattern is expressed as a [SPARQL graph pattern](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
 This particular pattern describes observations of temperature measurements in a room.
 It should be noted that some variables (the resources/literals with prefix "`?`") will not vary much for a single static temperature sensor.
 For example, the `?room` and its `?room_id` will probably always be bound to the same value.
 The result, `?temp` will vary more.
 
-Answer Knowledge Interactions offer their (historic) data to be requested on demand, whereas Post Knowledge Interactions will publish new knowledge when it comes available.
-The simple temperature sensor in the example is unable to store much data, so it makes more sense to publish measurement and then forget them.
+ANSWER knowledge interactions offer their (historic) data to be requested on demand, whereas POST knowledge interactions will publish new knowledge when it comes available.
+The simple temperature sensor in the example is unable to store much data, so it makes more sense to publish measurement (with a POST interaction) and then forget them.
 
 ## Knowledge Directory
 
@@ -171,7 +173,7 @@ The knowledge directory is aware of all smart connectors and their knowledge Int
 
 ## Rules
 
-TODO: Is information like this necessary for developers using smart connectors? They don't need to write rules, or do they?
+<!-- TODO: Is information like this necessary for developers using smart connectors? They don't need to write rules, or do they? -->
 
 An if-then statement that tells the reasoner how to derive inferred facts from asserted facts. There are many forms of reasoning, but backward reasoning and forward reasoning are the typical ones. Backward reasoning means reasoning to prove a certain statement (i.e. question). This is also called goal-based reasoning, because you reason towards a particular goal (or actually, from a goal backwards to the actual data). Forward reasoning is also called data-driven reasoning, because it starts from the data and tries to infer all possible facts from this data using the available rules.
 

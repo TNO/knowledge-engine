@@ -1,5 +1,5 @@
-Java Developer API
-==================
+# Java Developer API
+
 As a developer, you might be thinking "this all seems awfully complex and painful".
 If that sounds like you, we have good news: you don't have to bother with most of it!
 
@@ -20,7 +20,7 @@ The following subsections further explain how a SmartConnector can be instantiat
 
 ## Instantiating and configuring a SmartConnector
 
-TODO: Show how to instantiate a `SmartConnector`, and explain that it needs network ports.
+<!-- TODO: Show how to instantiate a `SmartConnector`, and explain that it needs network ports. -->
 
 Assuming `this` is your knowledge base, you can make a `SmartConnector` as follows:
 
@@ -81,7 +81,6 @@ and subsequently query for matches:
 AskResult askResult = sc.ask(asksForTemperatureMeasurements, queryBindings).get();
 
 BindingSet resultBindings = askResult.getBindings();
-
 ```
 The results from the knowledge network are in the set of bindings.
 The `AskResult` contains other useful information, such as `AskExchangeInfo`, which gives information about the data's origins.
@@ -89,7 +88,6 @@ The `AskResult` contains other useful information, such as `AskExchangeInfo`, wh
 ## Registering and using other kinds of Knowledge Interactions
 
 Aside from `ASK` knowledge interactions, there are also `ANSWER`, `REACT`, and `POST` interactions, which will be explained here in the future.
-
 ## Bindings
 
 The data that is shared is inside the `Binding` objects.
