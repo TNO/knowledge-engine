@@ -106,7 +106,7 @@ As you can see, a `Binding` object is essentially a map from variable names to t
 Two important things should be noted:
 
 1. The keys of the bindings MUST correspond to the variable names in the graph pattern, and they must be complete (all variables must have a value bound to them). (This last restriction does not apply to the bindings given with ASK requests; they can be partial of even empty.)
-2. The values of the bindings MUST be a valid IRI (https://www.w3.org/TR/turtle/#sec-iri) (for now without prefixes, so full IRIs) or a valid literal (https://www.w3.org/TR/turtle/#literals).
+2. The values of the bindings MUST be valid IRIs (https://www.w3.org/TR/turtle/#sec-iri) (for now without prefixes, so full IRIs) or valid literals (https://www.w3.org/TR/turtle/#literals).
 
 ### Binding sets
 
