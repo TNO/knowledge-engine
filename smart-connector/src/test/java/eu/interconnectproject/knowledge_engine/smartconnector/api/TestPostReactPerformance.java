@@ -41,7 +41,7 @@ public class TestPostReactPerformance {
 
 		GraphPattern kb2GP = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), kb2GP, null);
-		long bindingCount = 10000;
+		long bindingCount = 100;
 		long count = 1000;
 
 		kb2.register(reactKI, (ReactHandler) (anRKI, argument) -> {

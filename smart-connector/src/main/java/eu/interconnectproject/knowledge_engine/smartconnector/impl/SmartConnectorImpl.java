@@ -93,15 +93,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 	@Override
 	public Logger getLogger(Class<?> class1) {
-		try {
-			return LoggerFactory
-					.getLogger(URLEncoder.encode(this.myKnowledgeBase.getKnowledgeBaseId().toString(), "utf8") + "-"
-							+ class1.getSimpleName());
-		} catch (UnsupportedEncodingException e) {
-			assert false;
-			return null;
-		}
-//		return LoggerFactory.getLogger("pindakaas");
+		return LoggerFactory.getLogger(class1.getSimpleName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
 	}
 
 	public URI getKnowledgeBaseId() {
@@ -319,6 +311,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.ASK;
 
+		LOG.info("Processing ask for KI <{}>.", info.getId());
 		return this.interactionProcessor.processAskFromKnowledgeBase(info, aSelector, aBindingSet);
 	}
 
@@ -403,6 +396,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.POST;
 
+		LOG.info("Processing post for KI <{}>.", info.getId());
+
 		return this.interactionProcessor.processPostFromKnowledgeBase(info, aSelector, someArguments);
 	}
 
@@ -481,6 +476,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 						// can proceed to inform the knowledge base that this smart connector is
 						// ready for action!
 						this.knowledgeBaseExecutorService.execute(() -> {
+							LOG.info("Ready to exchange data.");
 							try {
 								this.myKnowledgeBase.smartConnectorReady(this);
 							} catch (Throwable t) {

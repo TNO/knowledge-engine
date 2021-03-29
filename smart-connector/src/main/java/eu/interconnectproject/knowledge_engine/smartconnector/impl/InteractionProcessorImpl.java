@@ -122,6 +122,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				} else {
 					var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
 					// TODO This should happen in the single thread for the knowledge base
+					
+					LOG.info("Contacting my KB to answer KI <{}>", this.myKnowledgeBaseStore.getKnowledgeBaseId(), answerKnowledgeInteractionId);
+					
 					bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
 				}
 
@@ -197,6 +200,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				} else {
 					var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 					// TODO This should happen in the single thread for the knowledge base
+					
+					LOG.info("Contacting my KB to react to KI <{}>", this.myKnowledgeBaseStore.getKnowledgeBaseId(), reactKnowledgeInteractionId);
+					
 					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getArgument());
 				}
 
