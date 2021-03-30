@@ -11,12 +11,23 @@ The Knowledge Engine Maven project consists of the following Maven modules:
 * smart-connector
 
 
-If you run the smart-connector, you can configure a log file by including the following system property to the JVM: `org.slf4j.simpleLogger.logFile=sc.log`. Typically, you add them using the `-D` handle, so:
+If you run the REST version of the smart-connector. Use the following command (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=sc.log` system property to the JVM):
 
 ```
-java ... org.slf4j.simpleLogger.logFile=sc.log ...
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "rest-api-0.0.1-SNAPSHOT.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280
 ```
 
+This assumes all the required dependencies are located in a folder called `lib`. You can let maven collect all the required dependencies in the target/dependency folder using the following command:
+
+```
+mvn dependency:copy-dependencies
+```
+
+If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
+
+```
+nohup java -cp "rest-api-0.0.1-SNAPSHOT.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280 > ke.log
+```
 
 
 Release steps
