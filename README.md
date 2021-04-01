@@ -16,6 +16,12 @@ The Knowledge Engine project consists of the following Maven modules:
 Assuming there is a REST API instance running at a known host, you can use these instructions to help you get started with making a client for it.
 
 To make the client, it needs to talk HTTP, and conform to [our API specification](./rest-api/src/main/resources/openapi-sc.yaml).
+With the API specification, you will be able to:
+
+- Register your knowledge base (with its accompanying smart connector) via the `/sc` path.
+- Register knowledge interactions for your knowledge base via the `/sc/ki` path.
+- Trigger new proactive knowledge requests via the `/sc/ask` and `/sc/post` paths.
+- Respond to knowledge requests from the network via the `/sc/handle` path.
 
 In the [`client_example` package](./rest-api/src/main/java/eu/interconnectproject/knowledge_engine/rest/api/client_example), there are several examples of clients written in Java.
 
