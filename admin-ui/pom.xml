@@ -20,6 +20,13 @@
 			<version>0.1.1-SNAPSHOT</version>
 		</dependency>
 
+		<!-- jena -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<type>pom</type>
+		</dependency>
+
 		<!-- logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>

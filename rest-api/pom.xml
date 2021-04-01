@@ -137,7 +137,6 @@
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
-			<version>3.17.0</version>
 			<type>pom</type>
 		</dependency>
 
@@ -148,8 +147,6 @@
 			<version>4.9.1</version>
 		</dependency>
 	</dependencies>
-
-
 
 	<build>
 		<plugins>
