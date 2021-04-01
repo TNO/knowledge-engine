@@ -42,8 +42,8 @@ public class ReactiveApiServiceImpl {
 
 	@GET
 	@Path("/handle")
-	@Consumes({ "application/json" })
-	@Produces({ "application/json", "text/plain" })
+	@Consumes({ "application/json; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public void scHandleGet(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
@@ -117,8 +117,8 @@ public class ReactiveApiServiceImpl {
 
 	@POST
 	@Path("/handle")
-	@Consumes({ "application/json" })
-	@Produces({ "application/json", "text/plain" })
+	@Consumes({ "application/json; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public Response scHandlePost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
