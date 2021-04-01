@@ -11,7 +11,7 @@ public class RestServer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class);
 
-	private static final int DEFAULT_PORT = 8080;
+	private static final int DEFAULT_PORT = 8280;
 
 	public static void main(String[] args) {
 		int port = DEFAULT_PORT;

@@ -25,7 +25,7 @@ paths:
         '200':
           description: A list of Smart Connectors. It will have only a single element if the Knowledge-Base-Id was provided.
           content:
-            application/json:
+            application/json; charset=UTF-8:
               schema:
                 type: array
                 items:
@@ -33,13 +33,13 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '500':
           description: If a problem occurred.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
     post:
@@ -49,7 +49,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/SmartConnector'
       responses:
@@ -58,7 +58,7 @@ paths:
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
     delete:
@@ -78,7 +78,7 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
   /sc/ki:
@@ -97,7 +97,7 @@ paths:
         '200':
           description: If the Knowledge Interactions were successfully returned.
           content:
-            application/json:
+            application/json; charset=UTF-8:
               schema:
                 type: array
                 items:
@@ -116,7 +116,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/KnowledgeInteraction'
             example:
@@ -126,20 +126,20 @@ paths:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
                 example: https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
         '400':
           description: If the Knowledge Interaction is not successfully registered.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
     delete:
@@ -165,7 +165,7 @@ paths:
         '400':
           description: If unregistering the Knowledge Interaction failed.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '404':
@@ -173,7 +173,7 @@ paths:
             the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be
             found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
   /sc/ask:
@@ -197,7 +197,7 @@ paths:
       requestBody:
         description: The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
-          application/json:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/BindingSet'
       responses:
@@ -207,19 +207,19 @@ paths:
             shows the other Knowledge Bases that contributed to the answer with
             timing, initiator information.
           content:
-            application/json:
+            application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/AskResult'
         '400':
           description: If the ask failed.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
   /sc/post:
@@ -243,7 +243,7 @@ paths:
       requestBody:
         description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
-          application/json:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/BindingSet'
       responses:
@@ -253,13 +253,13 @@ paths:
             exchange info shows the other Knowledge Bases that contributed to
             the answer with timing, initiator information.
           content:
-            application/json:
+            application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/PostResult'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
   /sc/handle:
@@ -290,7 +290,7 @@ paths:
         '200':
           description: If a request to handle a particular Knowledge Interaction Id comes in with a binding set.
           content:
-            application/json:
+            application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/HandleRequest'
         '202':
@@ -300,7 +300,7 @@ paths:
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '410':
@@ -308,7 +308,7 @@ paths:
         '500':
           description: If a problem occurred. Please reinitiate this long polling http call.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
     post:
@@ -331,7 +331,7 @@ paths:
             type: string
       requestBody:
         content:
-          application/json:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/HandleResponse'
         description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
@@ -341,14 +341,14 @@ paths:
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
         '404':
           description: If a Handle Request Id or Knowledge Interaction for the
             given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain:
+            text/plain; charset=UTF-8:
               schema:
                 type: string
 components:
