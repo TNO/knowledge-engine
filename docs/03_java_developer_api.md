@@ -49,20 +49,8 @@ As an example, assume `graphPattern` is the following graph pattern:
 ?measurement saref:hasSimpleResult ?temperature .
 ```
 It can be illustrated with this diagram:
-```mermaid
-graph LR;
+![illustration of aforementioned graph pattern](./img/temperature-measurement-example.png)
 
-%% Variables are drawn as circles.
-?measurement((?measurement))
-?room((?room))
-?temperature((?temperature))
-
-?measurement -->|rdf:type| saref:Measurement;
-?measurement -->|saref:hasFeatureOfInterest| ?room;
-?room -->|rdf:type| saref:Room;
-?measurement -->|saref:observedProperty| saref:Temperature;
-?measurement -->|saref:hasSimpleResult| ?temperature;
-```
 where the variables are represented by circles and the fixed URIs are represented by rectangles.
 
 The graph pattern above matches on temperature measurements in rooms.
