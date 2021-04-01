@@ -6,7 +6,7 @@
 	<groupId>eu.interconnectproject.knowledge_engine</groupId>
 	<artifactId>ke-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<description>This artifact is a suite of tools for orchestrating semantic data exchange through a knowledge network.</description>
 
 	<modules>

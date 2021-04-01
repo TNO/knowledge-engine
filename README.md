@@ -29,7 +29,7 @@ In the [`client_example` package](./rest-api/src/main/java/eu/interconnectprojec
 To start a new instance of the REST API knowledge engine, use the following command (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
 
 ```bash
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "rest-api-0.0.1-SNAPSHOT.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "rest-api-0.1.0.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280
 ```
 
 This assumes all the required dependencies are located in a folder called `lib`. You can let maven collect all the required dependencies in the target/dependency folder using the following command:
@@ -41,14 +41,15 @@ mvn dependency:copy-dependencies
 If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
 
 ```bash
-nohup java -cp "rest-api-0.0.1-SNAPSHOT.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280 > ke.log
+nohup java -cp "rest-api-0.1.0.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280 > ke.log
 ```
 
 ## Release steps
 These are instructions on what to do when we release a new version of the knowledge engine.
 
-1. Update all relevant version definintions and make sure they are correct and non-SNAPSHOT:
+1. Update all relevant version references and make sure they are correct and non-SNAPSHOT:
 	- all pom.xml files
 	- openapi-sc.yaml version
+	- this readme.md file
 2. Make a commit for the release, and tag it with `git tag v{x}.{y}.{z}`.
 3. Prepare the next SNAPSHOT version and make a commit for that too.
