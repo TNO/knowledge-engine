@@ -1,0 +1,150 @@
+openapi: "3.0.0"
+info:
+  title: InterConnect Knowledge Engine - Knowledge Directory API
+  
+  description:
+    This file describes the API between the Smart Connectors and the Knowledge Directory
+  version: 0.1.1-SNAPSHOT
+paths:
+  /scr:
+    get:
+      summary: List all Smart Connector Runtimes
+      tags:
+      - "scr"
+      responses:
+        '200':
+          description: A list of Smart Connector Runtimes
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SmartConnectorRuntime'
+        '500':
+          description: If a problem occurred.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+    post:
+      summary: Register a new Smart Connector Runtime
+      tags:
+      - "scr"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/SmartConnectorRuntime'
+      responses:
+        '200':
+          description: The Smart Connector Runtime was succefully created. Returns the id.
+          content:
+            text/plan; charset=UTF-8:
+              schema:
+                type: string
+        '400':
+          description: The Smart Connector Runtime was already registered
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '500':
+          description: Provided data was not valid
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+                
+  /scr/{scr_id}:
+    get:
+      summary: Retrieves data of a single Smart Connector Runtime
+      tags:
+      - "scr"
+      parameters:
+      - name: "scr_id"
+        in: "path"
+        description: ID of the Smart Connector Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Data for that Smart Connector Runtime
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/SmartConnectorRuntime'
+        '404':
+          description: No Smart Connector Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+    delete:
+      summary: Unregister a Smart Connector Runtime
+      tags:
+      - "scr"
+      parameters:
+      - name: "scr_id"
+        in: "path"
+        description: ID of the Smart Connector Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Smart Connector Runtime unregistered
+        '404':
+          description: No Smart Connector Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+  /scr/{scr_id}/renew:
+    post:
+      summary: Renew lease of Smart Connector Runtime
+      tags:
+      - "scr"
+      parameters:
+      - name: "scr_id"
+        in: "path"
+        description: ID of the Smart Connector Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successfully renewed lease for Smart Connector Runtime
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/SmartConnectorRuntime'
+        '404':
+          description: No Smart Connector Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string  
+
+
+components:
+  schemas:
+    SmartConnectorRuntime:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        port:
+          type: integer
+        protocolVersion:
+          type: string
+        lastRenew:
+          type: string
+          format: date-time
+      required:
+        - hostname
+        - port
+        - protocolVersion
