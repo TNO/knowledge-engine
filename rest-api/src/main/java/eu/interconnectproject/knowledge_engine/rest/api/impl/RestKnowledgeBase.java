@@ -135,7 +135,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
 		this.knowledgeInteractions = new HashMap<>();
-		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(2);
+		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(50);
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 
