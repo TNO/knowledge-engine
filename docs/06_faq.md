@@ -29,3 +29,25 @@ SELECT ?sensor WHERE {
 }
 ```
 - *Answer*: Exactly, the WHERE part contains the Basic Graph Patterns and those are used to create the Knowledge Interactions. We do not use SPARQL, because SPARQL is only usable for a question/answer interactions, while the Interoperability layer should also support publish/subscribe and function call interactions.
+
+*Question*: In POST /sc/ki one registers a Knowledge Interaction along with the knowledge interaction type. In POST /sc/ask one queries for some results by referring to a KI and providing an incomplete binding set. The result will be a complete binding set. In your presentation KE for dummies slide 12, you mentioned that one could restrict the question (at the react side). I didn’t find in the rest of the slides on how one can do that, except by having a literal in the registered KI. In your example a person has a name and a email address, but the logic only allows to ask for the email address associated with a person with a certain name, but it does not allow to get the name associated with a specific email address. How do we impose such a restriction, or we can’t do this at this stage?
+
+- *Answer*: If the logic does not allow the inverse, then you should not use an Ask/Answer Knowledge Interactions with a graph pattern like:
+	```
+	?person :hasUsername ?userName .
+	?person :hasEmailaddress ?emailAddress .
+	```
+
+	In that case you want to use the Post/React Knowledge Interactions. These have two Graph Patterns and the *argument* graph pattern would look something like:
+
+	```
+	?person :hasUsername ?userName .
+	```
+
+	and the *result* graph pattern would look something like:
+
+	```
+	?person :hasEmailaddress ?emailAddress .
+	```
+
+	This tells the Knowledge Engine that you cannot send it an email address and receive the username.
