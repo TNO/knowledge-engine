@@ -513,7 +513,12 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		return this.messageRouter;
 	}
 
-	private CompletableFuture<Void> knowledgeBaseChanged() {
-		return this.metaKnowledgeBase.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases());
+	private void knowledgeBaseChanged() {
+		try {
+			this.metaKnowledgeBase.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases())
+					.get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("Notifying other knowledgebases of a change, should not fail.", e);
+		}
 	}
 }
