@@ -108,6 +108,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
 				ReactMessage reply = this.metaKnowledgeBase.processPostFromMessageRouter(message);
 				try {
+					LOG.info("{} - {}", this.messageDispatcherEndpoint, reply);
 					this.messageDispatcherEndpoint.send(reply);
 				} catch (IOException e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
@@ -194,6 +195,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	@Override
 	public void unsetMessageDispatcher() {
+		LOG.info("unsetMessageDispatcher");
 		assert this.messageDispatcherEndpoint != null;
 
 		this.messageDispatcherEndpoint = null;
