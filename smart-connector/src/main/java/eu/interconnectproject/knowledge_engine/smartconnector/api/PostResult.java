@@ -1,12 +1,12 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
-import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link PostResult} contains the result of the
@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
  */
 public class PostResult {
 
+	private static final Logger LOG = LoggerFactory.getLogger(PostResult.class);
+
 	private final BindingSet bindings;
-	private final Map<URI, PostExchangeInfo> exchangeInfoPerKnowledgeBase;
+	private final Set<PostExchangeInfo> exchangeInfos;
 
 	/**
 	 * Create a {@link PostResult}.
@@ -28,11 +30,10 @@ public class PostResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public PostResult(BindingSet someBindings, Set<ExchangeInfo> exchangeInfos) {
+	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos) {
 		this.bindings = someBindings;
 
-		exchangeInfoPerKnowledgeBase = exchangeInfos.stream()
-				.collect(Collectors.toMap(x -> x.getKnowledgeBaseId(), x -> (PostExchangeInfo) x));
+		exchangeInfos = postExchangeInfos;
 
 	}
 
@@ -44,20 +45,20 @@ public class PostResult {
 		return this.bindings;
 	}
 
-	public Map<URI, PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
-		return Collections.unmodifiableMap(exchangeInfoPerKnowledgeBase);
+	public Set<PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
+		return Collections.unmodifiableSet(exchangeInfos);
 	}
 
 	public Duration getTotalExchangeTime() {
 
-		Map<URI, PostExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
+		Set<PostExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
 
 		if (!infos.isEmpty()) {
 			Instant start = Instant.MAX;
 			Instant end = Instant.MIN;
 
 			// find the earliest and latest instant among the exchange infos.
-			for (PostExchangeInfo info : infos.values()) {
+			for (PostExchangeInfo info : infos) {
 
 				if (info.getExchangeStart().isBefore(start)) {
 					start = info.getExchangeStart();
@@ -76,7 +77,6 @@ public class PostResult {
 
 	@Override
 	public String toString() {
-		return "PostResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfoPerKnowledgeBase
-				+ "]";
+		return "PostResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfos + "]";
 	}
 }

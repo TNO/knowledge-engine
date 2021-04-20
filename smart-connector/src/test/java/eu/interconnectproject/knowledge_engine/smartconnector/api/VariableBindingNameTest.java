@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.net.URI;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -103,10 +103,11 @@ class VariableBindingNameTest {
 		bs.add(b);
 		try {
 			PostResult postResult = this.sensor.post(sensorPostKI, bs).get();
-			
-			Map<URI, PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
 
-			PostExchangeInfo info = infos.get(thermostat.getKnowledgeBaseId());
+			Set<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
+
+			PostExchangeInfo info = infos.stream()
+					.filter(ei -> ei.getKnowledgeBaseId().equals(thermostat.getKnowledgeBaseId())).findFirst().get();
 
 			BindingSet bindingSet = info.getArgument();
 
@@ -126,19 +127,19 @@ class VariableBindingNameTest {
 			assertFalse(binding.containsKey("room2"));
 			assertFalse(binding.containsKey("obs2"));
 			assertFalse(binding.containsKey("temp2"));
-			
+
 			BindingSet bindingSet2 = info.getResult();
 			var iter2 = bindingSet2.iterator();
 			assertTrue(iter2.hasNext());
 			Binding b2 = iter2.next();
-			
+
 			assertTrue(b2.containsKey("s1"));
 			assertTrue(b2.containsKey("p1"));
 			assertTrue(b2.containsKey("o1"));
 			assertFalse(b2.containsKey("s2"));
 			assertFalse(b2.containsKey("p2"));
 			assertFalse(b2.containsKey("o2"));
-			
+
 			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s1"));
 			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p1"));
 			assertEquals("<https://www.tno.nl/example/object>", b2.get("o1"));
