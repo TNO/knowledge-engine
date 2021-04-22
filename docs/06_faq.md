@@ -92,3 +92,6 @@ I received the following expectation from the knowladge-engine: ```400 Bad Reque
 
 
 	If you change your example value from 'device1' to something like '<http://www.example.org/device1>', this particular error should be resolved.
+
+*Question*: Do we need a long polling connection for every Knowledge Interaction? Doesn't that get very complicated?
+- *Answer*: No, per Smart Connector (or Knowledge Base) you need a single long polling connection to receive all interactions from the Knowledge Engine. Do remember that this long polling connection is returned with status code 202 every 29 seconds and also needs to be reestablished after you receive data via it.
