@@ -78,3 +78,17 @@ SELECT ?sensor WHERE {
 	2) Yes, the argument graph pattern and result graph pattern should both match if two Post/React Knowledge Interactions want to exchange data. Note that this probably changes when the Knowledge Engine uses a reasoner instead of a matcher.
 	3) Yes, the PostKnowledgeInteraction sends the argument and the ReactKnowledgeInteraction sends the (optional) result.
 	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
+
+*Question*: I successfully created smart connector (https://cybergrid.com/kb1") and the knowledge Interaction. When I wanted to execute the ask command with the following body:
+```
+[
+  {
+   "deviceName": "device1" 
+  }
+]
+```
+I received the following expectation from the knowladge-engine: ```400 Bad Request: ['device1' is not an unprefixed URI or literal.]```
+- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.0/docs/03_java_developer_api.md#bindings).
+
+
+	If you change your example value from 'device1' to something like '<http://www.example.org/device1>', this particular error should be resolved.
