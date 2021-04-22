@@ -11,3 +11,4 @@ The Knowledge Engine provides this interoperability by using an ontology that de
 - Section 4: [Test cases](04_test_cases.md)
 
 - [Glossary](05_glossary.md)
+- [FAQ](06_faq.md)
