@@ -26,22 +26,22 @@ With the API specification, you will be able to:
 In the [`client_example` package](./rest-api/src/main/java/eu/interconnectproject/knowledge_engine/rest/api/client_example), there are several examples of clients written in Java.
 
 ## How to administer the REST API
-To start a new instance of the REST API knowledge engine, use the following command (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
-
-```bash
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "rest-api-0.1.0.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280
-```
-
-This assumes all the required dependencies are located in a folder called `lib`. You can let maven collect all the required dependencies in the target/dependency folder using the following command:
+To start a new instance of the REST API knowledge engine version 0.1.0, make sure you have `git checkout 0.1.0` the tag `0.1.0`. Now make sure you run the `mvn clean install` command successfully from the root of the repository. Once this is completed it is required that all dependencies of the `rest-api` are located in a folder called `target/dependency`. You can let maven collect all the required dependencies in the `target/dependency` folder using the following command from the `/rest-api/` folder:
 
 ```bash
 mvn dependency:copy-dependencies
 ```
 
+and use the following run command (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
+
+```bash
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "rest-api-0.1.0.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280
+```
+
 If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
 
 ```bash
-nohup java -cp "rest-api-0.1.0.jar:lib/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280 > ke.log
+nohup java -cp "rest-api-0.1.0.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.api.RestServer 8280 > ke.log
 ```
 
 ## Release steps
