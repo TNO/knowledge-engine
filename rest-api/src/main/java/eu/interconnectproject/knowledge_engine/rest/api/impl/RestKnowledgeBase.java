@@ -419,7 +419,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var askResult = this.sc.ask((AskKnowledgeInteraction) ki, listToBindingSet(bindings)).get();
 
 		return new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
-				.exchangeInfo(askResult.getExchangeInfoPerKnowledgeBase().values().stream()
+				.exchangeInfo(askResult.getExchangeInfoPerKnowledgeBase().stream()
 						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
 								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
 								.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
@@ -451,7 +451,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var postResult = this.sc.post((PostKnowledgeInteraction) ki, listToBindingSet(bindings)).get();
 
 		return new PostResult().resultBindingSet(this.bindingSetToList(postResult.getBindings()))
-				.exchangeInfo(postResult.getExchangeInfoPerKnowledgeBase().values().stream()
+				.exchangeInfo(postResult.getExchangeInfoPerKnowledgeBase().stream()
 						.map(pei -> new PostExchangeInfo().argumentBindingSet(this.bindingSetToList(pei.getArgument()))
 								.resultBindingSet(this.bindingSetToList(pei.getResult()))
 								.knowledgeBaseId(pei.getKnowledgeBaseId().toString())
