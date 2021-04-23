@@ -11,16 +11,16 @@ public class AskMessage extends KnowledgeMessage {
 	 * AnswerKnowledgeInteraction are used.
 	 * (Proactive side does the translations)
 	 */
-	private BindingSet bindings;
+	private BindingSet bindingSet;
 
 	public AskMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, BindingSet bindings) {
 		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
-		this.bindings = bindings;
+		this.bindingSet = bindings;
 	}
 
 	public BindingSet getBindings() {
-		return bindings;
+		return bindingSet;
 	}
 
 	@Override
