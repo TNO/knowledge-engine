@@ -51,7 +51,7 @@ public class Thermostat {
 						Thread.sleep(7000);
 					}
 				} catch (InterruptedException e) {
-					LOG.error("{}", e);
+					LOG.debug("", e);
 				}
 			}
 		});
@@ -162,7 +162,7 @@ public class Thermostat {
 
 					}
 				} catch (InterruptedException e) {
-					LOG.error("{}", e);
+					LOG.debug("", e);
 				}
 			}
 
@@ -174,8 +174,6 @@ public class Thermostat {
 		this.sensor.stop();
 		this.thermostat.stop();
 		this.heating.stop();
-
-		KeRuntime.executorService().shutdownNow();
 
 	}
 
@@ -203,7 +201,7 @@ public class Thermostat {
 					Thread.sleep(3000);
 				}
 			} catch (InterruptedException e) {
-				LOG.error("{}", e);
+				LOG.debug("", e);
 			}
 		}
 
