@@ -11,23 +11,28 @@ public class KnowledgeDirectory {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectory.class);
 
-	public static final int DEFAULT_PORT = 8282; // TODO make configurable
-	public static final int SCR_LEASE_SECONDS = 60;
+	private static enum State {
+		NEW, RUNNING, STOPPED
+	}
 
-	public static void main(String[] args) {
-		int port = DEFAULT_PORT;
+	private int port;
+	private State state;
+	private Server server;
 
-		if (args.length > 0) {
-			try {
-				port = Integer.parseInt(args[0]);
-			} catch (NumberFormatException e) {
-				LOG.error("{} is not a valid port number.", args[0]);
-				System.exit(1);
-			}
+	public KnowledgeDirectory(int port) {
+		this.port = port;
+		this.state = State.NEW;
+	}
+
+	public void start() throws Exception {
+		if (state != State.NEW) {
+			throw new IllegalStateException("Server already started or stopped");
 		}
+		this.state = State.RUNNING;
 
 		LOG.info("Starting Knowledge Director REST API on port {}.", port);
-		Server server = new Server(port);
+
+		server = new Server(port);
 
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
@@ -39,14 +44,23 @@ public class KnowledgeDirectory {
 		serHol.setInitParameter("jersey.config.server.provider.packages",
 				"eu.interconnectproject.knowledge_engine.knowledgedirectory");
 
-		try {
-			server.start();
-			server.join();
-		} catch (Exception ex) {
-			LOG.error("{}", ex);
-		} finally {
-			server.destroy();
+		server.start();
+	}
+
+	public void join() throws InterruptedException {
+		if (state != State.RUNNING) {
+			throw new IllegalStateException("Can only stop join when it is running");
 		}
+		server.join();
+	}
+
+	public void stop() {
+		if (state != State.RUNNING) {
+			throw new IllegalStateException("Can only stop server when it is running");
+		}
+		this.state = State.STOPPED;
+
+		server.destroy();
 	}
 
 }

@@ -16,7 +16,7 @@ public class ScrApiImpl extends ScrApiService {
 	private Map<String, SmartConnectorRuntime> scrs = new ConcurrentHashMap<>();
 
 	private void cleanupExpired() {
-		Date threshold = new Date(System.currentTimeMillis() - KnowledgeDirectory.SCR_LEASE_SECONDS * 1000);
+		Date threshold = new Date(System.currentTimeMillis() - Main.SCR_LEASE_SECONDS * 1000);
 		scrs.entrySet().removeIf(e -> e.getValue().getLastRenew().before(threshold));
 	}
 
