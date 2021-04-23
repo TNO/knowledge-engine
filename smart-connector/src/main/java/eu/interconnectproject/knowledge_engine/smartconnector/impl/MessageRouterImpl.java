@@ -71,6 +71,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	@Override
 	public void handleAskMessage(AskMessage message) {
+		MessageDispatcherEndpoint messageDispatcher = this.messageDispatcherEndpoint;
 		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
 			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
@@ -78,7 +79,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
 				AnswerMessage reply = this.metaKnowledgeBase.processAskFromMessageRouter(message);
 				try {
-					this.messageDispatcherEndpoint.send(reply);
+					messageDispatcher.send(reply);
 				} catch (IOException e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
@@ -87,7 +88,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 						.processAskFromMessageRouter(message);
 				replyFuture.thenAccept(reply -> {
 					try {
-						this.messageDispatcherEndpoint.send(reply);
+						messageDispatcher.send(reply);
 					} catch (Throwable e) {
 						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 					}
@@ -101,6 +102,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	@Override
 	public void handlePostMessage(PostMessage message) {
+		MessageDispatcherEndpoint messageDispatcher = this.messageDispatcherEndpoint;
 		if (this.metaKnowledgeBase == null || this.interactionProcessor == null) {
 			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
@@ -108,8 +110,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
 				ReactMessage reply = this.metaKnowledgeBase.processPostFromMessageRouter(message);
 				try {
-					LOG.info("{} - {}", this.messageDispatcherEndpoint, reply);
-					this.messageDispatcherEndpoint.send(reply);
+					messageDispatcher.send(reply);
 				} catch (IOException e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
@@ -118,7 +119,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 						.processPostFromMessageRouter(message);
 				replyFuture.thenAccept(reply -> {
 					try {
-						this.messageDispatcherEndpoint.send(reply);
+						messageDispatcher.send(reply);
 					} catch (Throwable e) {
 						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 					}
@@ -195,7 +196,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	@Override
 	public void unsetMessageDispatcher() {
-		LOG.info("unsetMessageDispatcher");
 		assert this.messageDispatcherEndpoint != null;
 
 		this.messageDispatcherEndpoint = null;
