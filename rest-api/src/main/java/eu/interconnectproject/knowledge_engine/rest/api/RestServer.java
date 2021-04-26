@@ -3,6 +3,8 @@ package eu.interconnectproject.knowledge_engine.rest.api;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +31,16 @@ public class RestServer {
 		Server server = new Server(port);
 
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-
 		ctx.setContextPath("/");
 		server.setHandler(ctx);
 
-		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/rest/*");
-		serHol.setInitOrder(1);
-		serHol.setInitParameter("jersey.config.server.provider.packages",
-				"eu.interconnectproject.knowledge_engine.rest");
+		ResourceConfig rc = new ResourceConfig();
+		rc.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+		rc.packages("eu.interconnectproject.knowledge_engine.rest");
+		ServletContainer sc = new ServletContainer(rc);
+		ServletHolder jerseyServlet = new ServletHolder(sc);
+
+		ctx.addServlet(jerseyServlet, "/rest/*");
 
 		try {
 			server.start();
