@@ -118,7 +118,7 @@ paths:
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/KnowledgeInteraction'
+              $ref: '#/components/schemas/KnowledgeInteractionBase'
             example:
               knowledgeInteractionType: AskKnowledgeInteraction
               graphPattern: "?s ?p ?o"
@@ -378,15 +378,9 @@ components:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
-    KnowledgeInteraction:
-      oneOf:
-        - $ref: '#/components/schemas/AskKnowledgeInteraction'
-        - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
-        - $ref: '#/components/schemas/PostKnowledgeInteraction'
-        - $ref: '#/components/schemas/ReactKnowledgeInteraction'
     KnowledgeInteractionWithId:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
           properties:
             knowledgeInteractionId:

@@ -1,21 +1,20 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
-import eu.interconnectproject.knowledge_engine.rest.api.*;
-import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
-import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.*;
+import eu.interconnectproject.knowledge_engine.rest.api.KnowledgeInteractionLifeCycleApiService;
+import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeInteractionLifeCycleApiService {
@@ -24,7 +23,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteraction workaround, SecurityContext securityContext)
+	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteractionBase workaround, SecurityContext securityContext)
 			throws NotFoundException {
 		LOG.info("scKiPost called: {}", workaround);
 
