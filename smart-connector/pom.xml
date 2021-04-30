@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -38,7 +38,6 @@
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
-			<version>3.17.0</version>
 			<type>pom</type>
 		</dependency>
 
@@ -54,4 +53,9 @@
 			<version>2.0.4</version>
 		</dependency>
 	</dependencies>
+	
+	<properties>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+	</properties>
 </project>

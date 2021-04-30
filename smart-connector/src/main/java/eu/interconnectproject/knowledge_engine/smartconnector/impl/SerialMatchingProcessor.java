@@ -15,7 +15,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.AskExchangeInf
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo.Status;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
@@ -41,7 +40,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final BindingSet allBindings;
 	private final Object lock;
-	private final Set<ExchangeInfo> exchangeInfos;
+	private final Set<AskExchangeInfo> askExchangeInfos;
+	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Instant previousSend = null;
 
 	public SerialMatchingProcessor(LoggerProvider loggerProvider,
@@ -52,7 +52,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		this.kiIter = otherKnowledgeInteractions.iterator();
 		this.allBindings = new BindingSet();
 		this.lock = new Object();
-		this.exchangeInfos = new HashSet<>();
+		this.askExchangeInfos = new HashSet<>();
+		this.postExchangeInfos = new HashSet<>();
 
 	}
 
@@ -105,7 +106,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 									// TODO make sure there are no duplicates
 									this.allBindings.addAll(transformedAnswerBindingSet);
 
-									this.exchangeInfos.add(convertMessageToExchangeInfo(aMessage));
+									this.askExchangeInfos
+											.add(convertMessageToExchangeInfo(transformedAnswerBindingSet, aMessage));
 
 									this.checkOtherKnowledgeInteraction(bindingSet);
 								} catch (Throwable t) {
@@ -138,19 +140,23 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								transformedArgBindingSet);
 						try {
 							this.reactMessageFuture = this.messageRouter.sendPostMessage(postMessage);
+							this.previousSend = Instant.now();
 							this.reactMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.reactMessageFuture = null;
 
-									if (rKI.getResult() != null && pKI.getResult() != null) {
+									BindingSet transformedResultBindingSet = new BindingSet();
+									if (pKI.getResult() != null) {
+										assert rKI.getResult() != null;
 
-										BindingSet transformedResBindingSet = GraphPatternMatcher.transformBindingSet(
+										transformedResultBindingSet = GraphPatternMatcher.transformBindingSet(
 												rKI.getResult(), pKI.getResult(), aMessage.getResult());
-										this.allBindings.addAll(transformedResBindingSet);
+										// TODO make sure there are no duplicates
+										this.allBindings.addAll(transformedResultBindingSet);
 									}
-									// TODO make sure there are no duplicates
-									this.previousSend = Instant.now();
-									this.exchangeInfos.add(convertMessageToExchangeInfo(bindingSet, aMessage));
+
+									this.postExchangeInfos.add(convertMessageToExchangeInfo(bindingSet,
+											transformedResultBindingSet, aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
 									// throw an exception and it has nothing to do with receiving a message.
 									this.checkOtherKnowledgeInteraction(bindingSet);
@@ -172,27 +178,29 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 					this.checkOtherKnowledgeInteraction(bindingSet);
 				}
 			} else {
+				LOG.trace("Exchanged data with the following {} KBs:", this.askExchangeInfos.size());
 				if (this.answerFuture != null) {
-					this.answerFuture.complete(new AskResult(this.allBindings, this.exchangeInfos));
+					this.answerFuture.complete(new AskResult(this.allBindings, this.askExchangeInfos));
 				} else if (this.reactFuture != null) {
-					this.reactFuture.complete(new PostResult(this.allBindings, this.exchangeInfos));
+					this.reactFuture.complete(new PostResult(this.allBindings, this.postExchangeInfos));
 				}
 			}
 		}
 	}
 
-	private AskExchangeInfo convertMessageToExchangeInfo(AnswerMessage aMessage) {
+	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage) {
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), aMessage.getBindings(), this.previousSend, Instant.now(),
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
 				Status.SUCCEEDED, null);
 	}
 
-	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet argument, ReactMessage aMessage) {
+	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
+			BindingSet someConvertedResultBindings, ReactMessage aMessage) {
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), argument, aMessage.getResult(), this.previousSend,
-				Instant.now(), Status.SUCCEEDED, null);
+				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
+				this.previousSend, Instant.now(), Status.SUCCEEDED, null);
 	}
 
 	private boolean matches(GraphPattern gp1, GraphPattern gp2) {

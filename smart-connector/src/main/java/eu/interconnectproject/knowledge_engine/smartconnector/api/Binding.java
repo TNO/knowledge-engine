@@ -3,6 +3,8 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.Set;
 
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.shared.PrefixMapping;
@@ -72,6 +74,10 @@ public class Binding {
 		return this.map.get(aVariableName);
 	}
 
+	public Set<String> getVariables() {
+		return this.map.keySet();
+	}
+
 	private void validateEntry(String aVariableName, String aValue) throws IllegalArgumentException {
 		if (aVariableName == null || aVariableName.startsWith("?")) {
 			throw new IllegalArgumentException("Variable names should not be null or start with a question mark.");
@@ -99,5 +105,13 @@ public class Binding {
 	@Override
 	public String toString() {
 		return "Binding [" + (this.map != null ? "map=" + this.map : "") + "]";
+	}
+
+	/**
+	 * See {@link java.util.Map#forEach}
+	 * @param action
+	 */
+	public void forEach(BiConsumer<String, String> action) {
+		this.map.forEach(action);
 	}
 }

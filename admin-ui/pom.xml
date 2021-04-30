@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -17,7 +17,14 @@
 		<dependency>
 			<groupId>eu.interconnectproject.knowledge_engine</groupId>
 			<artifactId>smart-connector</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+
+		<!-- jena -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<type>pom</type>
 		</dependency>
 
 		<!-- logging -->

@@ -54,13 +54,15 @@ public class TestAskAnswer {
 				LOG.info("smartConnector of {} ready.", this.name);
 			}
 		};
+		kb1.start();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 
 		CommunicativeAct act1 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(act1, gp1);
-		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
+		kb1.register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
+
 			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
@@ -71,7 +73,6 @@ public class TestAskAnswer {
 
 			return bindingSet;
 		});
-
 		Thread.sleep(5000);
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -80,27 +81,28 @@ public class TestAskAnswer {
 				LOG.info("smartConnector of {} ready.", this.name);
 
 			}
-
 		};
+		kb2.start();
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		CommunicativeAct act2 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(act2, gp2);
 
-		kb2.getSmartConnector().register(askKI);
+		kb2.register(askKI);
 		LOG.trace("After kb2 register");
 		Thread.sleep(10000);
 
 		BindingSet bindings = null;
 		try {
 			Instant start = Instant.now();
-			
+
 			LOG.trace("Before ask");
-			AskResult result = kb2.getSmartConnector().ask(askKI, new BindingSet()).get();
+			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
-			
-			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(), result.getTotalExchangeTime().toMillis());
+
+			LOG.info("After ask. It took {}ms ({}ms exchanging)", Duration.between(start, Instant.now()).toMillis(),
+					result.getTotalExchangeTime().toMillis());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}

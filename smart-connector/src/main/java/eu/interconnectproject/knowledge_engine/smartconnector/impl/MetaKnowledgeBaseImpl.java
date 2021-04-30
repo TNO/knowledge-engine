@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -43,7 +44,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessa
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
 
-public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
+public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseStoreListener {
 
 	private final Logger LOG;
 
@@ -53,7 +54,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	private final KnowledgeBaseStore knowledgeBaseStore;
 	private OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 
-
 	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
 			KnowledgeBaseStore aKnowledgeBaseStore) {
 		this.LOG = loggerProvider.getLogger(this.getClass());
@@ -61,29 +61,19 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		this.myKnowledgeBaseId = aKnowledgeBaseStore.getKnowledgeBaseId();
 		this.messageRouter = aMessageRouter;
 		this.knowledgeBaseStore = aKnowledgeBaseStore;
+		this.knowledgeBaseStore.addListener(this);
 
 		var prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
-		this.metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase .",
-				"?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .",
-				"?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .",
-				"?ki kb:isMeta ?isMeta .",
-				"?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .",
-				"?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .",
-				"?req rdf:type ?reqType .",
-				"?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .",
-				"?ki ?patternType ?gp .",
-				"?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern ."
-			);
-		
+		this.metaGraphPattern = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
+				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
+				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
+				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
+				"?gp kb:hasPattern ?pattern .");
+
 		// create answer knowledge interaction
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(aKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);
@@ -92,19 +82,49 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		AskKnowledgeInteraction aKI2 = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(aKI2, true);
 
-		PostKnowledgeInteraction pKINew = new PostKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))), this.metaGraphPattern, null);
+		PostKnowledgeInteraction pKINew = new PostKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
+				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(pKINew, true);
-		PostKnowledgeInteraction pKIUpdated = new PostKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE))), this.metaGraphPattern, null);
+		PostKnowledgeInteraction pKIUpdated = new PostKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE))),
+				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(pKIUpdated, true);
-		PostKnowledgeInteraction pKIRemoved = new PostKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))), this.metaGraphPattern, null);
+		PostKnowledgeInteraction pKIRemoved = new PostKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))),
+				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(pKIRemoved, true);
-		
-		ReactKnowledgeInteraction rKINew = new ReactKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))), this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKINew, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler shouldn't be called under normal circumstances.
-		ReactKnowledgeInteraction rKIUpdated = new ReactKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))), this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKIUpdated, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler shouldn't be called under normal circumstances.
-		ReactKnowledgeInteraction rKIRemoved = new ReactKnowledgeInteraction(new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)), new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))), this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKIRemoved, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler shouldn't be called under normal circumstances.
+
+		ReactKnowledgeInteraction rKINew = new ReactKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
+		this.knowledgeBaseStore.register(rKINew, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
+																									// shouldn't be
+																									// called under
+																									// normal
+																									// circumstances.
+		ReactKnowledgeInteraction rKIUpdated = new ReactKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
+		this.knowledgeBaseStore.register(rKIUpdated, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
+																										// shouldn't be
+																										// called under
+																										// normal
+																										// circumstances.
+		ReactKnowledgeInteraction rKIRemoved = new ReactKnowledgeInteraction(
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
+		this.knowledgeBaseStore.register(rKIRemoved, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
+																										// shouldn't be
+																										// called under
+																										// normal
+																										// circumstances.
 	}
 
 	@Override
@@ -127,13 +147,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
 	}
 
-	private CompletableFuture<Void> postInformToKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases, Resource purpose) {
+	private CompletableFuture<Void> postInformToKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
+			Resource purpose) {
 		// Prepare the meta bindings once
 		var myMetaBindings = this.fillMetaBindings();
 		// And also my KI id. We re-use this every time.
-		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(
-			this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.POST, purpose
-		);
+		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
+				KnowledgeInteractionInfo.Type.POST, purpose);
 
 		// We keep track of all the interactions in this set of futures.
 		var futures = new HashSet<CompletableFuture<ReactMessage>>();
@@ -141,12 +161,12 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		// Then send messages to all knowledge peers
 		for (OtherKnowledgeBase kb : otherKnowledgeBases) {
 			// Construct the knowledge interaction ID of the receiving side.
-			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(
-				kb.getId(), KnowledgeInteractionInfo.Type.REACT, purpose
-			);
+			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
+					KnowledgeInteractionInfo.Type.REACT, purpose);
 
 			// Construct and send the message, and keep track of the future.
-			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(), toKnowledgeInteraction, myMetaBindings);
+			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(),
+					toKnowledgeInteraction, myMetaBindings);
 			try {
 				futures.add(this.messageRouter.sendPostMessage(msg));
 			} catch (IOException e) {
@@ -154,9 +174,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			}
 		}
 		// Return a future that completes when all futures in it have completed.
-		return CompletableFuture.allOf(
-			futures.toArray(new CompletableFuture<?>[futures.size()])
-		);
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
 	}
 
 	@Override
@@ -284,25 +302,18 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	}
 
 	private String convertToPattern(GraphPattern gp) {
+		Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
 
-		try {
+		StringBuilder sb = new StringBuilder();
 
-			Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
+		while (iter.hasNext()) {
 
-			StringBuilder sb = new StringBuilder();
-
-			while (iter.hasNext()) {
-
-				TriplePath tp = iter.next();
-				sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
-				sb.append(" . ");
-			}
-
-			return sb.toString();
-		} catch (ParseException pe) {
-			this.LOG.error("The graph pattern should be parseable.", pe);
+			TriplePath tp = iter.next();
+			sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
+			sb.append(" . ");
 		}
-		return "<errorgraphpattern>";
+
+		return sb.toString();
 	}
 
 	@Override
@@ -310,14 +321,17 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 		assert aPostMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId);
 
 		// Parse the incoming PostMessage and inform `this.otherKnowledgeBaseStore`
-		
+
 		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getArgument());
 		assert otherKB.getId().equals(aPostMessage.getFromKnowledgeBase());
 
-		var purpose = this.knowledgeBaseStore.getPurpose(aPostMessage.getFromKnowledgeBase(), aPostMessage.getFromKnowledgeInteraction());
+		var purpose = this.knowledgeBaseStore.getPurpose(aPostMessage.getFromKnowledgeBase(),
+				aPostMessage.getFromKnowledgeInteraction());
 
-		var myKI = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.REACT, purpose);
-		assert myKI.equals(aPostMessage.getToKnowledgeInteraction()) : myKI + " is not " + aPostMessage.getToKnowledgeInteraction();
+		var myKI = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.REACT,
+				purpose);
+		assert myKI.equals(aPostMessage.getToKnowledgeInteraction()) : myKI + " is not "
+				+ aPostMessage.getToKnowledgeInteraction();
 
 		if (purpose.equals(Vocab.NEW_KNOWLEDGE_PURPOSE)) {
 			this.otherKnowledgeBaseStore.addKnowledgeBase(otherKB);
@@ -327,11 +341,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 			this.otherKnowledgeBaseStore.removeKnowledgeBase(otherKB);
 		}
 
-		return new ReactMessage(
-			this.myKnowledgeBaseId, myKI,
-			aPostMessage.getFromKnowledgeBase(), aPostMessage.getFromKnowledgeInteraction(),
-			aPostMessage.getMessageId(), new BindingSet()
-		);
+		return new ReactMessage(this.myKnowledgeBaseId, myKI, aPostMessage.getFromKnowledgeBase(),
+				aPostMessage.getFromKnowledgeInteraction(), aPostMessage.getMessageId(), new BindingSet());
 	}
 
 	@Override
@@ -536,5 +547,41 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase {
 	@Override
 	public boolean isMetaKnowledgeInteraction(URI id) {
 		return this.knowledgeBaseStore.getKnowledgeInteractionById(id).isMeta();
+	}
+
+	@Override
+	public void knowledgeInteractionRegistered(KnowledgeInteractionInfo ki) {
+
+		if (!ki.isMeta()) {
+			try {
+				this.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("Notifying other knowledgebases of a register, should not fail.", e);
+			}
+		}
+
+	}
+
+	@Override
+	public void knowledgeInteractionUnregistered(KnowledgeInteractionInfo ki) {
+		if (!ki.isMeta()) {
+			try {
+				this.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("Notifying other knowledgebases of a unregister, should not fail.", e);
+			}
+		}
+
+	}
+
+	@Override
+	public void smartConnectorStopping() {
+		try {
+			// Block on the future.(TODO: Timeout?)
+			this.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("An error occured while informing peers about our "
+					+ "termination. Proceeding to stop the smart connector regardless.", e);
+		}
 	}
 }
