@@ -26,101 +26,91 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 	public Response scAskPost(String knowledgeBaseId, String knowledgeInteractionId, List<Map<String, String>> bindings,
 			SecurityContext securityContext) throws NotFoundException {
 
-		ResponseBuilder rb;
-
-		if (knowledgeBaseId != null && knowledgeInteractionId != null) {
-
-			var kb = this.store.getKB(knowledgeBaseId);
-			if (kb == null) {
-				rb = Response.status(404).entity("Smart connector not found, because its ID is unknown.");
-			} else {
-
-				try {
-					new URI(knowledgeInteractionId);
-				} catch (URISyntaxException e) {
-					rb = Response.status(400)
-							.entity("Knowledge interaction not found, because its ID must be a valid URI.");
-				}
-
-				if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
-					rb = Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.");
-				} else {
-
-					KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
-					if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
-						rb = Response.status(400).entity(
-								"Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
-										+ ki.getKnowledgeInteractionType() + ".");
-					} else {
-
-						AskResult ar;
-						try {
-							ar = kb.ask(knowledgeInteractionId, bindings);
-							rb = Response.ok().entity(ar);
-						} catch (URISyntaxException | InterruptedException | ExecutionException e) {
-							rb = Response.status(500)
-									.entity("Something went wrong while sending a POST or while waiting on the REACT.");
-						} catch (IllegalArgumentException e) {
-							rb = Response.status(400).entity(e.getMessage());
-						}
-					}
-				}
-			}
-		} else {
-			rb = Response.status(Status.BAD_REQUEST)
-					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
+		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			return Response.status(Status.BAD_REQUEST)
+					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build();
 		}
 
-		return rb.build();
+		var kb = this.store.getKB(knowledgeBaseId);
+		if (kb == null) {
+			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+		}
+
+		try {
+			new URI(knowledgeInteractionId);
+		} catch (URISyntaxException e) {
+			return Response.status(400).entity("Knowledge interaction not found, because its ID must be a valid URI.")
+					.build();
+		}
+
+		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
+		}
+
+		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+		if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
+			return Response.status(400)
+					.entity("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
+							+ ki.getKnowledgeInteractionType() + ".")
+					.build();
+		}
+		AskResult ar;
+		try {
+			ar = kb.ask(knowledgeInteractionId, bindings);
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+			return Response.status(500)
+					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).entity(e.getMessage()).build();
+		}
+		return Response.ok().entity(ar).build();
+
 	}
 
 	@Override
 	public Response scPostPost(String knowledgeBaseId, String knowledgeInteractionId,
 			List<Map<String, String>> bindings, SecurityContext securityContext) throws NotFoundException {
 
-		ResponseBuilder rb;
-
-		if (knowledgeBaseId != null && knowledgeInteractionId != null) {
-
-			var kb = this.store.getKB(knowledgeBaseId);
-			if (kb == null) {
-				rb = Response.status(404).entity("Smart connector not found, because its ID is unknown.");
-			} else {
-
-				try {
-					new URI(knowledgeInteractionId);
-				} catch (URISyntaxException e) {
-					rb = Response.status(400)
-							.entity("Knowledge interaction not found, because its ID must be a valid URI.");
-				}
-
-				if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
-					rb = Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.");
-				} else {
-					KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
-					if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
-						rb = Response.status(400).entity(
-								"Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
-										+ ki.getKnowledgeInteractionType() + ".");
-					} else {
-
-						PostResult pr;
-						try {
-							pr = kb.post(knowledgeInteractionId, bindings);
-							rb = Response.ok().entity(pr);
-						} catch (URISyntaxException | InterruptedException | ExecutionException e) {
-							rb = Response.status(500)
-									.entity("Something went wrong while sending a POST or while waiting on the REACT.");
-						} catch (IllegalArgumentException e) {
-							rb = Response.status(400).entity(e.getMessage());
-						}
-					}
-				}
-			}
-		} else {
-			rb = Response.status(Status.BAD_REQUEST)
-					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
+		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			return Response.status(Status.BAD_REQUEST)
+					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build();
 		}
-		return rb.build();
+
+		var kb = this.store.getKB(knowledgeBaseId);
+		if (kb == null) {
+			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
+		}
+
+		try {
+			new URI(knowledgeInteractionId);
+		} catch (URISyntaxException e) {
+			return Response.status(400).entity("Knowledge interaction not found, because its ID must be a valid URI.")
+					.build();
+		}
+
+		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
+		}
+
+		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+		if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
+			return Response.status(400)
+					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
+							+ ki.getKnowledgeInteractionType() + ".")
+					.build();
+		} else {
+
+			PostResult pr;
+			try {
+				pr = kb.post(knowledgeInteractionId, bindings);
+
+			} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+				return Response.status(500)
+						.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+			} catch (IllegalArgumentException e) {
+				return Response.status(400).entity(e.getMessage()).build();
+			}
+			return Response.ok().entity(pr).build();
+		}
 	}
 }

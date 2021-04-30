@@ -27,27 +27,23 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	@Override
 	public Response scDelete(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
 
-		ResponseBuilder rb;
-
-		if (knowledgeBaseId != null) {
-
-			try {
-				new URI(knowledgeBaseId);
-			} catch (URISyntaxException e) {
-				rb = Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.");
-			}
-
-			if (manager.hasKB(knowledgeBaseId)) {
-				manager.deleteKB(knowledgeBaseId);
-			} else {
-				rb = Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.");
-			}
-			rb = Response.ok();
-		} else {
-			rb = Response.status(Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.");
+		if (knowledgeBaseId == null) {
+			return Response.status(Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.").build();
 		}
 
-		return rb.build();
+		try {
+			new URI(knowledgeBaseId);
+		} catch (URISyntaxException e) {
+			return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.").build();
+		}
+
+		if (manager.hasKB(knowledgeBaseId)) {
+			manager.deleteKB(knowledgeBaseId);
+		} else {
+			return Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.")
+					.build();
+		}
+		return Response.ok().build();
 	}
 
 	@Override
@@ -61,7 +57,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			try {
 				new URI(knowledgeBaseId);
 			} catch (URISyntaxException e) {
-				return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.").build();
+				return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
+						.build();
 			}
 			if (this.manager.hasKB(knowledgeBaseId)) {
 				Set<RestKnowledgeBase> connectors = new HashSet<>();
@@ -77,7 +74,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 			Set<RestKnowledgeBase> kbs) {
 		return kbs.stream().map((restKb) -> {
 			return new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
-					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString()).knowledgeBaseName(restKb.getKnowledgeBaseName())
+					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
+					.knowledgeBaseName(restKb.getKnowledgeBaseName())
 					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription());
 		}).toArray(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[]::new);
 	}
