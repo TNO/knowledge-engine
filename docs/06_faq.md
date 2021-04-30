@@ -12,7 +12,7 @@ FAQ
 
 *Question*: Is there any specific requirements such as RAM, CPU and disk space for deploying the KE ? Is there aditional components to take into account such as an external DB or it is all inclusive ? Is there OS specific configuration such as network or ports ?
 - *Answer*: We do not have minimal requirements for the KE yet. Locally I am running multiple Smart Connectors just fine on my Intel Core i7-8650 CPU @ 1.9GHz with 16 Gb RAM, but it also depends on the amount of traffic of course.
-By the way, the current version (0.1.1) of the KE is a centralized one where all the Smart Connectors (with their reasoner) run on a server hosted by INESC TEC and partners create and access their Smart Connector via the REST Developer API of the generic adapter. A future version of the generic adapter will contain an instance of the Smart Connector (plus reasoner).
+By the way, the current version (0.1.2) of the KE is a centralized one where all the Smart Connectors (with their reasoner) run on a server hosted by INESC TEC and partners create and access their Smart Connector via the REST Developer API of the generic adapter. A future version of the generic adapter will contain an instance of the Smart Connector (plus reasoner).
 Currently, an instance of the Smart Connector is self contained, so no external database is required. The future version will of course need to use the network (ports are not yet decided) to communicate with other Smart Connectors (and the Knowledge Directory).
 
 *Question*: A Knowledge Interaction (KI) is a basic graph pattern. I suppose that this means just a sequence of triple patterns. Does this mean that for example the ‘FILTER’ keyword can’t be used in the KI?
@@ -53,9 +53,9 @@ SELECT ?sensor WHERE {
 	This tells the Knowledge Engine that you cannot send it an email address and receive the username.
 
 *Question*: Can you explain how to register the argument pattern and the result graph pattern? In the KE API I saw only one graph pattern in the register of a Knowledge interaction, and no parameter to indicate if it is an argument pattern or a result graph pattern.
-- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.1/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/PostKnowledgeInteraction.java#L45) and [ReactKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.1/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/ReactKnowledgeInteraction.java#L41) objects require both an argument and a result graph pattern.
+- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.2/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/PostKnowledgeInteraction.java#L45) and [ReactKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.2/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/ReactKnowledgeInteraction.java#L41) objects require both an argument and a result graph pattern.
 
-	In the JSON body of the [REST Developer API ](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.1/rest-api/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
+	In the JSON body of the [REST Developer API ](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.2/rest-api/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
 
 	```
 	{
@@ -88,7 +88,7 @@ SELECT ?sensor WHERE {
 ]
 ```
 I received the following expectation from the knowladge-engine: ```400 Bad Request: ['device1' is not an unprefixed URI or literal.]```
-- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.1/docs/03_java_developer_api.md#bindings).
+- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.2/docs/03_java_developer_api.md#bindings).
 
 
 	If you change your example value from 'device1' to something like '<http://www.example.org/device1>', this particular error should be resolved.
