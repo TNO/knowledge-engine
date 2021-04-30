@@ -367,6 +367,13 @@ Examples include:
                     rdfs:comment "The purpose of the knowledge exchange is to only send updates when the knowledge changes. E.g., to only send a message when a toggle is toggled."@en .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect/ActuationPurpose
+<https://www.tno.nl/energy/ontology/interconnect/ActuationPurpose> rdf:type owl:Class ;
+                                                                   rdfs:subClassOf :Purpose ;
+                                                                   rdfs:comment """This purpose should be required when an actuation has to be done. E.g., if a UI wants to set a power limit to a subnet, it should require the ActuationPurpose.
+If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when a knowledge base can switch a lamp on or off.""" .
+
+
 #################################################################
 #    General axioms
 #################################################################
