@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.2-SNAPSHOT</version>
+		<version>0.1.2</version>
 		<relativePath>..</relativePath>
 	</parent>
 
