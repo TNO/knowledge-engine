@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
@@ -177,11 +178,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return this.asyncResponse != null;
 	}
 
-	public void resetAsyncResponse()
-	{
+	public void resetAsyncResponse() {
 		this.asyncResponse = null;
 	}
-	
+
 	public void waitForHandleRequest(AsyncResponse asyncResponse) {
 
 		this.asyncResponse = asyncResponse;
@@ -209,7 +209,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		int handleRequestId = requestBody.getHandleRequestId();
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
 		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
-		
+
 		// TODO: Can this be moved to somewhere internal so that it can also be
 		// caught in the Java developer api?
 		// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
@@ -223,7 +223,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		hr.getFuture().complete(bs);
 	}
 
-	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteraction ki) {
+	public String register(KnowledgeInteractionBase ki) {
 		CommunicativeAct ca;
 		if (ki.getCommunicativeAct() != null) {
 			ca = new CommunicativeAct(toResources(ki.getCommunicativeAct().getRequiredPurposes()),
@@ -235,35 +235,44 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
-			if (ki.getGraphPattern() == null) {
+
+			eu.interconnectproject.knowledge_engine.rest.model.AskKnowledgeInteraction aki = (eu.interconnectproject.knowledge_engine.rest.model.AskKnowledgeInteraction) ki;
+
+			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
-			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(ki.getGraphPattern()));
+			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(aki.getGraphPattern()));
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
-			if (ki.getGraphPattern() == null) {
+
+			eu.interconnectproject.knowledge_engine.rest.model.AnswerKnowledgeInteraction aki = (eu.interconnectproject.knowledge_engine.rest.model.AnswerKnowledgeInteraction) ki;
+
+			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ANSWER knowledge interactions.");
 			}
-			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(ki.getGraphPattern()));
+			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(aki.getGraphPattern()));
 
 			kiId = this.sc.register(answerKI, this.answerHandler);
 
 			this.knowledgeInteractions.put(kiId, answerKI);
 		} else if (type.equals("PostKnowledgeInteraction")) {
 
+			eu.interconnectproject.knowledge_engine.rest.model.PostKnowledgeInteraction pki = (eu.interconnectproject.knowledge_engine.rest.model.PostKnowledgeInteraction) ki;
+
 			GraphPattern argGP = null;
 			GraphPattern resGP = null;
 
-			if (ki.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(ki.getArgumentGraphPattern());
+			if (pki.getArgumentGraphPattern() != null) {
+				argGP = new GraphPattern(pki.getArgumentGraphPattern());
 			}
-			if (ki.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(ki.getResultGraphPattern());
+			if (pki.getResultGraphPattern() != null) {
+				resGP = new GraphPattern(pki.getResultGraphPattern());
 			}
 
 			if (resGP == null && argGP == null) {
-				throw new IllegalArgumentException("At least one of argumentGraphPattern and resultGraphPattern must be given for POST knowledge interactions.");
+				throw new IllegalArgumentException(
+						"At least one of argumentGraphPattern and resultGraphPattern must be given for POST knowledge interactions.");
 			}
 
 			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP);
@@ -272,18 +281,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			this.knowledgeInteractions.put(kiId, postKI);
 		} else if (type.equals("ReactKnowledgeInteraction")) {
 
+			eu.interconnectproject.knowledge_engine.rest.model.ReactKnowledgeInteraction rki = (eu.interconnectproject.knowledge_engine.rest.model.ReactKnowledgeInteraction) ki;
+			
 			GraphPattern argGP = null;
 			GraphPattern resGP = null;
 
-			if (ki.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(ki.getArgumentGraphPattern());
+			if (rki.getArgumentGraphPattern() != null) {
+				argGP = new GraphPattern(rki.getArgumentGraphPattern());
 			}
-			if (ki.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(ki.getResultGraphPattern());
+			if (rki.getResultGraphPattern() != null) {
+				resGP = new GraphPattern(rki.getResultGraphPattern());
 			}
 
 			if (resGP == null && argGP == null) {
-				throw new IllegalArgumentException("At least one of argumentGraphPattern and resultGraphPattern must be given for REACT knowledge interactions.");
+				throw new IllegalArgumentException(
+						"At least one of argumentGraphPattern and resultGraphPattern must be given for REACT knowledge interactions.");
 			}
 
 			var reactKI = new ReactKnowledgeInteraction(ca, argGP, resGP);
@@ -291,7 +303,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 			this.knowledgeInteractions.put(kiId, reactKI);
 		} else {
-			throw new IllegalArgumentException(String.format("Unexpected value for knowledgeInteractionType: %s. Must be one of: AskKnowledgeInteraction, AnswerKnowledgeInteraction, PostKnowledgeInteraction, ReactKnowledgeInteraction", type));
+			throw new IllegalArgumentException(String.format(
+					"Unexpected value for knowledgeInteractionType: %s. Must be one of: AskKnowledgeInteraction, AnswerKnowledgeInteraction, PostKnowledgeInteraction, ReactKnowledgeInteraction",
+					type));
 		}
 
 		return kiId.toString();
@@ -321,8 +335,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public Set<KnowledgeInteractionWithId> getKnowledgeInteractions() {
-		return this.knowledgeInteractions.entrySet().stream()
-				.map(e -> this.kiToModelKiWithId(e.getKey(), e.getValue()))
+		return this.knowledgeInteractions.entrySet().stream().map(e -> this.kiToModelKiWithId(e.getKey(), e.getValue()))
 				.collect(Collectors.toSet());
 	}
 
@@ -411,24 +424,24 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 
 		if (!(ki instanceof AskKnowledgeInteraction)) {
-			throw new IllegalArgumentException(String.format("Knowledge interaction '%s' is not an ASK knowledge interaction, but the request tried to use it as one.", kiId));
+			throw new IllegalArgumentException(String.format(
+					"Knowledge interaction '%s' is not an ASK knowledge interaction, but the request tried to use it as one.",
+					kiId));
 		}
 		// ASK the bindings to the smart connector and wait for a response. If
 		// anything misbehaves, this will throw and it's up to the caller of this
 		// method to handle it.
 		var askResult = this.sc.ask((AskKnowledgeInteraction) ki, listToBindingSet(bindings)).get();
 
-		return new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
-				.exchangeInfo(askResult.getExchangeInfoPerKnowledgeBase().stream()
-						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
-								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
-								.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
-								.initiator(toInitiatorEnumAsk(aei.getInitiator()))
-								.exchangeStart(Date.from(aei.getExchangeStart()))
-								.exchangeEnd(Date.from(aei.getExchangeEnd()))
-								.status(aei.getStatus().toString())
-								.failedMessage(aei.getFailedMessage()))
-						.collect(Collectors.toList()));
+		return new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(askResult
+				.getExchangeInfoPerKnowledgeBase().stream()
+				.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
+						.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
+						.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
+						.initiator(toInitiatorEnumAsk(aei.getInitiator()))
+						.exchangeStart(Date.from(aei.getExchangeStart())).exchangeEnd(Date.from(aei.getExchangeEnd()))
+						.status(aei.getStatus().toString()).failedMessage(aei.getFailedMessage()))
+				.collect(Collectors.toList()));
 	}
 
 	public PostResult post(String kiId, List<Map<String, String>> bindings)
@@ -442,7 +455,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 
 		if (!(ki instanceof PostKnowledgeInteraction)) {
-			throw new IllegalArgumentException(String.format("Knowledge interaction '%s' is not a POST knowledge interaction, but the request tried to use it as one.", kiId));
+			throw new IllegalArgumentException(String.format(
+					"Knowledge interaction '%s' is not a POST knowledge interaction, but the request tried to use it as one.",
+					kiId));
 		}
 
 		// POST the bindings to the smart connector and wait for a response. If
