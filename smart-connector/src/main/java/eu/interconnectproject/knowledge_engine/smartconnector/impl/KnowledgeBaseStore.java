@@ -77,4 +77,6 @@ public interface KnowledgeBaseStore {
 	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType, Resource purpose);
 
 	Resource getPurpose(URI knowledgeBaseId, URI knowledgeInteractionId);
+	
+	void stop();
 }

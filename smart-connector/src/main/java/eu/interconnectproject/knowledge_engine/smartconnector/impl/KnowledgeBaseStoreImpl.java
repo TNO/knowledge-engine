@@ -209,26 +209,30 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		try {
 			if (isMeta) {
 				if (aKI instanceof AskKnowledgeInteraction) {
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ASK, null);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ASK,
+							null);
 				} else if (aKI instanceof AnswerKnowledgeInteraction) {
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ANSWER, null);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.ANSWER,
+							null);
 				} else if (aKI instanceof PostKnowledgeInteraction) {
 					var satisfactionPurposes = aKI.getAct().getSatisfactionPurposes();
 					assert satisfactionPurposes.size() == 1 : "POST KI must have exactly 1 satisfaction purpose.";
 					var purpose = satisfactionPurposes.iterator().next();
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, purpose);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST,
+							purpose);
 				} else if (aKI instanceof ReactKnowledgeInteraction) {
 					var requirementPurposes = aKI.getAct().getRequirementPurposes();
 					assert requirementPurposes.size() == 1 : "REACT KI must have exactly 1 requirement purpose.";
 					var purpose = requirementPurposes.iterator().next();
-					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.REACT, purpose);
+					return this.getMetaId(this.knowledgeBase.getKnowledgeBaseId(), KnowledgeInteractionInfo.Type.REACT,
+							purpose);
 				} else {
 					assert false : "Meta KI IDs for POST/REACT are currently not implemented.";
 					return null;
 				}
 			} else {
 				return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
-					+ UUID.randomUUID().toString());
+						+ UUID.randomUUID().toString());
 			}
 		} catch (URISyntaxException e) {
 			// This should not happen if knowledgeBaseId is correct
@@ -256,7 +260,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 					assert false : "Invalid purpose for meta POST interaction: " + purpose;
 					return null;
 				}
-				case REACT:
+			case REACT:
 				if (purpose.equals(Vocab.NEW_KNOWLEDGE_PURPOSE)) {
 					return new URI(knowledgeBaseId.toString() + REACT_NEW_SUFFIX);
 				} else if (purpose.equals(Vocab.CHANGED_KNOWLEDGE_PURPOSE)) {
@@ -282,9 +286,9 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		String kbId = knowledgeBaseId.toString();
 		String kiId = knowledgeInteractionId.toString();
 		assert kiId.startsWith(kbId) : "Meta knowledge interaction should start with its knowledge base's ID.";
-		
+
 		String suffix = kiId.substring(kbId.length());
-	
+
 		if (suffix.equals(ASK_SUFFIX) || suffix.equals(ANSWER_SUFFIX)) {
 			return Vocab.INFORM_PURPOSE;
 		} else if (suffix.equals(POST_NEW_SUFFIX)) {
@@ -302,5 +306,10 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		}
 		assert false : "Invalid suffix: " + suffix;
 		return Vocab.PURPOSE;
+	}
+
+	@Override
+	public void stop() {
+		this.listeners.forEach(l -> l.smartConnectorStopping());
 	}
 }
