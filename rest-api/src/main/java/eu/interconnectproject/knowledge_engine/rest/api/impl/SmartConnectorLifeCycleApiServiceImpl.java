@@ -26,7 +26,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scDelete(@NotNull String knowledgeBaseId, SecurityContext securityContext)
+	public Response scDelete(String knowledgeBaseId, SecurityContext securityContext)
 			throws NotFoundException {
 
 		ResponseBuilder rb;

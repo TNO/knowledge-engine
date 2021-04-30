@@ -23,9 +23,9 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scKiPost(String knowledgeBaseId, KnowledgeInteractionBase workaround, SecurityContext securityContext)
+	public Response scKiPost(String knowledgeBaseId, KnowledgeInteractionBase knowledgeInteraction, SecurityContext securityContext)
 			throws NotFoundException {
-		LOG.info("scKiPost called: {}", workaround);
+		LOG.info("scKiPost called: {}", knowledgeInteraction);
 
 		if (knowledgeBaseId == null) {
 			return Response.status(400).entity("Missing valid Knowledge-Base-Id header.").build();
@@ -45,7 +45,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 
 		String kiId;
 		try {
-			kiId = restKb.register(workaround);
+			kiId = restKb.register(knowledgeInteraction);
 		} catch (IllegalArgumentException e) {
 			return Response.status(400).entity(e.getMessage()).build();
 		}

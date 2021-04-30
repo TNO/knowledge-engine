@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
+import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.model.PostExchangeInfo;
 import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
@@ -222,7 +223,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		hr.getFuture().complete(bs);
 	}
 
-	public String register(eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase ki) {
+	public String register(KnowledgeInteractionBase ki) {
 		CommunicativeAct ca;
 		if (ki.getCommunicativeAct() != null) {
 			ca = new CommunicativeAct(toResources(ki.getCommunicativeAct().getRequiredPurposes()),
