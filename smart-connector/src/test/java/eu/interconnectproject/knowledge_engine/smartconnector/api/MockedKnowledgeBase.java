@@ -70,7 +70,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
-		LOG.info(this.name + " ready");
+		LOG.debug(this.name + " ready");
 		this.readyPhaser.arriveAndAwaitAdvance();
 	}
 
@@ -105,9 +105,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(AskKnowledgeInteraction anAskKI) {
+	public URI register(AskKnowledgeInteraction anAskKI) {
 		this.kis.add(anAskKI);
-		this.getSC().register(anAskKI);
+		return this.getSC().register(anAskKI);
 	}
 
 	@Override
@@ -117,9 +117,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
+	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
 		this.kis.add(anAnswerKI);
-		this.getSC().register(anAnswerKI, aAnswerHandler);
+		return this.getSC().register(anAnswerKI, aAnswerHandler);
 	}
 
 	@Override
@@ -130,9 +130,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(PostKnowledgeInteraction aPostKI) {
+	public URI register(PostKnowledgeInteraction aPostKI) {
 		this.kis.add(aPostKI);
-		this.getSC().register(aPostKI);
+		return this.getSC().register(aPostKI);
 	}
 
 	@Override
@@ -142,9 +142,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	@Override
-	public void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
+	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
 		this.kis.add(anReactKI);
-		this.getSC().register(anReactKI, aReactHandler);
+		return this.getSC().register(anReactKI, aReactHandler);
 	}
 
 	@Override
@@ -187,12 +187,14 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 		// ask and check the result.
 		try {
+			LOG.trace("before ask metadata");
 			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
+			LOG.trace("after ask metadata");
 			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
-			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
-			m.write(System.out, "turtle");
-			System.out.println("-----------------------");
+//			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
+//			m.write(System.out, "turtle");
+//			System.out.println("-----------------------");
 
 			for (MockedKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
@@ -262,13 +264,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 									.getString();
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
-							Resource gp2 = ki.getRequiredProperty(Vocab.HAS_RES).getObject().asResource();
-							String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
-							String resPatternFromObject = convertToPattern(postKI.getResult());
-
-							sameKI |= argPatternFromRDF.equals(argPatternFromObject)
-									&& resPatternFromRDF.equals(resPatternFromObject);
+							boolean resultPatternsEqual = false;
+							if (ki.hasProperty(Vocab.HAS_RES)) {
+								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
+								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+										.getString();
+								String resPatternFromObject = convertToPattern(postKI.getResult());
+								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
+							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
+								resultPatternsEqual = true;
+							}
+			
+							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 
 						} else if (isOfType(ki, Vocab.REACT_KI) && someKi instanceof ReactKnowledgeInteraction) {
 							var reactKI = (ReactKnowledgeInteraction) someKi;
@@ -278,13 +285,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 									.getString();
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
-							Resource gp2 = ki.getRequiredProperty(Vocab.HAS_RES).getObject().asResource();
-							String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
-							String resPatternFromObject = convertToPattern(reactKI.getResult());
+							boolean resultPatternsEqual = false;
+							if (ki.hasProperty(Vocab.HAS_RES)) {
+								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
+								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+										.getString();
+								String resPatternFromObject = convertToPattern(reactKI.getResult());
+								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
+							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {
+								resultPatternsEqual = true;
+							}
 
-							sameKI |= argPatternFromRDF.equals(argPatternFromObject)
-									&& resPatternFromRDF.equals(resPatternFromObject);
+							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 						}
 					}
 					isSame &= sameKI;
@@ -308,27 +320,20 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	private String convertToPattern(GraphPattern gp) {
+		Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
 
-		try {
+		StringBuilder sb = new StringBuilder();
 
-			Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
+		while (iter.hasNext()) {
 
-			StringBuilder sb = new StringBuilder();
-
-			while (iter.hasNext()) {
-
-				TriplePath tp = iter.next();
-				sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
-				sb.append(" . ");
-			}
-
-			return sb.toString();
-		} catch (ParseException pe) {
-			LOG.error("The graph pattern should be parseable.", pe);
+			TriplePath tp = iter.next();
+			sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
+			sb.append(" . ");
 		}
-		return "<errorgraphpattern>";
+
+		return sb.toString();
 	}
-	
+
 	public void start() {
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}

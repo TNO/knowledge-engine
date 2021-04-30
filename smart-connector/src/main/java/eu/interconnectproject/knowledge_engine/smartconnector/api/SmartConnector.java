@@ -1,13 +1,8 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 
 public interface SmartConnector {
@@ -22,7 +17,7 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void register(AskKnowledgeInteraction anAskKI);
+	URI register(AskKnowledgeInteraction anAskKI);
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -51,7 +46,7 @@ public interface SmartConnector {
 	 *                       an incoming question from another
 	 *                       {@link KnowledgeBase}.
 	 */
-	void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler);
+	URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler);
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -75,7 +70,7 @@ public interface SmartConnector {
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
 	 */
-	void register(PostKnowledgeInteraction aPostKI);
+	URI register(PostKnowledgeInteraction aPostKI);
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its
@@ -103,7 +98,7 @@ public interface SmartConnector {
 	 * @param aReactHandler The {@link AnswerHandler} that will process and answer
 	 *                      an incoming question from another {@link KnowledgeBase}.
 	 */
-	void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
+	URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler);
 
 	/**
 	 * This method is used by the {@link KnowledgeBase} to let its

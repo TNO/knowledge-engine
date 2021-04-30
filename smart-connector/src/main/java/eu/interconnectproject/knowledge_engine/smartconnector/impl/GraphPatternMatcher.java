@@ -88,7 +88,7 @@ public class GraphPatternMatcher {
 						if (node.isVariable() && fromEdgeNode == null) {
 
 							// check if the current candidate is not already mapped to another edge.
-							if (!varMapping.containsValue(node.getName())) {
+							if (!varMapping.containsKey(node.getName())) {
 								fromEdgeNode = node;
 							} else {
 								LOG.trace("Predicate variable {} is already mapped, so we skip this one.",
@@ -134,7 +134,7 @@ public class GraphPatternMatcher {
 						}
 					}
 
-					if (toEdge != null) {
+					if (toEdge != null && fromEdgeNode != null) {
 						varMapping.put(fromEdgeNode.getName(), toEdge.getName());
 
 						LOG.trace("Edge: {} - {}", fromEdgeNode, toEdge);
@@ -170,7 +170,7 @@ public class GraphPatternMatcher {
 			toBindingSet.add(toBinding);
 		}
 
-		LOG.debug("Transformed size {} into size {} or {} into {}.", fromBindingSet.size(), toBindingSet.size(),
+		LOG.trace("Transformed bindingset size {} into size {} or {} into {}.", fromBindingSet.size(), toBindingSet.size(),
 				fromBindingSet, toBindingSet);
 
 		return toBindingSet;
@@ -180,22 +180,18 @@ public class GraphPatternMatcher {
 	private static Set<Node> getEdgeNodesBetween(GraphPattern gp, Node source, Node target) {
 		ElementPathBlock epb;
 		Set<Node> nodeSet = new HashSet<>();
-		try {
-			epb = gp.getGraphPattern();
-			List<TriplePath> triples = epb.getPattern().getList();
-			for (TriplePath t : triples) {
+		epb = gp.getGraphPattern();
+		List<TriplePath> triples = epb.getPattern().getList();
+		for (TriplePath t : triples) {
 
-				Node subject = t.getSubject();
-				Node predicate = t.getPredicate();
-				Node object = t.getObject();
+			Node subject = t.getSubject();
+			Node predicate = t.getPredicate();
+			Node object = t.getObject();
 
-				if (subject.equals(source) && object.equals(target)) {
-					nodeSet.add(predicate);
-				}
-
+			if (subject.equals(source) && object.equals(target)) {
+				nodeSet.add(predicate);
 			}
-		} catch (ParseException e1) {
-			LOG.error("Graph pattern {} should be parseable.", gp);
+
 		}
 		return nodeSet;
 	}
@@ -331,53 +327,47 @@ public class GraphPatternMatcher {
 		private Map<Integer, Node> intToNodeMap;
 
 		public GraphInfo(GraphPattern gp) {
+			ElementPathBlock epb = gp.getGraphPattern();
 
-			ElementPathBlock epb;
-			try {
-				epb = gp.getGraphPattern();
+			// initialize and convert fromGraph
+			this.graph = new DirectedMultigraph<>();
 
-				// initialize and convert fromGraph
-				this.graph = new DirectedMultigraph<>();
+			this.intToNodeMap = new HashMap<>();
+			Map<Node, Integer> nodeToIntMap = new HashMap<>();
+			List<TriplePath> triples = epb.getPattern().getList();
 
-				this.intToNodeMap = new HashMap<>();
-				Map<Node, Integer> nodeToIntMap = new HashMap<>();
-				List<TriplePath> triples = epb.getPattern().getList();
+			int fromVertexCounter = 1;
 
-				int fromVertexCounter = 1;
+			for (TriplePath t : triples) {
 
-				for (TriplePath t : triples) {
+				Node subject = t.getSubject();
+				Node predicate = t.getPredicate();
+				Node object = t.getObject();
 
-					Node subject = t.getSubject();
-					Node predicate = t.getPredicate();
-					Node object = t.getObject();
-
-					boolean success;
-					if (!intToNodeMap.containsValue(subject)) {
-						intToNodeMap.put(fromVertexCounter, subject);
-						nodeToIntMap.put(subject, fromVertexCounter);
-						success = this.graph.add(fromVertexCounter);
-					}
-
-					fromVertexCounter++;
-					if (!intToNodeMap.containsValue(object)) {
-						intToNodeMap.put(fromVertexCounter, object);
-						nodeToIntMap.put(object, fromVertexCounter);
-						success = this.graph.add(fromVertexCounter);
-					}
-
-					SimpleDirectedTypedEdge<NodeEdge> e = new SimpleDirectedTypedEdge<NodeEdge>(new NodeEdge(predicate),
-							nodeToIntMap.get(subject), nodeToIntMap.get(object));
-
-					success = this.graph.add(e);
-
-					if (!success)
-						LOG.warn("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject,
-								object);
-
-					fromVertexCounter++;
+				boolean success;
+				if (!intToNodeMap.containsValue(subject)) {
+					intToNodeMap.put(fromVertexCounter, subject);
+					nodeToIntMap.put(subject, fromVertexCounter);
+					success = this.graph.add(fromVertexCounter);
 				}
-			} catch (ParseException e1) {
-				LOG.error("Graph pattern {} should be parseable.", gp);
+
+				fromVertexCounter++;
+				if (!intToNodeMap.containsValue(object)) {
+					intToNodeMap.put(fromVertexCounter, object);
+					nodeToIntMap.put(object, fromVertexCounter);
+					success = this.graph.add(fromVertexCounter);
+				}
+
+				SimpleDirectedTypedEdge<NodeEdge> e = new SimpleDirectedTypedEdge<NodeEdge>(new NodeEdge(predicate),
+						nodeToIntMap.get(subject), nodeToIntMap.get(object));
+
+				success = this.graph.add(e);
+
+				if (!success)
+					LOG.warn("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject,
+							object);
+
+				fromVertexCounter++;
 			}
 		}
 

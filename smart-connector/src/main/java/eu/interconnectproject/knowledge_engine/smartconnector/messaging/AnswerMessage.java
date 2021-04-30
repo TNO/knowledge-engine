@@ -32,10 +32,11 @@ public class AnswerMessage extends KnowledgeMessage {
 
 	@Override
 	public String toString() {
-		return "AnswerMessage [replyToAskMessage=" + replyToAskMessage + ", bindings=" + bindings + ", messageId="
-				+ messageId + ", fromKnowledgeBase=" + fromKnowledgeBase + ", fromKnowledgeInteraction="
-				+ fromKnowledgeInteraction + ", toKnowledgeBase=" + toKnowledgeBase + ", toKnowledgeInteraction="
-				+ toKnowledgeInteraction + "]";
+		return "AnswerMessage [getToKnowledgeBase()=" + getToKnowledgeBase() + ", getToKnowledgeInteraction()="
+				+ getToKnowledgeInteraction() + ", getFromKnowledgeBase()=" + getFromKnowledgeBase()
+				+ ", getFromKnowledgeInteraction()=" + getFromKnowledgeInteraction() + ", getMessageId()="
+				+ getMessageId() + ", getReplyToAskMessage()=" + getReplyToAskMessage() + ", getBindings()="
+				+ getBindings() + "]";
 	}
 
 }

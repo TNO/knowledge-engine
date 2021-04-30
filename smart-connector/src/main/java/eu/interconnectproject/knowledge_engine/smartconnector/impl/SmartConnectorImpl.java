@@ -1,8 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -12,22 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 
 /**
  * The {@link SmartConnectorImpl} is the main component of the KnowledgeEngine.
@@ -58,6 +56,8 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 	private final boolean knowledgeBaseIsThreadSafe;
 	private final ExecutorService knowledgeBaseExecutorService;
+
+	private final BindingValidator bindingValidator = new BindingValidator();
 
 	/**
 	 * Create a {@link SmartConnectorImpl}
@@ -91,15 +91,7 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 	@Override
 	public Logger getLogger(Class<?> class1) {
-		try {
-			return LoggerFactory
-					.getLogger(URLEncoder.encode(this.myKnowledgeBase.getKnowledgeBaseId().toString(), "utf8") + "-"
-							+ class1.getSimpleName());
-		} catch (UnsupportedEncodingException e) {
-			assert false;
-			return null;
-		}
-//		return LoggerFactory.getLogger("pindakaas");
+		return LoggerFactory.getLogger(class1.getSimpleName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
 	}
 
 	public URI getKnowledgeBaseId() {
@@ -115,13 +107,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	 * @param anAskKI The {@link AskKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
+	 * @return
 	 */
 	@Override
-	public void register(AskKnowledgeInteraction anAskKI) {
+	public URI register(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
-
-		this.myKnowledgeBaseStore.register(anAskKI, false);
-		this.knowledgeBaseChanged();
+		URI kiId = this.myKnowledgeBaseStore.register(anAskKI, false);
+		LOG.info("Registered Ask KI <{}>.", kiId);
+		return kiId;
 	}
 
 	/**
@@ -137,9 +130,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAskKI).getId();
 		this.myKnowledgeBaseStore.unregister(anAskKI);
-		this.knowledgeBaseChanged();
+		LOG.info("Unregistered Ask KI <{}>.", kiId);
 	}
 
 	/**
@@ -156,13 +149,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	 * @param anAnswerHandler The {@link AnswerHandler} that will process and answer
 	 *                        an incoming question from another
 	 *                        {@link KnowledgeBase}.
+	 * @return
 	 */
 	@Override
-	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
+	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		this.checkStopped();
-
-		this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
-		this.knowledgeBaseChanged();
+		URI kiId = this.myKnowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
+		LOG.info("Registered Answer KI <{}>.", kiId);
+		return kiId;
 	}
 
 	/**
@@ -178,9 +172,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAnswerKI).getId();
 		this.myKnowledgeBaseStore.unregister(anAnswerKI);
-		this.knowledgeBaseChanged();
+		LOG.info("Unregistered Answer KI <{}>.", kiId);
 	}
 
 	/**
@@ -192,13 +186,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	 * @param aPostKI The {@link PostKnowledgeInteraction} that the
 	 *                {@link KnowledgeBase} wants to register with this
 	 *                {@link SmartConnectorImpl}.
+	 * @return
 	 */
 	@Override
-	public void register(PostKnowledgeInteraction aPostKI) {
+	public URI register(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
-
-		this.myKnowledgeBaseStore.register(aPostKI, false);
-		this.knowledgeBaseChanged();
+		URI kiId = this.myKnowledgeBaseStore.register(aPostKI, false);
+		LOG.info("Registered Post KI <{}>.", kiId);
+		return kiId;
 	}
 
 	/**
@@ -214,9 +209,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aPostKI).getId();
 		this.myKnowledgeBaseStore.unregister(aPostKI);
-		this.knowledgeBaseChanged();
+		LOG.info("Unregistered Post KI <{}>.", kiId);
 	}
 
 	/**
@@ -232,13 +227,14 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	 *                      {@link SmartConnectorImpl}.
 	 * @param aReactHandler The {@link AnswerHandler} that will process and answer
 	 *                      an incoming question from another {@link KnowledgeBase}.
+	 * @return
 	 */
 	@Override
-	public void register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
+	public URI register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
 		this.checkStopped();
-
-		this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
-		this.knowledgeBaseChanged();
+		URI kiId = this.myKnowledgeBaseStore.register(aReactKI, aReactHandler, false);
+		LOG.info("Registered React KI <{}>.", kiId);
+		return kiId;
 	}
 
 	/**
@@ -254,9 +250,9 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 	@Override
 	public void unregister(ReactKnowledgeInteraction aReactKI) {
 		this.checkStopped();
-
+		URI kiId = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aReactKI).getId();
 		this.myKnowledgeBaseStore.unregister(aReactKI);
-		this.knowledgeBaseChanged();
+		LOG.info("Unregistered React KI <{}>.", kiId);
 	}
 
 	/**
@@ -304,9 +300,12 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.checkStopped();
 		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
 
+		this.bindingValidator.validatePartialBindings(anAKI.getPattern(), aBindingSet);
+
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.ASK;
 
+		LOG.info("Processing ask for KI <{}>.", info.getId());
 		return this.interactionProcessor.processAskFromKnowledgeBase(info, aSelector, aBindingSet);
 	}
 
@@ -386,8 +385,12 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		MyKnowledgeInteractionInfo info = this.myKnowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
 
+		this.bindingValidator.validateCompleteBindings(aPKI.getArgument(), someArguments);
+
 		assert info != null; // TODO omschrijven naar runtime check
 		assert info.getType() == Type.POST;
+
+		LOG.info("Processing post for KI <{}>.", info.getId());
 
 		return this.interactionProcessor.processPostFromKnowledgeBase(info, aSelector, someArguments);
 	}
@@ -433,12 +436,11 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		this.isStopped = true;
 
 		try {
-			this.metaKnowledgeBase.postRemovedKnowledgeBase(
-				this.otherKnowledgeBaseStore.getOtherKnowledgeBases()
-			).get(); // Block on the future. (TODO: Timeout?)
+			this.metaKnowledgeBase.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases())
+					.get(); // Block on the future. (TODO: Timeout?)
 		} catch (InterruptedException | ExecutionException e) {
-			LOG.error("An error occured while informing peers about our " +
-				"termination. Proceeding to stop the smart connector regardless.", e);
+			LOG.error("An error occured while informing peers about our "
+					+ "termination. Proceeding to stop the smart connector regardless.", e);
 		}
 
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
@@ -462,18 +464,20 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		// Populate the initial knowledge base store.
 		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
 			// Then tell the other knowledge bases about our existence.
-			this.metaKnowledgeBase.postNewKnowledgeBase(otherKnowledgeBaseStore.getOtherKnowledgeBases()).thenRun(() -> {
-				// When that is done, and all peers have acknowledged our existence, we
-				// can proceed to inform the knowledge base that this smart connector is
-				// ready for action!
-				this.knowledgeBaseExecutorService.execute(() -> {
-					try {
-						this.myKnowledgeBase.smartConnectorReady(this);
-					} catch (Throwable t) {
-						this.LOG.error("KnowledgeBase threw exception", t);
-					}
-				});
-			});
+			this.metaKnowledgeBase.postNewKnowledgeBase(otherKnowledgeBaseStore.getOtherKnowledgeBases())
+					.thenRun(() -> {
+						// When that is done, and all peers have acknowledged our existence, we
+						// can proceed to inform the knowledge base that this smart connector is
+						// ready for action!
+						this.knowledgeBaseExecutorService.execute(() -> {
+							LOG.info("Ready to exchange data.");
+							try {
+								this.myKnowledgeBase.smartConnectorReady(this);
+							} catch (Throwable t) {
+								this.LOG.error("KnowledgeBase threw exception", t);
+							}
+						});
+					});
 		});
 	}
 
@@ -499,9 +503,5 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
 		return this.messageRouter;
-	}
-
-	private CompletableFuture<Void> knowledgeBaseChanged() {
-		return this.metaKnowledgeBase.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases());
 	}
 }
