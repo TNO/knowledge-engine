@@ -573,4 +573,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}
 
 	}
+
+	@Override
+	public void smartConnectorStopping() {
+		try {
+			// Block on the future.(TODO: Timeout?)
+			this.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("An error occured while informing peers about our "
+					+ "termination. Proceeding to stop the smart connector regardless.", e);
+		}
+	}
 }
