@@ -15,13 +15,9 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<swagger-core-version>1.5.18</swagger-core-version>
-		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
 		<jetty-version>9.2.9.v20150224</jetty-version>
-		<jersey2-version>2.30.1</jersey2-version>
+		<jersey2-version>2.34</jersey2-version>
 		<jackson-version>2.9.9</jackson-version>
-		<junit-version>4.13.1</junit-version>
-		<logback-version>1.1.7</logback-version>
-		<servlet-api-version>4.0.1</servlet-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -31,45 +27,20 @@
 			<artifactId>swagger-jersey2-jaxrs</artifactId>
 			<scope>compile</scope>
 			<version>${swagger-core-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish.jersey.containers</groupId>
+					<artifactId>
+						jersey-container-servlet-core
+					</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-servlet</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-    <groupId>org.glassfish.jersey.inject</groupId>
-				<artifactId>jersey-hk2</artifactId>
-				<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-core</artifactId>
-			<version>${logback-version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit-version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>${servlet-api-version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-servlet-core</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-joda</artifactId>
@@ -79,20 +50,6 @@
 			<groupId>com.fasterxml.jackson.jaxrs</groupId>
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson-version}</version>
-		</dependency>
-		<!-- Base64 encoding that works in both JVM and Android -->
-		<dependency>
-			<groupId>com.brsanthu</groupId>
-			<artifactId>migbase64</artifactId>
-			<version>2.2</version>
-		</dependency>
-
-		<!-- Bean Validation API support -->
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>${beanvalidation-version}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- Logging -->
@@ -107,17 +64,43 @@
 			<artifactId>jetty-util</artifactId>
 			<version>${jetty-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
 			<version>${jetty-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>${jetty-version}</version>
+		</dependency>
+
+		<!-- Jersey2 -->
+
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-jetty-servlet</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.ext</groupId>
+			<artifactId>jersey-bean-validation</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-jaxb</artifactId>
+			<version>${jersey2-version}</version>
 		</dependency>
 
 		<!-- Add XML suport -->

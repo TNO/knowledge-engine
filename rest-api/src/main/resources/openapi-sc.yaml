@@ -8,6 +8,10 @@ info:
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
   version: 0.1.2-SNAPSHOT
+  
+servers:
+  - url: https://ke.interconnectproject.eu/rest/
+    description: InterConnect Cloud Interoperability Layer
 paths:
   /sc:
     get:
@@ -118,7 +122,7 @@ paths:
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/KnowledgeInteraction'
+              $ref: '#/components/schemas/KnowledgeInteractionBase'
             example:
               knowledgeInteractionType: AskKnowledgeInteraction
               graphPattern: "?s ?p ?o"
@@ -195,6 +199,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         description: The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json; charset=UTF-8:
@@ -241,6 +246,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json; charset=UTF-8:
@@ -330,6 +336,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json; charset=UTF-8:
             schema:
@@ -355,6 +362,7 @@ components:
   schemas:
     SmartConnector:
       type: object
+      required: [knowledgeBaseId, knowledgeBaseName, knowledgeBaseDescription]
       properties:
         knowledgeBaseId:
           type: string
@@ -373,20 +381,23 @@ components:
       required: [knowledgeInteractionType]
       discriminator:
         propertyName: knowledgeInteractionType
+        mapping:
+          AskKnowledgeInteraction: '#/components/schemas/AskKnowledgeInteraction'
+          AnswerKnowledgeInteraction: '#/components/schemas/AnswerKnowledgeInteraction'
+          PostKnowledgeInteraction: '#/components/schemas/PostKnowledgeInteraction'
+          ReactKnowledgeInteraction: '#/components/schemas/ReactKnowledgeInteraction'
       properties:
         knowledgeInteractionType:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
-    KnowledgeInteraction:
-      oneOf:
-        - $ref: '#/components/schemas/AskKnowledgeInteraction'
-        - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
-        - $ref: '#/components/schemas/PostKnowledgeInteraction'
-        - $ref: '#/components/schemas/ReactKnowledgeInteraction'
     KnowledgeInteractionWithId:
       allOf:
-        - $ref: '#/components/schemas/KnowledgeInteraction'
+        - anyOf:
+          - $ref: '#/components/schemas/AskKnowledgeInteraction'
+          - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
+          - $ref: '#/components/schemas/PostKnowledgeInteraction'
+          - $ref: '#/components/schemas/ReactKnowledgeInteraction'
         - type: object
           properties:
             knowledgeInteractionId:
@@ -429,6 +440,7 @@ components:
               type: string
     CommunicativeAct:
       type: object
+      required: [requiredPurposes, satisfiedPurposes]
       properties:
         requiredPurposes:
           type: array
@@ -440,6 +452,7 @@ components:
             type: string
     AskResult:
       type: object
+      required: [bindingSet, exchangeInfo]
       properties:
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
@@ -449,6 +462,7 @@ components:
             $ref: '#/components/schemas/AskExchangeInfo'
     PostResult:
       type: object
+      required: [resultBindingSet, exchangeInfo]
       properties:
         resultBindingSet:
           $ref: '#/components/schemas/BindingSet'
@@ -458,6 +472,7 @@ components:
             $ref: '#/components/schemas/PostExchangeInfo'
     ExchangeInfo:
       type: object
+      required: [initiator, knowledgeBaseId, knowledgeInteractionId, exchangeStart, exchangeEnd, status]
       properties:
         initiator:
           type: string
@@ -505,6 +520,7 @@ components:
           $ref: '#/components/schemas/BindingSet'
     HandleResponse:
       type: object
+      required: [handleRequestId, bindingSet]
       properties:
         handleRequestId:
           type: integer

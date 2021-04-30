@@ -6,15 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.api.ProactiveApiService;
 import eu.interconnectproject.knowledge_engine.rest.model.AskResult;
-import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
+import eu.interconnectproject.knowledge_engine.rest.model.PostResult;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class ProactiveApiServiceImpl extends ProactiveApiService {
@@ -22,8 +23,14 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 	private RestKnowledgeBaseManager store = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scAskPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
-			List<Map<String, String>> bindings, SecurityContext securityContext) throws NotFoundException {
+	public Response scAskPost(String knowledgeBaseId, String knowledgeInteractionId, List<Map<String, String>> bindings,
+			SecurityContext securityContext) throws NotFoundException {
+
+		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			return Response.status(Status.BAD_REQUEST)
+					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build();
+		}
+
 		var kb = this.store.getKB(knowledgeBaseId);
 		if (kb == null) {
 			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
@@ -47,7 +54,6 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build();
 		}
-
 		AskResult ar;
 		try {
 			ar = kb.ask(knowledgeInteractionId, bindings);
@@ -58,11 +64,18 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 			return Response.status(400).entity(e.getMessage()).build();
 		}
 		return Response.ok().entity(ar).build();
+
 	}
 
 	@Override
-	public Response scPostPost(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
+	public Response scPostPost(String knowledgeBaseId, String knowledgeInteractionId,
 			List<Map<String, String>> bindings, SecurityContext securityContext) throws NotFoundException {
+
+		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			return Response.status(Status.BAD_REQUEST)
+					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build();
+		}
+
 		var kb = this.store.getKB(knowledgeBaseId);
 		if (kb == null) {
 			return Response.status(404).entity("Smart connector not found, because its ID is unknown.").build();
@@ -78,24 +91,26 @@ public class ProactiveApiServiceImpl extends ProactiveApiService {
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			return Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build();
 		}
-		
+
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
 			return Response.status(400)
 					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build();
-		}
+		} else {
 
-		PostResult pr;
-		try {
-			pr = kb.post(knowledgeInteractionId, bindings);
-		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
-			return Response.status(500)
-					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
-		} catch (IllegalArgumentException e) {
-			return Response.status(400).entity(e.getMessage()).build();
+			PostResult pr;
+			try {
+				pr = kb.post(knowledgeInteractionId, bindings);
+
+			} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+				return Response.status(500)
+						.entity("Something went wrong while sending a POST or while waiting on the REACT.").build();
+			} catch (IllegalArgumentException e) {
+				return Response.status(400).entity(e.getMessage()).build();
+			}
+			return Response.ok().entity(pr).build();
 		}
-		return Response.ok().entity(pr).build();
 	}
 }
