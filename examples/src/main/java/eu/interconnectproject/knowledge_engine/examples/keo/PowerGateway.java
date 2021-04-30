@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.sse.SSE;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
@@ -123,17 +124,21 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		LOG.info("MESSAGE ARRIVED in topic {}: {}", topic, message);
 
-		var bindings = new BindingSet();
-
 		var jsonObj = new JSONObject(message.toString());
 
-		String msgId = jsonObj.getString("id");
+		if (!jsonObj.getString("type").equals("de.keo-connectivity.generic.mpc.powerTotal")) {
+			LOG.info("Ignoring message type '{}'", jsonObj.getString("type"));
+			return;
+		}
 
+		String msgId = jsonObj.getString("id");
+		
 		int number = jsonObj.getJSONObject("data").getJSONObject("power").getInt("number");
 		int scale = jsonObj.getJSONObject("data").getJSONObject("power").getInt("scale");
 		String actorId = jsonObj.getJSONObject("data").getString("actorId");
 		double value = number * Math.pow(10, scale);
-
+		
+		var bindings = new BindingSet();
 		var binding = new Binding();
 
 		binding.put("sensor", "<" + EX_DATA + "actor-" + actorId + ">");
@@ -196,9 +201,9 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 			new GraphPattern(this.prefixes,
 				"?limit om:hasUnit om:watt .",
 				"?command rdf:type saref:SetLevelCommand .",
-				"?command saref:actsUpon saref:PowerLimit",
+				"?command saref:actsUpon saref:PowerLimit .",
 				"?limit om:hasNumericalValue ?limitValue .",
-				"?command interconnect:SetsValue ?limit"
+				"?command interconnect:SetsValue ?limit ."
 			),
 			null
 		);
@@ -206,8 +211,10 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		// When receiving an actuation command, send it to EEBUS via the queue
 		this.sc.register(this.rkiPowerLimit, (rki, bindings) -> {
 			try {
-				// TODO: Use the value from the bindings.
-				this.sendPowerLimitMessage(123, 5);
+				var b = bindings.iterator().next();
+				var limit = (Float) SSE.parseNode(b.get("limitValue")).getLiteralValue();
+				LOG.info("Setting limit at {}", limit);
+				this.sendPowerLimitMessage(Math.round(limit * 100), -2, 5);
 			} catch (MqttException e) {
 				LOG.error("Could not send message to MQTT.", e);
 			}
@@ -230,7 +237,7 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		LOG.info("Smart connector stopped.");
 	}
 
-	private void sendPowerLimitMessage(int value, int ttl) throws MqttException {
+	private void sendPowerLimitMessage(int number, int scale, int ttl) throws MqttException {
 		// Send a message back saying we want to limit the power.
 		var msg = new JSONObject();
 		msg.put("type", "de.keo-connectivity.generic.lpc.powerLimit");
@@ -241,8 +248,8 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		data.put("actorId", "d:_n:KEO_json_grid_server/1/");
 		var limit = new JSONObject();
 		var limitValue = new JSONObject();
-		limitValue.put("number", value * ((int) Math.pow(10, 2)));
-		limitValue.put("scale", -2);
+		limitValue.put("number", number);
+		limitValue.put("scale", scale);
 		limit.put("value", limitValue);
 		limit.put("active", true);
 		limit.put("ttl", ttl);

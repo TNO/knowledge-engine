@@ -7,9 +7,11 @@ import java.util.HashSet;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.sse.SSE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
@@ -82,11 +84,25 @@ public class PowerUI implements KnowledgeBase {
 		this.sc.register(this.rkiPower, (rki, bindings) -> {
 			var binding = bindings.iterator().next();
 			var value = binding.get("value");
-			LOG.info("The power was {} at {}", value, binding.get("time"));
+			
+			var n = (Float) SSE.parseNode(value).getLiteralValue();
+			LOG.info("The power was {} at {}", n, binding.get("time"));
 
-			// TODO: Do business logic and fill the bindings.
+			BindingSet newBindings = new BindingSet();
+			Binding powerLimitBinding = new Binding();
 
-			this.sc.post(this.pkiPowerLimit, new BindingSet());
+			// TODO: These should be unique.
+			powerLimitBinding.put("limit", "<http://www.example.org/some-limit-object>");
+			powerLimitBinding.put("command", "<http://www.example.org/some-command-object>");
+			
+			if (n > 500) {
+				powerLimitBinding.put("limitValue", "\"500\"^^<http://www.w3.org/2001/XMLSchema#float>");
+			} else {
+				powerLimitBinding.put("limitValue", "\"100\"^^<http://www.w3.org/2001/XMLSchema#float>");
+			}
+			newBindings.add(powerLimitBinding);
+
+			this.sc.post(this.pkiPowerLimit, newBindings);
 
 			return new BindingSet();
 		});
@@ -97,9 +113,9 @@ public class PowerUI implements KnowledgeBase {
 			new GraphPattern(this.prefixes,
 				"?limit om:hasUnit om:watt .",
 				"?command rdf:type saref:SetLevelCommand .",
-				"?command saref:actsUpon saref:PowerLimit",
+				"?command saref:actsUpon saref:PowerLimit .",
 				"?limit om:hasNumericalValue ?limitValue .",
-				"?command interconnect:SetsValue ?limit"
+				"?command interconnect:SetsValue ?limit ."
 			),
 			null
 		);
