@@ -23,7 +23,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override
-	public Response scKiPost(@NotNull String knowledgeBaseId, KnowledgeInteractionBase workaround, SecurityContext securityContext)
+	public Response scKiPost(String knowledgeBaseId, KnowledgeInteractionBase workaround, SecurityContext securityContext)
 			throws NotFoundException {
 		LOG.info("scKiPost called: {}", workaround);
 
@@ -59,7 +59,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	}
 
 	@Override
-	public Response scKiDelete(@NotNull String knowledgeBaseId, @NotNull String knowledgeInteractionId,
+	public Response scKiDelete(String knowledgeBaseId, String knowledgeInteractionId,
 			SecurityContext securityContext) throws NotFoundException {
 		var restKb = manager.getKB(knowledgeBaseId);
 
@@ -78,7 +78,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	}
 
 	@Override
-	public Response scKiGet(@NotNull String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
+	public Response scKiGet(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {

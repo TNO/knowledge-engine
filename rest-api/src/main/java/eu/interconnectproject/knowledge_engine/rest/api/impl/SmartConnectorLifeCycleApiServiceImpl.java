@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
@@ -26,21 +28,28 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	@Override
 	public Response scDelete(@NotNull String knowledgeBaseId, SecurityContext securityContext)
 			throws NotFoundException {
-		try {
-			new URI(knowledgeBaseId);
-		} catch (URISyntaxException e) {
-			return Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
-					.build();
-		}
 
-		if (manager.hasKB(knowledgeBaseId)) {
-			manager.deleteKB(knowledgeBaseId);
+		ResponseBuilder rb;
+
+		if (knowledgeBaseId != null) {
+
+			try {
+				new URI(knowledgeBaseId);
+			} catch (URISyntaxException e) {
+				rb = Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.");
+			}
+
+			if (manager.hasKB(knowledgeBaseId)) {
+				manager.deleteKB(knowledgeBaseId);
+			} else {
+				rb = Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.");
+			}
+			rb = Response.ok();
 		} else {
-			return Response.status(404)
-				.entity("Deletion of knowledge base failed, because it could not be found.").build();
+			rb = Response.status(Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.");
 		}
 
-		return Response.ok().build();
+		return rb.build();
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -45,7 +46,7 @@ public class ReactiveApiServiceImpl {
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public void scHandleGet(
-			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") @NotNull String knowledgeBaseId,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException, IOException {
 
@@ -120,9 +121,9 @@ public class ReactiveApiServiceImpl {
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public Response scHandlePost(
-			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
-			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "") @Valid eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody,
+			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") @NotNull String knowledgeBaseId,
+			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") @NotNull String knowledgeInteractionId,
+			@ApiParam(value = "") @Valid @NotNull eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
 		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);
