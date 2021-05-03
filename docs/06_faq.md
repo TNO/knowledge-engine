@@ -95,3 +95,52 @@ I received the following expectation from the knowladge-engine: ```400 Bad Reque
 
 *Question*: Do we need a long polling connection for every Knowledge Interaction? Doesn't that get very complicated?
 - *Answer*: No, per Smart Connector (or Knowledge Base) you need a single long polling connection to receive all interactions from the Knowledge Engine. Do remember that this long polling connection is returned with status code 202 every 29 seconds and also needs to be reestablished after you receive data via it.
+
+*Question*: I’m trying to understand how timeseries as part of a larger graph pattern are expressed in a binding set.
+
+For instance:
+Let's say we have some graph pattern like:
+
+```
+?timeseries rdf:type ex:Timeseries .
+?timeseries ex:hasMeasurement ?measurement .
+?measurement rdf:type saref:Measurement .
+?measurement saref:hasFeatureOfInterest ?room .
+?room rdf:type saref:Room .
+?measurement saref:observedProperty saref:Temperature .
+?measurement saref:hasSimpleResult ?temperature .
+?measurement ex:hasTimestamp ?ts .
+```
+
+And the timeseries returns an array of temperature values and timestamp for each value.
+
+In the ANWSER Knowledge interaction will the binding set be something like:
+```json
+[
+	{
+		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
+		"measurement": "<https://www.example.org/measurement-42>",
+		"room": "<https://www.example.org/kitchen>",
+		"temperature": "\"21.2\"^^<http://www.w3.org/2001/XMLSchema#float>",
+		"ts": "\"2020-10-16T22:00Z\"^^some_timestamp_type"
+	},
+	{
+		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
+		"measurement": "<https://www.example.org/measurement-43>",
+		"room": "<https://www.example.org/kitchen>",
+		"temperature": "\"21.4\"^^<http://www.w3.org/2001/XMLSchema#float>",
+		"ts": "\"2020-10-16T23:00Z\"^^some_timestamp_type"
+	},
+	{
+		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
+		"measurement": "<https://www.example.org/measurement-44>",
+		"room": "<https://www.example.org/kitchen>",
+		"temperature": "\"21.6\"^^<http://www.w3.org/2001/XMLSchema#float>",
+		"ts": "\"2020-10-16T24:00Z\"^^some_timestamp_type"
+	}
+]
+```
+
+Is the following statement right: the IRI is filled in by the service specific adapter?
+Can this IRI then be used to for example ask more info about <https://www.example.org/measurement-43> ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
+- *Answer*: You are correct with respect to `<https://www.example.org/measurement-43>`. Ideally you should be able to retrieve more information about it and the service should not randomly generate it, but use a stored id.
