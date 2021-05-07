@@ -27,6 +27,8 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	@Override
 	public Response scDelete(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
 
+		LOG.info("scDelete called: {}", knowledgeBaseId);
+		
 		if (knowledgeBaseId == null) {
 			return Response.status(Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.").build();
 		}
