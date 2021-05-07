@@ -3,6 +3,7 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +12,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnecto
 
 public class TestAddingDeletingManySmartConnectors {
 
-	private static final int AMOUNT = 5;
+	private static final int AMOUNT = 20;
 	private Logger LOG = LoggerFactory.getLogger(TestAddingDeletingManySmartConnectors.class);
 
+	@Disabled
 	@Test
 	void test() throws InterruptedException {
 
@@ -27,13 +29,15 @@ public class TestAddingDeletingManySmartConnectors {
 			sc[i] = SmartConnectorBuilder.newSmartConnector(kb[i]).create();
 		}
 
+		Thread.sleep(20000);
+
 		LOG.info("Start stopping SCs");
 		for (int i = 0; i < AMOUNT; i++) {
 			sc[i].stop();
 		}
 
-		Thread.sleep(10000);
-		
+		Thread.sleep(5000);
+
 		LOG.info("Start creating SCs again");
 		sc = new SmartConnector[AMOUNT];
 		for (int i = 0; i < AMOUNT; i++) {

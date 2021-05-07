@@ -48,7 +48,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMes
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseStoreListener {
 
-	private static final long POST_REMOVED_TIMEOUT_SECONDS = 3;
+	private static final long POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB = 500;
 
 	private final Logger LOG;
 
@@ -153,28 +153,33 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 	private CompletableFuture<Void> postInformToKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
 			Resource purpose) {
-		// Prepare the meta bindings once
-		var myMetaBindings = this.fillMetaBindings();
-		// And also my KI id. We re-use this every time.
-		var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
-				KnowledgeInteractionInfo.Type.POST, purpose);
+
+		assert otherKnowledgeBases != null;
 
 		// We keep track of all the interactions in this set of futures.
 		var futures = new HashSet<CompletableFuture<ReactMessage>>();
+		if (otherKnowledgeBases.size() > 0) {
 
-		// Then send messages to all knowledge peers
-		for (OtherKnowledgeBase kb : otherKnowledgeBases) {
-			// Construct the knowledge interaction ID of the receiving side.
-			var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
-					KnowledgeInteractionInfo.Type.REACT, purpose);
+			// Prepare the meta bindings once
+			var myMetaBindings = this.fillMetaBindings();
+			// And also my KI id. We re-use this every time.
+			var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
+					KnowledgeInteractionInfo.Type.POST, purpose);
 
-			// Construct and send the message, and keep track of the future.
-			PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(),
-					toKnowledgeInteraction, myMetaBindings);
-			try {
-				futures.add(this.messageRouter.sendPostMessage(msg));
-			} catch (IOException e) {
-				this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
+			// Then send messages to all knowledge peers
+			for (OtherKnowledgeBase kb : otherKnowledgeBases) {
+				// Construct the knowledge interaction ID of the receiving side.
+				var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
+						KnowledgeInteractionInfo.Type.REACT, purpose);
+
+				// Construct and send the message, and keep track of the future.
+				PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(),
+						toKnowledgeInteraction, myMetaBindings);
+				try {
+					futures.add(this.messageRouter.sendPostMessage(msg));
+				} catch (IOException e) {
+					this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
+				}
 			}
 		}
 		// Return a future that completes when all futures in it have completed.
@@ -582,9 +587,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	public void smartConnectorStopping() {
 		try {
 			// Block on the future, but wait no longer than the timeout.
-			this.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get(POST_REMOVED_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+			Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
+					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
+			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
+			this.postRemovedKnowledgeBase(otherKnowledgeBases).get(timeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			LOG.error("An error occured while informing peers about our "
+			LOG.error("An error occured while informing other KBs about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);
 		}
 	}
