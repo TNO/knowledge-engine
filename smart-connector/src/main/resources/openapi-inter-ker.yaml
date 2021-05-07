@@ -169,11 +169,14 @@ components:
           type: string
         toKnowledgeInteraction:
           type: string
+        messageNumber:
+          type: integer
       required:
         - fromKnowledgeBase
         - fromKnowledgeInteraction
         - toKnowledgeBase
         - toKnowledgeInteraction
+        - messageNumber
       
     AskMessage:
       allOf:

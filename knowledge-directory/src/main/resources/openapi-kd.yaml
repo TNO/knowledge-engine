@@ -6,20 +6,20 @@ info:
     This file describes the API between the Smart Connectors and the Knowledge Directory
   version: 0.1.1-SNAPSHOT
 paths:
-  /scr:
+  /ker:
     get:
-      summary: List all Smart Connector Runtimes
+      summary: List all Knowledge Engine Runtimes
       tags:
-      - "scr"
+      - "ker"
       responses:
         '200':
-          description: A list of Smart Connector Runtimes
+          description: A list of Knowledge Engine Runtimes
           content:
             application/json; charset=UTF-8:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SmartConnectorRuntime'
+                  $ref: '#/components/schemas/KnowledgeEngineRuntime'
         '500':
           description: If a problem occurred.
           content:
@@ -27,101 +27,101 @@ paths:
               schema:
                 type: string
     post:
-      summary: Register a new Smart Connector Runtime
+      summary: Register a new Knowledge Engine Runtime
       tags:
-      - "scr"
+      - "ker"
       requestBody:
         required: true
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/SmartConnectorRuntime'
+              $ref: '#/components/schemas/KnowledgeEngineRuntime'
       responses:
         '200':
-          description: The Smart Connector Runtime was succefully created. Returns the id.
+          description: The Knowledge Engine Runtime was succefully created. Returns the id.
           content:
             text/plan; charset=UTF-8:
               schema:
                 type: string
         '400':
-          description: The Smart Connector Runtime was already registered
-          content:
-            text/plain; charset=UTF-8:
-              schema:
-                type: string
-        '500':
           description: Provided data was not valid
           content:
             text/plain; charset=UTF-8:
               schema:
                 type: string
+        '409':
+          description: The Knowledge Engine Runtime was already registered. Returns the id.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
                 
-  /scr/{scr_id}:
+  /ker/{ker_id}:
     get:
-      summary: Retrieves data of a single Smart Connector Runtime
+      summary: Retrieves data of a single Knowledge Engine Runtime
       tags:
-      - "scr"
+      - "ker"
       parameters:
-      - name: "scr_id"
+      - name: "ker_id"
         in: "path"
-        description: ID of the Smart Connector Runtime
+        description: ID of the Knowledge Engine Runtime
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Data for that Smart Connector Runtime
+          description: Data for that Knowledge Engine Runtime
           content:
             application/json; charset=UTF-8:
               schema:
-                $ref: '#/components/schemas/SmartConnectorRuntime'
+                $ref: '#/components/schemas/KnowledgeEngineRuntime'
         '404':
-          description: No Smart Connector Runtime with that ID
+          description: No Knowledge Engine Runtime with that ID
           content:
             text/plain; charset=UTF-8:
               schema:
                 type: string
     delete:
-      summary: Unregister a Smart Connector Runtime
+      summary: Unregister a Knowledge Engine Runtime
       tags:
-      - "scr"
+      - "ker"
       parameters:
-      - name: "scr_id"
+      - name: "ker_id"
         in: "path"
-        description: ID of the Smart Connector Runtime
+        description: ID of the Knowledge Engine Runtime
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Smart Connector Runtime unregistered
+          description: Knowledge Engine Runtime unregistered
         '404':
-          description: No Smart Connector Runtime with that ID
+          description: No Knowledge Engine Runtime with that ID
           content:
             text/plain; charset=UTF-8:
               schema:
                 type: string
-  /scr/{scr_id}/renew:
+  /ker/{ker_id}/renew:
     post:
-      summary: Renew lease of Smart Connector Runtime
+      summary: Renew lease of Knowledge Engine Runtime
       tags:
-      - "scr"
+      - "ker"
       parameters:
-      - name: "scr_id"
+      - name: "ker_id"
         in: "path"
-        description: ID of the Smart Connector Runtime
+        description: ID of the Knowledge Engine Runtime
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Successfully renewed lease for Smart Connector Runtime
+          description: Successfully renewed lease for Knowledge Engine Runtime
           content:
             application/json; charset=UTF-8:
               schema:
-                $ref: '#/components/schemas/SmartConnectorRuntime'
+                $ref: '#/components/schemas/KnowledgeEngineRuntime'
         '404':
-          description: No Smart Connector Runtime with that ID
+          description: No Knowledge Engine Runtime with that ID
           content:
             text/plain; charset=UTF-8:
               schema:
@@ -130,7 +130,7 @@ paths:
 
 components:
   schemas:
-    SmartConnectorRuntime:
+    KnowledgeEngineRuntime:
       type: object
       properties:
         id:

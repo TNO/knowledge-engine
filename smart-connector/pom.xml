@@ -13,6 +13,13 @@
 	</parent>
 
 	<dependencies>
+		<!-- TODO temporary solution! -->
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>knowledge-directory</artifactId>
+			<version>0.1.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -52,10 +59,183 @@
 			<artifactId>sspace</artifactId>
 			<version>2.0.4</version>
 		</dependency>
+
+		<!-- OpenAPI stuff -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-jersey2-jaxrs</artifactId>
+			<scope>compile</scope>
+			<version>${swagger-core-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${servlet-api-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-joda</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-version}</version>
+		</dependency>
+
+		<!-- Jetty -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>${jetty-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty-version}</version>
+		</dependency>
+
+		<!-- Add XML suport -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
 	</dependencies>
-	
+
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
+		<jetty-version>9.2.9.v20150224</jetty-version>
+		<swagger-core-version>1.5.18</swagger-core-version>
+		<jersey2-version>2.30.1</jersey2-version>
+		<servlet-api-version>4.0.1</servlet-api-version>
+		<jackson-version>2.9.9</jackson-version>
 	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>5.0.1</version>
+				<executions>
+					<!-- Generate InterKnowledgeEngineRuntime protocol classes -->
+					<execution>
+						<id>inter-ker</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<packageName>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server</packageName>
+							<apiPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api</apiPackage>
+							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model</modelPackage>
+							<inputSpec>${project.basedir}/src/main/resources/openapi-inter-ker.yaml</inputSpec>
+							<generatorName>jaxrs-jersey</generatorName>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<generateApis>true</generateApis>
+							<configOptions>
+								<implFolder>dummy</implFolder>
+								<strictSpec>true</strictSpec>
+								<useTags>true</useTags>
+								<dateLibrary>java8</dateLibrary>
+							</configOptions>
+						</configuration>
+					</execution>
+
+					<!-- Generate Knowledge Directory protocol classes -->
+					<execution>
+						<id>kd</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model</modelPackage>
+							<inputSpec>${project.basedir}/../knowledge-directory/src/main/resources/openapi-kd.yaml</inputSpec>
+							<generatorName>jaxrs-jersey</generatorName>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<generateApis>false</generateApis>
+							<configOptions>
+								<implFolder>dummy</implFolder>
+								<strictSpec>true</strictSpec>
+								<useTags>true</useTags>
+								<dateLibrary>java8</dateLibrary>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/target/generated-sources/openapi/src/gen/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+		</plugins>
+	</build>
 </project>

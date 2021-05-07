@@ -30,7 +30,7 @@ public class KnowledgeDirectory {
 		}
 		this.state = State.RUNNING;
 
-		LOG.info("Starting Knowledge Director REST API on port {}.", port);
+		LOG.info("Starting Knowledge Directory REST API on port {}.", port);
 
 		server = new Server(port);
 
@@ -54,11 +54,20 @@ public class KnowledgeDirectory {
 		server.join();
 	}
 
-	public void stop() {
+	public void stop() throws Exception {
 		if (state != State.RUNNING) {
 			throw new IllegalStateException("Can only stop server when it is running");
 		}
 		this.state = State.STOPPED;
+
+		try {
+			server.stop();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		server.stop();
 
 		server.destroy();
 	}

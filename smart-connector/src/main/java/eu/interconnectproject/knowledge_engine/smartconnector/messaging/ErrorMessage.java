@@ -23,4 +23,12 @@ public class ErrorMessage extends KnowledgeMessage {
 		return errorMessage;
 	}
 
+	@Override
+	public String toString() {
+		return "ErrorMessage [replyToMessage=" + replyToMessage + ", errorMessage=" + errorMessage + ", messageId="
+				+ messageId + ", fromKnowledgeBase=" + fromKnowledgeBase + ", fromKnowledgeInteraction="
+				+ fromKnowledgeInteraction + ", toKnowledgeBase=" + toKnowledgeBase + ", toKnowledgeInteraction="
+				+ toKnowledgeInteraction + "]";
+	}
+
 }

@@ -81,6 +81,27 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson-version}</version>
 		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-version}</version>
+		</dependency>
+
 		<!-- Base64 encoding that works in both JVM and Android -->
 		<dependency>
 			<groupId>com.brsanthu</groupId>
@@ -154,6 +175,7 @@
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
 								<useTags>true</useTags>
+								<dateLibrary>java8</dateLibrary>
 							</configOptions>
 						</configuration>
 					</execution>

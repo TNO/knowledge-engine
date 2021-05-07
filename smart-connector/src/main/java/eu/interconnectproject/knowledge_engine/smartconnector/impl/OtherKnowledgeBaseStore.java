@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectory;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectoryProxy;
 
 /**
  * An {@link OtherKnowledgeBaseStore} is responsible for keeping track of
@@ -14,7 +14,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeD
  * {@link KnowledgeInteraction}s and their {@link SmartConnectorImpl}s'
  * endpoints.
  *
- * It uses the {@link KnowledgeDirectory} to discover other smart connectors.
+ * It uses the {@link KnowledgeDirectoryProxy} to discover other smart connectors.
  */
 public interface OtherKnowledgeBaseStore {
 

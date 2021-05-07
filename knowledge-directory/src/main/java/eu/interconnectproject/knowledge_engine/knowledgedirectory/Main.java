@@ -7,10 +7,10 @@ public class Main {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	public static final int DEFAULT_PORT = 8282; // TODO make configurable
-	public static final int SCR_LEASE_SECONDS = 60;
+	public static final int DEFAULT_PORT = 8282;
+	public static final int KER_LEASE_SECONDS = 60;
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws Exception {
 		int port = DEFAULT_PORT;
 
 		if (args.length > 0) {

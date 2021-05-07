@@ -3,9 +3,6 @@ package eu.interconnectproject.knowledge_engine.smartconnector.runtime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectory;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.LocalSmartConnectorRegistry;
-
 /**
  * This is a central static class for the Knowledge Engine runtime. This class
  * starts and provides access to runtime services for the Knowledge Engine for
@@ -15,7 +12,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.LocalSmart
 public class KeRuntime {
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
-	private static KnowledgeDirectory knowledgeDirectory = new KnowledgeDirectoryImpl();
+	private static KnowledgeDirectoryProxy knowledgeDirectory = new KnowledgeDirectoryImpl();
 	private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
 	/**
@@ -29,7 +26,7 @@ public class KeRuntime {
 		return localSmartConnectorRegistry;
 	}
 
-	public static KnowledgeDirectory knowledgeDirectory() {
+	public static KnowledgeDirectoryProxy knowledgeDirectory() {
 		return knowledgeDirectory;
 	}
 
