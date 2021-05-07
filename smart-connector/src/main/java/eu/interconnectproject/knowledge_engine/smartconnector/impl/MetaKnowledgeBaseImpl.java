@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -45,6 +47,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMess
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseStoreListener {
+
+	private static final long POST_REMOVED_TIMEOUT_SECONDS = 3;
 
 	private final Logger LOG;
 
@@ -577,9 +581,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	@Override
 	public void smartConnectorStopping() {
 		try {
-			// Block on the future.(TODO: Timeout?)
-			this.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
-		} catch (InterruptedException | ExecutionException e) {
+			// Block on the future, but wait no longer than the timeout.
+			this.postRemovedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get(POST_REMOVED_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOG.error("An error occured while informing peers about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);
 		}

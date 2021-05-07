@@ -45,7 +45,11 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public void deleteKB(String knowledgeBaseId) {
-		var rkb = this.restKnowledgeBases.remove(knowledgeBaseId);
+		// Note: We first stop the knowledge base before removing it from our list.
+		// (Because in the meantime (while stopping) we cannot have that someone
+		// tries to register the same ID)
+		var rkb = this.restKnowledgeBases.get(knowledgeBaseId);
 		rkb.stop();
+		this.restKnowledgeBases.remove(knowledgeBaseId);
 	}
 }
