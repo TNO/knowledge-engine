@@ -144,3 +144,10 @@ In the ANWSER Knowledge interaction will the binding set be something like:
 Is the following statement right: the IRI is filled in by the service specific adapter?
 Can this IRI then be used to for example ask more info about <https://www.example.org/measurement-43> ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
 - *Answer*: You are correct with respect to `<https://www.example.org/measurement-43>`. Ideally you should be able to retrieve more information about it and the service should not randomly generate it, but use a stored id.
+
+
+*Question*: I'm wondering if the reactive Knowledge Interactions function the same way that a publish/subscribe broker would work. Is it possible for one service to POST something to the KE, while multiple other services listen to the interaction. This way they all receive the data they need whenever it is available. 
+
+If I understand correctly, a REACT KI can also send data back upon receiving it. If publish/subscribe is possible, how would this communication work? Would the Knowledge Base on the POST side receive all responses?
+- *Answer*: Yes, it functions similarly to a publish/subscribe broker. The React Knowledge Interaction can be seen as a *subscribe* and the Post Knowledge Interaction can be seen as a *publish*. All *matching* React Knowledge Interactions will receive the Post Knowledge Interaction's data. 
+	For a more functional interaction pattern, the Post/React Knowledge Interaction also support a (optional) result graph pattern that describes the data that will be sent back (the results) after receiving data (the arguments). The result will indeed be aggregated and returned to POST side.
