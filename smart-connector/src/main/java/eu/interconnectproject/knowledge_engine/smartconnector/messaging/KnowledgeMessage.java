@@ -13,7 +13,12 @@ public abstract class KnowledgeMessage {
 
 	protected KnowledgeMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction) {
-		this.messageId = UUID.randomUUID();
+		this(UUID.randomUUID(), fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
+	}
+
+	protected KnowledgeMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction) {
+		this.messageId = messageId;
 		this.fromKnowledgeBase = fromKnowledgeBase;
 		this.fromKnowledgeInteraction = fromKnowledgeInteraction;
 		this.toKnowledgeBase = toKnowledgeBase;

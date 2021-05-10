@@ -8,9 +8,16 @@ public class ErrorMessage extends KnowledgeMessage {
 	private final UUID replyToMessage;
 	private final String errorMessage;
 
-	protected ErrorMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+	public ErrorMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, UUID replyToMessage, String errorMessage) {
 		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
+		this.replyToMessage = replyToMessage;
+		this.errorMessage = errorMessage;
+	}
+
+	public ErrorMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, UUID replyToMessage, String errorMessage) {
+		super(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
 		this.replyToMessage = replyToMessage;
 		this.errorMessage = errorMessage;
 	}

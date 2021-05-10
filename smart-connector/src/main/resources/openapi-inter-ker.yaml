@@ -4,7 +4,7 @@ info:
   
   description:
     This file describes the API for communication between Smart Connectors
-  version: 0.1.1-SNAPSHOT
+  version: v1
 paths:
   /runtimedetails:
     get:
@@ -54,6 +54,27 @@ paths:
               schema:
                 type: string
                 
+  /runtimedetails/{ker_id}:
+    delete:
+      summary: ANOTHER Knowledg Engine Runtime informs this Knowledge Engine runtime it will shut down
+      tags:
+      - "smart connector management"
+      parameters:
+      - name: "ker_id"
+        in: "path"
+        description: ID of the Knowledge Engine Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Understood.
+        '404':
+          description: The Smart Connector Runtime not known
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
 
   /messaging/askmessage:
     post:
@@ -161,6 +182,8 @@ components:
     KnowledgeMessage:
       type: object
       properties:
+        messageId:
+          type: string
         fromKnowledgeBase:
           type: string
         fromKnowledgeInteraction:
@@ -184,9 +207,11 @@ components:
         - type: object
           properties:
             bindingSet:
-              type: object
-              additionalProperties:
-                type: string
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
           required:
             - bindingSet
 
@@ -198,9 +223,11 @@ components:
             replyToAskMessage:
               type: string
             bindingSet:
-              type: object
-              additionalProperties:
-                type: string
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
           required:
             - replyToAskMessage
             - bindingSet
@@ -211,9 +238,11 @@ components:
         - type: object
           properties:
             argument:
-              type: object
-              additionalProperties:
-                type: string
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
           required:
             - argument
             
@@ -225,9 +254,11 @@ components:
             replyToPostMessage:
               type: string
             result:
-              type: object
-              additionalProperties:
-                type: string
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
           required:
             - replyToPostMessage
             - bindingSet

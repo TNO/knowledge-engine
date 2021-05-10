@@ -177,7 +177,7 @@ public class KnowledgeDirectoryConnectionManager {
 					.POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(ker))).build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
-			if (statusCode == 200) {
+			if (statusCode == 201) {
 				// Registration was successful
 				myId = response.body();
 				this.currentState = State.REGISTERED;
@@ -244,7 +244,7 @@ public class KnowledgeDirectoryConnectionManager {
 					.header("Content-Type", "application/json").POST(BodyPublishers.noBody()).build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
-			if (statusCode == 200) {
+			if (statusCode == 204) {
 				// Renew was successful
 				this.currentState = State.REGISTERED;
 				LOG.debug("Renewed lease at Knowledge Directory " + kdHostname + ":" + kdPort);

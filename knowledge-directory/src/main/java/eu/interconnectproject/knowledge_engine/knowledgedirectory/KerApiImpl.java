@@ -13,7 +13,7 @@ import eu.interconnectproject.knowledge_engine.knowledgedirectory.model.Knowledg
 
 public class KerApiImpl extends KerApiService {
 
-	private Map<String, KnowledgeEngineRuntime> kers = new ConcurrentHashMap<>();
+	private final Map<String, KnowledgeEngineRuntime> kers = new ConcurrentHashMap<>();
 
 	private void cleanupExpired() {
 		OffsetDateTime threshold = OffsetDateTime.now().minusSeconds(Main.KER_LEASE_SECONDS);
@@ -50,16 +50,7 @@ public class KerApiImpl extends KerApiService {
 		knowledgeEngineRuntime.setLastRenew(OffsetDateTime.now());
 		kers.put(id, knowledgeEngineRuntime);
 
-		return Response.ok().entity(id).build();
-	}
-
-	@Override
-	public Response kerKerIdDelete(String kepId, SecurityContext securityContext) throws NotFoundException {
-		cleanupExpired();
-		if (kers.remove(kepId) == null) {
-			return Response.status(404).entity("Smart Connector Runtime not found").build();
-		}
-		return Response.ok().build();
+		return Response.status(201).entity(id).build();
 	}
 
 	@Override
@@ -73,6 +64,15 @@ public class KerApiImpl extends KerApiService {
 	}
 
 	@Override
+	public Response kerKerIdDelete(String kepId, SecurityContext securityContext) throws NotFoundException {
+		cleanupExpired();
+		if (kers.remove(kepId) == null) {
+			return Response.status(404).entity("Smart Connector Runtime not found").build();
+		}
+		return Response.status(200).build();
+	}
+
+	@Override
 	public Response kerKerIdRenewPost(String kerId, SecurityContext securityContext) throws NotFoundException {
 		cleanupExpired();
 		KnowledgeEngineRuntime knowledgeEngineRuntime = kers.get(kerId);
@@ -80,7 +80,7 @@ public class KerApiImpl extends KerApiService {
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		} else {
 			knowledgeEngineRuntime.setLastRenew(OffsetDateTime.now());
-			return Response.ok().build();
+			return Response.status(204).build();
 		}
 	}
 
