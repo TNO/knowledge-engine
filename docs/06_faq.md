@@ -151,3 +151,17 @@ Can this IRI then be used to for example ask more info about <https://www.exampl
 If I understand correctly, a REACT KI can also send data back upon receiving it. If publish/subscribe is possible, how would this communication work? Would the Knowledge Base on the POST side receive all responses?
 - *Answer*: Yes, it functions similarly to a publish/subscribe broker. The React Knowledge Interaction can be seen as a *subscribe* and the Post Knowledge Interaction can be seen as a *publish*. All *matching* React Knowledge Interactions will receive the Post Knowledge Interaction's data. 
 	For a more functional interaction pattern, the Post/React Knowledge Interaction also support a (optional) result graph pattern that describes the data that will be sent back (the results) after receiving data (the arguments). The result will indeed be aggregated and returned to POST side.
+
+*Question*: It's not clear for me how the interaction between the service store and the KE should be seen. In our case we have a system acting as a knowledgebase requesting information for other partners. This information will then be combined and using some specific application logic new information will be exposed. Both will be implemented through the knowledge engine. By looking at the examples I managed to implement a small application which is working fine but still I have some questions:
+
+The registration of the KB and KIs should only be done once I suppose?
+Let's say we have a ASK-ANSWER (our KB will create answer) and a POST-REACT KI (our KB will react). Will we need to restart the connection with the KE? I thought something was mentioned during the sync call that an interaction is only active for 30 mins.
+Is there a complete example available where the KE and the service store is combined?
+- *Answer*: In general, the exact link between service store and knowledge engine is still evolving and under discussion. Currently, as far as I know, this link is that the service store keeps a list of services with metadata that have a generic adapters that also provide access to the Interoperability layer (i.e. Knowledge Engine).
+
+  - The registration of the KB and KIs should only be done once I suppose?
+    - Typically, the Generic Adapter (and Smart Connector) should be available as long as your system (Knowledge Base) is available and in that case you only need to register your KIs once. KIs are, however, dynamic and can be added and removed if this is useful for the use case.
+  - Let's say we have a ASK-ANSWER (our KB will create answer) and a POST-REACT KI (our KB will react). Will we need to restart the connection with the KE? I thought something was mentioned during the sync call that an interaction is only active for 30 mins.
+    - The Knowledge Engine REST Developer API uses long-polling to notify you when your KB needs to react. This long-polling connection will automatically return every *29 seconds* with status code 202 to prevent certain proxies from blocking it. So, you need to reestablish this long-polling connection when you receive a 202. This does not affect the Knowledge Base and Knowledge Interactions.
+  - Is there a complete example available where the KE and the service store is combined?
+    - I think @aleksandar.tomcic.vizlore.com is working on examples that use the generic-adapter which maintains the link between the Service Store and the Knowledge Engine. For the Knowledge Engine only, we do have an very simple Python example available here: https://gitlab.inesctec.pt/interconnect/ke-python-examples
