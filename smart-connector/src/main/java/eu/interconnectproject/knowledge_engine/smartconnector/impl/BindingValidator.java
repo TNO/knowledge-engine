@@ -21,6 +21,14 @@ public class BindingValidator {
 	 * @param bindings
 	 */
 	public void validatePartialBindings(GraphPattern pattern, BindingSet bindings) {
+		if (pattern == null) {
+			if (bindings == null) {
+				throw new IllegalArgumentException("Bindings must be non-null.");
+			} else if (bindings.size() > 0) {
+				throw new IllegalArgumentException("Bindings must be empty when the graph pattern is missing.");
+			}
+			return;
+		}
 		Set<String> variables = pattern.getVariables();
 		bindings.forEach(b -> {
 			b.forEach((k, v) -> {
@@ -33,6 +41,14 @@ public class BindingValidator {
 	}
 	
 	public void validateCompleteBindings(GraphPattern pattern, BindingSet bindings) {
+		if (pattern == null) {
+			if (bindings == null) {
+				throw new IllegalArgumentException("Bindings must be non-null.");
+			} else if (bindings.size() > 0) {
+				throw new IllegalArgumentException("Bindings must be empty when the graph pattern is missing.");
+			}
+			return;
+		}
 		Set<String> variables = pattern.getVariables();
 		bindings.forEach(b -> {
 			var notSeenYet = new HashSet<String>(variables);
