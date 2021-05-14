@@ -419,7 +419,7 @@ components:
             graphPattern:
               type: string
     PostKnowledgeInteraction:
-      required: [argumentGraphPattern, resultGraphPattern]
+      required: [argumentGraphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
@@ -429,7 +429,7 @@ components:
             resultGraphPattern:
               type: string
     ReactKnowledgeInteraction:
-      required: [argumentGraphPattern, resultGraphPattern]
+      required: [argumentGraphPattern]
       allOf:
         - $ref: '#/components/schemas/KnowledgeInteractionBase'
         - type: object
