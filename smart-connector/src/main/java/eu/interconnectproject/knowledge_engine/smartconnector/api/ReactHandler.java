@@ -1,8 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A {@link ReactHandler} provides a handler method
@@ -12,6 +10,13 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledge
  * {@link GraphPattern} of the result *can* be different from the argument's.
  */
 public interface ReactHandler {
+
+	public default CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction anRKI, BindingSet argument) {
+		CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+		BindingSet bs = this.react(anRKI, argument);
+		future.complete(bs);
+		return future;
+	}
 
 	/**
 	 * Create a {@link ReactHandler}

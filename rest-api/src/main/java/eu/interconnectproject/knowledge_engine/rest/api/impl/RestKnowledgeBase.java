@@ -83,7 +83,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
 		@Override
-		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
@@ -97,14 +97,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionInfo.Type.ANSWER, bindings, future);
 
 			toBeProcessedByKnowledgeBase(hr);
+			return future;
+		}
 
-			try {
-				return future.get();
-			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("An error occurred while handling request {} for knowledge base {}.", hr,
-						RestKnowledgeBase.this.getKnowledgeBaseId());
-			}
-			return new BindingSet();
+		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+			throw new IllegalArgumentException("Should not be called.");
 		}
 	};
 
@@ -140,7 +137,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 
-		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+		this.sc = SmartConnectorBuilder.newSmartConnector(this).knowledgeBaseIsThreadSafe(true).create();
 	}
 
 	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {
@@ -282,7 +279,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		} else if (type.equals("ReactKnowledgeInteraction")) {
 
 			eu.interconnectproject.knowledge_engine.rest.model.ReactKnowledgeInteraction rki = (eu.interconnectproject.knowledge_engine.rest.model.ReactKnowledgeInteraction) ki;
-			
+
 			GraphPattern argGP = null;
 			GraphPattern resGP = null;
 
