@@ -108,7 +108,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private ReactHandler reactHandler = new ReactHandler() {
 
 		@Override
-		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
@@ -117,14 +117,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionInfo.Type.REACT, bindings, future);
 
 			toBeProcessedByKnowledgeBase(hr);
+			return future;
+		}
 
-			try {
-				return future.get();
-			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("An error occurred while handling request {} for knowledge base {}.", hr,
-						RestKnowledgeBase.this.getKnowledgeBaseId());
-			}
-			return new BindingSet();
+		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+			throw new IllegalArgumentException("Should not be called.");
 		}
 	};
 
