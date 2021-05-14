@@ -114,29 +114,33 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			AnswerKnowledgeInteraction answerKnowledgeInteraction;
 			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
 					.getKnowledgeInteraction();
-			var future = new CompletableFuture<AnswerMessage>();
-			{
-				BindingSet bindings = null;
-				if (knowledgeInteractionById.isMeta()) {
-					// TODO: Ask MyMetaKnowledgeBase for the bindings.
-				} else {
-					var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
-					// TODO This should happen in the single thread for the knowledge base
-					
-					LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
-					
-					bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
-				}
 
+			CompletableFuture<BindingSet> future;
+			if (knowledgeInteractionById.isMeta()) {
+				// TODO: Ask MyMetaKnowledgeBase for the bindings.
+				assert false;
+				LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
+				future = new CompletableFuture<BindingSet>();
+				future.complete(new BindingSet());
+			} else {
+				var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+				// TODO This should happen in the single thread for the knowledge base
+
+				LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+
+				future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
+			}
+
+			return future.exceptionally((e) -> {
+				LOG.error("An error occurred while answering msg: {}", anAskMsg);
+				return new BindingSet();
+			}).thenApply((b) -> {
 				AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-						anAskMsg.getMessageId(), bindings);
-				// TODO: Here I just complete the future in the same thread, but we should
-				// figure out how to do it asynchronously.
-				future.complete(result);
+						anAskMsg.getMessageId(), b);
+				return result;
+			});
 
-				return future;
-			}
 		} catch (Throwable t) {
 			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
 					+ "' that was expected to resolve to one of our own.", t);
@@ -187,41 +191,34 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
 		URI reactKnowledgeInteractionId = aPostMsg.getToKnowledgeInteraction();
-		try {
-			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(reactKnowledgeInteractionId);
-			ReactKnowledgeInteraction reactKnowledgeInteraction;
-			reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
-			var future = new CompletableFuture<ReactMessage>();
-			{
-				BindingSet bindings = null;
-				if (knowledgeInteractionById.isMeta()) {
-					// TODO: Ask MyMetaKnowledgeBase for the bindings.
-				} else {
-					var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
-					// TODO This should happen in the single thread for the knowledge base
-					
-					LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
-					
-					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getArgument());
-				}
+		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+				.getKnowledgeInteractionById(reactKnowledgeInteractionId);
+		ReactKnowledgeInteraction reactKnowledgeInteraction;
+		reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
-				ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-						aPostMsg.getMessageId(), bindings);
-				// TODO: Here I just complete the future in the same thread, but we should
-				// figure out how to do it asynchronously.
-				future.complete(result);
-			}
-
-			return future;
-		} catch (Throwable t) {
-			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + reactKnowledgeInteractionId
-					+ "' that was expected to resolve to one of our own.", t);
-			var future = new CompletableFuture<ReactMessage>();
-			future.completeExceptionally(t);
-			return future;
+		CompletableFuture<BindingSet> future;
+		if (knowledgeInteractionById.isMeta()) {
+			// TODO: Ask MyMetaKnowledgeBase for the bindings.
+			assert false;
+			LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
+			future = new CompletableFuture<BindingSet>();
+			future.complete(new BindingSet());
+		} else {
+			var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+			// TODO This should happen in the single thread for the knowledge base
+			LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+			future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
 		}
+
+		return future.exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {}", aPostMsg);
+			return new BindingSet();
+		}).thenApply(b -> {
+			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					b);
+			return result;
+		});
 
 	}
 
@@ -294,8 +291,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// then apply the reasoner
-		InfModel infModel = ModelFactory
-				.createInfModel(this.reasoner.bind(m.getGraph()));
+		InfModel infModel = ModelFactory.createInfModel(this.reasoner.bind(m.getGraph()));
 
 		// query the model from both my and the other perspective (both should match)
 		// TODO can we do this with a single query execution? This might be a lot

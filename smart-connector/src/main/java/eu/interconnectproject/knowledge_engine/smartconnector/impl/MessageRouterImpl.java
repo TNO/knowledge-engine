@@ -86,6 +86,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			} else {
 				CompletableFuture<AnswerMessage> replyFuture = this.interactionProcessor
 						.processAskFromMessageRouter(message);
+
 				replyFuture.thenAccept(reply -> {
 					try {
 						messageDispatcher.send(reply);

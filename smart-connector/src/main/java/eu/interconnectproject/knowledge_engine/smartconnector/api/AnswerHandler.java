@@ -1,9 +1,7 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * An {@link AnswerHandler} provides a handler
@@ -11,6 +9,14 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInter
  * that returns a {@link BindingSet} for the provided input.
  */
 public interface AnswerHandler {
+
+	public default CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+		CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+		BindingSet bs = this.answer(anAKI, aBindingSet);
+		future.complete(bs);
+		return future;
+	}
+
 	/**
 	 * @param anAKI       The {@link KnowledgeInteraction} that is involved in the
 	 *                    question top answer.
@@ -23,5 +29,5 @@ public interface AnswerHandler {
 	 *         you would not be able to know which partial binding output
 	 *         corresponded with which partial binding input.
 	 */
-	public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet);
+	public abstract BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet);
 }
