@@ -349,12 +349,18 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			kiwid.setGraphPattern(((AnswerKnowledgeInteraction) ki).getPattern().getPattern());
 		} else if (ki instanceof PostKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("PostKnowledgeInteraction");
-			kiwid.setArgumentGraphPattern(((PostKnowledgeInteraction) ki).getArgument().getPattern());
-			kiwid.setResultGraphPattern(((PostKnowledgeInteraction) ki).getResult().getPattern());
+			var pKi = (PostKnowledgeInteraction) ki;
+			kiwid.setArgumentGraphPattern(pKi.getArgument().getPattern());
+			if (pKi.getResult() != null) {
+				kiwid.setResultGraphPattern(pKi.getResult().getPattern());
+			}
 		} else if (ki instanceof ReactKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("ReactKnowledgeInteraction");
-			kiwid.setArgumentGraphPattern(((ReactKnowledgeInteraction) ki).getArgument().getPattern());
-			kiwid.setResultGraphPattern(((ReactKnowledgeInteraction) ki).getResult().getPattern());
+			var rKi = (ReactKnowledgeInteraction) ki;
+			kiwid.setArgumentGraphPattern(rKi.getArgument().getPattern());
+			if (rKi.getResult() != null) {
+				kiwid.setResultGraphPattern(rKi.getResult().getPattern());
+			}
 		} else {
 			assert false : "Encountered unknown knowledge interaction subclass.";
 			LOG.error(
