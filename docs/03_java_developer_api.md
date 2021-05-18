@@ -40,6 +40,11 @@ sc.register(
 ```
 where `graphPattern` is a string describing an RDF graph pattern where variables are prefixed with a `?`.
 
+Graph patterns consist of one or more triples separated by a dot (.) and each triple consists of a subject, predicate and object node. Each node can be either a variable (using a question mark `?var` prefix), a URI (using the `<https://...>` or a literal (using quotes `"hello"`).
+More information on graph patterns can be found in:
+- the Knowledge Engine documentation: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/master/docs/03_java_developer_api.md
+- this presentation (from slide 16 onwards): https://drive.inesctec.pt/f/16079670
+
 As an example, assume `graphPattern` is the following graph pattern:
 ```sparql
 ?measurement rdf:type saref:Measurement .
