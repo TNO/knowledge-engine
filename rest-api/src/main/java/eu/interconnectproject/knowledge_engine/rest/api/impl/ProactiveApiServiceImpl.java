@@ -60,12 +60,14 @@ public class ProactiveApiServiceImpl {
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build());
+			return;
 		}
 
 		var kb = this.store.getKB(knowledgeBaseId);
 		if (kb == null) {
 			asyncResponse.resume(
 					Response.status(404).entity("Smart connector not found, because its ID is unknown.").build());
+			return;
 		}
 
 		try {
@@ -73,11 +75,13 @@ public class ProactiveApiServiceImpl {
 		} catch (URISyntaxException e) {
 			asyncResponse.resume(Response.status(400)
 					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
+			return;
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			asyncResponse.resume(
 					Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build());
+			return;
 		}
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
@@ -86,6 +90,7 @@ public class ProactiveApiServiceImpl {
 					.entity("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build());
+			return;
 		}
 
 		try {
@@ -159,12 +164,14 @@ public class ProactiveApiServiceImpl {
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build());
+			return;
 		}
 
 		var kb = this.store.getKB(knowledgeBaseId);
 		if (kb == null) {
 			asyncResponse.resume(
 					Response.status(404).entity("Smart connector not found, because its ID is unknown.").build());
+			return;
 		}
 
 		try {
@@ -172,11 +179,13 @@ public class ProactiveApiServiceImpl {
 		} catch (URISyntaxException e) {
 			asyncResponse.resume(Response.status(400)
 					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
+			return;
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			asyncResponse.resume(
 					Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build());
+			return;
 		}
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
@@ -185,6 +194,7 @@ public class ProactiveApiServiceImpl {
 					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build());
+			return;
 		} else {
 
 			try {
