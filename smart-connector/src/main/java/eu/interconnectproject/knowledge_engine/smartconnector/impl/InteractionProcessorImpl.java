@@ -107,47 +107,38 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	public CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage anAskMsg) {
 		URI answerKnowledgeInteractionId = anAskMsg.getToKnowledgeInteraction();
 
-		try {
-			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(answerKnowledgeInteractionId);
+		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+				.getKnowledgeInteractionById(answerKnowledgeInteractionId);
 
-			AnswerKnowledgeInteraction answerKnowledgeInteraction;
-			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
-					.getKnowledgeInteraction();
+		AnswerKnowledgeInteraction answerKnowledgeInteraction;
+		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
+				.getKnowledgeInteraction();
 
-			CompletableFuture<BindingSet> future;
-			if (knowledgeInteractionById.isMeta()) {
-				// TODO: Ask MyMetaKnowledgeBase for the bindings.
-				assert false;
-				LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
-				future = new CompletableFuture<BindingSet>();
-				future.complete(new BindingSet());
-			} else {
-				var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
-				// TODO This should happen in the single thread for the knowledge base
+		CompletableFuture<BindingSet> future;
+		if (knowledgeInteractionById.isMeta()) {
+			// TODO: Ask MyMetaKnowledgeBase for the bindings.
+			assert false;
+			LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
+			future = new CompletableFuture<BindingSet>();
+			future.complete(new BindingSet());
+		} else {
+			var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+			// TODO This should happen in the single thread for the knowledge base
 
-				LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+			LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-				future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
-			}
-
-			return future.exceptionally((e) -> {
-				LOG.error("An error occurred while answering msg: {}", anAskMsg);
-				return new BindingSet();
-			}).thenApply((b) -> {
-				AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-						anAskMsg.getMessageId(), b);
-				return result;
-			});
-
-		} catch (Throwable t) {
-			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
-					+ "' that was expected to resolve to one of our own.", t);
-			var future = new CompletableFuture<AnswerMessage>();
-			future.completeExceptionally(t);
-			return future;
+			future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
 		}
+
+		return future.exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {}", anAskMsg);
+			return new BindingSet();
+		}).thenApply((b) -> {
+			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+					anAskMsg.getMessageId(), b);
+			return result;
+		});
 	}
 
 	@Override
