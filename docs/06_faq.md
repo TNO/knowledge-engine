@@ -165,3 +165,11 @@ Is there a complete example available where the KE and the service store is comb
     - The Knowledge Engine REST Developer API uses long-polling to notify you when your KB needs to react. This long-polling connection will automatically return every *29 seconds* with status code 202 to prevent certain proxies from blocking it. So, you need to reestablish this long-polling connection when you receive a 202. This does not affect the Knowledge Base and Knowledge Interactions.
   - Is there a complete example available where the KE and the service store is combined?
     - I think @aleksandar.tomcic.vizlore.com is working on examples that use the generic-adapter which maintains the link between the Service Store and the Knowledge Engine. For the Knowledge Engine only, we do have an very simple Python example available here: https://gitlab.inesctec.pt/interconnect/ke-python-examples
+
+*Question*: I use a very generic graph pattern like `?s ?p ?o` for my PostKnowledgeInteraction, but my other KB does not get a request. Or, you do get a request, but your post is not returning with the results.
+- *Answer*: We noticed multiple knowledge bases that register graph patterns like "?s ?p ?o" (i.e. from the examples we provided). If this is the case, it might occur that you ask a question or post some data and there are multiple KBs available that can answer or want to react to that type of data (i.e. they use a matching graph pattern). This means that you may not receive a request for data on your KB until one of the others has answered or reacted, or you might get a request, but you do not see the expected reaction in your other KB, because the Interoperability layer is waiting for the other matching KBs to answer/react.
+We have an issue #95 which would allow you to instruct the Knowledge Engine to not wait indefinitely for an answer, but this is still on our todo list. Until then, we recommend using more specific graph patterns for testing. For example:
+{
+  "knowledgeInteractionType": "ReactKnowledgeInteraction",
+  "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
+}
