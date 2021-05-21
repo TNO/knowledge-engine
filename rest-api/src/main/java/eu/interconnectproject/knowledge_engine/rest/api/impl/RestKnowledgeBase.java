@@ -195,14 +195,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * Called when the REST client sends us some bindings as an answer or reaction.
 	 * 
 	 * @param knowledgeInteractionId
-	 * @param requestBody
+	 * @param responseBody
 	 */
 	public void finishHandleRequest(String knowledgeInteractionId,
-			eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody) {
+			eu.interconnectproject.knowledge_engine.rest.model.HandleResponse responseBody) {
 
-		int handleRequestId = requestBody.getHandleRequestId();
+		int handleRequestId = responseBody.getHandleRequestId();
 		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
-		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
+		BindingSet bs = this.listToBindingSet(responseBody.getBindingSet());
 
 		// TODO: Can this be moved to somewhere internal so that it can also be
 		// caught in the Java developer api?
