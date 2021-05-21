@@ -186,14 +186,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * Called when the REST client sends us some bindings as an answer or reaction.
 	 * 
 	 * @param knowledgeInteractionId
-	 * @param requestBody
+	 * @param responseBody
 	 */
 	public void finishHandleRequest(String knowledgeInteractionId,
-			eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody) {
+			eu.interconnectproject.knowledge_engine.rest.model.HandleResponse responseBody) {
 
-		int handleRequestId = requestBody.getHandleRequestId();
-		HandleRequest hr = this.beingProcessedHandleRequests.remove(handleRequestId);
-		BindingSet bs = this.listToBindingSet(requestBody.getBindingSet());
+		int handleRequestId = responseBody.getHandleRequestId();
+		HandleRequest hr = this.beingProcessedHandleRequests.get(handleRequestId);
+		BindingSet bs = this.listToBindingSet(responseBody.getBindingSet());
 
 		// TODO: Can this be moved to somewhere internal so that it can also be
 		// caught in the Java developer api?
@@ -204,6 +204,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			hr.getFuture().completeExceptionally(e);
 			throw e;
 		}
+
+		// Now that the validation is done, from the reactive side we are done, so
+		// we can remove the HandleRequest from our list.
+		this.beingProcessedHandleRequests.remove(handleRequestId);
 
 		hr.getFuture().complete(bs);
 	}
@@ -454,6 +458,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private BindingSet listToBindingSet(List<Map<String, String>> listBindings) {
 		var bindings = new BindingSet();
 		listBindings.forEach((listBinding) -> {
+			if (listBinding == null)
+				throw new IllegalArgumentException("Bindings must be non-null.");
 			var binding = new Binding();
 			listBinding.forEach((k, v) -> {
 				binding.put(k, v);

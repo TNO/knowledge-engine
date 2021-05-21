@@ -123,10 +123,10 @@ public class ReactiveApiServiceImpl {
 	public Response scHandlePost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") @NotNull String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") @NotNull String knowledgeInteractionId,
-			@ApiParam(value = "") @Valid @NotNull eu.interconnectproject.knowledge_engine.rest.model.HandleRequest requestBody,
+			@ApiParam(value = "") @Valid @NotNull eu.interconnectproject.knowledge_engine.rest.model.HandleResponse responseBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
-		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, requestBody);
+		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, responseBody);
 
 		if (knowledgeBaseId == null) {
 			return Response.status(400)
@@ -149,17 +149,17 @@ public class ReactiveApiServiceImpl {
 			if (kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 				// knowledge interaction exists
 
-				if (kb.hasHandleRequestId(requestBody.getHandleRequestId())) {
+				if (kb.hasHandleRequestId(responseBody.getHandleRequestId())) {
 
 					try {
-						kb.finishHandleRequest(knowledgeInteractionId, requestBody);
+						kb.finishHandleRequest(knowledgeInteractionId, responseBody);
 					} catch (IllegalArgumentException e) {
 						return Response.status(400).entity(e.getMessage()).build();
 					}
 
 					return Response.ok().build();
 				} else {
-					return Response.status(404).entity("Handle request id " + requestBody.getHandleRequestId()
+					return Response.status(404).entity("Handle request id " + responseBody.getHandleRequestId()
 							+ " not found. Are you sure it is still being processed?").build();
 				}
 

@@ -373,6 +373,7 @@ components:
     BindingSet:
       type: array
       items:
+        nullable: false # Enforced manually, but kept here nonetheles.
         type: object
         additionalProperties:
           type: string
