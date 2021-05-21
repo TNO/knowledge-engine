@@ -19,7 +19,7 @@ public class KeRuntime {
 	static {
 		// we want to make sure that this threadpool does not keep the JVM alive. So we
 		// set the daemon to true.
-		executorService = Executors.newFixedThreadPool(4, new ThreadFactory() {
+		executorService = Executors.newFixedThreadPool(12, new ThreadFactory() {
 			public Thread newThread(Runnable r) {
 				Thread t = Executors.defaultThreadFactory().newThread(r);
 				t.setDaemon(true);
