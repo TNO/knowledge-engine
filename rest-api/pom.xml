@@ -151,7 +151,7 @@
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<apisToGenerate>KnowledgeInteractionLifeCycle,Proactive,SmartConnectorLifeCycle</apisToGenerate>
+							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLifeCycle</apisToGenerate>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
