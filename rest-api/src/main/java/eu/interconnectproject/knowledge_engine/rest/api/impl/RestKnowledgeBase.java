@@ -523,5 +523,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public void stop() {
 		this.sc.stop();
+		this.cancelAllHandleRequests();
+	}
+
+	private void cancelAllHandleRequests() {
+		this.toBeProcessedHandleRequests.forEach(hr -> {
+			hr.getFuture().cancel(false);
+		});
+		this.beingProcessedHandleRequests.forEach((id, hr) -> {
+			hr.getFuture().cancel(false);
+		});
 	}
 }
