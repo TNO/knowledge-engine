@@ -14,6 +14,7 @@
 		<module>admin-ui</module>
 		<module>examples</module>
 		<module>rest-api</module>
+		<module>knowledge-directory</module>
 	</modules>
 
 	<build>
