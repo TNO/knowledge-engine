@@ -52,7 +52,6 @@ public class RestApiClient {
 	private String kbId;
 	private String kbName;
 	private String kbDesc;
-	private SmartConnector mySmartConnector;
 	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
 	public RestApiClient(String keEndpoint, String kbId, String kbName, String kbDesc) {
@@ -78,7 +77,6 @@ public class RestApiClient {
 		var alreadyExisting = scs.stream().filter(sc -> sc.getKnowledgeBaseId().equals(this.kbId)).findAny();
 		if (alreadyExisting.isPresent()) {
 			// If so, log a warning, but continue.
-			this.mySmartConnector = alreadyExisting.get();
 			LOG.warn("Reusing existing smart connector with same ID. It may have a different name/description.");
 			return;
 		}
@@ -111,8 +109,8 @@ public class RestApiClient {
 		}
 	}
 
-	public void deleteSc(String kbId) {
-		Request request = new Request.Builder().url(this.keEndpoint + SC).delete().header("Knowledge-Base-Id", kbId)
+	public void cleanUp() {
+		Request request = new Request.Builder().url(this.keEndpoint + SC).delete().header("Knowledge-Base-Id", this.kbId)
 				.build();
 		try {
 			this.okClient.newCall(request).execute();

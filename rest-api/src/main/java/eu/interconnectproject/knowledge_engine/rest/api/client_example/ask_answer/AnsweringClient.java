@@ -25,6 +25,11 @@ public class AnsweringClient {
 	public static void main(String[] args) throws InterruptedException {
 		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
 
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			LOG.info("Cleaning up after myself!");
+			client.cleanUp();
+		}));
+
 		// Post an ANSWER KI.
 		String ki = client.postKiAnswer(KB_ID,
 			"?a ?b ?c.",

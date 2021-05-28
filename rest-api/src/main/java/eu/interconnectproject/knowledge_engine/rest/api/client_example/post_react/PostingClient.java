@@ -23,6 +23,11 @@ public class PostingClient {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "A knowledge base", "A very descriptive piece of text.");
 
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			LOG.info("Cleaning up after myself!");
+			client.cleanUp();
+		}));
+
 		// Post a POST KI.
 		String ki1 = client.postKiPost(KB_ID,
 			"?a ?b ?c.",
