@@ -4,10 +4,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.apache.jena.query.QueryParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +48,13 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			kiId = restKb.register(knowledgeInteraction);
 		} catch (IllegalArgumentException e) {
 			return Response.status(400).entity(e.getMessage()).build();
+		} catch (QueryParseException e) {
+			var msg = e.getMessage();
+			// If this is a Jena error about prefixes, enrich the message with a KE-specific note.
+			if (msg.contains("prefix")) {
+				msg = msg + ". Note: The Knowledge Engine doesn't support prefixes (yet!). Use the full URI in <>'s for now.";
+			}
+			return Response.status(400).entity(msg).build();
 		}
 		if (kiId == null) {
 			return Response.status(500).entity(
