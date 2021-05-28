@@ -29,13 +29,15 @@ public class RestServer {
 
 		LOG.info("Starting Knowledge Engine REST API on port {}.", port);
 		Server server = new Server(port);
-
+		System.setProperty("org.jboss.logging.provider", "slf4j");
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 		ctx.setContextPath("/");
 		server.setHandler(ctx);
 
 		ResourceConfig rc = new ResourceConfig();
 		rc.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+		rc.property(ServerProperties.WADL_FEATURE_DISABLE, true);
+
 		rc.packages("eu.interconnectproject.knowledge_engine.rest");
 		ServletContainer sc = new ServletContainer(rc);
 		ServletHolder jerseyServlet = new ServletHolder(sc);
