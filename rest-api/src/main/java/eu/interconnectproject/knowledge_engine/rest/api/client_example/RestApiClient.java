@@ -109,7 +109,8 @@ public class RestApiClient {
 		}
 	}
 
-	public void cleanUp() {
+	public void close() {
+		LOG.info("Deleting knowledge base {}", this.kbId);
 		Request request = new Request.Builder().url(this.keEndpoint + SC).delete().header("Knowledge-Base-Id", this.kbId)
 				.build();
 		try {

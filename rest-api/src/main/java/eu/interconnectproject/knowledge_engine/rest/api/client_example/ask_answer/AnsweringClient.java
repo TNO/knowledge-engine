@@ -22,26 +22,34 @@ public class AnsweringClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AnsweringClient.class);
 
 	public static void main(String[] args) throws InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest", "https://www.example.org/answering-kb-" + UUID.randomUUID().toString(), "Another knowledge base", "Another very descriptive piece of text.");
-
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			LOG.info("Cleaning up after myself!");
-			client.cleanUp();
-		}));
+		var client = new RestApiClient(
+			"http://localhost:8280/rest",
+			"https://www.example.org/answering-kb-" + UUID.randomUUID().toString(),
+			"Relation knowledge base",
+			"This knowledge base knows about things that are related to one another."
+		);
 
 		// Post an ANSWER KI.
 		String ki = client.registerAnswer(
-			"?a ?b ?c.",
+			"?a <https://www.example.org/isRelatedTo> ?b.",
 			new KnowledgeHandler() {
 				@Override
 				public HandleResponse handle(HandleRequest handleRequest) {
-					LOG.info("I have to handle this request now: {}", handleRequest);
-					var bindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>", "c", "<c>"));
+					var bindings = Arrays.asList(Map.of(
+						"a", "<https://www.example.org/Math>",
+						"b", "<https://www.example.org/Science>"
+					));
 					return new HandleResponse().bindingSet(bindings).handleRequestId(handleRequest.getHandleRequestId());
 				}
 			}
 		);
 		LOG.info("Made new KI with ID {}", ki);
+
+		// Before starting the long poll loop, we need to make sure that we clean up
+		// on shutdown.
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			client.close();
+		}));
 
 		// Start long polling. This will trigger the handler when an ASK is incoming.
 		client.startLongPoll();

@@ -20,39 +20,38 @@ public class AskingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AskingClient.class);
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest", "https://www.example.org/asking-kb-" + UUID.randomUUID().toString(), "A knowledge base", "A very descriptive piece of text.");
-
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			LOG.info("Cleaning up after myself!");
-			client.cleanUp();
-		}));
+		var client = new RestApiClient(
+			"http://localhost:8280/rest",
+			"https://www.example.org/asking-kb-" + UUID.randomUUID().toString(),
+			"Wants to know about relations.",
+			"This knowledge base wants to know all about which things are related to which other things!"
+		);
 
 		// Post an ASK KI.
-		String ki1 = client.registerAsk(
-			"?a ?b ?c."
+		String ki = client.registerAsk(
+			"?a <https://www.example.org/isRelatedTo> ?b."
 		);
-		LOG.info("Made new KI with ID {}", ki1);
+		LOG.info("Made new KI with ID {}", ki);
 		
-		// Wait a bit... TODO: Can we get rid of this?
+		// TODO: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/220
 		Thread.sleep(1000);
 		
 		// ASK something from the proactive side.
-		var result = client.postAsk(ki1);
+		var result = client.postAsk(ki);
 		LOG.info("Got ASK result: {}", result);
 
 		// ASK something else from the proactive side, with partial bindings
 		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
 		LOG.info("Sending ASK: {}", moreBindings);
-		var moreResults = client.postAsk(ki1, moreBindings);
+		var moreResults = client.postAsk(ki, moreBindings);
 		LOG.info("Got ASK result: {}", moreResults);
 
-		try {
-			var incorrectBindings = Arrays.asList(Map.of("x", "<x>"));
-			LOG.info("Sending ASK: {}", incorrectBindings);
-			client.postAsk(ki1, incorrectBindings);
-		} catch (RuntimeException e) {
-			LOG.info("Encountered an expected RuntimeException:", e);
-			LOG.info("Everything worked as expected, the exception above was a test.");
-		}
+		LOG.info(
+			"Aha, so {} is related to {}!",
+			moreResults.getBindingSet().get(0).get("a"),
+			moreResults.getBindingSet().get(0).get("b")
+		);
+
+		client.close();
 	}
 }
