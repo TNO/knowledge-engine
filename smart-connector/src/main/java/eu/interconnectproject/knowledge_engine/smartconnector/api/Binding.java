@@ -109,9 +109,38 @@ public class Binding {
 
 	/**
 	 * See {@link java.util.Map#forEach}
+	 * 
 	 * @param action
 	 */
 	public void forEach(BiConsumer<String, String> action) {
 		this.map.forEach(action);
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((map == null) ? 0 : map.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Binding)) {
+			return false;
+		}
+		Binding other = (Binding) obj;
+		if (map == null) {
+			if (other.map != null) {
+				return false;
+			}
+		} else if (!map.equals(other.map)) {
+			return false;
+		}
+		return true;
+	}
+
 }
