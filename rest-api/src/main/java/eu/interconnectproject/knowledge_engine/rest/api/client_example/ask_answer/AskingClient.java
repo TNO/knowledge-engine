@@ -3,11 +3,12 @@ package eu.interconnectproject.knowledge_engine.rest.api.client_example.ask_answ
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiClient;
+import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeEngineRestApiClient;
 
 /**
  * This class provides a client of the REST API with a proactive knowledge
@@ -18,38 +19,39 @@ import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiCl
 public class AskingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AskingClient.class);
 
-	private static String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/an-asking-kb";
-
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest");
-
-		// Post a new SC with an ASK KI.
-		client.postSc(KB_ID, "A knowledge base", "A very descriptive piece of text.");
-		String ki1 = client.postKiAsk(KB_ID,
-			"?a ?b ?c."
+		var client = new KnowledgeEngineRestApiClient(
+			"http://localhost:8280/rest",
+			"https://www.example.org/asking-kb-" + UUID.randomUUID().toString(),
+			"Wants to know about relations.",
+			"This knowledge base wants to know all about which things are related to which other things!"
 		);
-		LOG.info("Made new KI with ID {}", ki1);
+
+		// Post an ASK KI.
+		String ki = client.registerAsk(
+			"?a <https://www.example.org/isRelatedTo> ?b."
+		);
+		LOG.info("Made new KI with ID {}", ki);
 		
-		// Wait a bit... TODO: Can we get rid of this?
+		// TODO: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/220
 		Thread.sleep(1000);
 		
 		// ASK something from the proactive side.
-		var result = client.postAsk(KB_ID, ki1);
+		var result = client.postAsk(ki);
 		LOG.info("Got ASK result: {}", result);
 
 		// ASK something else from the proactive side, with partial bindings
 		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
 		LOG.info("Sending ASK: {}", moreBindings);
-		var moreResults = client.postAsk(KB_ID, ki1, moreBindings);
+		var moreResults = client.postAsk(ki, moreBindings);
 		LOG.info("Got ASK result: {}", moreResults);
 
-		try {
-			var incorrectBindings = Arrays.asList(Map.of("x", "<x>"));
-			LOG.info("Sending ASK: {}", incorrectBindings);
-			client.postAsk(KB_ID, ki1, incorrectBindings);
-		} catch (RuntimeException e) {
-			LOG.info("Encountered an expected RuntimeException:", e);
-			LOG.info("Everything worked as expected, the exception above was a test.");
-		}
+		LOG.info(
+			"Aha, so {} is related to {}!",
+			moreResults.getBindingSet().get(0).get("a"),
+			moreResults.getBindingSet().get(0).get("b")
+		);
+
+		client.close();
 	}
 }

@@ -33,8 +33,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class RestApiClient {
-	private static final Logger LOG = LoggerFactory.getLogger(RestApiClient.class);
+public class KnowledgeEngineRestApiClient {
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeEngineRestApiClient.class);
 
 	private static final boolean DEBUG = false;
 
@@ -46,12 +46,16 @@ public class RestApiClient {
 	private static final String ASK = "/sc/ask";
 
 	private OkHttpClient okClient;
-	private final String baseUrl;
+	private final String keEndpoint;
 	private final ObjectMapper mapper = new ObjectMapper();
+
+	private String kbId;
+	private String kbName;
+	private String kbDesc;
 	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
-	public RestApiClient(String aBaseUrl) {
-		this.baseUrl = aBaseUrl;
+	public KnowledgeEngineRestApiClient(String keEndpoint, String kbId, String kbName, String kbDesc) {
+		this.keEndpoint = keEndpoint;
 		if (DEBUG) {
 			this.okClient = new OkHttpClient.Builder().connectTimeout(5000, TimeUnit.SECONDS)
 					.writeTimeout(5000, TimeUnit.SECONDS).readTimeout(5000, TimeUnit.SECONDS)
@@ -59,24 +63,32 @@ public class RestApiClient {
 		} else {
 			this.okClient = new OkHttpClient();
 		}
+
+		this.kbId = kbId;
+		this.kbName = kbName;
+		this.kbDesc = kbDesc;
+
+		this.registerSc();
 	}
 
-	public void flushAll() {
+	private void registerSc() {
+		// First, check if it's not already there.
 		var scs = this.getScs();
-		scs.forEach(sc -> {
-			this.deleteSc(sc.getKnowledgeBaseId());
-		});
-	}
+		var alreadyExisting = scs.stream().filter(sc -> sc.getKnowledgeBaseId().equals(this.kbId)).findAny();
+		if (alreadyExisting.isPresent()) {
+			// If so, log a warning, but continue.
+			LOG.warn("Reusing existing smart connector with same ID. It may have a different name/description.");
+			return;
+		}
 
-	public void postSc(String kbId, String kbName, String kbDesc) {
-		var ilo = new SmartConnector().knowledgeBaseId(kbId).knowledgeBaseName(kbName).knowledgeBaseDescription(kbDesc);
+		var ilo = new SmartConnector().knowledgeBaseId(this.kbId).knowledgeBaseName(this.kbName).knowledgeBaseDescription(this.kbDesc);
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(ilo), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + SC).post(body).build();
+		Request request = new Request.Builder().url(this.keEndpoint + SC).post(body).build();
 		try {
 			this.okClient.newCall(request).execute();
 		} catch (IOException e) {
@@ -85,7 +97,7 @@ public class RestApiClient {
 	}
 
 	public List<SmartConnector> getScs() {
-		Request request = new Request.Builder().url(this.baseUrl + SC).get().build();
+		Request request = new Request.Builder().url(this.keEndpoint + SC).get().build();
 		Response response;
 		try {
 			response = this.okClient.newCall(request).execute();
@@ -97,8 +109,9 @@ public class RestApiClient {
 		}
 	}
 
-	public void deleteSc(String kbId) {
-		Request request = new Request.Builder().url(this.baseUrl + SC).delete().header("Knowledge-Base-Id", kbId)
+	public void close() {
+		LOG.info("Deleting knowledge base {}", this.kbId);
+		Request request = new Request.Builder().url(this.keEndpoint + SC).delete().header("Knowledge-Base-Id", this.kbId)
 				.build();
 		try {
 			this.okClient.newCall(request).execute();
@@ -107,7 +120,7 @@ public class RestApiClient {
 		}
 	}
 
-	private String postKi(String kbId, String type, String graphPattern, String argumentPattern, String resultPattern,
+	private String postKi(String type, String graphPattern, String argumentPattern, String resultPattern,
 			List<String> requires, List<String> satisfies) {
 
 		KnowledgeInteractionBase ki = null;
@@ -143,7 +156,7 @@ public class RestApiClient {
 			} catch (JsonProcessingException e) {
 				throw new RuntimeException("Could not serialize as JSON.");
 			}
-			Request request = new Request.Builder().url(this.baseUrl + KI).post(body).header("Knowledge-Base-Id", kbId)
+			Request request = new Request.Builder().url(this.keEndpoint + KI).post(body).header("Knowledge-Base-Id", this.kbId)
 					.build();
 			try {
 				var response = this.okClient.newCall(request).execute();
@@ -157,48 +170,48 @@ public class RestApiClient {
 		}
 	}
 
-	public String postKiAsk(String kbId, String graphPattern, List<String> requires, List<String> satisfies) {
-		return this.postKi(kbId, "AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
+	public String registerAsk(String graphPattern, List<String> requires, List<String> satisfies) {
+		return this.postKi("AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
-	public String postKiAsk(String kbId, String graphPattern) {
-		return this.postKiAsk(kbId, graphPattern, null, null);
+	public String registerAsk(String graphPattern) {
+		return this.registerAsk(graphPattern, null, null);
 	}
 
-	public String postKiAnswer(String kbId, String graphPattern, List<String> requires, List<String> satisfies,
+	public String registerAnswer(String graphPattern, List<String> requires, List<String> satisfies,
 			KnowledgeHandler handler) {
-		String kiId = this.postKi(kbId, "AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
+		String kiId = this.postKi("AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 		this.knowledgeHandlers.put(kiId, handler);
 		return kiId;
 	}
 
-	public String postKiAnswer(String kbId, String graphPattern, KnowledgeHandler handler) {
-		return this.postKiAnswer(kbId, graphPattern, null, null, handler);
+	public String registerAnswer(String graphPattern, KnowledgeHandler handler) {
+		return this.registerAnswer(graphPattern, null, null, handler);
 	}
 
-	public String postKiPost(String kbId, String argumentPattern, String resultPattern, List<String> requires,
+	public String registerPost(String argumentPattern, String resultPattern, List<String> requires,
 			List<String> satisfies) {
-		return this.postKi(kbId, "PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
+		return this.postKi("PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
-	public String postKiPost(String kbId, String argumentPattern, String resultPattern) {
-		return this.postKiPost(kbId, argumentPattern, resultPattern, null, null);
+	public String registerPost(String argumentPattern, String resultPattern) {
+		return this.registerPost(argumentPattern, resultPattern, null, null);
 	}
 
-	public String postKiReact(String kbId, String argumentPattern, String resultPattern, List<String> requires,
+	public String registerReact(String argumentPattern, String resultPattern, List<String> requires,
 			List<String> satisfies, KnowledgeHandler handler) {
-		String kiId = this.postKi(kbId, "ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires,
+		String kiId = this.postKi("ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires,
 				satisfies);
 		this.knowledgeHandlers.put(kiId, handler);
 		return kiId;
 	}
 
-	public String postKiReact(String kbId, String argumentPattern, String resultPattern, KnowledgeHandler handler) {
-		return this.postKiReact(kbId, argumentPattern, resultPattern, null, null, handler);
+	public String registerReact(String argumentPattern, String resultPattern, KnowledgeHandler handler) {
+		return this.registerReact(argumentPattern, resultPattern, null, null, handler);
 	}
 
-	public void startLongPoll(String kbId) {
-		Request request = new Request.Builder().url(this.baseUrl + HANDLE).get().header("Knowledge-Base-Id", kbId)
+	public void startLongPoll() {
+		Request request = new Request.Builder().url(this.keEndpoint + HANDLE).get().header("Knowledge-Base-Id", this.kbId)
 				.build();
 
 		// Do the request asynchronously, and schedule a callback.
@@ -215,7 +228,7 @@ public class RestApiClient {
 						if (response.code() == 202) {
 							LOG.info("Received 202 from GET /sc/handle. Repolling.");
 							// Do another call to wait for a new task.
-							startLongPoll(kbId);
+							startLongPoll();
 						} else if (response.code() == 200) {
 							LOG.info("Received 200 from GET /sc/handle. Sending response and then repolling.");
 
@@ -225,21 +238,21 @@ public class RestApiClient {
 							String kiId = handleRequest.getKnowledgeInteractionId();
 							var handler = knowledgeHandlers.get(kiId);
 							var handleResult = handler.handle(handleRequest);
-							postKnowledgeResponse(kbId, kiId, handleResult);
-							startLongPoll(kbId);
+							postKnowledgeResponse(kiId, handleResult);
+							startLongPoll();
 						}
 					}
 				});
 	}
 
-	public void postKnowledgeResponse(String kbId, String kiId, HandleResponse handleResult) {
+	public void postKnowledgeResponse(String kiId, HandleResponse handleResult) {
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(handleResult), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + HANDLE).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + HANDLE).post(body).header("Knowledge-Base-Id", this.kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();
@@ -253,14 +266,14 @@ public class RestApiClient {
 		}
 	}
 
-	public PostResult postPost(String kbId, String kiId, List<Map<String, String>> bindings) {
+	public PostResult postPost(String kiId, List<Map<String, String>> bindings) {
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(bindings), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + POST).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + POST).post(body).header("Knowledge-Base-Id", this.kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();
@@ -276,18 +289,18 @@ public class RestApiClient {
 		}
 	}
 
-	public AskResult postAsk(String kbId, String kiId) {
-		return this.postAsk(kbId, kiId, new ArrayList<Map<String, String>>());
+	public AskResult postAsk(String kiId) {
+		return this.postAsk(kiId, new ArrayList<Map<String, String>>());
 	}
 
-	public AskResult postAsk(String kbId, String kiId, List<Map<String, String>> bindings) {
+	public AskResult postAsk(String kiId, List<Map<String, String>> bindings) {
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(bindings), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + ASK).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + ASK).post(body).header("Knowledge-Base-Id", this.kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();

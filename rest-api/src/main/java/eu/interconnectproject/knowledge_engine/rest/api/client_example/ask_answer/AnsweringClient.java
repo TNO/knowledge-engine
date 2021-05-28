@@ -2,12 +2,13 @@ package eu.interconnectproject.knowledge_engine.rest.api.client_example.ask_answ
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeHandler;
-import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiClient;
+import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeEngineRestApiClient;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 
@@ -20,27 +21,37 @@ import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 public class AnsweringClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AnsweringClient.class);
 
-	private static String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/an-answering-kb";
-
 	public static void main(String[] args) throws InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest");
+		var client = new KnowledgeEngineRestApiClient(
+			"http://localhost:8280/rest",
+			"https://www.example.org/answering-kb-" + UUID.randomUUID().toString(),
+			"Relation knowledge base",
+			"This knowledge base knows about things that are related to one another."
+		);
 
-		// Post a SC with a ANSWER KI.
-		client.postSc(KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
-		String ki = client.postKiAnswer(KB_ID,
-			"?a ?b ?c.",
+		// Post an ANSWER KI.
+		String ki = client.registerAnswer(
+			"?a <https://www.example.org/isRelatedTo> ?b.",
 			new KnowledgeHandler() {
 				@Override
 				public HandleResponse handle(HandleRequest handleRequest) {
-					LOG.info("I have to handle this request now: {}", handleRequest);
-					var bindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>", "c", "<c>"));
+					var bindings = Arrays.asList(Map.of(
+						"a", "<https://www.example.org/Math>",
+						"b", "<https://www.example.org/Science>"
+					));
 					return new HandleResponse().bindingSet(bindings).handleRequestId(handleRequest.getHandleRequestId());
 				}
 			}
 		);
 		LOG.info("Made new KI with ID {}", ki);
 
+		// Before starting the long poll loop, we need to make sure that we clean up
+		// on shutdown.
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			client.close();
+		}));
+
 		// Start long polling. This will trigger the handler when an ASK is incoming.
-		client.startLongPoll(KB_ID);
+		client.startLongPoll();
 	}
 }
