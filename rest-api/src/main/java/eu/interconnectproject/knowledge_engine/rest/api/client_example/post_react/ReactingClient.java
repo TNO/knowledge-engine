@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeHandler;
-import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiClient;
+import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeEngineRestApiClient;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleRequest;
 import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 
@@ -22,7 +22,7 @@ public class ReactingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(ReactingClient.class);
 
 	public static void main(String[] args) throws InterruptedException {
-		var client = new RestApiClient(
+		var client = new KnowledgeEngineRestApiClient(
 			"http://localhost:8280/rest",
 			"https://www.example.org/reacting-kb-" + UUID.randomUUID().toString(),
 			"Celsius to Kelvin converter",

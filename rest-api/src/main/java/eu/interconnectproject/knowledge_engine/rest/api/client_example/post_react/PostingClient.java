@@ -8,7 +8,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiClient;
+import eu.interconnectproject.knowledge_engine.rest.api.client_example.KnowledgeEngineRestApiClient;
 
 /**
  * This class provides a client of the REST API with a proactive knowledge
@@ -20,7 +20,7 @@ public class PostingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(PostingClient.class);
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new RestApiClient(
+		var client = new KnowledgeEngineRestApiClient(
 			"http://localhost:8280/rest",
 			"https://www.example.org/posting-kb-" + UUID.randomUUID().toString(),
 			"Temperature sensor",

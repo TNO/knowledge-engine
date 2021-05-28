@@ -33,8 +33,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class RestApiClient {
-	private static final Logger LOG = LoggerFactory.getLogger(RestApiClient.class);
+public class KnowledgeEngineRestApiClient {
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeEngineRestApiClient.class);
 
 	private static final boolean DEBUG = false;
 
@@ -54,7 +54,7 @@ public class RestApiClient {
 	private String kbDesc;
 	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
-	public RestApiClient(String keEndpoint, String kbId, String kbName, String kbDesc) {
+	public KnowledgeEngineRestApiClient(String keEndpoint, String kbId, String kbName, String kbDesc) {
 		this.keEndpoint = keEndpoint;
 		if (DEBUG) {
 			this.okClient = new OkHttpClient.Builder().connectTimeout(5000, TimeUnit.SECONDS)
