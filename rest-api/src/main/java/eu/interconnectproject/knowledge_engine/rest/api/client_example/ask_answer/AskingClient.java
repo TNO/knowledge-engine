@@ -21,10 +21,9 @@ public class AskingClient {
 	private static String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/an-asking-kb";
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest");
+		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "A knowledge base", "A very descriptive piece of text.");
 
-		// Post a new SC with an ASK KI.
-		client.postSc(KB_ID, "A knowledge base", "A very descriptive piece of text.");
+		// Post an ASK KI.
 		String ki1 = client.postKiAsk(KB_ID,
 			"?a ?b ?c."
 		);

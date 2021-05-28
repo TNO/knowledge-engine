@@ -23,10 +23,9 @@ public class ReactingClient {
 	private static final String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb";
 
 	public static void main(String[] args) throws InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest");
+		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
 
-		// Post a SC with a REACT KI.
-		client.postSc(KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
+		// Post a REACT KI.
 		String ki = client.postKiReact(KB_ID,
 			"?a ?b ?c.",
 			"?d ?e ?f.",

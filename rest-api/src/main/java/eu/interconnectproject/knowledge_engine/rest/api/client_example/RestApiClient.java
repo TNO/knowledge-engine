@@ -46,12 +46,17 @@ public class RestApiClient {
 	private static final String ASK = "/sc/ask";
 
 	private OkHttpClient okClient;
-	private final String baseUrl;
+	private final String keEndpoint;
 	private final ObjectMapper mapper = new ObjectMapper();
+
+	private String kbId;
+	private String kbName;
+	private String kbDesc;
+	private SmartConnector mySmartConnector;
 	private final Map<String, KnowledgeHandler> knowledgeHandlers = new HashMap<>();
 
-	public RestApiClient(String aBaseUrl) {
-		this.baseUrl = aBaseUrl;
+	public RestApiClient(String keEndpoint, String kbId, String kbName, String kbDesc) {
+		this.keEndpoint = keEndpoint;
 		if (DEBUG) {
 			this.okClient = new OkHttpClient.Builder().connectTimeout(5000, TimeUnit.SECONDS)
 					.writeTimeout(5000, TimeUnit.SECONDS).readTimeout(5000, TimeUnit.SECONDS)
@@ -59,24 +64,33 @@ public class RestApiClient {
 		} else {
 			this.okClient = new OkHttpClient();
 		}
+
+		this.kbId = kbId;
+		this.kbName = kbName;
+		this.kbDesc = kbDesc;
+
+		this.registerSc();
 	}
 
-	public void flushAll() {
+	private void registerSc() {
+		// First, check if it's not already there.
 		var scs = this.getScs();
-		scs.forEach(sc -> {
-			this.deleteSc(sc.getKnowledgeBaseId());
-		});
-	}
+		var alreadyExisting = scs.stream().filter(sc -> sc.getKnowledgeBaseId().equals(this.kbId)).findAny();
+		if (alreadyExisting.isPresent()) {
+			// If so, log a warning, but continue.
+			this.mySmartConnector = alreadyExisting.get();
+			LOG.warn("Reusing existing smart connector with same ID. It may have a different name/description.");
+			return;
+		}
 
-	public void postSc(String kbId, String kbName, String kbDesc) {
-		var ilo = new SmartConnector().knowledgeBaseId(kbId).knowledgeBaseName(kbName).knowledgeBaseDescription(kbDesc);
+		var ilo = new SmartConnector().knowledgeBaseId(this.kbId).knowledgeBaseName(this.kbName).knowledgeBaseDescription(this.kbDesc);
 		RequestBody body;
 		try {
 			body = RequestBody.create(mapper.writeValueAsString(ilo), JSON);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + SC).post(body).build();
+		Request request = new Request.Builder().url(this.keEndpoint + SC).post(body).build();
 		try {
 			this.okClient.newCall(request).execute();
 		} catch (IOException e) {
@@ -85,7 +99,7 @@ public class RestApiClient {
 	}
 
 	public List<SmartConnector> getScs() {
-		Request request = new Request.Builder().url(this.baseUrl + SC).get().build();
+		Request request = new Request.Builder().url(this.keEndpoint + SC).get().build();
 		Response response;
 		try {
 			response = this.okClient.newCall(request).execute();
@@ -98,7 +112,7 @@ public class RestApiClient {
 	}
 
 	public void deleteSc(String kbId) {
-		Request request = new Request.Builder().url(this.baseUrl + SC).delete().header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + SC).delete().header("Knowledge-Base-Id", kbId)
 				.build();
 		try {
 			this.okClient.newCall(request).execute();
@@ -143,7 +157,7 @@ public class RestApiClient {
 			} catch (JsonProcessingException e) {
 				throw new RuntimeException("Could not serialize as JSON.");
 			}
-			Request request = new Request.Builder().url(this.baseUrl + KI).post(body).header("Knowledge-Base-Id", kbId)
+			Request request = new Request.Builder().url(this.keEndpoint + KI).post(body).header("Knowledge-Base-Id", kbId)
 					.build();
 			try {
 				var response = this.okClient.newCall(request).execute();
@@ -198,7 +212,7 @@ public class RestApiClient {
 	}
 
 	public void startLongPoll(String kbId) {
-		Request request = new Request.Builder().url(this.baseUrl + HANDLE).get().header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + HANDLE).get().header("Knowledge-Base-Id", kbId)
 				.build();
 
 		// Do the request asynchronously, and schedule a callback.
@@ -239,7 +253,7 @@ public class RestApiClient {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + HANDLE).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + HANDLE).post(body).header("Knowledge-Base-Id", kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();
@@ -260,7 +274,7 @@ public class RestApiClient {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + POST).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + POST).post(body).header("Knowledge-Base-Id", kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();
@@ -287,7 +301,7 @@ public class RestApiClient {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Could not serialize as JSON.");
 		}
-		Request request = new Request.Builder().url(this.baseUrl + ASK).post(body).header("Knowledge-Base-Id", kbId)
+		Request request = new Request.Builder().url(this.keEndpoint + ASK).post(body).header("Knowledge-Base-Id", kbId)
 				.header("Knowledge-Interaction-Id", kiId).build();
 		try {
 			var response = this.okClient.newCall(request).execute();
