@@ -2,6 +2,7 @@ package eu.interconnectproject.knowledge_engine.rest.api.client_example.post_rea
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,8 @@ import eu.interconnectproject.knowledge_engine.rest.model.HandleResponse;
 public class ReactingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(ReactingClient.class);
 
-	private static final String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb";
-
 	public static void main(String[] args) throws InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "Another knowledge base", "Another very descriptive piece of text.");
+		var client = new RestApiClient("http://localhost:8280/rest", "https://www.example.org/reacting-kb-" + UUID.randomUUID().toString(), "Another knowledge base", "Another very descriptive piece of text.");
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			LOG.info("Cleaning up after myself!");
@@ -31,7 +30,7 @@ public class ReactingClient {
 		}));
 
 		// Post a REACT KI.
-		String ki = client.postKiReact(KB_ID,
+		String ki = client.registerReact(
 			"?a ?b ?c.",
 			"?d ?e ?f.",
 			new KnowledgeHandler() {
@@ -46,6 +45,6 @@ public class ReactingClient {
 		LOG.info("Made new KI with ID {}", ki);
 
 		// Start long polling. This will trigger the handler when a POST is incoming.
-		client.startLongPoll(KB_ID);
+		client.startLongPoll();
 	}
 }

@@ -3,6 +3,7 @@ package eu.interconnectproject.knowledge_engine.rest.api.client_example.ask_answ
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,8 @@ import eu.interconnectproject.knowledge_engine.rest.api.client_example.RestApiCl
 public class AskingClient {
 	private static final Logger LOG = LoggerFactory.getLogger(AskingClient.class);
 
-	private static String KB_ID = "https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/an-asking-kb";
-
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var client = new RestApiClient("http://localhost:8280/rest", KB_ID, "A knowledge base", "A very descriptive piece of text.");
+		var client = new RestApiClient("http://localhost:8280/rest", "https://www.example.org/asking-kb-" + UUID.randomUUID().toString(), "A knowledge base", "A very descriptive piece of text.");
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			LOG.info("Cleaning up after myself!");
@@ -29,7 +28,7 @@ public class AskingClient {
 		}));
 
 		// Post an ASK KI.
-		String ki1 = client.postKiAsk(KB_ID,
+		String ki1 = client.registerAsk(
 			"?a ?b ?c."
 		);
 		LOG.info("Made new KI with ID {}", ki1);
@@ -38,19 +37,19 @@ public class AskingClient {
 		Thread.sleep(1000);
 		
 		// ASK something from the proactive side.
-		var result = client.postAsk(KB_ID, ki1);
+		var result = client.postAsk(ki1);
 		LOG.info("Got ASK result: {}", result);
 
 		// ASK something else from the proactive side, with partial bindings
 		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
 		LOG.info("Sending ASK: {}", moreBindings);
-		var moreResults = client.postAsk(KB_ID, ki1, moreBindings);
+		var moreResults = client.postAsk(ki1, moreBindings);
 		LOG.info("Got ASK result: {}", moreResults);
 
 		try {
 			var incorrectBindings = Arrays.asList(Map.of("x", "<x>"));
 			LOG.info("Sending ASK: {}", incorrectBindings);
-			client.postAsk(KB_ID, ki1, incorrectBindings);
+			client.postAsk(ki1, incorrectBindings);
 		} catch (RuntimeException e) {
 			LOG.info("Encountered an expected RuntimeException:", e);
 			LOG.info("Everything worked as expected, the exception above was a test.");
