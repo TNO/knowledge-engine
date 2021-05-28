@@ -198,12 +198,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// TODO: Can this be moved to somewhere internal so that it can also be
 		// caught in the Java developer api?
 		// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
-		try {
-			hr.validateBindings(bs);
-		} catch (IllegalArgumentException e) {
-			hr.getFuture().completeExceptionally(e);
-			throw e;
-		}
+		hr.validateBindings(bs);
 
 		// Now that the validation is done, from the reactive side we are done, so
 		// we can remove the HandleRequest from our list.
