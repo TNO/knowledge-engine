@@ -28,7 +28,7 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 	public Response scDelete(String knowledgeBaseId, SecurityContext securityContext) throws NotFoundException {
 
 		LOG.info("scDelete called: {}", knowledgeBaseId);
-		
+
 		if (knowledgeBaseId == null) {
 			return Response.status(Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.").build();
 		}
@@ -84,6 +84,11 @@ public class SmartConnectorLifeCycleApiServiceImpl extends SmartConnectorLifeCyc
 
 	@Override
 	public Response scPost(SmartConnector smartConnector, SecurityContext securityContext) throws NotFoundException {
+
+		if (smartConnector.getKnowledgeBaseId().isEmpty()) {
+			return Response.status(400).entity("Knowledge Base ID must be a non-empty URI.").build();
+		}
+
 		URI kbId;
 		try {
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
