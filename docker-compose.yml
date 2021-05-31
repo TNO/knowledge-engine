@@ -1,0 +1,8 @@
+services:
+  knowlegde-engine:
+    container_name: knowlegde-engine
+    image: knowledge-engine:latest
+    build:
+      context: ./rest-api
+    ports:
+      - "8280:8280"
