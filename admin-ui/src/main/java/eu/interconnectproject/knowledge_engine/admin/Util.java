@@ -12,7 +12,7 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.vocabulary.RDF;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 
 public class Util {
 

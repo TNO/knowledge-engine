@@ -2,7 +2,6 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of

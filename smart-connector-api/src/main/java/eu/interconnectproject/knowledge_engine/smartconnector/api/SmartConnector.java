@@ -3,8 +3,6 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
-
 public interface SmartConnector {
 
 	/**

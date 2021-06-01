@@ -14,6 +14,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledg
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingValidator;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;

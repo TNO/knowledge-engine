@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowledge_engine.smartconnector.impl;
+package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,9 +6,6 @@ import java.util.Set;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.sse.SSEParseException;
-
-import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 
 public class BindingValidator {
 

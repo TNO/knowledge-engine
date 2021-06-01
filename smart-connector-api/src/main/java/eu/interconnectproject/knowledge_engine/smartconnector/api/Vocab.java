@@ -1,4 +1,4 @@
-package eu.interconnectproject.knowledge_engine.smartconnector.impl;
+package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;

@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
-
 public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;

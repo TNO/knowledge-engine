@@ -3,7 +3,6 @@ package eu.interconnectproject.knowledge_engine.smartconnector.api;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 
 /**
  * An object of this class represents that the associated {@link KnowledgeBase}

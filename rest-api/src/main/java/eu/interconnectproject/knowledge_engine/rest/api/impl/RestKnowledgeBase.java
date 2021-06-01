@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -38,11 +39,28 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeI
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnectorProvider;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnectorSPI;
 
 public class RestKnowledgeBase implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBase.class);
+
+	/**
+	 * A way to allow the RestServer to use different versions of the Smart
+	 * Connector (typically v1 and v2). We assume there is only a single provider on
+	 * the classpath.
+	 */
+	private static SmartConnectorProvider smartConnectorProvider = null;
+
+	static {
+		Iterator<SmartConnectorProvider> iter = SmartConnectorSPI.providers(true);
+		if (iter.hasNext()) {
+			smartConnectorProvider = iter.next();
+		} else {
+			LOG.error(
+					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
+		}
+	}
 
 	private String knowledgeBaseId;
 	private String knowledgeBaseName;
@@ -85,7 +103,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
-					KnowledgeInteractionInfo.Type.ANSWER, bindings, future);
+					KnowledgeInteractionType.ANSWER, bindings, future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
@@ -105,7 +123,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
-					KnowledgeInteractionInfo.Type.REACT, bindings, future);
+					KnowledgeInteractionType.REACT, bindings, future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
@@ -125,7 +143,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 
-		this.sc = SmartConnectorBuilder.newSmartConnector(this).knowledgeBaseIsThreadSafe(true).create();
+		if (smartConnectorProvider == null) {
+			throw new IllegalStateException(
+					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
+		}
+		this.sc = smartConnectorProvider.create(this);
 	}
 
 	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {

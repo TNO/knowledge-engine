@@ -41,6 +41,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeA
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;

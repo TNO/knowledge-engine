@@ -22,6 +22,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeIn
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 
 public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {

@@ -110,11 +110,6 @@
 			<version>2.3.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
-			<artifactId>smart-connector</artifactId>
-			<version>0.1.9-SNAPSHOT</version>
-		</dependency>
 
 		<!-- jena -->
 		<dependency>
@@ -128,6 +123,11 @@
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
 			<version>4.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector-api</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

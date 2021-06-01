@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.apache.jena.rdf.model.Resource;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 
 /**
  * This class provides information about *why* data is being exchanged. So, it
@@ -32,7 +32,8 @@ public class CommunicativeAct {
 	private final Set<Resource> satisfactionPurposes;
 
 	public CommunicativeAct() {
-		this(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)));
+		this(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+				new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)));
 	}
 
 	/**

@@ -33,8 +33,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class PowerGateway implements MqttCallback, KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(PowerGateway.class);

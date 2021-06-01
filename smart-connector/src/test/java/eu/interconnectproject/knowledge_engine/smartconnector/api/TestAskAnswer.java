@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
-
 public class TestAskAnswer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer.class);

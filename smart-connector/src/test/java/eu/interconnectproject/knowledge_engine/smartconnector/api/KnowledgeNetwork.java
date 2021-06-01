@@ -11,8 +11,6 @@ import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
-
 public class KnowledgeNetwork {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeNetwork.class);

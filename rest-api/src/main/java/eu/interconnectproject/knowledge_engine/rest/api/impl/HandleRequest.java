@@ -10,25 +10,21 @@ import org.slf4j.LoggerFactory;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingValidator;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.BindingValidator;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 
 public class HandleRequest {
 	private static final Logger LOG = LoggerFactory.getLogger(HandleRequest.class);
-
 
 	private CompletableFuture<BindingSet> future;
 	private int handleRequestId;
 	private List<Map<String, String>> bindingSet;
 	private KnowledgeInteraction knowledgeInteraction;
 
-	private KnowledgeInteractionInfo.Type type;
-	private Type knowledgeInteractionType;
+	private KnowledgeInteractionType knowledgeInteractionType;
 
-	public HandleRequest(int aHandleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionInfo.Type type,
+	public HandleRequest(int aHandleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionType type,
 			List<Map<String, String>> aBindingSet, CompletableFuture<BindingSet> future) {
 		this.future = future;
 		this.handleRequestId = aHandleRequestId;
@@ -65,21 +61,23 @@ public class HandleRequest {
 		this.knowledgeInteraction = knowledgeInteraction;
 	}
 
-	public Type getKnowledgeInteractionType() {
+	public KnowledgeInteractionType getKnowledgeInteractionType() {
 		return knowledgeInteractionType;
 	}
 
 	public void validateBindings(BindingSet bindings) {
 		GraphPattern graphPattern = null;
 		switch (this.knowledgeInteractionType) {
-			case ANSWER:
+		case ANSWER:
 			graphPattern = ((AnswerKnowledgeInteraction) this.knowledgeInteraction).getPattern();
 			break;
-			case REACT:
+		case REACT:
 			graphPattern = ((ReactKnowledgeInteraction) this.knowledgeInteraction).getResult();
 			break;
-			default:
-			throw new RuntimeException(String.format("Unexpected knowledge interaction type '%s' in HandleRequest. Should be either ANSWER or REACT.", this.knowledgeInteractionType));
+		default:
+			throw new RuntimeException(String.format(
+					"Unexpected knowledge interaction type '%s' in HandleRequest. Should be either ANSWER or REACT.",
+					this.knowledgeInteractionType));
 		}
 		var validator = new BindingValidator();
 		validator.validateCompleteBindings(graphPattern, bindings);
@@ -88,7 +86,7 @@ public class HandleRequest {
 	@Override
 	public String toString() {
 		return "HandleRequest [future=" + future + ", handleRequestId=" + handleRequestId + ", bindingSet=" + bindingSet
-				+ ", knowledgeInteraction=" + knowledgeInteraction + ", type=" + type + ", knowledgeInteractionType="
+				+ ", knowledgeInteraction=" + knowledgeInteraction + ", knowledgeInteractionType="
 				+ knowledgeInteractionType + "]";
 	}
 
