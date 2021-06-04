@@ -1,7 +1,7 @@
 services:
-  knowledge-engine:
-    container_name: knowledge-engine
-    image: knowledge-engine:latest
+  smart-connector-rest-dist:
+    container_name: smart-connector-rest-dist
+    image: smart-connector-rest-dist:latest
     build:
       context: ./smart-connector-rest-dist
     ports:
