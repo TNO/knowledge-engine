@@ -1,6 +1,6 @@
 services:
-  knowlegde-engine:
-    container_name: knowlegde-engine
+  knowledge-engine:
+    container_name: knowledge-engine
     image: knowledge-engine:latest
     build:
       context: ./rest-api
