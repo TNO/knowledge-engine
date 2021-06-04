@@ -1,0 +1,25 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<artifactId>ke-parent</artifactId>
+		<version>0.1.9-SNAPSHOT</version>
+	</parent>
+	<artifactId>smart-connector-rest-dist</artifactId>
+	<name>Knowledge Engine - Smart Connector Rest Dist</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector-rest-server</artifactId>
+			<version>0.1.9-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector</artifactId>
+			<version>0.1.9-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>
