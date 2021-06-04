@@ -37,7 +37,7 @@ public class RestServer {
 		ResourceConfig rc = new ResourceConfig();
 		rc.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 		rc.property(ServerProperties.WADL_FEATURE_DISABLE, true);
-
+		rc.register(new CORSFilter());
 		rc.packages("eu.interconnectproject.knowledge_engine.rest");
 		ServletContainer sc = new ServletContainer(rc);
 		ServletHolder jerseyServlet = new ServletHolder(sc);
