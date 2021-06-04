@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<artifactId>ke-parent</artifactId>
+		<version>0.1.9-SNAPSHOT</version>
+	</parent>
+	<artifactId>smart-connector-api</artifactId>
+	<name>Knowledge Engine - Smart Connector API</name>
+
+	<dependencies>
+		<!-- logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<!-- jena -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<type>pom</type>
+		</dependency>
+	</dependencies>
+
+</project>

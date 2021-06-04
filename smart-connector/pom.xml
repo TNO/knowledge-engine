@@ -52,6 +52,11 @@
 			<artifactId>sspace</artifactId>
 			<version>2.0.4</version>
 		</dependency>
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 	
 	<properties>

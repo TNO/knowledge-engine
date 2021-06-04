@@ -3,6 +3,6 @@ services:
     container_name: knowledge-engine
     image: knowledge-engine:latest
     build:
-      context: ./rest-api
+      context: ./smart-connector-rest-dist
     ports:
       - "8280:8280"

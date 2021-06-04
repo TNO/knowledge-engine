@@ -28,6 +28,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeA
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
