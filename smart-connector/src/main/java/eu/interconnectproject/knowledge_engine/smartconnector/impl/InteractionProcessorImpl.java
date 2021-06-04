@@ -41,7 +41,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
 	private final KnowledgeBaseStore myKnowledgeBaseStore;
-	private final MetaKnowledgeBase metaKnowledgeBase;
 
 	private final Model ontology;
 	private final Reasoner reasoner;
@@ -49,13 +48,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final LoggerProvider loggerProvider;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
-			KnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
+			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
-		this.metaKnowledgeBase = metaKnowledgeBase;
 
 		ontology = ModelFactory.createDefaultModel();
 		ontology.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null,
@@ -112,32 +110,24 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				.getKnowledgeInteractionById(answerKnowledgeInteractionId);
 
 		AnswerKnowledgeInteraction answerKnowledgeInteraction;
-		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
-				.getKnowledgeInteraction();
+		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
 		CompletableFuture<BindingSet> future;
-		if (knowledgeInteractionById.isMeta()) {
-			// TODO: Ask MyMetaKnowledgeBase for the bindings.
-			assert false;
-			LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
-			future = new CompletableFuture<BindingSet>();
-			future.complete(new BindingSet());
-		} else {
-			var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
-			// TODO This should happen in the single thread for the knowledge base
 
-			LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+		var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+		// TODO This should happen in the single thread for the knowledge base
 
-			future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
-		}
+		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+
+		future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", anAskMsg);
 			return new BindingSet();
 		}).thenApply((b) -> {
 			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-					anAskMsg.getMessageId(), b);
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					b);
 			return result;
 		});
 	}
@@ -189,18 +179,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
 		CompletableFuture<BindingSet> future;
-		if (knowledgeInteractionById.isMeta()) {
-			// TODO: Ask MyMetaKnowledgeBase for the bindings.
-			assert false;
-			LOG.warn("We encountered a meta knowledge interaction, but we didn't expect it here.");
-			future = new CompletableFuture<BindingSet>();
-			future.complete(new BindingSet());
-		} else {
-			var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
-			// TODO This should happen in the single thread for the knowledge base
-			LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
-			future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
-		}
+		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+		// TODO This should happen in the single thread for the knowledge base
+		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+		future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", aPostMsg);

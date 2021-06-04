@@ -40,12 +40,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
 
 public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseStoreListener {
 
@@ -58,6 +56,16 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	private final GraphPattern metaGraphPattern;
 	private final KnowledgeBaseStore knowledgeBaseStore;
 	private OtherKnowledgeBaseStore otherKnowledgeBaseStore;
+	private InteractionProcessor interactionProcessor;
+
+	private AnswerKnowledgeInteraction metaAnswerKI;
+	private AskKnowledgeInteraction metaAskKI;
+	private PostKnowledgeInteraction metaPostNewKI;
+	private PostKnowledgeInteraction metaPostRemovedKI;
+	private PostKnowledgeInteraction metaPostChangedKI;
+	private ReactKnowledgeInteraction metaReactNewKI;
+	private ReactKnowledgeInteraction metaReactChangedKI;
+	private ReactKnowledgeInteraction metaReactRemovedKI;
 
 	public MetaKnowledgeBaseImpl(LoggerProvider loggerProvider, MessageRouter aMessageRouter,
 			KnowledgeBaseStore aKnowledgeBaseStore) {
@@ -79,129 +87,58 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
 				"?gp kb:hasPattern ?pattern .");
 
-		// create answer knowledge interaction
-		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		this.knowledgeBaseStore.register(aKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);
+		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
+		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);
 
-		// create ask knowledge interaction
-		AskKnowledgeInteraction aKI2 = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		this.knowledgeBaseStore.register(aKI2, true);
+		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
+		this.knowledgeBaseStore.register(this.metaAskKI, true);
 
-		PostKnowledgeInteraction pKINew = new PostKnowledgeInteraction(
+		this.metaPostNewKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(pKINew, true);
-		PostKnowledgeInteraction pKIUpdated = new PostKnowledgeInteraction(
+		this.knowledgeBaseStore.register(this.metaPostNewKI, true);
+
+		this.metaPostChangedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(pKIUpdated, true);
-		PostKnowledgeInteraction pKIRemoved = new PostKnowledgeInteraction(
+		this.knowledgeBaseStore.register(this.metaPostChangedKI, true);
+
+		this.metaPostRemovedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(pKIRemoved, true);
+		this.knowledgeBaseStore.register(this.metaPostRemovedKI, true);
 
-		ReactKnowledgeInteraction rKINew = new ReactKnowledgeInteraction(
+		this.metaReactNewKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKINew, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
-																									// shouldn't be
-																									// called under
-																									// normal
-																									// circumstances.
-		ReactKnowledgeInteraction rKIUpdated = new ReactKnowledgeInteraction(
+		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aBindingSet) -> {
+			this.otherKnowledgeBaseStore.addKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+			return new BindingSet();
+		}, true);
+
+		this.metaReactChangedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKIUpdated, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
-																										// shouldn't be
-																										// called under
-																										// normal
-																										// circumstances.
-		ReactKnowledgeInteraction rKIRemoved = new ReactKnowledgeInteraction(
+		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aBindingSet) -> {
+			this.otherKnowledgeBaseStore
+					.updateKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+			return new BindingSet();
+		}, true);
+
+		this.metaReactRemovedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(rKIRemoved, (aRKI, aBindingSet) -> new BindingSet(), true); // This handler
-																										// shouldn't be
-																										// called under
-																										// normal
-																										// circumstances.
-	}
-
-	@Override
-	public void setOtherKnowledgeBaseStore(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
-		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
-	}
-
-	@Override
-	public CompletableFuture<Void> postNewKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
-		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.NEW_KNOWLEDGE_PURPOSE);
-	}
-
-	@Override
-	public CompletableFuture<Void> postChangedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
-		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
-	}
-
-	@Override
-	public CompletableFuture<Void> postRemovedKnowledgeBase(Set<OtherKnowledgeBase> otherKnowledgeBases) {
-		return this.postInformToKnowledgeBases(otherKnowledgeBases, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
-	}
-
-	private CompletableFuture<Void> postInformToKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
-			Resource purpose) {
-
-		assert otherKnowledgeBases != null;
-
-		// We keep track of all the interactions in this set of futures.
-		var futures = new HashSet<CompletableFuture<ReactMessage>>();
-		if (otherKnowledgeBases.size() > 0) {
-
-			// Prepare the meta bindings once
-			var myMetaBindings = this.fillMetaBindings();
-			// And also my KI id. We re-use this every time.
-			var fromKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId,
-					KnowledgeInteractionInfo.Type.POST, purpose);
-
-			// Then send messages to all knowledge peers
-			for (OtherKnowledgeBase kb : otherKnowledgeBases) {
-				// Construct the knowledge interaction ID of the receiving side.
-				var toKnowledgeInteraction = this.knowledgeBaseStore.getMetaId(kb.getId(),
-						KnowledgeInteractionInfo.Type.REACT, purpose);
-
-				// Construct and send the message, and keep track of the future.
-				PostMessage msg = new PostMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction, kb.getId(),
-						toKnowledgeInteraction, myMetaBindings);
-				try {
-					futures.add(this.messageRouter.sendPostMessage(msg));
-				} catch (IOException e) {
-					this.LOG.error("Could not send POST message to KB " + kb.getId(), e);
-				}
-			}
-		}
-		// Return a future that completes when all futures in it have completed.
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
-	}
-
-	@Override
-	public AnswerMessage processAskFromMessageRouter(AskMessage anAskMessage) {
-		assert anAskMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId) : "the message should be for me";
-
-		URI toKnowledgeInteraction = anAskMessage.getFromKnowledgeInteraction();
-		URI fromKnowledgeInteraction = this.knowledgeBaseStore
-				.getKnowledgeInteractionById(anAskMessage.getToKnowledgeInteraction()).id;
-
-		BindingSet bindings = this.fillMetaBindings();
-
-		var answerMessage = new AnswerMessage(this.myKnowledgeBaseId, fromKnowledgeInteraction,
-				anAskMessage.getFromKnowledgeBase(), toKnowledgeInteraction, anAskMessage.getMessageId(), bindings);
-		this.LOG.trace("Sending meta message: {}", answerMessage);
-
-		return answerMessage;
+		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aBindingSet) -> {
+			this.otherKnowledgeBaseStore
+					.removeKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+			return new BindingSet();
+		}, true);
 	}
 
 	private BindingSet fillMetaBindings() {
@@ -324,35 +261,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}
 
 		return sb.toString();
-	}
-
-	@Override
-	public ReactMessage processPostFromMessageRouter(PostMessage aPostMessage) {
-		assert aPostMessage.getToKnowledgeBase().equals(this.myKnowledgeBaseId);
-
-		// Parse the incoming PostMessage and inform `this.otherKnowledgeBaseStore`
-
-		OtherKnowledgeBase otherKB = this.constructOtherKnowledgeBaseFromBindingSet(aPostMessage.getArgument());
-		assert otherKB.getId().equals(aPostMessage.getFromKnowledgeBase());
-
-		var purpose = this.knowledgeBaseStore.getPurpose(aPostMessage.getFromKnowledgeBase(),
-				aPostMessage.getFromKnowledgeInteraction());
-
-		var myKI = this.knowledgeBaseStore.getMetaId(this.myKnowledgeBaseId, KnowledgeInteractionInfo.Type.REACT,
-				purpose);
-		assert myKI.equals(aPostMessage.getToKnowledgeInteraction()) : myKI + " is not "
-				+ aPostMessage.getToKnowledgeInteraction();
-
-		if (purpose.equals(Vocab.NEW_KNOWLEDGE_PURPOSE)) {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(otherKB);
-		} else if (purpose.equals(Vocab.CHANGED_KNOWLEDGE_PURPOSE)) {
-			this.otherKnowledgeBaseStore.updateKnowledgeBase(otherKB);
-		} else if (purpose.equals(Vocab.REMOVED_KNOWLEDGE_PURPOSE)) {
-			this.otherKnowledgeBaseStore.removeKnowledgeBase(otherKB);
-		}
-
-		return new ReactMessage(this.myKnowledgeBaseId, myKI, aPostMessage.getFromKnowledgeBase(),
-				aPostMessage.getFromKnowledgeInteraction(), aPostMessage.getMessageId(), new BindingSet());
 	}
 
 	@Override
@@ -555,47 +463,63 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	}
 
 	@Override
-	public boolean isMetaKnowledgeInteraction(URI id) {
-		return this.knowledgeBaseStore.getKnowledgeInteractionById(id).isMeta();
+	public CompletableFuture<PostResult> postNewKnowledgeBase() {
+		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
+		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, null, this.fillMetaBindings());
 	}
 
 	@Override
 	public void knowledgeInteractionRegistered(KnowledgeInteractionInfo ki) {
-
 		if (!ki.isMeta()) {
+			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+				this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, null, this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("Notifying other knowledgebases of a register, should not fail.", e);
+				LOG.error("No error should occurre while notifying others of an registered knowledge interaction.");
 			}
 		}
-
 	}
 
 	@Override
 	public void knowledgeInteractionUnregistered(KnowledgeInteractionInfo ki) {
 		if (!ki.isMeta()) {
+			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.postChangedKnowledgeBase(this.otherKnowledgeBaseStore.getOtherKnowledgeBases()).get();
+				this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, null, this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("Notifying other knowledgebases of a unregister, should not fail.", e);
+				LOG.error("No error should occurre while notifying others of an unregistered knowledge interaction.");
 			}
 		}
-
 	}
 
 	@Override
 	public void smartConnectorStopping() {
 		try {
-			// Block on the future, but wait no longer than the timeout.
+
+			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostRemovedKI);
 			Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+			// Block on the future, but wait no longer than the timeout.
 			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
 					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
 			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
-			this.postRemovedKnowledgeBase(otherKnowledgeBases).get(timeout, TimeUnit.MILLISECONDS);
+			this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, null, this.fillMetaBindings()).get(timeout,
+					TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOG.error("An error occured while informing other KBs about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);
 		}
 	}
+
+	@Override
+	public void setOtherKnowledgeBaseStore(OtherKnowledgeBaseStore otherKnowledgeBaseStore) {
+		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
+
+	}
+
+	@Override
+	public void setInteractionProcessor(InteractionProcessor interactionProcessor) {
+		this.interactionProcessor = interactionProcessor;
+
+	}
+
 }
