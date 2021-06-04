@@ -30,7 +30,7 @@ With the API specification, you will be able to:
 In the [`client_example` package](./smart-connector-rest-server/src/main/java/eu/interconnectproject/knowledge_engine/rest/api/client_example), there are several examples of clients written in Java.
 
 ## How to administer the REST API
-To start a new instance of the REST API knowledge engine version 0.1.8, make sure you have `git checkout 0.1.8` the tag `0.1.8`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
+To start a new instance of the REST API knowledge engine version 0.1.9, make sure you have `git checkout 0.1.9` the tag `0.1.9`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
 
 Now, go to the target directory of the `smart-connector-rest-dist` module:
 
@@ -41,13 +41,13 @@ cd smart-connector-rest-dist/target
 Finally, start the server (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
 
 ```bash
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-0.1.8.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-0.1.9.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280
 ```
 
 If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
 
 ```bash
-nohup java -cp "smart-connector-rest-dist-0.1.8.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280 > ke.log
+nohup java -cp "smart-connector-rest-dist-0.1.9.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280 > ke.log
 ```
 
 ## Release steps
@@ -58,7 +58,7 @@ These are instructions on what to do when we release a new version of the knowle
 	- openapi-sc.yaml version
 	- this readme.md file
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
-3. Build and push the new docker image: `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.8`
+3. Build and push the new docker image: `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.9`
 4. Prepare the next SNAPSHOT version and make a commit for that too.
 
 ## Running the REST server in Docker
