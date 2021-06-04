@@ -1,9 +1,11 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.11_9-alpine
+FROM adoptopenjdk/openjdk11:alpine-jre
 
 ARG JAR_FILE=target/*.jar
 ARG DEPENDENCY_DIR=target/dependency/
 
-COPY ${JAR_FILE} /knowledge-engine.jar
-COPY ${DEPENDENCY_DIR} /dependency/
+# Copy all jars in a single directory
+COPY ${DEPENDENCY_DIR} /knowledge_engine/
+COPY ${JAR_FILE} /knowledge_engine/
 
-ENTRYPOINT ["java", "-cp", "knowledge-engine.jar:/dependency/*", "eu.interconnectproject.knowledge_engine.rest.Main", "8280"]
+# Add that directory to the class path.
+ENTRYPOINT ["java", "-cp", "/knowledge_engine/*", "eu.interconnectproject.knowledge_engine.rest.Main", "8280"]
