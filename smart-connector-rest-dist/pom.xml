@@ -14,12 +14,12 @@
 		<dependency>
 			<groupId>eu.interconnectproject.knowledge_engine</groupId>
 			<artifactId>smart-connector-rest-server</artifactId>
-			<version>0.1.9-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.interconnectproject.knowledge_engine</groupId>
 			<artifactId>smart-connector</artifactId>
-			<version>0.1.9-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
