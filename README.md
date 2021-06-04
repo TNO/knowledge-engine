@@ -53,3 +53,15 @@ These are instructions on what to do when we release a new version of the knowle
 	- this readme.md file
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
 3. Prepare the next SNAPSHOT version and make a commit for that too.
+
+## Running the REST server in Docker
+
+To build and run a Docker image for the REST server, do the following:
+
+```bash
+# Build the project, and place the dependencies in the target directories.
+# (Skip the tests.)
+mvn install -DskipTests
+
+docker-compose up
+```
