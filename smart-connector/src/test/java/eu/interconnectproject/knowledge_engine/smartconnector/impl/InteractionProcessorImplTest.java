@@ -58,7 +58,7 @@ public class InteractionProcessorImplTest {
 	void setUp() throws Exception {
 
 		this.interactionProcessor = new InteractionProcessorImpl(LoggerFactory::getLogger,
-				new TestOtherKnowledgeBaseStore(), null, null);
+				new TestOtherKnowledgeBaseStore(), null);
 		this.messageRouter = new TestMessageRouter();
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 

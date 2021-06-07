@@ -73,12 +73,13 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 
 		this.knowledgeBaseStore = new KnowledgeBaseStoreImpl(this, this.myKnowledgeBase);
 		this.messageRouter = new MessageRouterImpl(this);
-		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this, this.messageRouter, this.knowledgeBaseStore); // TODO
+		this.metaKnowledgeBase = new MetaKnowledgeBaseImpl(this, this.messageRouter, this.knowledgeBaseStore);
 		this.otherKnowledgeBaseStore = new OtherKnowledgeBaseStoreImpl(this, this.metaKnowledgeBase);
 		this.interactionProcessor = new InteractionProcessorImpl(this, this.otherKnowledgeBaseStore,
-				this.knowledgeBaseStore, this.metaKnowledgeBase);
+				this.knowledgeBaseStore);
 
 		this.metaKnowledgeBase.setOtherKnowledgeBaseStore(this.otherKnowledgeBaseStore);
+		this.metaKnowledgeBase.setInteractionProcessor(this.interactionProcessor);
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.messageRouter.registerInteractionProcessor(this.interactionProcessor);
@@ -460,20 +461,19 @@ public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
 		// Populate the initial knowledge base store.
 		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
 			// Then tell the other knowledge bases about our existence.
-			this.metaKnowledgeBase.postNewKnowledgeBase(otherKnowledgeBaseStore.getOtherKnowledgeBases())
-					.thenRun(() -> {
-						// When that is done, and all peers have acknowledged our existence, we
-						// can proceed to inform the knowledge base that this smart connector is
-						// ready for action!
-						this.knowledgeBaseExecutorService.execute(() -> {
-							LOG.info("Ready to exchange data.");
-							try {
-								this.myKnowledgeBase.smartConnectorReady(this);
-							} catch (Throwable t) {
-								this.LOG.error("KnowledgeBase threw exception", t);
-							}
-						});
-					});
+			this.metaKnowledgeBase.postNewKnowledgeBase().thenRun(() -> {
+				// When that is done, and all peers have acknowledged our existence, we
+				// can proceed to inform the knowledge base that this smart connector is
+				// ready for action!
+				this.knowledgeBaseExecutorService.execute(() -> {
+					LOG.info("Ready to exchange data.");
+					try {
+						this.myKnowledgeBase.smartConnectorReady(this);
+					} catch (Throwable t) {
+						this.LOG.error("KnowledgeBase threw exception", t);
+					}
+				});
+			});
 		});
 	}
 

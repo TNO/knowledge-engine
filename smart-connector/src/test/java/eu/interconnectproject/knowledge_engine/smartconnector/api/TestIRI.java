@@ -40,6 +40,20 @@ class TestIRI {
 
 	}
 
+	@Test
+	void testGraphPattern() {
+		new GraphPattern("?siteList a <http://www.w3.org/1999/02/22-rdf-syntax-ns#List> .\n"
+				+ "    ?siteList <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?site .\n"
+				+ "    ?site <https://whirpool.com/hasCode> ?siteCode .\n"
+				+ "    ?site <https://saref.etsi.org/saref4bldg/contains> ?appList .\n"
+				+ "    ?appList a <http://www.w3.org/1999/02/22-rdf-syntax-ns#List> .\n"
+				+ "    ?appList <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?app . \n"
+				+ "    ?app <https://whirpool.com/hasCode> ?appCode .\n"
+				+ "    ?app <https://whirpool.com/hasDevType> ?appDevType .\n"
+				+ "    ?app <http://xmlns.com/foaf/0.1#name> ?appName .\n"
+				+ "    ?app <https://saref.etsi.org/core/hasState> ?appState .");
+	}
+
 	public boolean isValid(String iri) {
 		IRIFactory factory = IRIFactory.iriImplementation();
 

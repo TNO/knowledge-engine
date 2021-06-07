@@ -76,25 +76,17 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
 		} else {
-			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
-				AnswerMessage reply = this.metaKnowledgeBase.processAskFromMessageRouter(message);
+
+			CompletableFuture<AnswerMessage> replyFuture = this.interactionProcessor
+					.processAskFromMessageRouter(message);
+
+			replyFuture.thenAccept(reply -> {
 				try {
 					messageDispatcher.send(reply);
-				} catch (IOException e) {
+				} catch (Throwable e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
-			} else {
-				CompletableFuture<AnswerMessage> replyFuture = this.interactionProcessor
-						.processAskFromMessageRouter(message);
-
-				replyFuture.thenAccept(reply -> {
-					try {
-						messageDispatcher.send(reply);
-					} catch (Throwable e) {
-						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
-					}
-				});
-			}
+			});
 		}
 	}
 
@@ -108,24 +100,16 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			this.LOG.warn(
 					"Received message befor the MessageBroker is connected to the MetaKnowledgeBase or InteractionProcessor, ignoring message");
 		} else {
-			if (this.metaKnowledgeBase.isMetaKnowledgeInteraction(message.getToKnowledgeInteraction())) {
-				ReactMessage reply = this.metaKnowledgeBase.processPostFromMessageRouter(message);
+
+			CompletableFuture<ReactMessage> replyFuture = this.interactionProcessor
+					.processPostFromMessageRouter(message);
+			replyFuture.thenAccept(reply -> {
 				try {
 					messageDispatcher.send(reply);
-				} catch (IOException e) {
+				} catch (Throwable e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
-			} else {
-				CompletableFuture<ReactMessage> replyFuture = this.interactionProcessor
-						.processPostFromMessageRouter(message);
-				replyFuture.thenAccept(reply -> {
-					try {
-						messageDispatcher.send(reply);
-					} catch (Throwable e) {
-						this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
-					}
-				});
-			}
+			});
 		}
 	}
 
