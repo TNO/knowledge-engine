@@ -32,7 +32,7 @@ public class RemoteMessageReceiver extends MessagingApiService {
 		try {
 			LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
 					message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
-			KeRuntime.getMessageDispatcher().deliver(message);
+			KeRuntime.getMessageDispatcher().deliverToLocalSmartConnector(message);
 			return Response.status(202).build();
 		} catch (IOException e) {
 			// Was not able to deliver message to the SmartConnector

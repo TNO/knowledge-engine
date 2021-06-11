@@ -19,7 +19,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/KnowledgeEngineRuntime'
+                  $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
         '500':
           description: If a problem occurred.
           content:
@@ -35,7 +35,7 @@ paths:
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/KnowledgeEngineRuntime'
+              $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
       responses:
         '201':
           description: The Knowledge Engine Runtime was succefully created. Returns the id.
@@ -74,7 +74,7 @@ paths:
           content:
             application/json; charset=UTF-8:
               schema:
-                $ref: '#/components/schemas/KnowledgeEngineRuntime'
+                $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
         '404':
           description: No Knowledge Engine Runtime with that ID
           content:
@@ -119,7 +119,7 @@ paths:
           content:
             application/json; charset=UTF-8:
               schema:
-                $ref: '#/components/schemas/KnowledgeEngineRuntime'
+                $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
         '404':
           description: No Knowledge Engine Runtime with that ID
           content:
@@ -130,7 +130,7 @@ paths:
 
 components:
   schemas:
-    KnowledgeEngineRuntime:
+    KnowledgeEngineRuntimeConnectionDetails:
       type: object
       properties:
         id:

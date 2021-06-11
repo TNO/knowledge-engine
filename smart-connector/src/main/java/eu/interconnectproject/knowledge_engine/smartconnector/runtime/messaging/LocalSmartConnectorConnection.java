@@ -10,6 +10,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMe
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ErrorMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.MessageDispatcherEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
@@ -19,13 +20,15 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
  * This class is responsible for sending messages to a single local Smart
  * Connector.
  */
-public class LocalSmartConnectorMessageSender implements SmartConnectorMessageSender {
+public class LocalSmartConnectorConnection implements MessageDispatcherEndpoint {
 
-	public static Logger LOG = LoggerFactory.getLogger(LocalSmartConnectorMessageSender.class);
+	public static Logger LOG = LoggerFactory.getLogger(LocalSmartConnectorConnection.class);
 
 	private final SmartConnectorEndpoint endpoint;
+	private final DistributedMessageDispatcher messageDispatcher;
 
-	public LocalSmartConnectorMessageSender(SmartConnectorEndpoint sce) {
+	public LocalSmartConnectorConnection(DistributedMessageDispatcher messageDispatcher, SmartConnectorEndpoint sce) {
+		this.messageDispatcher = messageDispatcher;
 		this.endpoint = sce;
 	}
 
@@ -33,8 +36,7 @@ public class LocalSmartConnectorMessageSender implements SmartConnectorMessageSe
 		return this.endpoint.getKnowledgeBaseId();
 	}
 
-	@Override
-	public void send(KnowledgeMessage message) throws IOException {
+	public void deliverToLocalSmartConnector(KnowledgeMessage message) throws IOException {
 		assert message.getToKnowledgeBase().equals(this.endpoint.getKnowledgeBaseId()) : "";
 		KeRuntime.executorService().execute(() -> {
 			try {
@@ -55,6 +57,25 @@ public class LocalSmartConnectorMessageSender implements SmartConnectorMessageSe
 				LOG.error("Error occured while processing message by Smart Connector.", t);
 			}
 		});
+	}
+
+	public void start() {
+		this.endpoint.setMessageDispatcher(this);
+	}
+
+	public void stop() {
+		this.endpoint.unsetMessageDispatcher();
+	}
+
+	/**
+	 * This method is called by the local Smart Connector to send a message to
+	 * another SmartConnector
+	 */
+	@Override
+	public void send(KnowledgeMessage message) throws IOException {
+		assert message.getFromKnowledgeBase()
+				.equals(this.endpoint.getKnowledgeBaseId()) : "the fromKnowledgeBaseId should be mine, but isn't.";
+		messageDispatcher.send(message);
 	}
 
 }

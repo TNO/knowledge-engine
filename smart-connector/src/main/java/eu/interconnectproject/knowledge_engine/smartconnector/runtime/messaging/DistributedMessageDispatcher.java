@@ -32,9 +32,9 @@ public class DistributedMessageDispatcher {
 	private State state;
 	private Server httpServer;
 
-	private KnowledgeDirectoryConnectionManager knowledgeDirectoryConnectionManager = null;
-	private LocalSmartConnectorConnectionsManager localSmartConnectorConnectionsManager = null;
-	private RemoteSmartConnectorConnectionsManager remoteSmartConnectorConnectionsManager = null;
+	private KnowledgeDirectoryConnection knowledgeDirectoryConnectionManager = null;
+	private LocalSmartConnectorConnectionManager localSmartConnectorConnectionsManager = null;
+	private RemoteKerConnectionManager remoteSmartConnectorConnectionsManager = null;
 
 	public DistributedMessageDispatcher(String myHostname, int myPort, String kdHostname, int kdPort) {
 		this.myHostname = myHostname;
@@ -52,16 +52,16 @@ public class DistributedMessageDispatcher {
 		this.state = State.RUNNING;
 
 		// Start Knowledge Directory Connection Manager
-		this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnectionManager(myHostname, myPort,
-				kdHostname, kdPort);
+		this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(myHostname, myPort, kdHostname,
+				kdPort);
 		this.getKnowledgeDirectoryConnectionManager().start();
 
 		// Start the LocalSmartConnnectorConnectionsManager
-		localSmartConnectorConnectionsManager = new LocalSmartConnectorConnectionsManager(this);
+		localSmartConnectorConnectionsManager = new LocalSmartConnectorConnectionManager(this);
 		localSmartConnectorConnectionsManager.start();
 
 		// Start the RemoteSmartConnnectorConnectionsManager
-		remoteSmartConnectorConnectionsManager = new RemoteSmartConnectorConnectionsManager(this);
+		remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this);
 		getRemoteSmartConnectorConnectionsManager().start();
 
 		// Start HTTP Server
@@ -122,34 +122,40 @@ public class DistributedMessageDispatcher {
 	 * @throws IOException
 	 */
 	void send(KnowledgeMessage message) throws IOException {
-		SmartConnectorMessageSender cm = localSmartConnectorConnectionsManager
-				.getMessageSender(message.getToKnowledgeBase());
-		if (cm == null) {
+		LocalSmartConnectorConnection localSender = localSmartConnectorConnectionsManager
+				.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
+		if (localSender != null) {
+			localSender.deliverToLocalSmartConnector(message);
+		} else {
 			// must be a remote smart connector then
-			cm = getRemoteSmartConnectorConnectionsManager().getMessageSender(message.getToKnowledgeBase());
+			RemoteKerConnection remoteSender = getRemoteSmartConnectorConnectionsManager()
+					.getRemoteKerConnection(message.getToKnowledgeBase());
+			if (remoteSender != null) {
+				remoteSender.sendToRemoteSmartConnector(message);
+			} else {
+				// Cannot find a remote or a local sender
+				throw new IOException("Could not send message " + message.getMessageId() + ", the Knowledge Base "
+						+ message.getToKnowledgeBase() + " is not known");
+			}
 		}
-		if (cm == null) {
-			throw new IOException("Could not send message " + message.getMessageId() + ", the Knowledge Base "
-					+ message.getToKnowledgeBase() + " is not known");
-		}
-		cm.send(message);
 	}
 
 	/**
 	 * This is an internal method called by the REMOTE receiver, which sends the
-	 * message to the right local sender
+	 * message to the right local SmartConnector
 	 *
 	 * @param message
 	 * @throws IOException
 	 */
-	void deliver(KnowledgeMessage message) throws IOException {
-		SmartConnectorMessageSender cm = localSmartConnectorConnectionsManager
-				.getMessageSender(message.getToKnowledgeBase());
-		if (cm == null) {
-			throw new IOException("Could not send message " + message.getMessageId() + ", the Knowledge Base "
+	void deliverToLocalSmartConnector(KnowledgeMessage message) throws IOException {
+		LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
+				.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
+		if (cm != null) {
+			cm.deliverToLocalSmartConnector(message);
+		} else {
+			throw new IOException("Could not deliver message " + message.getMessageId() + ", the Knowledge Base "
 					+ message.getToKnowledgeBase() + " is not known locally");
 		}
-		cm.send(message);
 	}
 
 	KnowledgeEngineRuntimeDetails getKnowledgeEngineRuntimeDetails() {
@@ -161,11 +167,11 @@ public class DistributedMessageDispatcher {
 		return kers;
 	}
 
-	public RemoteSmartConnectorConnectionsManager getRemoteSmartConnectorConnectionsManager() {
+	public RemoteKerConnectionManager getRemoteSmartConnectorConnectionsManager() {
 		return remoteSmartConnectorConnectionsManager;
 	}
 
-	KnowledgeDirectoryConnectionManager getKnowledgeDirectoryConnectionManager() {
+	KnowledgeDirectoryConnection getKnowledgeDirectoryConnectionManager() {
 		return knowledgeDirectoryConnectionManager;
 	}
 

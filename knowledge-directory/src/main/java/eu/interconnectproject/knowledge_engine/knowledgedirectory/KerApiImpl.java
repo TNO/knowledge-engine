@@ -9,11 +9,11 @@ import javax.ws.rs.core.SecurityContext;
 
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.api.KerApiService;
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.api.NotFoundException;
-import eu.interconnectproject.knowledge_engine.knowledgedirectory.model.KnowledgeEngineRuntime;
+import eu.interconnectproject.knowledge_engine.knowledgedirectory.model.KnowledgeEngineRuntimeConnectionDetails;
 
 public class KerApiImpl extends KerApiService {
 
-	private final Map<String, KnowledgeEngineRuntime> kers = new ConcurrentHashMap<>();
+	private final Map<String, KnowledgeEngineRuntimeConnectionDetails> kers = new ConcurrentHashMap<>();
 
 	private void cleanupExpired() {
 		OffsetDateTime threshold = OffsetDateTime.now().minusSeconds(Main.KER_LEASE_SECONDS);
@@ -27,8 +27,8 @@ public class KerApiImpl extends KerApiService {
 	}
 
 	@Override
-	public Response kerPost(KnowledgeEngineRuntime knowledgeEngineRuntime, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response kerPost(KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime,
+			SecurityContext securityContext) throws NotFoundException {
 		cleanupExpired();
 
 		// Required data present?
@@ -56,7 +56,7 @@ public class KerApiImpl extends KerApiService {
 	@Override
 	public Response kerKerIdGet(String kerId, SecurityContext securityContext) throws NotFoundException {
 		cleanupExpired();
-		KnowledgeEngineRuntime knowledgeEngineRuntime = kers.get(kerId);
+		KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime = kers.get(kerId);
 		if (knowledgeEngineRuntime == null) {
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		}
@@ -75,7 +75,7 @@ public class KerApiImpl extends KerApiService {
 	@Override
 	public Response kerKerIdRenewPost(String kerId, SecurityContext securityContext) throws NotFoundException {
 		cleanupExpired();
-		KnowledgeEngineRuntime knowledgeEngineRuntime = kers.get(kerId);
+		KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime = kers.get(kerId);
 		if (knowledgeEngineRuntime == null) {
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		} else {

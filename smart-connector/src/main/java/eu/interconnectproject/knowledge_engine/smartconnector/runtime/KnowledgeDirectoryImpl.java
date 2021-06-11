@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectoryProxy;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 
 /**
@@ -22,6 +21,7 @@ public class KnowledgeDirectoryImpl implements KnowledgeDirectoryProxy {
 
 	@Override
 	public Set<URI> getKnowledgeBaseIds() {
+		// TODO also return remote KnowledgeBaseIds
 		return KeRuntime.localSmartConnectorRegistry().getSmartConnectors().stream().map(sc -> sc.getKnowledgeBaseId())
 				.collect(Collectors.toSet());
 	}

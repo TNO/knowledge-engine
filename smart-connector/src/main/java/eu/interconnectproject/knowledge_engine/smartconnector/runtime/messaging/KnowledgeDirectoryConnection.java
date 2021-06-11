@@ -21,19 +21,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.RFC3339DateFormat;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntime;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 
 /**
- * The {@link KnowledgeDirectoryConnectionManager} is responsible for providing
- * access to the Knowledge Directory, maintaining the connection and the
- * renewing the lease. It must be started and stopped.
+ * The {@link KnowledgeDirectoryConnection} is responsible for providing access
+ * to the Knowledge Directory, maintaining the connection and the renewing the
+ * lease. It must be started and stopped.
  */
-public class KnowledgeDirectoryConnectionManager {
+public class KnowledgeDirectoryConnection {
 
 	private static final int RENEW_INTERVAL_SECONDS = 30;
 
-	private final static Logger LOG = org.slf4j.LoggerFactory.getLogger(KnowledgeDirectoryConnectionManager.class);
+	private final static Logger LOG = org.slf4j.LoggerFactory.getLogger(KnowledgeDirectoryConnection.class);
 
 	private static final String PROTOCOL = "http";
 	private static final String PROTOCOL_VERSION = "0.1.1-SNAPSHOT";
@@ -54,7 +54,7 @@ public class KnowledgeDirectoryConnectionManager {
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnectionManager(String kdHostname, int kdPort, String myHostname, int myPort) {
+	public KnowledgeDirectoryConnection(String kdHostname, int kdPort, String myHostname, int myPort) {
 		this.kdHostname = kdHostname;
 		this.kdPort = kdPort;
 		this.myHostname = myHostname;
@@ -130,7 +130,7 @@ public class KnowledgeDirectoryConnectionManager {
 		return this.currentState;
 	}
 
-	public List<KnowledgeEngineRuntime> getKnowledgeEngineRuntimes() {
+	public List<KnowledgeEngineRuntimeConnectionDetails> getKnowledgeEngineRuntimeConnectionDetails() {
 		if (this.currentState != State.REGISTERED && currentState != State.INTERRUPTED) {
 			throw new IllegalStateException(
 					"Can only retrieve Knowlede Directory infomation when REGISTERED or INTERRUPETD");
@@ -141,8 +141,9 @@ public class KnowledgeDirectoryConnectionManager {
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-			KnowledgeEngineRuntime[] result = objectMapper.readValue(response.body(), KnowledgeEngineRuntime[].class);
-			ArrayList<KnowledgeEngineRuntime> list = new ArrayList<KnowledgeEngineRuntime>();
+			KnowledgeEngineRuntimeConnectionDetails[] result = objectMapper.readValue(response.body(),
+					KnowledgeEngineRuntimeConnectionDetails[].class);
+			ArrayList<KnowledgeEngineRuntimeConnectionDetails> list = new ArrayList<KnowledgeEngineRuntimeConnectionDetails>();
 			Collections.addAll(list, result);
 			return list;
 		} catch (IOException | InterruptedException | URISyntaxException e) {
@@ -151,8 +152,8 @@ public class KnowledgeDirectoryConnectionManager {
 		}
 	}
 
-	public List<KnowledgeEngineRuntime> getOtherKnowledgeEngineRuntimes() {
-		List<KnowledgeEngineRuntime> list = new ArrayList<>(getKnowledgeEngineRuntimes());
+	public List<KnowledgeEngineRuntimeConnectionDetails> getOtherKnowledgeEngineRuntimeConnectionDetails() {
+		List<KnowledgeEngineRuntimeConnectionDetails> list = new ArrayList<>(getKnowledgeEngineRuntimeConnectionDetails());
 		list.removeIf(e -> myId.equals(e.getId()));
 		return list;
 	}
@@ -165,7 +166,7 @@ public class KnowledgeDirectoryConnectionManager {
 		if (this.currentState == State.REGISTERED || currentState == State.STOPPED) {
 			throw new IllegalStateException("Can only register when NEW or INTERRUPTED");
 		}
-		KnowledgeEngineRuntime ker = new KnowledgeEngineRuntime();
+		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setHostname(myHostname);
 		ker.setPort(myPort);
 		ker.setProtocolVersion(PROTOCOL_VERSION);

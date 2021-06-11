@@ -1,122 +1,115 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ErrorMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.RFC3339DateFormat;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.SmartConnectorManagementApiService;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.KnowledgeEngineRuntimeDetails;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntime;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 
 /**
- * This class is responsible for sending messages to a single remote Knowledge
- * Engine Runtime (KER) and keeping the {@link KnowledgeEngineRuntimeDetails}
- * up-to-date (both ways).
+ * The class is responsible for detecting new or removed remote
+ * {@link SmartConnector}s (using the
+ * {@link SmartConnectorManagementApiService}) and creating or deleting the
+ * {@link RemoteKerConnection} for each remote runtime. In addition, it is also
+ * responsible for notifying other KnowledgeEngineRuntimes of local changes.
  */
-public class RemoteKerConnectionManager implements SmartConnectorMessageSender {
+public class RemoteKerConnectionManager extends SmartConnectorManagementApiService {
 
-	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnectionManager.class);
+	private static final int KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL = 60;
+	private final RemoteMessageReceiver messageReceiver = new RemoteMessageReceiver();
+	private final Map<String, RemoteKerConnection> messageSenders = new ConcurrentHashMap<>();
+	private ScheduledFuture<?> scheduledFuture;
+	private final DistributedMessageDispatcher distributedMessageDispatcher;
 
-	private final KnowledgeEngineRuntime kerData;
-	private final HttpClient httpClient;
-	private final ObjectMapper objectMapper;
-
-	private KnowledgeEngineRuntimeDetails kerDetails;
-
-	public RemoteKerConnectionManager(KnowledgeEngineRuntime runtimeData) {
-		this.kerData = runtimeData;
-
-		httpClient = HttpClient.newBuilder().build();
-
-		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
-				.setDateFormat(new RFC3339DateFormat());
-	}
-
-	/**
-	 * Contact the Knowledge Engine Runtime to retrieve the latest
-	 * {@link KnowledgeEngineRuntimeDetails}
-	 */
-	private void updateKerDataFromPeer() {
-		// TODO implement
-	}
-
-	public KnowledgeEngineRuntimeDetails getKerDetails() {
-		return kerDetails;
-	}
-
-	public void setKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
-		this.kerDetails = kerDetails;
-		// TODO implement checks?
+	public RemoteKerConnectionManager(DistributedMessageDispatcher distributedMessageDispatcher) {
+		this.distributedMessageDispatcher = distributedMessageDispatcher;
 	}
 
 	public void start() {
-		this.updateKerDataFromPeer();
+		scheduledFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
+			queryKnowledgeDirectory();
+		}, 0, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
+	}
+
+	private synchronized void queryKnowledgeDirectory() {
+		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = distributedMessageDispatcher
+				.getKnowledgeDirectoryConnectionManager().getKnowledgeEngineRuntimeConnectionDetails();
+		// Check if there are new KERs
+		for (KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime : kerConnectionDetails) {
+			if (!messageSenders.containsKey(knowledgeEngineRuntime.getId())) {
+				// This must be a new remote KER
+				RemoteKerConnection messageSender = new RemoteKerConnection(knowledgeEngineRuntime);
+				messageSenders.put(knowledgeEngineRuntime.getId(), messageSender);
+				messageSender.start();
+			}
+		}
+		// Check if there are KERs that need to be removed
+		List<String> kerIds = kerConnectionDetails.stream().map(ker -> ker.getId()).collect(Collectors.toList());
+		for (Iterator<Entry<String, RemoteKerConnection>> it = messageSenders.entrySet().iterator(); it.hasNext();) {
+			Entry<String, RemoteKerConnection> e = it.next();
+			if (!kerIds.contains(e.getKey())) {
+				// According the the Knowledge Directory, this KER doesn't exist (anymore)
+				e.getValue().stop();
+				it.remove();
+			}
+		}
 	}
 
 	public void stop() {
-		// TODO call the remote DELETE so the other side knows we're leaving
+		this.scheduledFuture.cancel(false);
+	}
+
+	public RemoteKerConnection getRemoteKerConnection(URI toKnowledgeBase) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public void send(KnowledgeMessage message) throws IOException {
-		assert getKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString());
-
-		try {
-			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
-			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://" + kerData.getHostname() + ":"
-							+ kerData.getPort() + getPathForMessageType(message)))
-					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
-
-			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-			if (response.statusCode() == 200) {
-				LOG.trace("Successfully sent message {} to {}:{}", message.getMessageId(), kerData.getHostname(),
-						kerData.getPort());
-			} else {
-				LOG.warn("Failed to send message {} to {}:{}, got response {}: {}", message.getMessageId(),
-						kerData.getHostname(), kerData.getPort(), response.statusCode(), response.body());
-				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
-						+ ", body " + response.body());
-			}
-		} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
-			throw new IOException("Could not send message to remote Smart Connector", e);
-		}
+	public Response runtimedetailsGet(SecurityContext securityContext) throws NotFoundException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	private String getPathForMessageType(KnowledgeMessage message) {
-		if (message instanceof AskMessage) {
-			return "/messaging/askmessage";
-		} else if (message instanceof AnswerMessage) {
-			return "/messaging/answermessage";
-		} else if (message instanceof PostMessage) {
-			return "/messaging/postmessage";
-		} else if (message instanceof ReactMessage) {
-			return "/messaging/reactmessage";
-		} else if (message instanceof ErrorMessage) {
-			return "/messaging/errormessage";
-		} else {
-			return null;
-		}
+	@Override
+	public Response runtimedetailsPost(KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails,
+			SecurityContext securityContext) throws NotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Response runtimedetailsKerIdDelete(String kerId, SecurityContext securityContext) throws NotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * Notify other KnowledgeEngineRuntimes that something changed locally. Called
+	 * directly by the {@link LocalSmartConnectorConnectionManager} after it made
+	 * its own updates.
+	 */
+	public void notifyChangedLocalSmartConnectors() {
+		KnowledgeEngineRuntimeDetails runtimeDetails = KeRuntime.getMessageDispatcher()
+				.getKnowledgeEngineRuntimeDetails();
+		// TODO
+	}
+
+	public RemoteMessageReceiver getMessageReceiver() {
+		return messageReceiver;
 	}
 
 }
