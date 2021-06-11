@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 

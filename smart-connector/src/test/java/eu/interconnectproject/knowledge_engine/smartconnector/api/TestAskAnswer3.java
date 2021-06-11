@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -109,7 +110,9 @@ public class TestAskAnswer3 {
 			result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().keySet();
+
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+					.collect(Collectors.toSet());
 
 			assertEquals(
 					new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId(),
@@ -149,7 +152,7 @@ public class TestAskAnswer3 {
 		} else {
 			fail("KB3 should not be null!");
 		}
-		
+
 		if (kb4 != null) {
 			kb4.stop();
 		} else {

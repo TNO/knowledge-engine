@@ -1,0 +1,8 @@
+services:
+  smart-connector-rest-dist:
+    container_name: smart-connector-rest-dist
+    image: smart-connector-rest-dist:latest
+    build:
+      context: ./smart-connector-rest-dist
+    ports:
+      - "8280:8280"

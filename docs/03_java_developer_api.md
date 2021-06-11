@@ -40,6 +40,11 @@ sc.register(
 ```
 where `graphPattern` is a string describing an RDF graph pattern where variables are prefixed with a `?`.
 
+Graph patterns consist of one or more triples separated by a dot (.) and each triple consists of a subject, predicate and object node. Each node can be either a variable (using a question mark `?var` prefix), a URI (using the `<https://...>` or a literal (using quotes `"hello"`).
+More information on graph patterns can be found in:
+- the Knowledge Engine documentation: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/master/docs/03_java_developer_api.md
+- this presentation (from slide 16 onwards): https://drive.inesctec.pt/f/16079670
+
 As an example, assume `graphPattern` is the following graph pattern:
 ```sparql
 ?measurement rdf:type saref:Measurement .
@@ -99,3 +104,60 @@ Two important things should be noted:
 ### Binding sets
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.
+
+### Hierarchy example
+
+Imagine your graph pattern looks something like this (note that we use a non existing ontology):
+
+```
+?ts rdf:type ex:TimeSeries .
+?ts ex:hasUnitOfValue ?unit .
+?ts ex:hasMeasurement ?meas .
+?meas ex:hasTimestamp ?timestamp .
+?meas ex:hasValue ?value .
+```
+
+Imagine you have JSON data of the form:
+
+```json
+{
+	"unit": "degrees celcius",
+	"measurements": [
+		{
+			"timestamp": "2021-04-29T12:00:00Z",
+			"value": "22.8"
+		},
+		{
+			"timestamp": "2021-04-29T12:00:00Z",
+			"value": "20.8"
+		}
+	]
+}
+```
+
+How would the bindingset look like that represents the JSON corresponding to the graph pattern?
+
+```json
+[
+	{
+		"ts": "<https://www.interconnectproject.eu/example/timeseries1>",
+		"unit": "<https://www.interconnectproject.eu/example/degreesCelcius>",
+		"meas": "<https://www.interconnectproject.eu/example/timeseries1/measurement1>",
+		"timestamp": "\"2021-04-29T12:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>",
+		"value": "\"22.8\"^^<http://www.w3.org/2001/XMLSchema#double>"
+	},
+	{
+		"ts": "<https://www.interconnectproject.eu/example/timeseries1>",
+		"unit": "<https://www.interconnectproject.eu/example/degreesCelcius>",
+		"meas": "<https://www.interconnectproject.eu/example/timeseries1/measurement2>",
+		"timestamp": "\"2021-04-29T13:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>",
+		"value": "\"20.8\"^^<http://www.w3.org/2001/XMLSchema#double>"
+	}
+]
+```
+
+Note the following:
+- the `meas` variable in the first array element is called `measurement1` and in the second array element it is called `measurement2`.
+- the value of the `ts` variable in the first array element is the same as the `ts` variable in the second array element.
+- both values of the `timestamp` and `value` variable have this structure `"..."^^<...>`, where the first `...` contains the actual value and the second `...` contains the type of this value.
+- quotes in the values need to be escaped using a `\`.

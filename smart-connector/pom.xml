@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.1-SNAPSHOT</version>
+		<version>0.1.11-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -149,6 +149,12 @@
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<artifactId>smart-connector-api</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

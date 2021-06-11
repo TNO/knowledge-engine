@@ -23,10 +23,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeA
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 /**
  * Knowledge Base that regularly prints an overview of the currently available

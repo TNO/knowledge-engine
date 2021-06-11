@@ -28,6 +28,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeA
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
@@ -40,7 +41,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private MessageRouter messageRouter;
 	private final KnowledgeBaseStore myKnowledgeBaseStore;
-	private final MetaKnowledgeBase metaKnowledgeBase;
 
 	private final Model ontology;
 	private final Reasoner reasoner;
@@ -48,13 +48,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final LoggerProvider loggerProvider;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
-			KnowledgeBaseStore myKnowledgeBaseStore, MetaKnowledgeBase metaKnowledgeBase) {
+			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
-		this.metaKnowledgeBase = metaKnowledgeBase;
 
 		ontology = ModelFactory.createDefaultModel();
 		ontology.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null,
@@ -107,43 +106,30 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	public CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage anAskMsg) {
 		URI answerKnowledgeInteractionId = anAskMsg.getToKnowledgeInteraction();
 
-		try {
-			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(answerKnowledgeInteractionId);
+		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+				.getKnowledgeInteractionById(answerKnowledgeInteractionId);
 
-			AnswerKnowledgeInteraction answerKnowledgeInteraction;
-			answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById
-					.getKnowledgeInteraction();
-			var future = new CompletableFuture<AnswerMessage>();
-			{
-				BindingSet bindings = null;
-				if (knowledgeInteractionById.isMeta()) {
-					// TODO: Ask MyMetaKnowledgeBase for the bindings.
-				} else {
-					var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
-					// TODO This should happen in the single thread for the knowledge base
-					
-					LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
-					
-					bindings = handler.answer(answerKnowledgeInteraction, anAskMsg.getBindings());
-				}
+		AnswerKnowledgeInteraction answerKnowledgeInteraction;
+		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
-				AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-						anAskMsg.getMessageId(), bindings);
-				// TODO: Here I just complete the future in the same thread, but we should
-				// figure out how to do it asynchronously.
-				future.complete(result);
+		CompletableFuture<BindingSet> future;
 
-				return future;
-			}
-		} catch (Throwable t) {
-			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + answerKnowledgeInteractionId
-					+ "' that was expected to resolve to one of our own.", t);
-			var future = new CompletableFuture<AnswerMessage>();
-			future.completeExceptionally(t);
-			return future;
-		}
+		var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
+		// TODO This should happen in the single thread for the knowledge base
+
+		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+
+		future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
+
+		return future.exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {}", anAskMsg);
+			return new BindingSet();
+		}).thenApply((b) -> {
+			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					b);
+			return result;
+		});
 	}
 
 	@Override
@@ -187,41 +173,26 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage aPostMsg) {
 		URI reactKnowledgeInteractionId = aPostMsg.getToKnowledgeInteraction();
-		try {
-			KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
-					.getKnowledgeInteractionById(reactKnowledgeInteractionId);
-			ReactKnowledgeInteraction reactKnowledgeInteraction;
-			reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
-			var future = new CompletableFuture<ReactMessage>();
-			{
-				BindingSet bindings = null;
-				if (knowledgeInteractionById.isMeta()) {
-					// TODO: Ask MyMetaKnowledgeBase for the bindings.
-				} else {
-					var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
-					// TODO This should happen in the single thread for the knowledge base
-					
-					LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
-					
-					bindings = handler.react(reactKnowledgeInteraction, aPostMsg.getArgument());
-				}
+		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
+				.getKnowledgeInteractionById(reactKnowledgeInteractionId);
+		ReactKnowledgeInteraction reactKnowledgeInteraction;
+		reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
-				ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-						aPostMsg.getMessageId(), bindings);
-				// TODO: Here I just complete the future in the same thread, but we should
-				// figure out how to do it asynchronously.
-				future.complete(result);
-			}
+		CompletableFuture<BindingSet> future;
+		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+		// TODO This should happen in the single thread for the knowledge base
+		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+		future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
 
-			return future;
-		} catch (Throwable t) {
-			this.LOG.warn("Encountered an unresolvable KnowledgeInteraction ID '" + reactKnowledgeInteractionId
-					+ "' that was expected to resolve to one of our own.", t);
-			var future = new CompletableFuture<ReactMessage>();
-			future.completeExceptionally(t);
-			return future;
-		}
+		return future.exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {}", aPostMsg);
+			return new BindingSet();
+		}).thenApply(b -> {
+			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					b);
+			return result;
+		});
 
 	}
 
@@ -294,8 +265,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// then apply the reasoner
-		InfModel infModel = ModelFactory
-				.createInfModel(this.reasoner.bind(m.getGraph()));
+		InfModel infModel = ModelFactory.createInfModel(this.reasoner.bind(m.getGraph()));
 
 		// query the model from both my and the other perspective (both should match)
 		// TODO can we do this with a single query execution? This might be a lot

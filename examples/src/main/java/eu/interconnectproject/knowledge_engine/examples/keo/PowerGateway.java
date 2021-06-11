@@ -2,12 +2,17 @@ package eu.interconnectproject.knowledge_engine.examples.keo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.UUID;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.sse.SSE;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.MqttCallback;
@@ -26,9 +31,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeA
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.Vocab;
 
 public class PowerGateway implements MqttCallback, KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(PowerGateway.class);
@@ -40,15 +46,19 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 	private final SmartConnector sc;
 
 	private PostKnowledgeInteraction pkiPower;
+	private ReactKnowledgeInteraction rkiPowerLimit;
 
 	private PrefixMappingMem prefixes;
 
+	private static final String SUB_TOPIC = "keo/json_api/from_eebus";
+	private static final String PUB_TOPIC = "keo/json_api/to_eebus";
+
 	private static final String EX_DATA = "https://www.interconnectproject.eu/knowledge-engine/data/example/keo/";
 
-	public PowerGateway(String mqttURI, String topic) throws MqttException, URISyntaxException {
+	public PowerGateway(String mqttURI) throws MqttException, URISyntaxException {
 		this.setupMQTT(mqttURI);
 		this.connectMQTT();
-		this.subscribe(topic);
+		this.subscribe(SUB_TOPIC);
 
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -56,9 +66,11 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		this.prefixes.setNsPrefix("om", "http://www.ontology-of-units-of-measure.org/resource/om-2/");
 		this.prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
+		this.prefixes.setNsPrefix("interconnect", "http://ontology.tno.nl/Interconnect#");
 		this.prefixes.setNsPrefix("ex-data", EX_DATA);
 
-		this.knowledgeBaseId = new URI("https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/power-gateway");
+		this.knowledgeBaseId = new URI(
+				"https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/power-gateway");
 
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 	}
@@ -112,17 +124,21 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		LOG.info("MESSAGE ARRIVED in topic {}: {}", topic, message);
 
-		var bindings = new BindingSet();
-		
 		var jsonObj = new JSONObject(message.toString());
 
-		String msgId = jsonObj.getString("id");
+		if (!jsonObj.getString("type").equals("de.keo-connectivity.generic.mpc.powerTotal")) {
+			LOG.info("Ignoring message type '{}'", jsonObj.getString("type"));
+			return;
+		}
 
+		String msgId = jsonObj.getString("id");
+		
 		int number = jsonObj.getJSONObject("data").getJSONObject("power").getInt("number");
 		int scale = jsonObj.getJSONObject("data").getJSONObject("power").getInt("scale");
 		String actorId = jsonObj.getJSONObject("data").getString("actorId");
 		double value = number * Math.pow(10, scale);
-
+		
+		var bindings = new BindingSet();
 		var binding = new Binding();
 
 		binding.put("sensor", "<" + EX_DATA + "actor-" + actorId + ">");
@@ -131,7 +147,8 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		binding.put("value", "\"" + Double.toString(value) + "\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		// We record the current time. This is not necessarily the time of the
 		// observation.
-		binding.put("time", "\"" + ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT ) + "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
+		binding.put("time", "\"" + ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
+				+ "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>");
 
 		bindings.add(binding);
 
@@ -176,7 +193,33 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 			),
 			null
 		);
-		aSC.register(this.pkiPower);
+		this.sc.register(this.pkiPower);
+
+		// The following KI listens for actuation commands.
+		this.rkiPowerLimit = new ReactKnowledgeInteraction(
+			new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.PURPOSE)), new HashSet<>(Arrays.asList(Vocab.ACTUATION_PURPOSE))),
+			new GraphPattern(this.prefixes,
+				"?limit om:hasUnit om:watt .",
+				"?command rdf:type saref:SetLevelCommand .",
+				"?command saref:actsUpon saref:PowerLimit .",
+				"?limit om:hasNumericalValue ?limitValue .",
+				"?command interconnect:SetsValue ?limit ."
+			),
+			null
+		);
+
+		// When receiving an actuation command, send it to EEBUS via the queue
+		this.sc.register(this.rkiPowerLimit, (rki, bindings) -> {
+			try {
+				var b = bindings.iterator().next();
+				var limit = (Float) SSE.parseNode(b.get("limitValue")).getLiteralValue();
+				LOG.info("Setting limit at {}", limit);
+				this.sendPowerLimitMessage(Math.round(limit * 100), -2, 5);
+			} catch (MqttException e) {
+				LOG.error("Could not send message to MQTT.", e);
+			}
+			return new BindingSet();
+		});
 	}
 
 	@Override
@@ -192,5 +235,27 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 	@Override
 	public void smartConnectorStopped(SmartConnector aSC) {
 		LOG.info("Smart connector stopped.");
+	}
+
+	private void sendPowerLimitMessage(int number, int scale, int ttl) throws MqttException {
+		// Send a message back saying we want to limit the power.
+		var msg = new JSONObject();
+		msg.put("type", "de.keo-connectivity.generic.lpc.powerLimit");
+		msg.put("source", "PowerGateway Knowledge Base");
+		msg.put("id", UUID.randomUUID().toString());
+		msg.put("specversion", "1.0");
+		var data = new JSONObject();
+		data.put("actorId", "d:_n:KEO_json_grid_server/1/");
+		var limit = new JSONObject();
+		var limitValue = new JSONObject();
+		limitValue.put("number", number);
+		limitValue.put("scale", scale);
+		limit.put("value", limitValue);
+		limit.put("active", true);
+		limit.put("ttl", ttl);
+		data.put("limit", limit);
+		msg.put("data", data);
+
+		this.mqttClient.publish(PUB_TOPIC, msg.toString().getBytes(StandardCharsets.UTF_8), 0, false);
 	}
 }

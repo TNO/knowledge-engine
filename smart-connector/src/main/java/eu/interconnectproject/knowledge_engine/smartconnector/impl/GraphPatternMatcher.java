@@ -1,5 +1,6 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -287,22 +288,37 @@ public class GraphPatternMatcher {
 
 	public static Map<Integer, Integer> getIsomorphisms(GraphPattern gp1, GraphPattern gp2) throws ParseException {
 
-		DirectedMultigraph<NodeEdge> g1 = convertToSSpace(gp1.getGraphPattern());
-		DirectedMultigraph<NodeEdge> g2 = convertToSSpace(gp2.getGraphPattern());
+		GraphInfo g1 = new GraphInfo(gp1);
+		GraphInfo g2 = new GraphInfo(gp2);
 		LOG.trace("are isomorph? g1: {}, g2: {}", g1, g2);
 
+		// first retrieve the isomorphisms
 		TypedVF2IsomorphismTester tester = new TypedVF2IsomorphismTester();
-		return tester.findIsomorphism(g1, g2);
+		Map<Integer, Integer> mapping = tester.findIsomorphism(g1.getGraph(), g2.getGraph());
+
+		// because nodes are translated into integers, the algorithm cannot distinguish
+		// between different concrete nodes. This means that every concrete node is
+		// similar to any other concrete node, but this is of course not the case.
+		for (Map.Entry<Integer, Integer> entry : mapping.entrySet()) {
+
+			var g1map = g1.getIntToNodeMap();
+			var g2map = g2.getIntToNodeMap();
+
+			Node n1 = g1map.get(entry.getKey());
+			Node n2 = g2map.get(entry.getValue());
+
+			// if we find two isomorph concrete nodes that are not equal, the whole mapping
+			// is invalid.
+			if (n1.isConcrete() && n2.isConcrete() && !n1.equals(n2)) {
+				return new HashMap<Integer, Integer>();
+			}
+		}
+
+		return mapping;
 	}
 
 	public static boolean areIsomorphic(GraphPattern gp1, GraphPattern gp2) throws ParseException {
-
-		DirectedMultigraph<NodeEdge> g1 = convertToSSpace(gp1.getGraphPattern());
-		DirectedMultigraph<NodeEdge> g2 = convertToSSpace(gp2.getGraphPattern());
-		LOG.trace("are isomorph? g1: {}, g2: {}", g1, g2);
-
-		TypedVF2IsomorphismTester tester = new TypedVF2IsomorphismTester();
-		return tester.areIsomorphic(g1, g2);
+		return !getIsomorphisms(gp1, gp2).isEmpty();
 	}
 
 	private static class GraphInfo {

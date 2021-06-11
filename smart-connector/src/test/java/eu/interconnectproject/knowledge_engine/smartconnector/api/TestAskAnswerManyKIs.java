@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -57,12 +58,12 @@ public class TestAskAnswerManyKIs {
 		kn.startAndWaitForReady();
 
 		int count = 50;
-		
+
 		AnswerKnowledgeInteraction[] aKIarray = new AnswerKnowledgeInteraction[count];
 		AnswerKnowledgeInteraction[] aKI3array = new AnswerKnowledgeInteraction[count];
 		AnswerKnowledgeInteraction[] aKI4array = new AnswerKnowledgeInteraction[count];
 		AskKnowledgeInteraction[] askKIarray = new AskKnowledgeInteraction[count];
-		
+
 		for (int i = 0; i < count; i++) {
 			final int idx = i;
 			GraphPattern gp1 = new GraphPattern(prefixes, this.format("a" + i, "b" + i, "c" + i));
@@ -119,13 +120,14 @@ public class TestAskAnswerManyKIs {
 		BindingSet bindings = null;
 		AskResult result = null;
 		try {
-			int idx= count / 2;
-			
+			int idx = count / 2;
+
 			LOG.trace("Before ask.");
 			result = kb2.ask(askKIarray[idx], new BindingSet()).get();
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().keySet();
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
+					.collect(Collectors.toSet());
 
 			assertEquals(
 					new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId(),
