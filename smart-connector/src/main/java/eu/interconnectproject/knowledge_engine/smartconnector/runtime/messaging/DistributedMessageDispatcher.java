@@ -115,13 +115,14 @@ public class DistributedMessageDispatcher {
 	}
 
 	/**
-	 * This is an internal method called by the LOCAL receiver, which sends the
-	 * message to the right (local or remote) sender
+	 * This is an internal method called by the
+	 * {@link LocalSmartConnectorConnection}, which sends the message to the right
+	 * (local or remote) sender
 	 *
 	 * @param message
 	 * @throws IOException
 	 */
-	void send(KnowledgeMessage message) throws IOException {
+	void sendToLocalOrRemoteSmartConnector(KnowledgeMessage message) throws IOException {
 		LocalSmartConnectorConnection localSender = localSmartConnectorConnectionsManager
 				.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
 		if (localSender != null) {

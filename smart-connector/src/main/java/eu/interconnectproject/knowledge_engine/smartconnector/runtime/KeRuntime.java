@@ -4,6 +4,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.DistributedMessageDispatcher;
 
 /**
@@ -13,6 +16,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.
  * component of the Knowledge Engine.
  */
 public class KeRuntime {
+
+	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
 	private static KnowledgeDirectoryProxy knowledgeDirectory = new KnowledgeDirectoryImpl();
@@ -32,13 +37,6 @@ public class KeRuntime {
 		});
 	}
 
-//	/**
-//	 * The purpose of calling the constructor is to start the
-//	 * JvmOnlyMessageDisptacher and make sure it registers at the
-//	 * LocalSmartConnectorRegistry
-//	 */
-//	private static JvmOnlyMessageDispatcher messageDispatcher = new JvmOnlyMessageDispatcher();
-
 	public static LocalSmartConnectorRegistry localSmartConnectorRegistry() {
 		return localSmartConnectorRegistry;
 	}
@@ -53,16 +51,34 @@ public class KeRuntime {
 
 	public static DistributedMessageDispatcher getMessageDispatcher() {
 		if (messageDispatcher == null) {
-			// TODO make configurable
-			messageDispatcher = new DistributedMessageDispatcher("localhost", 8081, "localhost", 8080);
+			try {
+				messageDispatcher = new DistributedMessageDispatcher(getConfigProperty("HOSTNAME", "localhost"),
+						Integer.parseInt(getConfigProperty("PORT", "8081")),
+						getConfigProperty("KD_HOSTNAME", "localhost"),
+						Integer.parseInt(getConfigProperty("KD_PORT", "8080")));
+			} catch (NumberFormatException e) {
+				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
+				System.exit(1);
+			}
 			try {
 				messageDispatcher.start();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("Could not start HTTP server, cannot start Knowledge Engine", e);
+				System.exit(1);
 			}
 		}
 		return messageDispatcher;
+	}
+
+	public static String getConfigProperty(String key, String defaultValue) {
+		// We might replace this with something a bit more fancy in the future...
+		String value = System.getenv(key);
+		if (value == null) {
+			value = defaultValue;
+			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
+					+ defaultValue + "'");
+		}
+		return value;
 	}
 
 }

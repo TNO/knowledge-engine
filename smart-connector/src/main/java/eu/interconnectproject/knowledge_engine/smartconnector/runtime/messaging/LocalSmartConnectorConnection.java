@@ -75,7 +75,7 @@ public class LocalSmartConnectorConnection implements MessageDispatcherEndpoint 
 	public void send(KnowledgeMessage message) throws IOException {
 		assert message.getFromKnowledgeBase()
 				.equals(this.endpoint.getKnowledgeBaseId()) : "the fromKnowledgeBaseId should be mine, but isn't.";
-		messageDispatcher.send(message);
+		messageDispatcher.sendToLocalOrRemoteSmartConnector(message);
 	}
 
 }
