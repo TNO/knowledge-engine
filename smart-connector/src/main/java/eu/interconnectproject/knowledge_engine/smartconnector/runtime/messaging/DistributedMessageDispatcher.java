@@ -158,10 +158,10 @@ public class DistributedMessageDispatcher {
 		}
 	}
 
-	KnowledgeEngineRuntimeDetails getKnowledgeEngineRuntimeDetails() {
+	KnowledgeEngineRuntimeDetails getMyKnowledgeEngineRuntimeDetails() {
 		KnowledgeEngineRuntimeDetails kers = new KnowledgeEngineRuntimeDetails();
 		// TODO check state of the knowledgeDirectoryConnectionManager
-		kers.setRuntimeId(getKnowledgeDirectoryConnectionManager().getIdAtKnowledgeDirectory());
+		kers.setRuntimeId(getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId());
 		kers.setSmartConnectorIds(localSmartConnectorConnectionsManager.getLocalSmartConnectorIds().stream()
 				.map(URI::toString).collect(Collectors.toList()));
 		return kers;

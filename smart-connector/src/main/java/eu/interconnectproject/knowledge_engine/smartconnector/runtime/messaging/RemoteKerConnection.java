@@ -36,14 +36,17 @@ public class RemoteKerConnection {
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
-	private final KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails;
+	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
+	private KnowledgeEngineRuntimeDetails remoteKerDetails;
+	private final DistributedMessageDispatcher dispatcher;
+
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
-	private KnowledgeEngineRuntimeDetails kerDetails;
-
-	public RemoteKerConnection(KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
-		this.kerConnectionDetails = kerConnectionDetails;
+	public RemoteKerConnection(DistributedMessageDispatcher dispatcher,
+			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
+		this.dispatcher = dispatcher;
+		this.remoteKerConnectionDetails = kerConnectionDetails;
 
 		httpClient = HttpClient.newBuilder().build();
 
@@ -56,72 +59,131 @@ public class RemoteKerConnection {
 	 * Contact the Knowledge Engine Runtime to retrieve the latest
 	 * {@link KnowledgeEngineRuntimeDetails}
 	 */
-	private void updateKerDataFromPeer() {
+	private void updateRemoteKerDataFromPeer() {
 		try {
-			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://" + kerConnectionDetails.getHostname() + ":"
-							+ kerConnectionDetails.getPort() + "/runtimedetails"))
+			HttpRequest request = HttpRequest.newBuilder(new URI(
+					DistributedMessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname() + ":"
+							+ remoteKerConnectionDetails.getPort() + "/runtimedetails"))
 					.header("Content-Type", "application/json").GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
-				LOG.trace(
-						"Successfully received runtimedetails from " + kerConnectionDetails.getHostname() + ":" + kerConnectionDetails.getPort());
+				LOG.trace("Successfully received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
+						+ remoteKerConnectionDetails.getPort());
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
 						KnowledgeEngineRuntimeDetails.class);
 				// TODO validate
-				this.kerDetails = runtimeDetails;
+				this.remoteKerDetails = runtimeDetails;
 			} else {
-				LOG.warn("Failed to received runtimedetails from " + kerConnectionDetails.getHostname() + ":" + kerConnectionDetails.getPort()
-						+ ", got status code " + response.statusCode());
+				LOG.warn("Failed to received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
+						+ remoteKerConnectionDetails.getPort() + ", got status code " + response.statusCode());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
-			LOG.warn("Failed to received runtimedetails from " + kerConnectionDetails.getHostname() + ":" + kerConnectionDetails.getPort(), e);
+			LOG.warn("Failed to received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
+					+ remoteKerConnectionDetails.getPort(), e);
 		}
 	}
 
-	public KnowledgeEngineRuntimeDetails getKerDetails() {
-		if (kerDetails == null) {
-			updateKerDataFromPeer();
+	public KnowledgeEngineRuntimeDetails getRemoteKerDetails() {
+		if (remoteKerDetails == null) {
+			updateRemoteKerDataFromPeer();
 		}
-		return kerDetails;
+		return remoteKerDetails;
 	}
 
-	public void setKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
-		this.kerDetails = kerDetails;
+	public boolean representsKnowledgeBase(URI knowledgeBaseId) {
+		if (remoteKerDetails == null) {
+			return false;
+		}
+		return remoteKerDetails.getSmartConnectorIds().contains(knowledgeBaseId.toString());
+	}
+
+	/**
+	 * This method is called when the KER proactively updates its own KerDetails.
+	 *
+	 * @param kerDetails
+	 */
+	public void updateKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
+		this.remoteKerDetails = kerDetails;
 		// TODO implement checks?
 	}
 
 	public void start() {
-		this.updateKerDataFromPeer();
+		this.updateRemoteKerDataFromPeer();
 	}
 
 	public void stop() {
-		// TODO call the remote DELETE so the other side knows we're leaving
+		try {
+			HttpRequest request = HttpRequest
+					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
+							+ "/runtimedetails/"
+							+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
+					.header("Content-Type", "application/json").DELETE().build();
+
+			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 200) {
+				LOG.trace("Successfully said goodbye to {}:{}", remoteKerConnectionDetails.getHostname(),
+						remoteKerConnectionDetails.getPort());
+			} else {
+				LOG.warn("Failed to say goodbye to {}:{}, got response {}: {}",
+						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort(),
+						response.statusCode(), response.body());
+			}
+		} catch (IOException | URISyntaxException | InterruptedException e) {
+			LOG.warn("Failed to say goodby to " + remoteKerConnectionDetails.getHostname() + ":"
+					+ remoteKerConnectionDetails.getPort(), e);
+		}
 	}
 
 	public void sendToRemoteSmartConnector(KnowledgeMessage message) throws IOException {
-		assert getKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString());
+		assert getRemoteKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString());
 
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://" + kerConnectionDetails.getHostname() + ":"
-							+ kerConnectionDetails.getPort() + getPathForMessageType(message)))
+					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
+							+ getPathForMessageType(message)))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
-				LOG.trace("Successfully sent message {} to {}:{}", message.getMessageId(), kerConnectionDetails.getHostname(),
-						kerConnectionDetails.getPort());
+				LOG.trace("Successfully sent message {} to {}:{}", message.getMessageId(),
+						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort());
 			} else {
 				LOG.warn("Failed to send message {} to {}:{}, got response {}: {}", message.getMessageId(),
-						kerConnectionDetails.getHostname(), kerConnectionDetails.getPort(), response.statusCode(), response.body());
+						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort(),
+						response.statusCode(), response.body());
 				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 						+ ", body " + response.body());
 			}
 		} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
-			throw new IOException("Could not send message to remote Smart Connector", e);
+			throw new IOException("Could not send message to remote SmartConnector", e);
+		}
+	}
+
+	public void sendMyKerDetailsToPeer(KnowledgeEngineRuntimeDetails details) {
+		try {
+			String jsonMessage = objectMapper.writeValueAsString(details);
+			HttpRequest request = HttpRequest
+					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
+							+ "/runtimedetails"))
+					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
+
+			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 200) {
+				LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}:{}",
+						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort());
+			} else {
+				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}:{}, got response {}: {}",
+						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort(),
+						response.statusCode(), response.body());
+			}
+		} catch (IOException | URISyntaxException | InterruptedException e) {
+			LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to "
+					+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort(), e);
 		}
 	}
 

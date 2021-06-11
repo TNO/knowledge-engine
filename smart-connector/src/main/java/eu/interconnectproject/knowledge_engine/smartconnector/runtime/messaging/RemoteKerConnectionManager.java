@@ -31,7 +31,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	private static final int KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL = 60;
 	private final RemoteMessageReceiver messageReceiver = new RemoteMessageReceiver();
-	private final Map<String, RemoteKerConnection> messageSenders = new ConcurrentHashMap<>();
+	private final Map<String, RemoteKerConnection> remoteKerConnections = new ConcurrentHashMap<>();
 	private ScheduledFuture<?> scheduledFuture;
 	private final DistributedMessageDispatcher distributedMessageDispatcher;
 
@@ -47,19 +47,20 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	private synchronized void queryKnowledgeDirectory() {
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = distributedMessageDispatcher
-				.getKnowledgeDirectoryConnectionManager().getKnowledgeEngineRuntimeConnectionDetails();
+				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
 		// Check if there are new KERs
 		for (KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime : kerConnectionDetails) {
-			if (!messageSenders.containsKey(knowledgeEngineRuntime.getId())) {
+			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
 				RemoteKerConnection messageSender = new RemoteKerConnection(knowledgeEngineRuntime);
-				messageSenders.put(knowledgeEngineRuntime.getId(), messageSender);
+				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
 			}
 		}
 		// Check if there are KERs that need to be removed
 		List<String> kerIds = kerConnectionDetails.stream().map(ker -> ker.getId()).collect(Collectors.toList());
-		for (Iterator<Entry<String, RemoteKerConnection>> it = messageSenders.entrySet().iterator(); it.hasNext();) {
+		for (Iterator<Entry<String, RemoteKerConnection>> it = remoteKerConnections.entrySet().iterator(); it
+				.hasNext();) {
 			Entry<String, RemoteKerConnection> e = it.next();
 			if (!kerIds.contains(e.getKey())) {
 				// According the the Knowledge Directory, this KER doesn't exist (anymore)
@@ -74,27 +75,57 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	}
 
 	public RemoteKerConnection getRemoteKerConnection(URI toKnowledgeBase) {
-		// TODO Auto-generated method stub
+		for (RemoteKerConnection remoteKerConnection : this.remoteKerConnections.values()) {
+			if (remoteKerConnection.representsKnowledgeBase(toKnowledgeBase)) {
+				return remoteKerConnection;
+			}
+		}
 		return null;
 	}
 
+	/**
+	 * Another KER would like to know our {@link KnowledgeEngineRuntimeDetails}.
+	 */
 	@Override
 	public Response runtimedetailsGet(SecurityContext securityContext) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		KnowledgeEngineRuntimeDetails runtimeDetails = distributedMessageDispatcher
+				.getMyKnowledgeEngineRuntimeDetails();
+		return Response.status(200).entity(runtimeDetails).build();
 	}
 
+	/**
+	 * Another KER notifies us that its new or its
+	 * {@link KnowledgeEngineRuntimeDetails} have changed.
+	 */
 	@Override
 	public Response runtimedetailsPost(KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails,
 			SecurityContext securityContext) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		RemoteKerConnection remoteKerConnection = remoteKerConnections
+				.get(knowledgeEngineRuntimeDetails.getRuntimeId());
+		if (remoteKerConnection == null) {
+			// It is a new KER. We don't process the data now, but trigger a new knowledge
+			// directory query, which should trigger a GET.
+			KeRuntime.executorService().execute(() -> queryKnowledgeDirectory());
+		} else {
+			// The KER has changed its details
+			remoteKerConnection.updateKerDetails(knowledgeEngineRuntimeDetails);
+		}
+		return Response.status(200).build();
 	}
 
+	/**
+	 * Another KER lets un know it will leave.
+	 */
 	@Override
 	public Response runtimedetailsKerIdDelete(String kerId, SecurityContext securityContext) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		RemoteKerConnection kerConnection = remoteKerConnections.remove(kerId);
+		if (kerConnection == null) {
+			// That one didn't exist
+			return Response.status(404).build();
+		} else {
+			// Done!
+			return Response.status(204).build();
+		}
 	}
 
 	/**
@@ -103,9 +134,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * its own updates.
 	 */
 	public void notifyChangedLocalSmartConnectors() {
-		KnowledgeEngineRuntimeDetails runtimeDetails = KeRuntime.getMessageDispatcher()
-				.getKnowledgeEngineRuntimeDetails();
-		// TODO
+		KnowledgeEngineRuntimeDetails runtimeDetails = distributedMessageDispatcher
+				.getMyKnowledgeEngineRuntimeDetails();
+		for (RemoteKerConnection remoteKerConnection : this.remoteKerConnections.values()) {
+			remoteKerConnection.sendMyKerDetailsToPeer(runtimeDetails);
+		}
 	}
 
 	public RemoteMessageReceiver getMessageReceiver() {

@@ -32,7 +32,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		assertEquals(1, kerConnectionDetails.size());
 		assertEquals("localhost", kerConnectionDetails.get(0).getHostname());
 		assertEquals(8081, kerConnectionDetails.get(0).getPort());
-		assertEquals(cm.getIdAtKnowledgeDirectory(), kerConnectionDetails.get(0).getId());
+		assertEquals(cm.getMyKnowledgeDirectoryId(), kerConnectionDetails.get(0).getId());
 
 		cm.stop();
 

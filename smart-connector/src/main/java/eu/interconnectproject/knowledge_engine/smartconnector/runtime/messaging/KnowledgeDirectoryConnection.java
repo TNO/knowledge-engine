@@ -158,7 +158,7 @@ public class KnowledgeDirectoryConnection {
 		return list;
 	}
 
-	public String getIdAtKnowledgeDirectory() {
+	public String getMyKnowledgeDirectoryId() {
 		return this.myId;
 	}
 

@@ -25,7 +25,7 @@ paths:
               schema:
                 type: string
     post:
-      summary: Push an updated list of all the Smart Connectors that ANOTHER runtime represents
+      summary: Push a list of all the Smart Connectors that ANOTHER runtime represents. This can be done because the runtime is new or becaus its details have changed.
       tags:
       - "smart connector management"
       requestBody:
@@ -39,12 +39,6 @@ paths:
           description: The Smart Connector Runtime was succefully created. Returns the id.
           content:
             text/plan; charset=UTF-8:
-              schema:
-                type: string
-        '400':
-          description: The Smart Connector Runtime was already registered
-          content:
-            text/plain; charset=UTF-8:
               schema:
                 type: string
         '500':
