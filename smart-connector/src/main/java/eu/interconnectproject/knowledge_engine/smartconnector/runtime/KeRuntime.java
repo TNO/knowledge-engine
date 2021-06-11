@@ -1,7 +1,7 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.runtime;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.DistributedMessageDispatcher;
@@ -16,13 +16,13 @@ public class KeRuntime {
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
 	private static KnowledgeDirectoryProxy knowledgeDirectory = new KnowledgeDirectoryImpl();
-	private static ExecutorService executorService;
+	private static ScheduledExecutorService executorService;
 	private static DistributedMessageDispatcher messageDispatcher = null;
 
 	static {
 		// we want to make sure that this threadpool does not keep the JVM alive. So we
 		// set the daemon to true.
-		executorService = Executors.newFixedThreadPool(12, new ThreadFactory() {
+		executorService = Executors.newScheduledThreadPool(12, new ThreadFactory() {
 			@Override
 			public Thread newThread(Runnable r) {
 				Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -47,7 +47,7 @@ public class KeRuntime {
 		return knowledgeDirectory;
 	}
 
-	public static ExecutorService executorService() {
+	public static ScheduledExecutorService executorService() {
 		return executorService;
 	}
 

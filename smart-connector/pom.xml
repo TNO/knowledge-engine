@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>eu.interconnectproject.knowledge_engine</groupId>
 			<artifactId>knowledge-directory</artifactId>
-			<version>0.1.1-SNAPSHOT</version>
+			<version>0.1.11-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 

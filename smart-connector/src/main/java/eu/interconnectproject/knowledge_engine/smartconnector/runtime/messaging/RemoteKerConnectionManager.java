@@ -52,7 +52,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		for (KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime : kerConnectionDetails) {
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
-				RemoteKerConnection messageSender = new RemoteKerConnection(knowledgeEngineRuntime);
+				RemoteKerConnection messageSender = new RemoteKerConnection(distributedMessageDispatcher,
+						knowledgeEngineRuntime);
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
 			}

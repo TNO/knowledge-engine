@@ -4,10 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>knowledge-directory</artifactId>
 	<name>Knowledge Directory</name>
+	
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.1-SNAPSHOT</version>
+		<version>0.1.11-SNAPSHOT</version>
+		<relativePath>..</relativePath>
 	</parent>
 
 	<properties>
@@ -81,25 +83,25 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson-version}</version>
 		</dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson-version}</version>
-        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson-version}</version>
+			<version>${jackson-version}</version>
 		</dependency>
 
 		<!-- Base64 encoding that works in both JVM and Android -->
