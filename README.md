@@ -58,8 +58,11 @@ These are instructions on what to do when we release a new version of the knowle
 	- openapi-sc.yaml version
 	- this readme.md file
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
-3. Build and push the new docker image: `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.10`
-4. Prepare the next SNAPSHOT version and make a commit for that too.
+3. `mvn deploy` (for this you need `Deploy-Token` configured in your Maven's `settings.xml`)
+4. Build and push the new docker image:
+	- `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.10`
+	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.10`
+5. Prepare the next SNAPSHOT version and make a commit for that too.
 
 ## Running the REST server in Docker
 
