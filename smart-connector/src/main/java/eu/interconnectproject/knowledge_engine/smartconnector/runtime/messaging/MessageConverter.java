@@ -26,16 +26,16 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMes
 public class MessageConverter {
 
 	public static AskMessage fromJson(
-			eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AskMessage msg)
+			eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AskMessage msg)
 			throws URISyntaxException {
 		return new AskMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), fromJson(msg.getBindingSet()));
 	}
 
-	public static eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AskMessage toJson(
+	public static eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AskMessage toJson(
 			AskMessage msg) {
-		var result = new eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AskMessage();
+		var result = new eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AskMessage();
 		result.setMessageId(msg.getMessageId().toString());
 		result.setFromKnowledgeBase(msg.getFromKnowledgeBase().toString());
 		result.setFromKnowledgeInteraction(msg.getFromKnowledgeInteraction().toString());
@@ -46,7 +46,7 @@ public class MessageConverter {
 	}
 
 	public static AnswerMessage fromJson(
-			eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AnswerMessage msg)
+			eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage msg)
 			throws URISyntaxException {
 		return new AnswerMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
@@ -54,9 +54,9 @@ public class MessageConverter {
 				fromJson(msg.getBindingSet()));
 	}
 
-	public static eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AnswerMessage toJson(
+	public static eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage toJson(
 			AnswerMessage msg) {
-		var result = new eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AnswerMessage();
+		var result = new eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage();
 		result.setMessageId(msg.getMessageId().toString());
 		result.setFromKnowledgeBase(msg.getFromKnowledgeBase().toString());
 		result.setFromKnowledgeInteraction(msg.getFromKnowledgeInteraction().toString());
@@ -68,16 +68,16 @@ public class MessageConverter {
 	}
 
 	public static PostMessage fromJson(
-			eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.PostMessage msg)
+			eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.PostMessage msg)
 			throws URISyntaxException {
 		return new PostMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), fromJson(msg.getArgument()));
 	}
 
-	public static eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.PostMessage toJson(
+	public static eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.PostMessage toJson(
 			PostMessage msg) {
-		var result = new eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.PostMessage();
+		var result = new eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.PostMessage();
 		result.setMessageId(msg.getMessageId().toString());
 		result.setFromKnowledgeBase(msg.getFromKnowledgeBase().toString());
 		result.setFromKnowledgeInteraction(msg.getFromKnowledgeInteraction().toString());
@@ -88,7 +88,7 @@ public class MessageConverter {
 	}
 
 	public static ReactMessage fromJson(
-			eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ReactMessage msg)
+			eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage msg)
 			throws URISyntaxException {
 		return new ReactMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
@@ -96,9 +96,9 @@ public class MessageConverter {
 				fromJson(msg.getResult()));
 	}
 
-	public static eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ReactMessage toJson(
+	public static eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage toJson(
 			ReactMessage msg) {
-		var result = new eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ReactMessage();
+		var result = new eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage();
 		result.setMessageId(msg.getMessageId().toString());
 		result.setFromKnowledgeBase(msg.getFromKnowledgeBase().toString());
 		result.setFromKnowledgeInteraction(msg.getFromKnowledgeInteraction().toString());
@@ -110,7 +110,7 @@ public class MessageConverter {
 	}
 
 	public static ErrorMessage fromJson(
-			eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ErrorMessage msg)
+			eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ErrorMessage msg)
 			throws URISyntaxException {
 		return new ErrorMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
@@ -118,9 +118,9 @@ public class MessageConverter {
 				msg.getErrorMessage());
 	}
 
-	public static eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ErrorMessage toJson(
+	public static eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ErrorMessage toJson(
 			ErrorMessage msg) {
-		var result = new eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ErrorMessage();
+		var result = new eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ErrorMessage();
 		result.setMessageId(msg.getMessageId().toString());
 		result.setFromKnowledgeBase(msg.getFromKnowledgeBase().toString());
 		result.setFromKnowledgeInteraction(msg.getFromKnowledgeInteraction().toString());

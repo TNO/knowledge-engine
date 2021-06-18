@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.RFC3339DateFormat;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 
 /**
  * The {@link KnowledgeDirectoryConnection} is responsible for providing access
@@ -133,11 +133,11 @@ public class KnowledgeDirectoryConnection {
 	public List<KnowledgeEngineRuntimeConnectionDetails> getKnowledgeEngineRuntimeConnectionDetails() {
 		if (this.currentState != State.REGISTERED && currentState != State.INTERRUPTED) {
 			throw new IllegalStateException(
-					"Can only retrieve Knowlede Directory infomation when REGISTERED or INTERRUPETD");
+					"Can only retrieve Knowledge Directory infomation when REGISTERED or INTERRUPETD");
 		}
 		try {
-			HttpRequest request = HttpRequest
-					.newBuilder(new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/")).GET().build();
+			URI uri = new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -147,13 +147,14 @@ public class KnowledgeDirectoryConnection {
 			Collections.addAll(list, result);
 			return list;
 		} catch (IOException | InterruptedException | URISyntaxException e) {
-			LOG.warn("Was not able to retrieve ", e);
+			LOG.warn("Was not able to retrieve KnowledgeEngineRuntimeConnectionDetails", e);
 			return Collections.emptyList();
 		}
 	}
 
 	public List<KnowledgeEngineRuntimeConnectionDetails> getOtherKnowledgeEngineRuntimeConnectionDetails() {
-		List<KnowledgeEngineRuntimeConnectionDetails> list = new ArrayList<>(getKnowledgeEngineRuntimeConnectionDetails());
+		List<KnowledgeEngineRuntimeConnectionDetails> list = new ArrayList<>(
+				getKnowledgeEngineRuntimeConnectionDetails());
 		list.removeIf(e -> myId.equals(e.getId()));
 		return list;
 	}

@@ -78,7 +78,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/jsan; charset=UTF-8:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/AskMessage'
       responses:
@@ -96,7 +96,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/jsan; charset=UTF-8:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/AnswerMessage'
       responses:
@@ -114,7 +114,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/jsan; charset=UTF-8:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/PostMessage'
       responses:
@@ -132,7 +132,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/jsan; charset=UTF-8:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/ReactMessage'
       responses:
@@ -150,7 +150,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/jsan; charset=UTF-8:
+          application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/ErrorMessage'
       responses:

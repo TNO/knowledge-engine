@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.KnowledgeDirectory;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 
 public class KnowledgeDirectoryConnectionManagerTest {
 

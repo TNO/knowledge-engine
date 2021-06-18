@@ -9,9 +9,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.LocalSmartConnectorRegistry;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.SmartConnectorRegistryListener;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.RuntimeSmartConnector;
 
 /**
  * Singleton object that keeps a reference to every SmartConnector object in
@@ -19,8 +17,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnecto
  */
 public class LocalSmartConnectorRegistryImpl implements LocalSmartConnectorRegistry {
 
-	private Map<URI, SmartConnectorImpl> smartConnectors = new HashMap<>();
-	private List<SmartConnectorRegistryListener> listeners = new CopyOnWriteArrayList<>();
+	private final Map<URI, RuntimeSmartConnector> smartConnectors = new HashMap<>();
+	private final List<SmartConnectorRegistryListener> listeners = new CopyOnWriteArrayList<>();
 
 	/**
 	 * Constructor may only be called by {@link KeRuntime}
@@ -29,7 +27,7 @@ public class LocalSmartConnectorRegistryImpl implements LocalSmartConnectorRegis
 	}
 
 	@Override
-	public void register(SmartConnectorImpl smartConnector) {
+	public void register(RuntimeSmartConnector smartConnector) {
 		synchronized (smartConnectors) {
 			if (smartConnectors.containsKey(smartConnector.getKnowledgeBaseId())) {
 				throw new IllegalArgumentException(
@@ -43,7 +41,7 @@ public class LocalSmartConnectorRegistryImpl implements LocalSmartConnectorRegis
 	};
 
 	@Override
-	public void unregister(SmartConnectorImpl smartConnector) {
+	public void unregister(RuntimeSmartConnector smartConnector) {
 		synchronized (smartConnectors) {
 			smartConnectors.remove(smartConnector.getKnowledgeBaseId());
 		}
@@ -53,7 +51,7 @@ public class LocalSmartConnectorRegistryImpl implements LocalSmartConnectorRegis
 	};
 
 	@Override
-	public Set<SmartConnectorImpl> getSmartConnectors() {
+	public Set<RuntimeSmartConnector> getSmartConnectors() {
 		synchronized (smartConnectors) {
 			return new HashSet<>(smartConnectors.values());
 		}

@@ -183,13 +183,14 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server</packageName>
-							<apiPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api</apiPackage>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model</modelPackage>
+							<packageName>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker</packageName>
+							<apiPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api</apiPackage>
+							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model</modelPackage>
 							<inputSpec>${project.basedir}/src/main/resources/openapi-inter-ker.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
+							<templateDirectory>${project.basedir}/src/main/resources/openapi_template/</templateDirectory>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
@@ -207,7 +208,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model</modelPackage>
+							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model</modelPackage>
 							<inputSpec>${project.basedir}/../knowledge-directory/src/main/resources/openapi-kd.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>false</generateSupportingFiles>

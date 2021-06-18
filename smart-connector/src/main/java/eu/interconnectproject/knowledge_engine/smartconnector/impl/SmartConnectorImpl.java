@@ -2,7 +2,6 @@ package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,7 +22,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 import eu.interconnectproject.knowledge_engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
@@ -42,7 +40,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
  * data, while the {@link AnswerHandler} and {@link ReactHandler} are used to
  * reactively exchange data.
  */
-public class SmartConnectorImpl implements SmartConnector, LoggerProvider {
+public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider {
 
 	private final Logger LOG;
 

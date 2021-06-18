@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.KnowledgeEngineRuntimeDetails;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.factories.MessagingApiServiceFactory;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.factories.SmartConnectorManagementApiServiceFactory;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 
 public class DistributedMessageDispatcher {
 
@@ -52,8 +54,8 @@ public class DistributedMessageDispatcher {
 		this.state = State.RUNNING;
 
 		// Start Knowledge Directory Connection Manager
-		this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(myHostname, myPort, kdHostname,
-				kdPort);
+		this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdHostname, kdPort, myHostname,
+				myPort);
 		this.getKnowledgeDirectoryConnectionManager().start();
 
 		// Start the LocalSmartConnnectorConnectionsManager
@@ -97,7 +99,13 @@ public class DistributedMessageDispatcher {
 		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/*");
 		serHol.setInitOrder(1);
 		serHol.setInitParameter("jersey.config.server.provider.packages",
-				"eu.interconnectproject.knowledge_engine.smartconnector.messaging");
+				"eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging");
+		serHol.setInitParameter("port", String.valueOf(myPort));
+
+		SmartConnectorManagementApiServiceFactory.registerSmartConnectorManagementApiService(myPort,
+				remoteSmartConnectorConnectionsManager);
+		MessagingApiServiceFactory.registerMessagingApiService(myPort,
+				remoteSmartConnectorConnectionsManager.getMessageReceiver());
 
 		httpServer.start();
 	}
@@ -112,6 +120,8 @@ public class DistributedMessageDispatcher {
 	private void stopHttpServer() throws Exception {
 		httpServer.stop();
 		httpServer.destroy();
+		SmartConnectorManagementApiServiceFactory.unregisterSmartConnectorManagementApiService(myPort);
+		MessagingApiServiceFactory.unregisterMessagingApiService(myPort);
 	}
 
 	/**
@@ -170,6 +180,10 @@ public class DistributedMessageDispatcher {
 
 	public RemoteKerConnectionManager getRemoteSmartConnectorConnectionsManager() {
 		return remoteSmartConnectorConnectionsManager;
+	}
+
+	LocalSmartConnectorConnectionManager getLocalSmartConnectorConnectionManager() {
+		return localSmartConnectorConnectionsManager;
 	}
 
 	KnowledgeDirectoryConnection getKnowledgeDirectoryConnectionManager() {

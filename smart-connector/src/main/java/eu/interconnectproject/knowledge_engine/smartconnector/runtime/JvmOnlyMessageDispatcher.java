@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.LocalSmartConnectorRegistry;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.SmartConnectorRegistryListener;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.RuntimeSmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
@@ -18,7 +18,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.MessageD
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
 
 /**
  * This class is responsible for delivering messages between
@@ -94,13 +93,13 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 
 		// Add all the smart connectors that already existed before we were registered
 		// as listener
-		for (SmartConnectorImpl sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
+		for (RuntimeSmartConnector sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
 			this.smartConnectorAdded(sc);
 		}
 	}
 
 	@Override
-	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
+	public void smartConnectorAdded(RuntimeSmartConnector smartConnector) {
 		// Create a new SmartConnectorHandler and attach it
 		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
 		SmartConnectorHandler handler = new SmartConnectorHandler(endpoint);
@@ -109,7 +108,7 @@ public class JvmOnlyMessageDispatcher implements SmartConnectorRegistryListener 
 	}
 
 	@Override
-	public void smartConnectorRemoved(SmartConnectorImpl smartConnector) {
+	public void smartConnectorRemoved(RuntimeSmartConnector smartConnector) {
 		SmartConnectorHandler handler = this.handlers.remove(smartConnector.getKnowledgeBaseId());
 		handler.close();
 	}

@@ -10,14 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.MessagingApiService;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.NotFoundException;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AnswerMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.AskMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ErrorMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.PostMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.ReactMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.MessagingApiService;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.AskMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ErrorMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.PostMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage;
 
 /**
  * This class is responsible for receiving messages from all remote Smart
@@ -28,11 +27,17 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	public static Logger LOG = LoggerFactory.getLogger(RemoteMessageReceiver.class);
 
+	private final DistributedMessageDispatcher messageDispatcher;
+
+	public RemoteMessageReceiver(DistributedMessageDispatcher messageDispatcher) {
+		this.messageDispatcher = messageDispatcher;
+	}
+
 	private Response handleMessage(KnowledgeMessage message) {
 		try {
 			LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
 					message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
-			KeRuntime.getMessageDispatcher().deliverToLocalSmartConnector(message);
+			messageDispatcher.deliverToLocalSmartConnector(message);
 			return Response.status(202).build();
 		} catch (IOException e) {
 			// Was not able to deliver message to the SmartConnector

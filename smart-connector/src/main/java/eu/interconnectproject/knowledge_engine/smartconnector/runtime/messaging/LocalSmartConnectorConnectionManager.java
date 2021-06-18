@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.RuntimeSmartConnector;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.SmartConnectorEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.SmartConnectorRegistryListener;
@@ -31,7 +31,7 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 		// Start listening for changes in local smart connectors and connect local smart
 		// connectors that already exist
 		KeRuntime.localSmartConnectorRegistry().addListener(this);
-		for (SmartConnectorImpl sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
+		for (RuntimeSmartConnector sc : KeRuntime.localSmartConnectorRegistry().getSmartConnectors()) {
 			this.smartConnectorAdded(sc);
 		}
 	}
@@ -44,18 +44,18 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 	}
 
 	@Override
-	public void smartConnectorAdded(SmartConnectorImpl smartConnector) {
+	public void smartConnectorAdded(RuntimeSmartConnector smartConnector) {
 		// Create a new LocalSmartConnectorMessageReceiver and attach it
 		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
-		LocalSmartConnectorConnection connection = this.localSmartConnectorConnections
-				.put(endpoint.getKnowledgeBaseId(), new LocalSmartConnectorConnection(messageDispatcher, endpoint));
+		LocalSmartConnectorConnection connection = new LocalSmartConnectorConnection(messageDispatcher, endpoint);
+		this.localSmartConnectorConnections.put(endpoint.getKnowledgeBaseId(), connection);
 		connection.start();
 		this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
 	}
 
 	// Remove the LocalSmartConnectorMessageReceiver and detach it
 	@Override
-	public void smartConnectorRemoved(SmartConnectorImpl smartConnector) {
+	public void smartConnectorRemoved(RuntimeSmartConnector smartConnector) {
 		LocalSmartConnectorConnection connection = localSmartConnectorConnections
 				.remove(smartConnector.getKnowledgeBaseId());
 		connection.stop();

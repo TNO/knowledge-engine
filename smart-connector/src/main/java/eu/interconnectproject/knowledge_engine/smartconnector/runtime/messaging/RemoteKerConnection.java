@@ -23,9 +23,9 @@ import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ErrorMes
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.RFC3339DateFormat;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.model.KnowledgeEngineRuntimeDetails;
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 
 /**
  * This class is responsible for sending messages to a single remote Knowledge
@@ -68,10 +68,11 @@ public class RemoteKerConnection {
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
-				LOG.trace("Successfully received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
-						+ remoteKerConnectionDetails.getPort());
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
 						KnowledgeEngineRuntimeDetails.class);
+				LOG.info("Successfully received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
+						+ remoteKerConnectionDetails.getPort() + " with " + runtimeDetails.getSmartConnectorIds().size()
+						+ " Smart Connectors");
 				// TODO validate
 				this.remoteKerDetails = runtimeDetails;
 			} else {
@@ -148,7 +149,7 @@ public class RemoteKerConnection {
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-			if (response.statusCode() == 200) {
+			if (response.statusCode() == 202) {
 				LOG.trace("Successfully sent message {} to {}:{}", message.getMessageId(),
 						remoteKerConnectionDetails.getHostname(), remoteKerConnectionDetails.getPort());
 			} else {

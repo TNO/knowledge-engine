@@ -1,11 +1,25 @@
-package eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.factories;
+package eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.factories;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.messaging.inter_ker.server.api.MessagingApiService;
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
+import java.util.HashMap;
+
+import javax.servlet.ServletConfig;
+
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.MessagingApiService;
 
 public class MessagingApiServiceFactory {
 
-	public static MessagingApiService getMessagingApi() {
-		return KeRuntime.getMessageDispatcher().getRemoteSmartConnectorConnectionsManager().getMessageReceiver();
+	private static HashMap<Integer, MessagingApiService> services = new HashMap<>();
+
+	public static void registerMessagingApiService(int port, MessagingApiService service) {
+		services.put(port, service);
+	}
+
+	public static void unregisterMessagingApiService(int port) {
+		services.remove(port);
+	}
+
+	public static MessagingApiService getMessagingApi(ServletConfig servletContext) {
+		String port = servletContext.getInitParameter("port");
+		return services.get(Integer.parseInt(port));
 	}
 }
