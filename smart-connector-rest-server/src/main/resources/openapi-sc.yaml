@@ -208,9 +208,9 @@ paths:
       responses:
         '200':
           description: If the ask was successful it returns all found variable
-            bindings together with additional exchange info. The exchange info
-            shows the other Knowledge Bases that contributed to the answer with
-            timing, initiator information.
+            bindings together with additional exchange info. The returned bindings form 
+            a set and there is no quaranteed ordering. The exchange info shows the other 
+            Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json; charset=UTF-8:
               schema:
