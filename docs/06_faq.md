@@ -173,3 +173,6 @@ We have an issue #95 which would allow you to instruct the Knowledge Engine to n
   "knowledgeInteractionType": "ReactKnowledgeInteraction",
   "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
 }
+
+*Question*: In a Ask/Answer interaction the bindingSet is a list of items. The items should stay in the order there are inserted on the Answer side. Currently it is not the case.
+- *Answer*:  The Knowledge Engine cannot guarantee the ordering of the Bindings in a  BindingSet due to several reasons. From a Semantic Technology perspective, the bindings are stored in a binding set in which the ordering is not fixed. Also, due to the matchers (and future reasoners) that mediate between different smart connectors and the fact that the response can be a union from BindingSets received from different knowledge bases, it is difficult to guarantee any ordering. Ideally, the ordering of the bindings can be derived from data, for example an ordering value or timestamps. This would allow the data to be sorted after receiving it from the interoperability layer.
