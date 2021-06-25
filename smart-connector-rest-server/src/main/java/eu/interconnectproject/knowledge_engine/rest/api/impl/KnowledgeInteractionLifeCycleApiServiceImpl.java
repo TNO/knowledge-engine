@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import org.apache.jena.query.QueryParseException;
+import org.apache.jena.sparql.lang.arq.TokenMgrError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,9 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			if (msg.contains("prefix")) {
 				msg = msg + ". Note: The Knowledge Engine doesn't support prefixes (yet!). Use the full URI in <>'s for now.";
 			}
-			return Response.status(400).entity(msg).build();
+			return Response.status(400).entity("Invalid graph pattern: " + msg).build();
+		} catch (TokenMgrError e) {
+			return Response.status(400).entity("Invalid graph pattern: " + e.getMessage()).build();
 		}
 		if (kiId == null) {
 			return Response.status(500).entity(
