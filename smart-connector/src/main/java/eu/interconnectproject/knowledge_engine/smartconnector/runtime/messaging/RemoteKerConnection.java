@@ -8,6 +8,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +40,12 @@ public class RemoteKerConnection {
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
 	private KnowledgeEngineRuntimeDetails remoteKerDetails;
-	private final DistributedMessageDispatcher dispatcher;
+	private final MessageDispatcher dispatcher;
 
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
-	public RemoteKerConnection(DistributedMessageDispatcher dispatcher,
+	public RemoteKerConnection(MessageDispatcher dispatcher,
 			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
 		this.dispatcher = dispatcher;
 		this.remoteKerConnectionDetails = kerConnectionDetails;
@@ -62,7 +64,7 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(
-					DistributedMessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname() + ":"
+					MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname() + ":"
 							+ remoteKerConnectionDetails.getPort() + "/runtimedetails"))
 					.header("Content-Type", "application/json").GET().build();
 
@@ -92,6 +94,21 @@ public class RemoteKerConnection {
 		return remoteKerDetails;
 	}
 
+	public List<URI> getRemoteSmartConnectorIds() {
+		List<URI> list = new ArrayList<>();
+		KnowledgeEngineRuntimeDetails remoteKerDetails = getRemoteKerDetails();
+		if (remoteKerDetails != null) {
+			for (String id : remoteKerDetails.getSmartConnectorIds()) {
+				try {
+					list.add(new URI(id));
+				} catch (URISyntaxException e) {
+					LOG.warn("Could not parse remote URI", e);
+				}
+			}
+		}
+		return list;
+	}
+
 	public boolean representsKnowledgeBase(URI knowledgeBaseId) {
 		if (remoteKerDetails == null) {
 			return false;
@@ -116,7 +133,7 @@ public class RemoteKerConnection {
 	public void stop() {
 		try {
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
 							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
 							+ "/runtimedetails/"
 							+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
@@ -143,7 +160,7 @@ public class RemoteKerConnection {
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
 							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
 							+ getPathForMessageType(message)))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
@@ -168,7 +185,7 @@ public class RemoteKerConnection {
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(details);
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(DistributedMessageDispatcher.PEER_PROTOCOL + "://"
+					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
 							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
 							+ "/runtimedetails"))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();

@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.DistributedMessageDispatcher;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.MessageDispatcher;
 
 /**
  * This is a central static class for the Knowledge Engine runtime. This class
@@ -17,12 +17,17 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.
  */
 public class KeRuntime {
 
+	private static final String CONF_KEY_MY_HOSTNAME = "HOSTNAME";
+	private static final String CONF_KEY_MY_PORT = "PORT";
+	private static final String CONF_KEY_KD_HOSTNAME = "KD_HOSTNAME";
+	private static final String CONF_KEY_KD_PORT = "KD_PORT";
+
 	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
 	private static KnowledgeDirectoryProxy knowledgeDirectory = new KnowledgeDirectoryImpl();
 	private static ScheduledExecutorService executorService;
-	private static DistributedMessageDispatcher messageDispatcher = null;
+	private static MessageDispatcher messageDispatcher = null;
 
 	static {
 		// we want to make sure that this threadpool does not keep the JVM alive. So we
@@ -35,6 +40,9 @@ public class KeRuntime {
 				return t;
 			}
 		});
+
+		// Make sure the MessageDispatcher initializes
+		getMessageDispatcher();
 	}
 
 	public static LocalSmartConnectorRegistry localSmartConnectorRegistry() {
@@ -49,13 +57,20 @@ public class KeRuntime {
 		return executorService;
 	}
 
-	public static DistributedMessageDispatcher getMessageDispatcher() {
+	public static MessageDispatcher getMessageDispatcher() {
 		if (messageDispatcher == null) {
 			try {
-				messageDispatcher = new DistributedMessageDispatcher(getConfigProperty("HOSTNAME", "localhost"),
-						Integer.parseInt(getConfigProperty("PORT", "8081")),
-						getConfigProperty("KD_HOSTNAME", "localhost"),
-						Integer.parseInt(getConfigProperty("KD_PORT", "8080")));
+				if (!hasConfigProperty(CONF_KEY_KD_HOSTNAME) || !hasConfigProperty(CONF_KEY_KD_PORT)) {
+					LOG.warn(
+							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
+					messageDispatcher = new MessageDispatcher();
+				} else {
+					messageDispatcher = new MessageDispatcher(
+							getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost"),
+							Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081")),
+							getConfigProperty(CONF_KEY_KD_HOSTNAME, "localhost"),
+							Integer.parseInt(getConfigProperty(CONF_KEY_KD_PORT, "8080")));
+				}
 			} catch (NumberFormatException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
 				System.exit(1);
@@ -79,6 +94,10 @@ public class KeRuntime {
 					+ defaultValue + "'");
 		}
 		return value;
+	}
+
+	public static boolean hasConfigProperty(String key) {
+		return System.getenv(key) != null;
 	}
 
 }

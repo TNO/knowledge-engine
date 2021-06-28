@@ -27,9 +27,9 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	public static Logger LOG = LoggerFactory.getLogger(RemoteMessageReceiver.class);
 
-	private final DistributedMessageDispatcher messageDispatcher;
+	private final MessageDispatcher messageDispatcher;
 
-	public RemoteMessageReceiver(DistributedMessageDispatcher messageDispatcher) {
+	public RemoteMessageReceiver(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
 	}
 

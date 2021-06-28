@@ -1,6 +1,7 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +39,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private final RemoteMessageReceiver messageReceiver;
 	private final Map<String, RemoteKerConnection> remoteKerConnections = new ConcurrentHashMap<>();
 	private ScheduledFuture<?> scheduledFuture;
-	private final DistributedMessageDispatcher distributedMessageDispatcher;
+	private final MessageDispatcher messageDispatcher;
 
-	public RemoteKerConnectionManager(DistributedMessageDispatcher distributedMessageDispatcher) {
-		this.distributedMessageDispatcher = distributedMessageDispatcher;
-		messageReceiver = new RemoteMessageReceiver(distributedMessageDispatcher);
+	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher) {
+		this.messageDispatcher = messageDispatcher;
+		messageReceiver = new RemoteMessageReceiver(messageDispatcher);
 	}
 
 	public void start() {
@@ -56,14 +57,14 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	}
 
 	private synchronized void queryKnowledgeDirectory() {
-		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = distributedMessageDispatcher
+		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = messageDispatcher
 				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
 		// Check if there are new KERs
 		for (KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime : kerConnectionDetails) {
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
 				LOG.info("Discovered new peer " + knowledgeEngineRuntime.getId());
-				RemoteKerConnection messageSender = new RemoteKerConnection(distributedMessageDispatcher,
+				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher,
 						knowledgeEngineRuntime);
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
@@ -101,7 +102,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 */
 	@Override
 	public Response runtimedetailsGet(SecurityContext securityContext) throws NotFoundException {
-		KnowledgeEngineRuntimeDetails runtimeDetails = distributedMessageDispatcher
+		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher
 				.getMyKnowledgeEngineRuntimeDetails();
 		return Response.status(200).entity(runtimeDetails).build();
 	}
@@ -150,7 +151,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 */
 	public void notifyChangedLocalSmartConnectors() {
 		LOG.info("Notifying " + this.remoteKerConnections.size() + " peer(s) of new or removed Smart Connectors");
-		KnowledgeEngineRuntimeDetails runtimeDetails = distributedMessageDispatcher
+		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher
 				.getMyKnowledgeEngineRuntimeDetails();
 		for (RemoteKerConnection remoteKerConnection : this.remoteKerConnections.values()) {
 			remoteKerConnection.sendMyKerDetailsToPeer(runtimeDetails);
@@ -159,6 +160,14 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	public RemoteMessageReceiver getMessageReceiver() {
 		return messageReceiver;
+	}
+
+	public List<URI> getRemoteSmartConnectorIds() {
+		List<URI> list = new ArrayList<>();
+		for (RemoteKerConnection remoteKerConnection : remoteKerConnections.values()) {
+			list.addAll(remoteKerConnection.getRemoteSmartConnectorIds());
+		}
+		return list;
 	}
 
 }

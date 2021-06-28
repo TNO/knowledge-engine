@@ -25,9 +25,9 @@ public class LocalSmartConnectorConnection implements MessageDispatcherEndpoint 
 	public static Logger LOG = LoggerFactory.getLogger(LocalSmartConnectorConnection.class);
 
 	private final SmartConnectorEndpoint endpoint;
-	private final DistributedMessageDispatcher messageDispatcher;
+	private final MessageDispatcher messageDispatcher;
 
-	public LocalSmartConnectorConnection(DistributedMessageDispatcher messageDispatcher, SmartConnectorEndpoint sce) {
+	public LocalSmartConnectorConnection(MessageDispatcher messageDispatcher, SmartConnectorEndpoint sce) {
 		this.messageDispatcher = messageDispatcher;
 		this.endpoint = sce;
 	}

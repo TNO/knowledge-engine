@@ -18,7 +18,7 @@ public class DistributedMessageDispatcherTest {
 	@Test
 	void testLocalMessageExchange() throws Exception {
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		DistributedMessageDispatcher md = new DistributedMessageDispatcher("localhost", 8081, "localhost", 8080);
+		MessageDispatcher md = new MessageDispatcher("localhost", 8081, "localhost", 8080);
 
 		kd.start();
 
@@ -67,8 +67,8 @@ public class DistributedMessageDispatcherTest {
 	@Test
 	void testRemoteMessageExchange() throws Exception {
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		DistributedMessageDispatcher md1 = new DistributedMessageDispatcher("localhost", 8081, "localhost", 8080);
-		DistributedMessageDispatcher md2 = new DistributedMessageDispatcher("localhost", 8082, "localhost", 8080);
+		MessageDispatcher md1 = new MessageDispatcher("localhost", 8081, "localhost", 8080);
+		MessageDispatcher md2 = new MessageDispatcher("localhost", 8082, "localhost", 8080);
 
 		kd.start();
 

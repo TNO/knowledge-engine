@@ -21,9 +21,9 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.SmartConne
 public class LocalSmartConnectorConnectionManager implements SmartConnectorRegistryListener {
 
 	private final Map<URI, LocalSmartConnectorConnection> localSmartConnectorConnections = new ConcurrentHashMap<>();
-	private final DistributedMessageDispatcher messageDispatcher;
+	private final MessageDispatcher messageDispatcher;
 
-	public LocalSmartConnectorConnectionManager(DistributedMessageDispatcher messageDispatcher) {
+	public LocalSmartConnectorConnectionManager(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
 	}
 
@@ -50,7 +50,9 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 		LocalSmartConnectorConnection connection = new LocalSmartConnectorConnection(messageDispatcher, endpoint);
 		this.localSmartConnectorConnections.put(endpoint.getKnowledgeBaseId(), connection);
 		connection.start();
-		this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
+		if (messageDispatcher.runsInDistributedMode()) {
+			this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
+		}
 	}
 
 	// Remove the LocalSmartConnectorMessageReceiver and detach it
@@ -59,7 +61,10 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 		LocalSmartConnectorConnection connection = localSmartConnectorConnections
 				.remove(smartConnector.getKnowledgeBaseId());
 		connection.stop();
-		this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
+
+		if (messageDispatcher.runsInDistributedMode()) {
+			this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
+		}
 	}
 
 	public LocalSmartConnectorConnection getLocalSmartConnectorConnection(URI knowledgeBaseId) {
