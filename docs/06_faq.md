@@ -173,3 +173,74 @@ We have an issue #95 which would allow you to instruct the Knowledge Engine to n
   "knowledgeInteractionType": "ReactKnowledgeInteraction",
   "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
 }
+
+*Question*: In a Ask/Answer interaction the bindingSet is a list of items. The items should stay in the order there are inserted on the Answer side. Currently it is not the case.
+- *Answer*:  The Knowledge Engine cannot guarantee the ordering of the Bindings in a  BindingSet due to several reasons. From a Semantic Technology perspective, the bindings are stored in a binding set in which the ordering is not fixed. Also, due to the matchers (and future reasoners) that mediate between different smart connectors and the fact that the response can be a union from BindingSets received from different knowledge bases, it is difficult to guarantee any ordering. Ideally, the ordering of the bindings can be derived from data, for example an ordering value or timestamps. This would allow the data to be sorted after receiving it from the interoperability layer.
+
+*Question*: Some partners use a query like API request whereby they can specify via an input field what kind of results they expect back, together with the device id (temperature sensor, smart plug, meter,...)
+For instance one can select the list of parameters (status, temperature, power, voltage, door_state, humidity, luminosity etc.) that should be returned.
+In the result below is only the power_total returned, but additional fields could be selected/set in the input field (depending on the device type it can return more than one value)
+This is a quite generic approach. So for this one API call there will be a lot of KIs, correct or can this realized with one KI?
+Is the best approach to create a KI graph pattern per device type that returns all parameters?
+What if I'm only interested in one parameter (not possible now because an exact match is required in this version, but possible in a next version)?
+Result:
+
+```
+{
+    "results": [
+        {
+            "statement_id": 0,
+            "series": [
+                {
+                    "name": "mqtt_consumer",
+                    "columns": [
+                        "time",
+                        "power_total"
+                    ],
+                    "values": [
+                        [
+                            "2021-05-12T08:53:30.052924161Z",
+                            241.63
+                        ],
+                        [
+                            "2021-05-12T09:03:00.050337173Z",
+                            119.67
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+- *Answer*: This is indeed quite a generic approach that, unfortunately, cannot be done with the current version of the KE (as you already correctly mention: because of exact matching). You could in theory register a lot of Knowledge Interactions, although I am not sure that is the best approach. If there is a limited set of fields that are always available, I would recommend providing a single large knowledge interaction. This would, however, mean that the asker registers this large knowledge interaction as well.
+	An alternative approach, which maybe mimics the generic behaviour of the API, could be to provide a measurement graph pattern like:
+
+	```
+	?deviceId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Device> .
+	?deviceId <https://saref.etsi.org/core/makesMeasurement> ?m .
+	?m <https://saref.etsi.org/core/relatesToProperty> ?p . 
+	?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?fieldType .
+	?m <https://saref.etsi.org/core/hasTimestamp> ?ts .
+	?m <https://saref.etsi.org/core/hasValue> ?val .
+	```
+
+	This would allow the asking side to provide a binding set with a particular deviceId and 'fieldTypes':
+
+	```
+	[
+		{
+			"deviceId": "<https://www.example.org/device1>",
+			"fieldType": "<https://saref.etsi.org/saref4ener/PowerMax>"
+		},
+		{
+			"deviceId": "<https://www.example.org/device1>",
+			"fieldType": "<https://saref.etsi.org/saref4ener/PowerMin>"
+		}
+	]
+	```
+
+	The answer side would need to parse this correctly (which is not trivial) and fill the bindingset correctly.
+	When we use a reasoner instead of a matcher, the ask side would not need to use the large graph pattern, but only those fieldTypes that it is interested in. The reasoner would still call the answer side, but limit the results to what the ask side needs.
+	So, there are several ways to handle this and each approach has advantages and disadvantages. Unfortunately, there is not a single best practice to solve this.

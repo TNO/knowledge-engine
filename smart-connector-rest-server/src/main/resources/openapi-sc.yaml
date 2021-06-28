@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 0.1.11-SNAPSHOT
+  version: 0.1.12-SNAPSHOT
   
 servers:
   - url: https://ke.interconnectproject.eu/rest/
@@ -208,9 +208,9 @@ paths:
       responses:
         '200':
           description: If the ask was successful it returns all found variable
-            bindings together with additional exchange info. The exchange info
-            shows the other Knowledge Bases that contributed to the answer with
-            timing, initiator information.
+            bindings together with additional exchange info. The returned bindings form 
+            a set and there is no quaranteed ordering. The exchange info shows the other 
+            Knowledge Bases that contributed to the answer with timing, initiator information.
           content:
             application/json; charset=UTF-8:
               schema:
@@ -223,6 +223,12 @@ paths:
                 type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '500':
+          description: If an internal server error occurs.
           content:
             text/plain; charset=UTF-8:
               schema:
@@ -268,14 +274,20 @@ paths:
             text/plain; charset=UTF-8:
               schema:
                 type: string
+        '500':
+          description: If an internal server error occurs.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
       description: Note that this is a long polling HTTP call.
         It will block until the client is expected to handle something in which
         case it returns. When it returns, a new request to this same endpoint
-        should be immediately made to receive further handle requests. (*** What
-        if one or more handle requests came in in the meantime? ***) All handle
+        should be made to receive further handle requests. Any missed handle requests 
+        are queued at the server-side and returned one at a time. All handle
         requests (both for Answer and React Knowledge Interactions) for the
         given Knowledge-Base-Id will be received via a single long polling http
         connection. The Knowledge Interaction Id can be used to distinguish
@@ -301,8 +313,16 @@ paths:
                 $ref: '#/components/schemas/HandleRequest'
         '202':
           description: No problems, but please reinitiate the long polling request. To prevent very long open connections (which might cause problems for some systems), we regularly return with status code 202 to renew the long polling connection. Note that no handlerequests will be missed, because these are queued automatically.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
         '400':
-          description: Only one connection per Knowledge-Base-Id is allowed and we already have one.  
+          description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
@@ -311,6 +331,10 @@ paths:
                 type: string
         '410':
           description: This long polling connection has stopped because the server will shut down, please do <b>not</b> reinitiate this request.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
         '500':
           description: If a problem occurred. Please reinitiate this long polling http call.
           content:
