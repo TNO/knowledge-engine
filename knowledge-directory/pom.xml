@@ -2,9 +2,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>smart-connector</artifactId>
-	<packaging>jar</packaging>
-	<name>Knowledge Engine - Smart Connector</name>
+	<artifactId>knowledge-directory</artifactId>
+	<name>Knowledge Directory</name>
+
 	<parent>
 		<groupId>eu.interconnectproject.knowledge_engine</groupId>
 		<artifactId>ke-parent</artifactId>
@@ -12,56 +12,23 @@
 		<relativePath>..</relativePath>
 	</parent>
 
+	<properties>
+		<!-- TODO move some of these to ke-parent -->
+		<java.version>11</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<swagger-core-version>1.5.18</swagger-core-version>
+		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
+		<jetty-version>9.2.9.v20150224</jetty-version>
+		<jersey2-version>2.30.1</jersey2-version>
+		<jackson-version>2.9.9</jackson-version>
+		<junit-version>4.13.1</junit-version>
+		<logback-version>1.1.7</logback-version>
+		<servlet-api-version>4.0.1</servlet-api-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
 	<dependencies>
-		<!-- Only needed as dependency for unit tests -->
-		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
-			<artifactId>knowledge-directory</artifactId>
-			<version>0.1.12-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- logging -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-
-		<!-- unit tests -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.7.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.7.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- jena -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<type>pom</type>
-		</dependency>
-
-		<!-- graph algorithms -->
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>1.5.0</version>
-		</dependency>
-		<dependency>
-			<groupId>edu.ucla.sspace</groupId>
-			<artifactId>sspace</artifactId>
-			<version>2.0.4</version>
-		</dependency>
-
-		<!-- OpenAPI stuff -->
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-jersey2-jaxrs</artifactId>
@@ -77,6 +44,18 @@
 			<groupId>org.glassfish.jersey.inject</groupId>
 			<artifactId>jersey-hk2</artifactId>
 			<version>${jersey2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback-version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -125,6 +104,27 @@
 			<version>${jackson-version}</version>
 		</dependency>
 
+		<!-- Base64 encoding that works in both JVM and Android -->
+		<dependency>
+			<groupId>com.brsanthu</groupId>
+			<artifactId>migbase64</artifactId>
+			<version>2.2</version>
+		</dependency>
+
+		<!-- Bean Validation API support -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>${beanvalidation-version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.25</version>
+		</dependency>
 		<!-- Jetty -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -151,22 +151,7 @@
 			<version>2.3.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
-			<artifactId>smart-connector-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
-
-	<properties>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
-		<jetty-version>9.2.9.v20150224</jetty-version>
-		<swagger-core-version>1.5.18</swagger-core-version>
-		<jersey2-version>2.30.1</jersey2-version>
-		<servlet-api-version>4.0.1</servlet-api-version>
-		<jackson-version>2.9.9</jackson-version>
-	</properties>
 
 	<build>
 		<plugins>
@@ -175,44 +160,19 @@
 				<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>5.0.1</version>
 				<executions>
-					<!-- Generate InterKnowledgeEngineRuntime protocol classes -->
 					<execution>
-						<id>inter-ker</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker</packageName>
-							<apiPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api</apiPackage>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model</modelPackage>
-							<inputSpec>${project.basedir}/src/main/resources/openapi-inter-ker.yaml</inputSpec>
+							<packageName>eu.interconnectproject.knowledge_engine.knowledgedirectory</packageName>
+							<apiPackage>eu.interconnectproject.knowledge_engine.knowledgedirectory.api</apiPackage>
+							<modelPackage>eu.interconnectproject.knowledge_engine.knowledgedirectory.model</modelPackage>
+							<inputSpec>${project.basedir}/src/main/resources/openapi-kd.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<templateDirectory>${project.basedir}/src/main/resources/openapi_template/</templateDirectory>
-							<configOptions>
-								<implFolder>dummy</implFolder>
-								<strictSpec>true</strictSpec>
-								<useTags>true</useTags>
-								<dateLibrary>java8</dateLibrary>
-							</configOptions>
-						</configuration>
-					</execution>
-
-					<!-- Generate Knowledge Directory protocol classes -->
-					<execution>
-						<id>kd</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model</modelPackage>
-							<inputSpec>${project.basedir}/../knowledge-directory/src/main/resources/openapi-kd.yaml</inputSpec>
-							<generatorName>jaxrs-jersey</generatorName>
-							<generateSupportingFiles>false</generateSupportingFiles>
-							<generateApis>false</generateApis>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
@@ -242,8 +202,19 @@
 					</execution>
 				</executions>
 			</plugin>
-
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.2</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

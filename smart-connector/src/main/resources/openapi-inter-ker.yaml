@@ -1,0 +1,270 @@
+openapi: "3.0.0"
+info:
+  title: InterConnect Knowledge Engine - Inter-Knowledge Engine Runtime API (a.k.a. SPARQL+)
+  
+  description:
+    This file describes the API for communication between Smart Connectors
+  version: v1
+paths:
+  /runtimedetails:
+    get:
+      summary: List all the Smart Connectors represented by THIS Smart Connector Runtime
+      tags:
+      - "smart connector management"
+      responses:
+        '200':
+          description: A list of Smart Connector Runtimes
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/KnowledgeEngineRuntimeDetails'
+        '500':
+          description: If a problem occurred.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+    post:
+      summary: Push a list of all the Smart Connectors that ANOTHER runtime represents. This can be done because the runtime is new or becaus its details have changed.
+      tags:
+      - "smart connector management"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/KnowledgeEngineRuntimeDetails'
+      responses:
+        '200':
+          description: The Smart Connector Runtime was succefully created. Returns the id.
+          content:
+            text/plan; charset=UTF-8:
+              schema:
+                type: string
+        '500':
+          description: Provided data was not valid
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+                
+  /runtimedetails/{ker_id}:
+    delete:
+      summary: ANOTHER Knowledg Engine Runtime informs this Knowledge Engine runtime it will shut down
+      tags:
+      - "smart connector management"
+      parameters:
+      - name: "ker_id"
+        in: "path"
+        description: ID of the Knowledge Engine Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Understood.
+        '404':
+          description: The Smart Connector Runtime not known
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+
+  /messaging/askmessage:
+    post:
+      summary: Handle an AskMessage
+      tags:
+      - "messaging"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/AskMessage'
+      responses:
+        '202':
+          description: Successfully received message
+        '400':
+          description: Messages not understood, don't try to resend message
+        '500':
+          description: Server was not able to receive message at this time, try again later
+  /messaging/answermessage:
+    post:
+      summary: Handle an AnswerMessage
+      tags:
+      - "messaging"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/AnswerMessage'
+      responses:
+        '202':
+          description: Successfully received message
+        '400':
+          description: Messages not understood, don't try to resend message
+        '500':
+          description: Server was not able to receive message at this time, try again later
+  /messaging/postmessage:
+    post:
+      summary: Handle a PostMessage
+      tags:
+      - "messaging"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/PostMessage'
+      responses:
+        '202':
+          description: Successfully received message
+        '400':
+          description: Messages not understood, don't try to resend message
+        '500':
+          description: Server was not able to receive message at this time, try again later
+  /messaging/reactmessage:
+    post:
+      summary: Handle a ReactMessage
+      tags:
+      - "messaging"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/ReactMessage'
+      responses:
+        '202':
+          description: Successfully received message
+        '400':
+          description: Messages not understood, don't try to resend message
+        '500':
+          description: Server was not able to receive message at this time, try again later
+  /messaging/errormessage:
+    post:
+      summary: Handle an ErrorMessage
+      tags:
+      - "messaging"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/ErrorMessage'
+      responses:
+        '202':
+          description: Successfully received message
+        '400':
+          description: Messages not understood, don't try to resend message
+        '500':
+          description: Server was not able to receive message at this time, try again later
+
+components:
+  schemas:
+    KnowledgeEngineRuntimeDetails:
+      type: object
+      properties:
+        runtimeId:
+          type: string
+        smartConnectorIds:
+          type: array
+          items: 
+            type: string
+            
+    KnowledgeMessage:
+      type: object
+      properties:
+        messageId:
+          type: string
+        fromKnowledgeBase:
+          type: string
+        fromKnowledgeInteraction:
+          type: string
+        toKnowledgeBase:
+          type: string
+        toKnowledgeInteraction:
+          type: string
+        messageNumber:
+          type: integer
+      required:
+        - fromKnowledgeBase
+        - fromKnowledgeInteraction
+        - toKnowledgeBase
+        - toKnowledgeInteraction
+        - messageNumber
+      
+    AskMessage:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeMessage'
+        - type: object
+          properties:
+            bindingSet:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+          required:
+            - bindingSet
+
+    AnswerMessage:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeMessage'
+        - type: object
+          properties:
+            replyToAskMessage:
+              type: string
+            bindingSet:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+          required:
+            - replyToAskMessage
+            - bindingSet
+
+    PostMessage:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeMessage'
+        - type: object
+          properties:
+            argument:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+          required:
+            - argument
+            
+    ReactMessage:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeMessage'
+        - type: object
+          properties:
+            replyToPostMessage:
+              type: string
+            result:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+          required:
+            - replyToPostMessage
+            - bindingSet
+            
+    ErrorMessage:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeMessage'
+        - type: object
+          properties:
+            replyToMessage:
+              type: string
+            errorMessage:
+              type: string
+          required:
+            - replyToMessage

@@ -32,6 +32,9 @@ In the [`client_example` package](./smart-connector-rest-server/src/main/java/eu
 ## How to administer the REST API
 To start a new instance of the REST API knowledge engine version 0.1.11, make sure you have `git checkout 0.1.11` the tag `0.1.11`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
 
+### Starting the Knowledge Engine in local mode
+When no additional configuration parameters are provided, the Knowledge Engine will be default run in local mode. This means you can create multiple Smart Connectors that can communicate with each other through the REST API, but the Knowledge Engine will not connect to a Knowledge Directory and will not be able to connect with Smart Connectors on other machines.
+
 Now, go to the target directory of the `smart-connector-rest-dist` module:
 
 ```bash
@@ -49,6 +52,43 @@ If you want to run in it in the background, you can use the `nohup` linux comman
 ```bash
 nohup java -cp "smart-connector-rest-dist-0.1.11.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280 > ke.log
 ```
+
+### Starting the Knowledge Engine in distributed mode
+The Knowledge Engine can also start in distributed mode, where it connects with a remote Knowledge Directory and where different instances of the Knowledge Engine (each instance hosting one or more Smart Connectors) can communicate with each other.
+
+First of all, you need to start a Knowledge Directory. The desired port number for the Knowledge Directory can be configured using the command line argument (8080 in the example underneath).
+
+```bash
+cd knowledge-directory/target/
+
+java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-0.1.12-SNAPSHOT.jar;dependency/*" eu.interconnectproject.knowledge_engine.knowledgedirectory.Main 8080
+```
+
+As explained in the local mode section, nohup can be used to run the process in the background. On overview of the registered Knowledge Engine Runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
+
+Once the Knowledge Directory is up and running, the REST server can be started. It is configured through environment variables. It has the following configuration options:
+
+| Key | Descrption |
+| --- | --- |
+| KD_HOSTNAME | Hostname where the Knowledge Directory can be found |
+| KD_PORT | Port on which the Knowledge Directory is hosted |
+| HOSTNAME | Hostname where other Smart Connectors (peers) can contact this Knowledge Engine instance |
+| PORT | Port where other Smart Connectors (peers) can contact this Knowledge Engine instance |
+
+Note that the port for the REST API for the Knowledge Bases is still configured through the command line argument.
+
+```bash
+cd smart-connector-rest-dist/target
+
+export KD_HOSTNAME=localhost
+export KD_PORT=8080
+export HOSTNAME=localhost
+export HOSTNAME=8081
+
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-0.1.12.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280
+```
+
+As explained in the local mode section, nohup can be used to run the process in the background.
 
 ## Release steps
 These are instructions on what to do when we release a new version of the knowledge engine.

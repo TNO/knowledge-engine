@@ -20,7 +20,7 @@ import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWi
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
 public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeInteractionLifeCycleApiService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ReactiveApiServiceImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeInteractionLifeCycleApiServiceImpl.class);
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@Override

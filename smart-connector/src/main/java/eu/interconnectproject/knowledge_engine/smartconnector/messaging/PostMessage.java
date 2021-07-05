@@ -1,20 +1,27 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.messaging;
 
 import java.net.URI;
+import java.util.UUID;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 
 public class PostMessage extends KnowledgeMessage {
 
 	/**
-	 * Variable names of the React side are used.
-	 * (Proactive side does the translations)
+	 * Variable names of the React side are used. (Proactive side does the
+	 * translations)
 	 */
-	private BindingSet argument;
+	private final BindingSet argument;
 
 	public PostMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, BindingSet bindings) {
 		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
+		this.argument = bindings;
+	}
+
+	public PostMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, BindingSet bindings) {
+		super(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
 		this.argument = bindings;
 	}
 

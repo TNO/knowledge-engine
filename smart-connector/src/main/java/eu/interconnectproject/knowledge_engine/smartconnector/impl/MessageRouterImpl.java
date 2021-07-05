@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
+import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ErrorMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.MessageDispatcherEndpoint;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.ReactMessage;
@@ -145,6 +146,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			future.complete(reactMessage);
 			LOG.debug("Received ReactMessage: {}", reactMessage);
 		}
+	}
+
+	@Override
+	public void handleErrorMessage(ErrorMessage message) {
+		// TODO Still needs to be implemented!
+		throw new UnsupportedOperationException("Handling of ErrorMessages not yet implemented!");
 	}
 
 	@Override

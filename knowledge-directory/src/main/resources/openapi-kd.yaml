@@ -1,0 +1,150 @@
+openapi: "3.0.0"
+info:
+  title: InterConnect Knowledge Engine - Knowledge Directory API
+  
+  description:
+    This file describes the API between the Smart Connectors and the Knowledge Directory
+  version: v1
+paths:
+  /ker:
+    get:
+      summary: List all Knowledge Engine Runtimes
+      tags:
+      - "ker"
+      responses:
+        '200':
+          description: A list of Knowledge Engine Runtimes
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
+        '500':
+          description: If a problem occurred.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+    post:
+      summary: Register a new Knowledge Engine Runtime
+      tags:
+      - "ker"
+      requestBody:
+        required: true
+        content:
+          application/json; charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
+      responses:
+        '201':
+          description: The Knowledge Engine Runtime was succefully created. Returns the id.
+          content:
+            text/plan; charset=UTF-8:
+              schema:
+                type: string
+        '400':
+          description: Provided data was not valid
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '409':
+          description: The Knowledge Engine Runtime was already registered. Returns the id.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+                
+  /ker/{ker_id}:
+    get:
+      summary: Retrieves data of a single Knowledge Engine Runtime
+      tags:
+      - "ker"
+      parameters:
+      - name: "ker_id"
+        in: "path"
+        description: ID of the Knowledge Engine Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Data for that Knowledge Engine Runtime
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
+        '404':
+          description: No Knowledge Engine Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+    delete:
+      summary: Unregister a Knowledge Engine Runtime
+      tags:
+      - "ker"
+      parameters:
+      - name: "ker_id"
+        in: "path"
+        description: ID of the Knowledge Engine Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Knowledge Engine Runtime unregistered
+        '404':
+          description: No Knowledge Engine Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+  /ker/{ker_id}/renew:
+    post:
+      summary: Renew lease of Knowledge Engine Runtime
+      tags:
+      - "ker"
+      parameters:
+      - name: "ker_id"
+        in: "path"
+        description: ID of the Knowledge Engine Runtime
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Successfully renewed lease for Knowledge Engine Runtime
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/KnowledgeEngineRuntimeConnectionDetails'
+        '404':
+          description: No Knowledge Engine Runtime with that ID
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string  
+
+
+components:
+  schemas:
+    KnowledgeEngineRuntimeConnectionDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        port:
+          type: integer
+        protocolVersion:
+          type: string
+        lastRenew:
+          type: string
+          format: date-time
+      required:
+        - hostname
+        - port
+        - protocolVersion

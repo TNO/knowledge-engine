@@ -1,11 +1,11 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.runtime;
 
-import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorImpl;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.RuntimeSmartConnector;
 
 public interface SmartConnectorRegistryListener {
 
-	void smartConnectorAdded(SmartConnectorImpl smartConnector);
+	void smartConnectorAdded(RuntimeSmartConnector smartConnector);
 
-	void smartConnectorRemoved(SmartConnectorImpl smartConnector);
+	void smartConnectorRemoved(RuntimeSmartConnector smartConnector);
 
 }

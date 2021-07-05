@@ -66,7 +66,7 @@ class VariableBindingNameTest {
 
 				LOG.info("Reacting to sensor value.");
 				Iterator<Binding> iterator = argument.iterator();
-				assert iterator.hasNext();
+				assertTrue(iterator.hasNext());
 
 				Binding b = iterator.next();
 
