@@ -244,3 +244,12 @@ Result:
 	The answer side would need to parse this correctly (which is not trivial) and fill the bindingset correctly.
 	When we use a reasoner instead of a matcher, the ask side would not need to use the large graph pattern, but only those fieldTypes that it is interested in. The reasoner would still call the answer side, but limit the results to what the ask side needs.
 	So, there are several ways to handle this and each approach has advantages and disadvantages. Unfortunately, there is not a single best practice to solve this.
+
+*Question*: Have there been any discussions about availability and scalability of knowledge engine? Seeing as a knowledge base can only have a single polling connection, it does not seem possible to spin up multiple instances of a reactive adapter to the same knowledge base. This would limit the scalability potential by quite a lot. Are there any workarounds around this perhaps?
+	- *Answer*: Although scalability and availability have been mentioned several times now, there has not been any thorough discussions about them. One reason for this is that other things have been our priority in the last couple of months. This also means that the Knowledge Engine has not been designed to handle enormous amounts of data (although it is event-based and multi-threaded), but we expect it to be good enough for most InterConnect use cases. The exact limitations with respect to throughput and latency will probably become clearer in the comings months and since we have not been really concerned with performance I expect there is also still room for improvement.
+
+	Regarding multiple instances of a reactive adapter, we advice a single smart connector per knowledge base and each knowledge base is indeed limited to a single long polling connection. There are several ways to circumvent this limitation:
+	1) consider using the _Java_ Developer API (not sure if the generic adapter will provide this in a future version). It uses handlers and is multi threaded, so it is much better scalable than the _REST_ Developer API.
+	2) divide Knowledge Interactions over multiple Smart Connectors. This would allow you to have a single long polling connection per Knowledge Interaction.
+
+	B.T.W.: We did not choose HTTP as the protocol in order to support web-server like scalability, but because most partners were familiar with it and the tooling and specification is very accessible.
