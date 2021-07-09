@@ -77,6 +77,10 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			return Response.status(404).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
 		}
 
+		if (knowledgeInteractionId == null) {
+			return Response.status(400).entity("Missing valid Knowledge-Interaction-Id header.").build();
+		}
+		
 		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			return Response.status(404)
 					.entity("Knowledge base found, but the given knowledge interaction knowledge base ID is unknown.").build();
