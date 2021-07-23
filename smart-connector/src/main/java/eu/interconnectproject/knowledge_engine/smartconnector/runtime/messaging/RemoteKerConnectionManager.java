@@ -64,8 +64,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
 				LOG.info("Discovered new peer " + knowledgeEngineRuntime.getId());
-				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher,
-						knowledgeEngineRuntime);
+				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime);
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
 			}
@@ -102,8 +101,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 */
 	@Override
 	public Response runtimedetailsGet(SecurityContext securityContext) throws NotFoundException {
-		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher
-				.getMyKnowledgeEngineRuntimeDetails();
+		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher.getMyKnowledgeEngineRuntimeDetails();
 		return Response.status(200).entity(runtimeDetails).build();
 	}
 
@@ -123,14 +121,15 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		} else {
 			// The KER has changed its details
 			LOG.info("Received new or removed Smart Connectors from peer "
-					+ knowledgeEngineRuntimeDetails.getRuntimeId());
+					+ knowledgeEngineRuntimeDetails.getRuntimeId() + " with "
+					+ knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
 			remoteKerConnection.updateKerDetails(knowledgeEngineRuntimeDetails);
 		}
 		return Response.status(200).build();
 	}
 
 	/**
-	 * Another KER lets un know it will leave.
+	 * Another KER lets us know it will leave.
 	 */
 	@Override
 	public Response runtimedetailsKerIdDelete(String kerId, SecurityContext securityContext) throws NotFoundException {
@@ -150,9 +149,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * its own updates.
 	 */
 	public void notifyChangedLocalSmartConnectors() {
-		LOG.info("Notifying " + this.remoteKerConnections.size() + " peer(s) of new or removed Smart Connectors");
-		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher
-				.getMyKnowledgeEngineRuntimeDetails();
+		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher.getMyKnowledgeEngineRuntimeDetails();
+		LOG.info("Notifying " + this.remoteKerConnections.size()
+				+ " peer(s) of new or removed Smart Connectors, there are now "
+				+ runtimeDetails.getSmartConnectorIds().size() + " smart connectors");
 		for (RemoteKerConnection remoteKerConnection : this.remoteKerConnections.values()) {
 			remoteKerConnection.sendMyKerDetailsToPeer(runtimeDetails);
 		}

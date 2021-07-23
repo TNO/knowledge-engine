@@ -42,6 +42,7 @@ public class MessageConverter {
 		result.setToKnowledgeBase(msg.getToKnowledgeBase().toString());
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setBindingSet(toJson(msg.getBindings()));
+		result.setMessageNumber(0); // TODO Change when message numbers are implemented
 		return result;
 	}
 
@@ -64,6 +65,7 @@ public class MessageConverter {
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setReplyToAskMessage(msg.getReplyToAskMessage().toString());
 		result.setBindingSet(toJson(msg.getBindings()));
+		result.setMessageNumber(0); // TODO Change when message numbers are implemented
 		return result;
 	}
 
@@ -84,6 +86,7 @@ public class MessageConverter {
 		result.setToKnowledgeBase(msg.getToKnowledgeBase().toString());
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setArgument(toJson(msg.getArgument()));
+		result.setMessageNumber(0); // TODO Change when message numbers are implemented
 		return result;
 	}
 
@@ -106,6 +109,7 @@ public class MessageConverter {
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setReplyToPostMessage(msg.getReplyToPostMessage().toString());
 		result.setResult(toJson(msg.getResult()));
+		result.setMessageNumber(0); // TODO Change when message numbers are implemented
 		return result;
 	}
 
