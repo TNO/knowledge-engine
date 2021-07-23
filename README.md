@@ -83,7 +83,7 @@ cd smart-connector-rest-dist/target
 export KD_HOSTNAME=localhost
 export KD_PORT=8080
 export HOSTNAME=localhost
-export HOSTNAME=8081
+export PORT=8081
 
 java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-0.1.12.jar:dependency/*" eu.interconnectproject.knowledge_engine.rest.Main 8280
 ```
