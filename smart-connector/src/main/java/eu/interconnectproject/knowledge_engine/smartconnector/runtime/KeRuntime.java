@@ -25,7 +25,6 @@ public class KeRuntime {
 	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
-	private static KnowledgeDirectoryProxy knowledgeDirectory = new KnowledgeDirectoryImpl();
 	private static ScheduledExecutorService executorService;
 	private static MessageDispatcher messageDispatcher = null;
 
@@ -50,7 +49,7 @@ public class KeRuntime {
 	}
 
 	public static KnowledgeDirectoryProxy knowledgeDirectory() {
-		return knowledgeDirectory;
+		return messageDispatcher;
 	}
 
 	public static ScheduledExecutorService executorService() {
@@ -65,8 +64,7 @@ public class KeRuntime {
 							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
 					messageDispatcher = new MessageDispatcher();
 				} else {
-					messageDispatcher = new MessageDispatcher(
-							getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost"),
+					messageDispatcher = new MessageDispatcher(getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost"),
 							Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081")),
 							getConfigProperty(CONF_KEY_KD_HOSTNAME, "localhost"),
 							Integer.parseInt(getConfigProperty(CONF_KEY_KD_PORT, "8080")));

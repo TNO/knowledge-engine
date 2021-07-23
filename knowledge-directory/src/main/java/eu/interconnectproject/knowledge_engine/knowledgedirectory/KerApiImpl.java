@@ -17,7 +17,14 @@ public class KerApiImpl extends KerApiService {
 
 	private void cleanupExpired() {
 		OffsetDateTime threshold = OffsetDateTime.now().minusSeconds(Main.KER_LEASE_SECONDS);
-		kers.entrySet().removeIf(e -> e.getValue().getLastRenew().isBefore(threshold));
+		kers.entrySet().removeIf(e -> {
+			boolean outdated = e.getValue().getLastRenew().isBefore(threshold);
+			if (outdated) {
+				KnowledgeDirectory.LOG.info("Removed Knowledge Engine Runtime {} because its lease expired",
+						e.getValue().getId());
+			}
+			return outdated;
+		});
 	}
 
 	@Override
@@ -50,6 +57,8 @@ public class KerApiImpl extends KerApiService {
 		knowledgeEngineRuntime.setLastRenew(OffsetDateTime.now());
 		kers.put(id, knowledgeEngineRuntime);
 
+		KnowledgeDirectory.LOG.info("Added new Knowledge Engine Runtime {}", id);
+
 		return Response.status(201).entity(id).build();
 	}
 
@@ -64,11 +73,12 @@ public class KerApiImpl extends KerApiService {
 	}
 
 	@Override
-	public Response kerKerIdDelete(String kepId, SecurityContext securityContext) throws NotFoundException {
+	public Response kerKerIdDelete(String kerId, SecurityContext securityContext) throws NotFoundException {
 		cleanupExpired();
-		if (kers.remove(kepId) == null) {
+		if (kers.remove(kerId) == null) {
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		}
+		KnowledgeDirectory.LOG.info("Removed Knowledge Engine Runtime {}", kerId);
 		return Response.status(200).build();
 	}
 
@@ -77,8 +87,11 @@ public class KerApiImpl extends KerApiService {
 		cleanupExpired();
 		KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime = kers.get(kerId);
 		if (knowledgeEngineRuntime == null) {
+			KnowledgeDirectory.LOG
+					.info("Could not find Knowledge Engine Runtime with id " + kerId + " for renewing lease");
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		} else {
+			KnowledgeDirectory.LOG.info("Renewed lease for " + kerId);
 			knowledgeEngineRuntime.setLastRenew(OffsetDateTime.now());
 			return Response.status(204).build();
 		}

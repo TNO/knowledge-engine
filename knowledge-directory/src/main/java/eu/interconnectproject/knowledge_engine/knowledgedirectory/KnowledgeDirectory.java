@@ -9,13 +9,13 @@ import org.slf4j.LoggerFactory;
 
 public class KnowledgeDirectory {
 
-	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectory.class);
+	public static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectory.class);
 
 	private static enum State {
 		NEW, RUNNING, STOPPED
 	}
 
-	private int port;
+	private final int port;
 	private State state;
 	private Server server;
 

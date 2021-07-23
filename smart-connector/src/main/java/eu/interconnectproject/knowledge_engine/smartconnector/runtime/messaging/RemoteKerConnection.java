@@ -63,9 +63,10 @@ public class RemoteKerConnection {
 	 */
 	private void updateRemoteKerDataFromPeer() {
 		try {
-			HttpRequest request = HttpRequest.newBuilder(new URI(
-					MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname() + ":"
-							+ remoteKerConnectionDetails.getPort() + "/runtimedetails"))
+			HttpRequest request = HttpRequest
+					.newBuilder(
+							new URI(MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname()
+									+ ":" + remoteKerConnectionDetails.getPort() + "/runtimedetails"))
 					.header("Content-Type", "application/json").GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
@@ -133,10 +134,10 @@ public class RemoteKerConnection {
 	public void stop() {
 		try {
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
-							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
-							+ "/runtimedetails/"
-							+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
+					.newBuilder(
+							new URI(MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname()
+									+ ":" + remoteKerConnectionDetails.getPort() + "/runtimedetails/"
+									+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
 					.header("Content-Type", "application/json").DELETE().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
@@ -160,9 +161,9 @@ public class RemoteKerConnection {
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
-							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
-							+ getPathForMessageType(message)))
+					.newBuilder(
+							new URI(MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname()
+									+ ":" + remoteKerConnectionDetails.getPort() + getPathForMessageType(message)))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
@@ -185,9 +186,9 @@ public class RemoteKerConnection {
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(details);
 			HttpRequest request = HttpRequest
-					.newBuilder(new URI(MessageDispatcher.PEER_PROTOCOL + "://"
-							+ remoteKerConnectionDetails.getHostname() + ":" + remoteKerConnectionDetails.getPort()
-							+ "/runtimedetails"))
+					.newBuilder(
+							new URI(MessageDispatcher.PEER_PROTOCOL + "://" + remoteKerConnectionDetails.getHostname()
+									+ ":" + remoteKerConnectionDetails.getPort() + "/runtimedetails"))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
