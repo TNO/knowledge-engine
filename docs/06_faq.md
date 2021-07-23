@@ -255,6 +255,7 @@ Result:
 	B.T.W.: We did not choose HTTP as the protocol in order to support web-server like scalability, but because most partners were familiar with it and the tooling and specification is very accessible.
 
 *Question*: I can hardly figure how data are exchanged between services in the Interworking layer architecure. When a service A ask for data form another service (B) through the KE (for example give me the temperature setpoint for this household) it is not clear if the final data (ie the temprature setpoint) is sent directly from Servica A Endpoint to Service B Endpoint or if it transit through the Interworking layer infrastructure.
+
 	- *Answer*: If two services A and B want to exchange data in an interoperable manner, they both should use InterConnect's interoperability layer. They first register their capabilities (using the Ask and Answer Knowledge Interactions) and then the actual data exchange can happen. This data exchange is orchestrated by the interoperability layer and, so, the data transits through the interoperability layer. Service A asks the temperature set point to its Smart Connector and the interoperability layer will contact the Smart Connector of Service B to retrieve the answer from its Service B and sends the result back.
 
 	For more information about the Knowledge Engine and Knowledge Interactions, see the recorded workshop on our shared drive: https://drive.inesctec.pt/f/16182787
