@@ -134,7 +134,16 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 	};
 
-	public RestKnowledgeBase(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
+	/**
+	 * Runnable to run when smart connector is ready. This currently triggers the
+	 * response to a successful /sc POST request.
+	 */
+	private final Runnable onReady;
+
+	public RestKnowledgeBase(
+		eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel,
+		final Runnable onReady
+	) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
@@ -142,6 +151,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(50);
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
+		this.onReady = onReady;
 
 		if (smartConnectorProvider == null) {
 			throw new IllegalStateException(
@@ -520,7 +530,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
-		// Do nothing. The REST API doesn't provide these signals (yet).
+		this.onReady.run();
 	}
 
 	@Override
