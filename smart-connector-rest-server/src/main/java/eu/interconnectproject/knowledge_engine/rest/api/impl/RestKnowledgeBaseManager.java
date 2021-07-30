@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,18 @@ public class RestKnowledgeBaseManager {
 		return restKnowledgeBases.containsKey(knowledgeBaseId);
 	}
 
-	public void createKB(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
-		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel));
+	/**
+	 * Creates a new KB with a smart connector. Once the smart connector has
+	 * received the 'ready' signal, the future is completed.
+	 * @param scModel
+	 * @return
+	 */
+	public CompletableFuture<Void> createKB(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel) {
+		var f = new CompletableFuture<Void>();
+		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel, () -> {
+			f.complete(null);
+		}));
+		return f;
 	}
 
 	public RestKnowledgeBase getKB(String knowledgeBaseId) {
