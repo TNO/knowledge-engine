@@ -64,7 +64,7 @@ public class ReactiveApiServiceImpl {
 				TimeoutHandler handler = new TimeoutHandler() {
 					@Override
 					public void handleTimeout(AsyncResponse ar) {
-						LOG.info("handleTimeout called!");
+						LOG.debug("Sending 202 to {}", kb.getKnowledgeBaseId());
 						ResponseBuilder aBuilder;
 
 						aBuilder = Response.status(202);

@@ -41,7 +41,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		@Suspended final AsyncResponse asyncResponse,
 		@Context SecurityContext securityContext
 	) throws NotFoundException {
-		LOG.info("scGet called: {}", knowledgeBaseId);
+		LOG.debug("scGet called: {}", knowledgeBaseId);
 
 		if (knowledgeBaseId == null) {
 			asyncResponse.resume(Response.ok().entity(convertToModel(this.manager.getKBs())).build());
