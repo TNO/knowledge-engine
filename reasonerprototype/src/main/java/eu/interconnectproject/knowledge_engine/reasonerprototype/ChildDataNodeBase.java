@@ -2,10 +2,13 @@ package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
 import java.util.ArrayList;
 
-import eu.interconnectproject.knowledge_engine.reasonerprototype.ChildDataBase.ChildData;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.ChildDataNodeBase.ChildData;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
 
-public class ChildDataBase<RN extends ReasoningNode> extends ArrayList<ChildData<RN>> {
+/**
+ * Utility class that is used by nodes that have multiple children.
+ */
+public class ChildDataNodeBase<RN extends ReasoningNode> extends ArrayList<ChildData<RN>> {
 
 	private static final long serialVersionUID = 6518546322917038117L;
 

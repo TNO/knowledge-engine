@@ -39,14 +39,14 @@ public class RemoteTaskBoard {
 		// requests
 		List<RemoteRuleReasoningNode> taskList = remoteTasks.get(knowledgeInteractionId);
 		for (RemoteRuleReasoningNode node : taskList) {
-			BindingSet request = node.getKnowledgeInteractionBinding();
+			BindingSet request = node.getKnowledgeInteractionRequestBinding();
 			if (requestCache.containsKey(request)) {
 				System.out.println(
 						"Not requesting KI " + ki.getId() + " with BindingSet " + request + ", answer was in cache");
 				node.processKnowledgeInteractionResponse(requestCache.get(request));
 			} else {
 				System.out.println("Requesting KI " + ki.getId() + " with BindingSet " + request);
-				BindingSet reponse = ki.processRequest(node.getKnowledgeInteractionBinding());
+				BindingSet reponse = ki.processRequest(node.getKnowledgeInteractionRequestBinding());
 				requestCache.put(request, reponse);
 				node.processKnowledgeInteractionResponse(reponse);
 			}

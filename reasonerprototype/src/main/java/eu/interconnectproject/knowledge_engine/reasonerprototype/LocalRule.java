@@ -6,7 +6,7 @@ import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
 
 public class LocalRule extends Rule {
 
-	public LocalRule(List<Triple> lhs, Triple rhs) {
+	public LocalRule(List<Triple> lhs, List<Triple> rhs) {
 		super(lhs, rhs);
 	}
 

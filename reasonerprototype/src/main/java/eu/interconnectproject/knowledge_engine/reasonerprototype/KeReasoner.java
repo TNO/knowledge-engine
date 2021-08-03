@@ -18,6 +18,7 @@ import eu.interconnectproject.knowledge_engine.reasonerprototype.ki.ReactKnowled
 public class KeReasoner implements ReasoningNode {
 
 	private final Map<URI, KnowledgeInteraction> knowledgeInteractions = new HashMap<>();
+	private final List<LocalRule> localRules = new ArrayList<>();
 	private final List<Rule> rules = new ArrayList<>();
 	private final RemoteTaskBoard remoteTaskBoard;
 	private BindingSet resultBindingSet;;
@@ -30,8 +31,12 @@ public class KeReasoner implements ReasoningNode {
 		this.knowledgeInteractions.put(knowledgeInteraction.getId(), knowledgeInteraction);
 	}
 
+	public void addLocalRule(LocalRule localRule) {
+		this.localRules.add(localRule);
+	}
+
 	public BindingSet reason(List<Triple> objective, Binding binding) {
-		System.out.println("Reasoning objective: " + objective + "\n");
+		System.out.println("Reasoning objective: " + objective + " with binding " + binding + "\n");
 
 		createRules();
 
@@ -60,31 +65,33 @@ public class KeReasoner implements ReasoningNode {
 
 	private void createRules() {
 		rules.clear();
+		rules.addAll(localRules);
 		for (KnowledgeInteraction knowledgeInteraction : knowledgeInteractions.values()) {
 			if (knowledgeInteraction instanceof AnswerKnowledgeInteraction) {
-				for (Triple triple : ((AnswerKnowledgeInteraction) knowledgeInteraction).getGraphPattern()) {
-					if (triple.containsVariables()) {
-						rules.add(new RemoteRule(Collections.emptyList(), triple, knowledgeInteraction.getId()));
-					} else {
-						rules.add(new LocalRule(Collections.emptyList(), triple));
-					}
-				}
+				rules.add(new RemoteRule(Collections.emptyList(),
+						((AnswerKnowledgeInteraction) knowledgeInteraction).getGraphPattern(),
+						knowledgeInteraction.getId()));
 			} else if (knowledgeInteraction instanceof ReactKnowledgeInteraction) {
-				for (Triple triple : ((ReactKnowledgeInteraction) knowledgeInteraction).getResultGraphPattern()) {
-					rules.add(
-							new RemoteRule(((ReactKnowledgeInteraction) knowledgeInteraction).getArgumentGraphPattern(),
-									triple, knowledgeInteraction.getId()));
-				}
+				// TODO filter based communicative act
+				rules.add(new RemoteRule(((ReactKnowledgeInteraction) knowledgeInteraction).getArgumentGraphPattern(),
+						((ReactKnowledgeInteraction) knowledgeInteraction).getResultGraphPattern(),
+						knowledgeInteraction.getId()));
 			}
 		}
 		System.out.println("Rules:");
-		for (Rule rule : rules) {
+		for (
+
+		Rule rule : rules) {
 			System.out.println(rule);
 		}
 		System.out.println("");
 	}
 
 	List<Rule> findRulesFor(Triple objective, Binding binding) {
+		return rules.stream().filter(r -> r.rhsMatches(objective, binding)).collect(Collectors.toList());
+	}
+
+	List<Rule> findRulesFor(List<Triple> objective, Binding binding) {
 		return rules.stream().filter(r -> r.rhsMatches(objective, binding)).collect(Collectors.toList());
 	}
 
@@ -99,6 +106,12 @@ public class KeReasoner implements ReasoningNode {
 	@Override
 	public void processResultingBindingSet(ReasoningNode child, BindingSet bindingSet) {
 		this.resultBindingSet = bindingSet;
+	}
+
+	@Override
+	public boolean plan() {
+		// Not used
+		return false;
 	}
 
 }

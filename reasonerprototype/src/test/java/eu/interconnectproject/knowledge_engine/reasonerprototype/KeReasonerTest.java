@@ -23,6 +23,9 @@ public class KeReasonerTest {
 		reasoner.addKnowledgeInteraction(new MultiSensorKnowledgeInteraction());
 		reasoner.addKnowledgeInteraction(new Sensor1KnowledgeInteraction());
 		reasoner.addKnowledgeInteraction(new ConvertKnowledgeInteraction());
+		reasoner.addKnowledgeInteraction(new LocationKnowledgeInteraction());
+		reasoner.addLocalRule(new LocalRule(Collections.singletonList(new Triple("?s rdf:type Sensor")),
+				Collections.singletonList(new Triple("?s rdf:type Thing"))));
 	}
 
 	@Test
@@ -40,16 +43,13 @@ public class KeReasonerTest {
 
 	@Test
 	public void testMultiTripleObjective() {
-		// TODO with this example the reasoner still creates two requests for the KI. I
-		// think this can be avoided by making the RemoteTaskBoard more clever.
-
 		// Formulate objective
 		Binding b = new Binding();
-		b.put(new Triple.Variable("?room"), new Triple.Literal("room2"));
+//		b.put(new Triple.Variable("?room"), new Triple.Literal("room2"));
 		List<Triple> objective = new ArrayList<>();
 		objective.add(new Triple("?sensor rdf:type Sensor"));
 		objective.add(new Triple("?sensor isInRoom ?room"));
-		objective.add(new Triple("?sensor isOn ?isOn"));
+//		objective.add(new Triple("?sensor isOn ?isOn"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);
@@ -63,6 +63,33 @@ public class KeReasonerTest {
 		Binding b = new Binding();
 		List<Triple> objective = new ArrayList<>();
 		objective.add(new Triple("?sensor isInRoom ?room"));
+
+		// Start reasoning
+		BindingSet bindingSet = reasoner.reason(objective, b);
+
+		System.out.println("Reasoning resulted in bindingset " + bindingSet);
+	}
+
+	@Test
+	public void testCombiningDifferentWays() {
+		// Formulate objective
+		Binding b = new Binding();
+		List<Triple> objective = new ArrayList<>();
+		objective.add(new Triple("?SENSOR rdf:type Sensor"));
+		objective.add(new Triple("?SENSOR isInRoom ?ROOM"));
+
+		// Start reasoning
+		BindingSet bindingSet = reasoner.reason(objective, b);
+
+		System.out.println("Reasoning resulted in bindingset " + bindingSet);
+	}
+
+	@Test
+	public void testLocalRule() {
+		// Formulate objective
+		Binding b = new Binding();
+		List<Triple> objective = new ArrayList<>();
+		objective.add(new Triple("?thing rdf:type Thing"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);

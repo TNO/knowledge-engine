@@ -9,7 +9,7 @@ public class RemoteRule extends Rule {
 
 	private final URI knowledgeInteractionId;
 
-	public RemoteRule(List<Triple> lhs, Triple rhs, URI knowledgeInteractionId) {
+	public RemoteRule(List<Triple> lhs, List<Triple> rhs, URI knowledgeInteractionId) {
 		super(lhs, rhs);
 		this.knowledgeInteractionId = knowledgeInteractionId;
 	}

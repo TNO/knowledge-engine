@@ -64,23 +64,18 @@ public class MultiSensorKnowledgeInteraction extends AnswerKnowledgeInteraction 
 				List<Entry<Literal, Literal>> filterResult = stream.collect(Collectors.toList());
 				for (Entry<Literal, Literal> e : filterResult) {
 					Binding b = new Binding();
-					if (!requestBinding.containsKey(VAR_S)) {
-						b.put(VAR_S, e.getKey());
-					}
-					if (!requestBinding.containsKey(VAR_R)) {
-						b.put(VAR_R, e.getValue());
-					}
-					if (!requestBinding.containsKey(VAR_O)) {
-						// It's always on
-						b.put(VAR_O, new Triple.Literal("true"));
-					}
+					b.put(VAR_S, e.getKey());
+					b.put(VAR_R, e.getValue());
+					// It's always on
+					b.put(VAR_O, new Triple.Literal("true"));
 					response.add(b);
 				}
 			}
 		}
 
-		System.err.println("Knowledge Interaction " + getId() + " formulated response " + response
-				+ " based on BindingSet " + bindingSet);
+		System.err.println("Knowledge Interaction " +
+
+				getId() + " formulated response " + response + " based on BindingSet " + bindingSet);
 		return response;
 	}
 
