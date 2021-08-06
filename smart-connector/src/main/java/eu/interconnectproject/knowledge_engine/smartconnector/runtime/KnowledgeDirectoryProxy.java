@@ -7,4 +7,8 @@ public interface KnowledgeDirectoryProxy {
 
 	Set<URI> getKnowledgeBaseIds();
 
+	void addListener(KnowledgeDirectoryProxyListener listener);
+
+	void removeListener(KnowledgeDirectoryProxyListener listener);
+
 }

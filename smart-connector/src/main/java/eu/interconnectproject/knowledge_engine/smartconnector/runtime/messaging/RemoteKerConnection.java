@@ -75,9 +75,10 @@ public class RemoteKerConnection {
 						KnowledgeEngineRuntimeDetails.class);
 				LOG.info("Successfully received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
 						+ remoteKerConnectionDetails.getPort() + " with " + runtimeDetails.getSmartConnectorIds().size()
-						+ " Smart Connectors");
+						+ " Smart Connectors: " + runtimeDetails.getSmartConnectorIds());
 				// TODO validate
 				this.remoteKerDetails = runtimeDetails;
+				dispatcher.notifySmartConnectorsChanged();
 			} else {
 				LOG.warn("Failed to received runtimedetails from " + remoteKerConnectionDetails.getHostname() + ":"
 						+ remoteKerConnectionDetails.getPort() + ", got status code " + response.statusCode());
@@ -123,8 +124,9 @@ public class RemoteKerConnection {
 	 * @param kerDetails
 	 */
 	public void updateKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
-		this.remoteKerDetails = kerDetails;
 		// TODO implement checks?
+		this.remoteKerDetails = kerDetails;
+		dispatcher.notifySmartConnectorsChanged();
 	}
 
 	public void start() {

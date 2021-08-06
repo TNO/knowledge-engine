@@ -94,6 +94,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		return LoggerFactory.getLogger(class1.getSimpleName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
 	}
 
+	@Override
 	public URI getKnowledgeBaseId() {
 		return this.myKnowledgeBase.getKnowledgeBaseId();
 	}
@@ -438,6 +439,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		// this will trigger notifications to other Smart Connectors.
 		this.knowledgeBaseStore.stop();
 
+		this.otherKnowledgeBaseStore.stop();
+
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
 
 		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
@@ -495,6 +498,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		});
 	}
 
+	@Override
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
 		return this.messageRouter;
 	}

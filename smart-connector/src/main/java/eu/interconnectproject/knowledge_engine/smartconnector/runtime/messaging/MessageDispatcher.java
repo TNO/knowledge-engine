@@ -3,7 +3,11 @@ package eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import org.eclipse.jetty.server.Server;
@@ -17,6 +21,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.KnowledgeMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectoryProxy;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectoryProxyListener;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.factories.MessagingApiServiceFactory;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api.factories.SmartConnectorManagementApiServiceFactory;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
@@ -61,6 +66,16 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	private KnowledgeDirectoryConnection knowledgeDirectoryConnectionManager = null;
 	private LocalSmartConnectorConnectionManager localSmartConnectorConnectionsManager = null;
 	private RemoteKerConnectionManager remoteSmartConnectorConnectionsManager = null;
+
+	private final List<KnowledgeDirectoryProxyListener> knowledgeDirectoryProxyListeners = new CopyOnWriteArrayList<>();
+
+	/**
+	 * Messages of which the fromKnowledgeBaseId is unknown. This message is not
+	 * sent to the local Smart Connector, since that will lead to an error while
+	 * replying to this message. Instead, we wait until the (remote) known Smart
+	 * Connectors change, and then try again.
+	 */
+	private final List<KnowledgeMessage> undeliverableMail = new LinkedList<>();
 
 	/**
 	 * Construct the {@link MessageDispatcher} in a distributed mode, with an
@@ -217,13 +232,22 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * @throws IOException
 	 */
 	void deliverToLocalSmartConnector(KnowledgeMessage message) throws IOException {
-		LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
-				.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
-		if (cm != null) {
-			cm.deliverToLocalSmartConnector(message);
+		Set<URI> knowledgeBaseIds = this.getKnowledgeBaseIds();
+		if (!knowledgeBaseIds.contains(message.getFromKnowledgeBase())) {
+			// TODO this is not the prettiest solution, it is a potential memory leak and
+			// might cause other Smart Connectors to wait for responses indefinately
+			LOG.warn("Received message from unknown Knowledge Base: " + message.getFromKnowledgeBase()
+					+ ", I only know " + knowledgeBaseIds);
+			this.undeliverableMail.add(message);
 		} else {
-			throw new IOException("Could not deliver message " + message.getMessageId() + ", the Knowledge Base "
-					+ message.getToKnowledgeBase() + " is not known locally");
+			LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
+					.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
+			if (cm != null) {
+				cm.deliverToLocalSmartConnector(message);
+			} else {
+				throw new IOException("Could not deliver message " + message.getMessageId() + ", the Knowledge Base "
+						+ message.getToKnowledgeBase() + " is not known locally");
+			}
 		}
 	}
 
@@ -259,6 +283,52 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			set.addAll(this.getRemoteSmartConnectorConnectionsManager().getRemoteSmartConnectorIds());
 		}
 		return set;
+	}
+
+	@Override
+	public void addListener(KnowledgeDirectoryProxyListener listener) {
+		knowledgeDirectoryProxyListeners.add(listener);
+	}
+
+	@Override
+	public void removeListener(KnowledgeDirectoryProxyListener listener) {
+		knowledgeDirectoryProxyListeners.remove(listener);
+	}
+
+	/**
+	 * Try to deliver messages of which the fromKnowledgeBaseId is unknown. New
+	 * remote Smart Connectors start sending messages right away, often before the
+	 * MessageDispatcher even knows of its existence.
+	 *
+	 * TODO This solves the problem for now, but it would be better if the other
+	 * side retries to send the message instead. This is a potential memory leak and
+	 * might cause other Smart Connectors to keep waiting for a response that never
+	 * comes.
+	 */
+	private void tryDeliverUndeliveredMail() throws IOException {
+		Iterator<KnowledgeMessage> it = undeliverableMail.iterator();
+		while (it.hasNext()) {
+			KnowledgeMessage message = it.next();
+			Set<URI> knowledgeBaseIds = this.getKnowledgeBaseIds();
+			if (knowledgeBaseIds.contains(message.getFromKnowledgeBase())) {
+				LOG.info("I can now deliver the message I received from " + message.getFromKnowledgeBase());
+				deliverToLocalSmartConnector(message);
+				it.remove();
+			}
+		}
+	}
+
+	void notifySmartConnectorsChanged() {
+		LOG.info("Notifying " + knowledgeDirectoryProxyListeners.size() + " listeners about the "
+				+ getKnowledgeBaseIds().size() + " knowledge bases in the KE");
+		for (KnowledgeDirectoryProxyListener knowledgeDirectoryProxyListener : knowledgeDirectoryProxyListeners) {
+			knowledgeDirectoryProxyListener.knowledgeBaseIdSetChanged();
+		}
+		try {
+			tryDeliverUndeliveredMail();
+		} catch (IOException e) {
+			LOG.error("Could not deliver message", e);
+		}
 	}
 
 }

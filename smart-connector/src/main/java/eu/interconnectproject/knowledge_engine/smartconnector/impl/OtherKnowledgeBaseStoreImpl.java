@@ -11,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
+import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeDirectoryProxyListener;
 
-public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
+public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, KnowledgeDirectoryProxyListener {
 	private final MetaKnowledgeBase metaKnowledgeBase;
 	private final SmartConnectorImpl sc;
 
@@ -25,6 +26,12 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 		this.LOG = this.sc.getLogger(this.getClass());
 		this.metaKnowledgeBase = metaKnowledgeBase;
 		this.otherKnowledgeBases = new ConcurrentHashMap<>();
+		KeRuntime.knowledgeDirectory().addListener(this);
+	}
+
+	@Override
+	public void stop() {
+		KeRuntime.knowledgeDirectory().removeListener(this);
 	}
 
 	@Override
@@ -53,17 +60,17 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 			if (!id.equals(this.sc.getKnowledgeBaseId())) {
 
 				// retrieve metadata about other knowledge base
-				CompletableFuture<Void> otherKnowledgeBaseFuture = this.metaKnowledgeBase
-						.getOtherKnowledgeBase(id).thenAccept(otherKnowledgeBase -> {
+				CompletableFuture<Void> otherKnowledgeBaseFuture = this.metaKnowledgeBase.getOtherKnowledgeBase(id)
+						.thenAccept(otherKnowledgeBase -> {
 
-					assert otherKnowledgeBase != null : "The other knowledge base should be non-null.";
+							assert otherKnowledgeBase != null : "The other knowledge base should be non-null.";
 
-					try {
-						this.otherKnowledgeBases.put(otherKnowledgeBase.getId(), otherKnowledgeBase);
-					} catch (Throwable t) {
-						this.LOG.error("Adding an other knowledgebase should succeed.", t);
-					}
-				});
+							try {
+								this.otherKnowledgeBases.put(otherKnowledgeBase.getId(), otherKnowledgeBase);
+							} catch (Throwable t) {
+								this.LOG.error("Adding an other knowledgebase should succeed.", t);
+							}
+						});
 
 				futures.add(otherKnowledgeBaseFuture);
 			} else {
@@ -114,5 +121,11 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore {
 		} catch (Throwable t) {
 			this.LOG.error("Removing an other knowledgebase should succeed.", t);
 		}
+	}
+
+	@Override
+	public void knowledgeBaseIdSetChanged() {
+		LOG.info("List of Smart Connectors changed, repopulating the the OtherKnowledgeBaseStore");
+		this.populate();
 	}
 }
