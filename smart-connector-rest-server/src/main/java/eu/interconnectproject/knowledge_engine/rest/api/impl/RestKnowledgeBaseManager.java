@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +19,21 @@ public class RestKnowledgeBaseManager {
 
 	private Map<String, RestKnowledgeBase> restKnowledgeBases = new HashMap<>();
 
+	private final ScheduledThreadPoolExecutor leaseExpirationExecutor;
+
+	private final static int CHECK_LEASES_PERIOD = 10;
+	private final static int CHECK_LEASES_INITIAL_DELAY = 5;
+
 	private static RestKnowledgeBaseManager instance;
 
 	private RestKnowledgeBaseManager() {
 		LOG.info("RestKnowledgeBaseManager initialized!");
+
+		// Schedule the removal of expired smart connectors periodically.
+		this.leaseExpirationExecutor = new ScheduledThreadPoolExecutor(1);
+		this.leaseExpirationExecutor.scheduleAtFixedRate(() -> {
+			this.removeExpiredSmartConnectors();
+		}, CHECK_LEASES_INITIAL_DELAY, CHECK_LEASES_PERIOD, TimeUnit.SECONDS);
 	}
 
 	public static RestKnowledgeBaseManager newInstance() {
@@ -62,5 +76,16 @@ public class RestKnowledgeBaseManager {
 		var rkb = this.restKnowledgeBases.get(knowledgeBaseId);
 		rkb.stop();
 		this.restKnowledgeBases.remove(knowledgeBaseId);
+	}
+
+	private void removeExpiredSmartConnectors() {
+		this.restKnowledgeBases.entrySet().stream()
+			.filter(entry -> entry.getValue().leaseExpired())
+			.map(entry -> entry.getKey())
+			.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
+			.forEach(kbId -> {
+				LOG.warn("Deleting KB with ID {}, because its lease expired.", kbId);
+				this.deleteKB(kbId);
+			});
 	}
 }

@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
+import eu.interconnectproject.knowledge_engine.rest.model.SmartConnectorLease;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
@@ -140,6 +142,17 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 */
 	private final Runnable onReady;
 
+	/**
+	 * The lease that must be periodically renewed to keep using the smart connector.
+	 * If this is `null`, the lease is permanent.
+	 */
+	private final SmartConnectorLease lease;
+
+	/**
+	 * The renewal time of the lease.
+	 */
+	private final Integer leaseRenewalTime;
+
 	public RestKnowledgeBase(
 		eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel,
 		final Runnable onReady
@@ -152,6 +165,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 		this.onReady = onReady;
+		this.leaseRenewalTime = scModel.getLeaseRenewalTime();
+
+		if (this.leaseRenewalTime != null) {
+			// Issue the initial lease.
+			LOG.info("Creating REST Knowledge Base with lease that must be renewed every {} seconds.", this.leaseRenewalTime);
+
+			Date expiration = new Date();
+			expiration.setTime(expiration.getTime() + 1000 * this.leaseRenewalTime);
+
+			this.lease = new SmartConnectorLease()
+				.knowledgeBaseId(this.knowledgeBaseId)
+				.expires(expiration);
+		} else {
+			this.lease = null;
+		}
 
 		if (smartConnectorProvider == null) {
 			throw new IllegalStateException(
@@ -560,5 +588,37 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.beingProcessedHandleRequests.forEach((id, hr) -> {
 			hr.getFuture().cancel(false);
 		});
+	}
+
+	/**
+	 * Renew the lease of this KB's smart connector with the configured renewal
+	 * time.
+	 */
+	public void renewLease() {
+		if (this.leaseRenewalTime != null && this.lease != null) {
+			Date newExpiration = new Date();
+			newExpiration.setTime(newExpiration.getTime() + 1000 * leaseRenewalTime);
+			this.lease.setExpires(newExpiration);
+		} else {
+			LOG.warn("renewLease should not be called for knowledge bases that have a permanent lease.");
+		}
+	}
+
+	/**
+	 * Returns true if the lease is expired, and false if it's still valid.
+	 */
+	public boolean leaseExpired() {
+		if (this.lease != null) {
+			return this.lease.getExpires().before(new Date());
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @return This KBs lease of the smart connector.
+	 */
+	public SmartConnectorLease getLease() {
+		return this.lease;
 	}
 }
