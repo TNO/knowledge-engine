@@ -45,7 +45,7 @@ public class KeReasonerTest {
 	public void testMultiTripleObjective() {
 		// Formulate objective
 		Binding b = new Binding();
-//		b.put(new Triple.Variable("?room"), new Triple.Literal("room2"));
+		b.put(new Triple.Variable("?room"), new Triple.Literal("room1"));
 		List<Triple> objective = new ArrayList<>();
 		objective.add(new Triple("?sensor rdf:type Sensor"));
 		objective.add(new Triple("?sensor isInRoom ?room"));

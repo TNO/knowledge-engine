@@ -79,9 +79,7 @@ public class KeReasoner implements ReasoningNode {
 			}
 		}
 		System.out.println("Rules:");
-		for (
-
-		Rule rule : rules) {
+		for (Rule rule : rules) {
 			System.out.println(rule);
 		}
 		System.out.println("");

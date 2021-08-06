@@ -47,16 +47,32 @@ public abstract class RuleReasoningNode<R extends Rule> implements ReasoningNode
 		return rule;
 	}
 
+	/**
+	 * Example:
+	 *
+	 * Objective: ?sens rdf:type Sensor
+	 *
+	 * Objective binding {?sens=sensor1}
+	 *
+	 * bindingKeyMap {?SENSOR=?sens
+	 *
+	 * bindingKeyMapInverted {?sens=?SENSOR}
+	 *
+	 * Rule: [] -> [?SENSOR rdf:type Sensor]
+	 *
+	 * Rule binding: {?SENSOR=sensor1}
+	 */
+
 	protected void createRuleBinding() {
-		Map<Value, Value> bindingKeyMapInversed = new HashMap<>();
+		Map<Value, Value> bindingKeyMapInverted = new HashMap<>();
 		for (Entry<Value, Value> entry : bindingKeyMap.entrySet()) {
-			bindingKeyMapInversed.put(entry.getValue(), entry.getKey());
+			bindingKeyMapInverted.put(entry.getValue(), entry.getKey());
 		}
 		// Get the binding with the variables from the rule
 		ruleBinding = new Binding();
 		for (Entry<Variable, Literal> e : objectiveBinding.entrySet()) {
-			if (bindingKeyMapInversed.get(e.getKey()) instanceof Variable) {
-				ruleBinding.put((Variable) bindingKeyMapInversed.get(e.getKey()), e.getValue());
+			if (bindingKeyMapInverted.get(e.getKey()) instanceof Variable) {
+				ruleBinding.put((Variable) bindingKeyMapInverted.get(e.getKey()), e.getValue());
 			}
 		}
 	}

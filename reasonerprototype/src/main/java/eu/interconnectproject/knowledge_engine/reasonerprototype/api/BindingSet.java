@@ -24,6 +24,7 @@ public class BindingSet extends ArrayList<Binding> {
 	}
 
 	public BindingSet merge(BindingSet other) {
+		// TODO Han and Wilco concluded that this merge algorithm isn't (always) correct
 		if (this.isEmpty()) {
 			return new BindingSet(other);
 		}
