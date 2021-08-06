@@ -138,13 +138,14 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 		if (manager.hasKB(knowledgeBaseId)) {
 			manager.deleteKB(knowledgeBaseId);
+			LOG.info("Deleted smart connector with ID {}.", knowledgeBaseId);
+			asyncResponse.resume(Response.ok().build());
+			return;
 		} else {
 			asyncResponse.resume(Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.")
 					.build());
 			return;
 		}
-		asyncResponse.resume(Response.ok().build());
-		return;
 	}
 
 	private eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[] convertToModel(
