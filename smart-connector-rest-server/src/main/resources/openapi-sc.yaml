@@ -85,6 +85,37 @@ paths:
             text/plain; charset=UTF-8:
               schema:
                 type: string
+  /sc/lease/renew:
+    put:
+      summary: Renew the lease of a Smart Connector.
+      tags:
+        - smart connector lease
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The ID of the Knowledge Base whose lease you wish to renew.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The renewed lease
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/SmartConnectorLease'
+        '400':
+          description: The request was faulty.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '404':
+          description: The Knowledge Base doesn't exist (anymore), or doesn't have a lease.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
   /sc/ki:
     get:
       summary: Get all KnowledgeInteractions for a given Knowledge-Base-Id
@@ -394,6 +425,14 @@ components:
           type: string
         knowledgeBaseDescription:
           type: string
+        leaseRenewalTime:
+          type: integer
+          minimum: 30
+          maximum: 3600
+          description: Include this property if you want to have your knowledge
+            base automatically unregistered when you don't renew your lease. Expiry
+            is checked periodically, so your knowledge base may actually be
+            valid for longer than the given time.
     BindingSet:
       type: array
       items:
@@ -551,3 +590,11 @@ components:
           type: integer
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
+    SmartConnectorLease:
+      type: object
+      properties:
+        knowledgeBaseId:
+          type: string
+        expires:
+          type: string
+          format: date-time
