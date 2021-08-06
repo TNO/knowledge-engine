@@ -173,6 +173,12 @@ public class InteractionProcessorImplTest {
 			// TODO Auto-generated method stub
 
 		}
+
+		@Override
+		public void stop() {
+			// TODO Auto-generated method stub
+
+		}
 	}
 
 	class TestMessageRouter implements MessageRouter {

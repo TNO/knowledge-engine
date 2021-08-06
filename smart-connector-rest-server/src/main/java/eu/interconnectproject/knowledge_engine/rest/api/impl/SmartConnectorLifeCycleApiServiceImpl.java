@@ -100,7 +100,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)
-			.knowledgeBaseDescription(kbDescription)).thenRun(() -> {
+			.knowledgeBaseDescription(kbDescription).leaseRenewalTime(smartConnector.getLeaseRenewalTime())).thenRun(() -> {
 				LOG.info("Returning response for smart connector with ID {}", kbId);
 				asyncResponse.resume(Response.ok().build());
 			});

@@ -14,7 +14,8 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KnowledgeD
  * {@link KnowledgeInteraction}s and their {@link SmartConnectorImpl}s'
  * endpoints.
  *
- * It uses the {@link KnowledgeDirectoryProxy} to discover other smart connectors.
+ * It uses the {@link KnowledgeDirectoryProxy} to discover other smart
+ * connectors.
  */
 public interface OtherKnowledgeBaseStore {
 
@@ -30,19 +31,27 @@ public interface OtherKnowledgeBaseStore {
 
 	/**
 	 * Update an already existing knowledge base with changed data.
+	 *
 	 * @param kb The knowledge base that has changed.
 	 */
 	void updateKnowledgeBase(OtherKnowledgeBase kb);
-	
+
 	/**
 	 * Add a new knowledge base.
+	 *
 	 * @param kb The new knowledge base.
 	 */
 	void addKnowledgeBase(OtherKnowledgeBase kb);
-	
+
 	/**
 	 * Remove a knowledge base
+	 *
 	 * @param kb The knowledge base that is to be removed.
 	 */
 	void removeKnowledgeBase(OtherKnowledgeBase kb);
+
+	/**
+	 * Shut down the OtherKnowledgeBaseStore
+	 */
+	void stop();
 }
