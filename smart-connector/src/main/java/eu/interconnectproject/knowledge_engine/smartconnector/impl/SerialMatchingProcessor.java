@@ -175,7 +175,6 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						this.checkOtherKnowledgeInteraction(bindingSet);
 					}
 				} else {
-					this.LOG.error("Unexpected KI type '{}'.", ki.getType());
 					this.checkOtherKnowledgeInteraction(bindingSet);
 				}
 			} else {
