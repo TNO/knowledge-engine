@@ -116,7 +116,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							});
 						} catch (IOException e) {
 							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ askMessage.toString(), e);
+									+ askMessage.toString() + ": " +  e.getMessage());
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -166,7 +166,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							});
 						} catch (IOException e) {
 							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ postMessage.toString(), e);
+									+ postMessage.toString() + ": " + e.getMessage());
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -175,6 +175,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						this.checkOtherKnowledgeInteraction(bindingSet);
 					}
 				} else {
+					this.LOG.error("Unexpected KI type '{}'.", ki.getType());
 					this.checkOtherKnowledgeInteraction(bindingSet);
 				}
 			} else {

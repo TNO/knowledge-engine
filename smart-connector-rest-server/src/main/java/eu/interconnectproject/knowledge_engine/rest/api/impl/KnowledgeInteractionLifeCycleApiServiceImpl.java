@@ -26,8 +26,6 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 	@Override
 	public Response scKiPost(String knowledgeBaseId, KnowledgeInteractionBase knowledgeInteraction, SecurityContext securityContext)
 			throws NotFoundException {
-		LOG.info("scKiPost called: {}", knowledgeInteraction);
-
 		if (knowledgeBaseId == null) {
 			return Response.status(400).entity("Missing valid Knowledge-Base-Id header.").build();
 		}
@@ -65,6 +63,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 					.build();
 		}
 
+		LOG.info("Knowledge interaction created in KB {}: {} (issued id: {})", knowledgeBaseId, knowledgeInteraction, kiId);
 		return Response.ok().entity(kiId).build();
 	}
 
@@ -87,6 +86,8 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		}
 
 		restKb.delete(knowledgeInteractionId);
+
+		LOG.info("Knowledge interaction deleted in KB {}: {}", knowledgeBaseId, knowledgeInteractionId);
 
 		return Response.ok().build();
 	}

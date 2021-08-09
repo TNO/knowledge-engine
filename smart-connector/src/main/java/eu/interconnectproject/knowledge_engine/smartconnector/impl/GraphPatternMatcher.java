@@ -251,6 +251,7 @@ public class GraphPatternMatcher {
 		List<TriplePath> triples = epb.getPattern().getList();
 
 		int vertexCounter = 1;
+		int missedEdges = 0;
 
 		for (TriplePath t : triples) {
 
@@ -277,10 +278,17 @@ public class GraphPatternMatcher {
 
 			success = g.add(e);
 
-			if (!success)
-				LOG.warn("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject, object);
+			if (!success) {
+				missedEdges += 1;
+				LOG.debug("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject, object);
+			}
+
 
 			vertexCounter++;
+		}
+
+		if (missedEdges > 0) {
+			LOG.warn("Could not add all edges. (Missed {}.) Are there duplicate edges in the graph?", missedEdges);
 		}
 
 		return g;
