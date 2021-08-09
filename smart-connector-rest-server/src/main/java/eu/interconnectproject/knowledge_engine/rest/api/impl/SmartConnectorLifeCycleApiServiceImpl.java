@@ -15,6 +15,9 @@ import javax.validation.Valid;
 
 import io.swagger.annotations.ApiParam;
 
+import org.apache.jena.irix.IRIException;
+import org.apache.jena.irix.IRIProvider;
+import org.apache.jena.irix.IRIProviderJenaIRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +30,8 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorLifeCycleApiServiceImpl.class);
 
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
+
+	private final IRIProvider iriProvider = new IRIProviderJenaIRI();
 
 	@GET
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
@@ -86,9 +91,13 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 		URI kbId;
 		try {
+			// Additional check to verify that it is a valid IRI according to Jena.
+			// (java.net.URI is not strict enough.)
+			iriProvider.check(smartConnector.getKnowledgeBaseId());
+
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
-		} catch (URISyntaxException e) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge base ID must be a valid URI.").build());
+		} catch (URISyntaxException | IRIException e) {
+			asyncResponse.resume(Response.status(400).entity("Knowledge base ID must be a valid IRI.").build());
 			return;
 		}
 
