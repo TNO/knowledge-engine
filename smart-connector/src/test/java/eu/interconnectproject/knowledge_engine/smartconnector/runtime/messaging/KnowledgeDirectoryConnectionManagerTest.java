@@ -13,7 +13,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.
 public class KnowledgeDirectoryConnectionManagerTest {
 
 	@Test
-	@Disabled
 	public void testSuccess() throws Exception {
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		kd.start();
@@ -65,7 +64,6 @@ public class KnowledgeDirectoryConnectionManagerTest {
 	}
 
 	@Test
-	@Disabled
 	public void testInterrupted() throws Exception {
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		kd.start();
