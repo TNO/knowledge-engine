@@ -31,7 +31,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.
  */
 public class KnowledgeDirectoryConnection {
 
-	private static final int RENEW_INTERVAL_SECONDS = 30;
+	private static final int RENEW_INTERVAL_SECONDS = 33;
 
 	private final static Logger LOG = org.slf4j.LoggerFactory.getLogger(KnowledgeDirectoryConnection.class);
 

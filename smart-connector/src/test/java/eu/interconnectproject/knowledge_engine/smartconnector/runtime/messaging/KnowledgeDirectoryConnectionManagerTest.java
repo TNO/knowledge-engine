@@ -4,16 +4,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.KnowledgeDirectory;
 import eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 
 public class KnowledgeDirectoryConnectionManagerTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectoryConnectionManagerTest.class);
+
 	@Test
 	public void testSuccess() throws Exception {
+
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		kd.start();
 
@@ -46,6 +50,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 
 	@Test
 	public void testNoKd() throws Exception {
+
 		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
@@ -65,10 +70,13 @@ public class KnowledgeDirectoryConnectionManagerTest {
 
 	@Test
 	public void testInterrupted() throws Exception {
-		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
+
+		KnowledgeDirectoryConnection cm = null;
+		KnowledgeDirectory kd = null;
+		kd = new KnowledgeDirectory(8080);
 		kd.start();
 
-		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
+		cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
@@ -92,17 +100,13 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		kd.start();
 
 		Thread.sleep(35000);
-
 		assertEquals(KnowledgeDirectoryConnection.State.REGISTERED, cm.getState());
-
 		cm.stop();
 
 		Thread.sleep(1000);
 
 		assertEquals(KnowledgeDirectoryConnection.State.STOPPED, cm.getState());
-
 		kd.stop();
-
 	}
 
 }
