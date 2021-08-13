@@ -132,7 +132,9 @@ public class TestAskAnswer {
 		} else {
 			fail("KB2 should not be null!");
 		}
-
-		admin.close();
+	
+		if (admin != null) {
+			admin.close();
+		}
 	}
 }
