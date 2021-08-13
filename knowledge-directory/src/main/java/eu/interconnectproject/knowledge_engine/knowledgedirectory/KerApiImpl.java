@@ -7,6 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.api.KerApiService;
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.knowledgedirectory.model.KnowledgeEngineRuntimeConnectionDetails;
@@ -14,6 +17,13 @@ import eu.interconnectproject.knowledge_engine.knowledgedirectory.model.Knowledg
 public class KerApiImpl extends KerApiService {
 
 	private final Map<String, KnowledgeEngineRuntimeConnectionDetails> kers = new ConcurrentHashMap<>();
+
+	private Logger LOG = LoggerFactory.getLogger(KerApiImpl.class);
+
+	public KerApiImpl() {
+		super();
+		LOG.debug("Starting KerApiImpl with {} entries: {} .", kers.size(), kers);
+	}
 
 	private void cleanupExpired() {
 		OffsetDateTime threshold = OffsetDateTime.now().minusSeconds(Main.KER_LEASE_SECONDS);

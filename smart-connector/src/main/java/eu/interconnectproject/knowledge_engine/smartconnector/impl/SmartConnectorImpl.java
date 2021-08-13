@@ -58,6 +58,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 
 	private final BindingValidator bindingValidator = new BindingValidator();
 
+	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
+
 	/**
 	 * Create a {@link SmartConnectorImpl}
 	 *
@@ -87,6 +89,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 				: Executors.newSingleThreadExecutor();
 
 		KeRuntime.localSmartConnectorRegistry().register(this);
+
+		this.constructorFinished.complete(null);
 	}
 
 	@Override
@@ -463,16 +467,18 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
 			// Then tell the other knowledge bases about our existence.
 			this.metaKnowledgeBase.postNewKnowledgeBase().thenRun(() -> {
-				// When that is done, and all peers have acknowledged our existence, we
-				// can proceed to inform the knowledge base that this smart connector is
-				// ready for action!
-				this.knowledgeBaseExecutorService.execute(() -> {
-					LOG.info("Ready to exchange data.");
-					try {
-						this.myKnowledgeBase.smartConnectorReady(this);
-					} catch (Throwable t) {
-						this.LOG.error("KnowledgeBase threw exception", t);
-					}
+				this.constructorFinished.thenRun(() -> {
+					// When that is done, and all peers have acknowledged our existence, we
+					// can proceed to inform the knowledge base that this smart connector is
+					// ready for action!
+					this.knowledgeBaseExecutorService.execute(() -> {
+						LOG.info("Ready to exchange data.");
+						try {
+							this.myKnowledgeBase.smartConnectorReady(this);
+						} catch (Throwable t) {
+							this.LOG.error("KnowledgeBase threw exception", t);
+						}
+					});
 				});
 			});
 		});
