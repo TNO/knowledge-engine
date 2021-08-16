@@ -9,8 +9,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -23,8 +27,10 @@ import org.slf4j.Logger;
 
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
@@ -68,17 +74,22 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			RecipientSelector aSelector, BindingSet aBindingSet) {
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aBindingSet != null : "the binding set should be non-null";
+		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
 
-		// TODO use RecipientSelector. In the MVP we interpret the recipient selector as
-		// a wildcard.
-
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+
+		// use RecipientSelector to make a subset. We could do this in the easy way, but
+		// in the future we hope that these RecipientSelectors can be merged with the
+		// regular Knowledge Interaction graph pattern. Therefore we use a more
+		// complicated algorithm to create a subset of the other knowledge bases.
+		Set<OtherKnowledgeBase> filteredOtherKnowledgeBases = filterOtherKnowledgeBases(otherKnowledgeBases, aSelector);
+
 		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
 
-		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
+		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
@@ -100,6 +111,58 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		CompletableFuture<AskResult> future = processor.processAskInteraction(anAKI, aBindingSet);
 
 		return future;
+	}
+
+	private Set<OtherKnowledgeBase> filterOtherKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
+			RecipientSelector aSelector) {
+
+		Set<OtherKnowledgeBase> filtered = new HashSet<>();
+
+		// convert to RDF
+		Model m = ModelFactory.createDefaultModel();
+		for (OtherKnowledgeBase okb : otherKnowledgeBases) {
+			m.add(okb.getRDF());
+		}
+
+		String queryString = createQuery(aSelector.getPattern(), aSelector.getBindingSet());
+		LOG.debug("Query: {}", queryString);
+		Query q = QueryFactory.create(queryString);
+		QueryExecution qe = QueryExecutionFactory.create(q, m);
+		ResultSet rs = qe.execSelect();
+
+		Set<URI> filteredKBs = new HashSet<>();
+		QuerySolution qs;
+		while (rs.hasNext()) {
+			qs = rs.next();
+			filteredKBs.add(URI.create(qs.get("kb").toString()));
+		}
+
+		filtered = otherKnowledgeBases.stream().filter((kb) -> {
+			return filteredKBs.contains(kb.getId());
+		}).collect(Collectors.toSet());
+
+		qe.close();
+
+		return filtered;
+	}
+
+	private String createQuery(GraphPattern gp, BindingSet bs) {
+		// then query to retrieve the selected KBs.
+		String queryString = "SELECT * WHERE { " + gp.getPattern() + " } VALUES (?kb) { ";
+
+		if (!bs.isEmpty()) {
+			for (Binding b : bs) {
+				assert (b.containsKey("kb"));
+				String kbId = b.get("kb");
+				queryString += "(" + kbId + "),";
+			}
+		} else {
+			queryString += "(UNDEF),";
+		}
+
+		queryString = queryString.substring(0, queryString.length() - 1);
+		queryString += " }";
+		return queryString;
 	}
 
 	@Override
@@ -137,16 +200,22 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			RecipientSelector aSelector, BindingSet someArguments) {
 		assert aPKI != null : "the knowledge interaction should be non-null";
 		assert someArguments != null : "the binding set should be non-null";
+		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
 
-		// TODO: Use RecipientSelector
-
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+
+		// use RecipientSelector to make a subset. We could do this in the easy way, but
+		// in the future we hope that these RecipientSelectors can be merged with the
+		// regular Knowledge Interaction graph pattern. Therefore we use a more
+		// complicated algorithm to create a subset of the other knowledge bases.
+		Set<OtherKnowledgeBase> filteredOtherKnowledgeBases = filterOtherKnowledgeBases(otherKnowledgeBases, aSelector);
+
 		Set<KnowledgeInteractionInfo> otherKnowledgeInteractions = new HashSet<>();
 
-		for (OtherKnowledgeBase otherKB : otherKnowledgeBases) {
+		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
