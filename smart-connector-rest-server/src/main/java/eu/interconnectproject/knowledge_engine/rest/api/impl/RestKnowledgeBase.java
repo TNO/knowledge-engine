@@ -404,23 +404,23 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		if (ki instanceof AskKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("AskKnowledgeInteraction");
-			kiwid.setGraphPattern(((AskKnowledgeInteraction) ki).getPattern().getPattern());
+			kiwid.setGraphPattern(((AskKnowledgeInteraction) ki).getPattern().getGraphPattern().toString());
 		} else if (ki instanceof AnswerKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("AnswerKnowledgeInteraction");
-			kiwid.setGraphPattern(((AnswerKnowledgeInteraction) ki).getPattern().getPattern());
+			kiwid.setGraphPattern(((AnswerKnowledgeInteraction) ki).getPattern().getGraphPattern().toString());
 		} else if (ki instanceof PostKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("PostKnowledgeInteraction");
 			var pKi = (PostKnowledgeInteraction) ki;
-			kiwid.setArgumentGraphPattern(pKi.getArgument().getPattern());
+			kiwid.setArgumentGraphPattern(pKi.getArgument().getGraphPattern().toString());
 			if (pKi.getResult() != null) {
-				kiwid.setResultGraphPattern(pKi.getResult().getPattern());
+				kiwid.setResultGraphPattern(pKi.getResult().getGraphPattern().toString());
 			}
 		} else if (ki instanceof ReactKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("ReactKnowledgeInteraction");
 			var rKi = (ReactKnowledgeInteraction) ki;
-			kiwid.setArgumentGraphPattern(rKi.getArgument().getPattern());
+			kiwid.setArgumentGraphPattern(rKi.getArgument().getGraphPattern().toString());
 			if (rKi.getResult() != null) {
-				kiwid.setResultGraphPattern(rKi.getResult().getPattern());
+				kiwid.setResultGraphPattern(rKi.getResult().getGraphPattern().toString());
 			}
 		} else {
 			assert false : "Encountered unknown knowledge interaction subclass.";
