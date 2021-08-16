@@ -605,3 +605,8 @@ components:
       additionalProperties:
         type: string
         pattern: url
+      description:
+        If you include a Prefixes object when registering a knowledge interaction,
+        you are allowed to use those prefixes in the graph pattern(s) that the 
+        knowledge interaction contains. Keep in mind that the prefixes can only
+        be used in your graph pattern during registration, and not within bindings.

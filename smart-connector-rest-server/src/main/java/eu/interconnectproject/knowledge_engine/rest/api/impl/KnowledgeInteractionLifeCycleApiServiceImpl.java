@@ -51,7 +51,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 			var msg = e.getMessage();
 			// If this is a Jena error about prefixes, enrich the message with a KE-specific note.
 			if (msg.contains("prefix")) {
-				msg = msg + ". Note: The Knowledge Engine doesn't support prefixes (yet!). Use the full URI in <>'s for now.";
+				msg = msg + ". Note: Have you included your prefixes in the 'prefixes' property?";
 			}
 			return Response.status(400).entity("Invalid graph pattern: " + msg).build();
 		} catch (TokenMgrError e) {
