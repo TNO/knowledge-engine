@@ -10,6 +10,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInter
  */
 public class RecipientSelector {
 	private final GraphPattern pattern;
+	private final BindingSet bindings;
 
 	/**
 	 * Create a new *wildcard* {@link RecipientSelector}. Which means that the
@@ -17,7 +18,9 @@ public class RecipientSelector {
 	 * {@link KnowledgeInteraction}s.
 	 */
 	public RecipientSelector() {
-		this.pattern = new GraphPattern("..."); // TODO
+		this.bindings = new BindingSet();
+		this.pattern = new GraphPattern(
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
 	}
 
 	/**
@@ -28,7 +31,8 @@ public class RecipientSelector {
 	 * @param aPattern The {@link GraphPattern} that selects {@link KnowledgeBase}s
 	 *                 as recipients.
 	 */
-	public RecipientSelector(GraphPattern aPattern) {
+	private RecipientSelector(GraphPattern aPattern) {
+		this.bindings = new BindingSet();
 		this.pattern = aPattern;
 	}
 
@@ -41,7 +45,12 @@ public class RecipientSelector {
 	 *                      the message.
 	 */
 	public RecipientSelector(URI knowledgeBase) {
-		this.pattern = new GraphPattern("..."); // TODO
+		this.bindings = new BindingSet();
+		Binding binding = new Binding();
+		binding.put("kb", "<" + knowledgeBase.toString() + ">");
+		bindings.add(binding);
+		this.pattern = new GraphPattern(
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
 	}
 
 	/**
@@ -50,5 +59,14 @@ public class RecipientSelector {
 	 */
 	public GraphPattern getPattern() {
 		return pattern;
+	}
+
+	/**
+	 * @return The {@link BindingSet} that is being used to instantiate the
+	 *         variables in the {@link GraphPattern} returned by
+	 *         {@link #getPattern()}.
+	 */
+	public BindingSet getBindingSet() {
+		return bindings;
 	}
 }

@@ -289,7 +289,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 *                    {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                    wildcard or something in between where potential
 	 *                    {@link KnowledgeBase} recipients are selected based on
-	 *                    criteria from the KnowledgeBase ontology.
+	 *                    criteria from the KnowledgeBase ontology. Cannot be
+	 *                    {@code null}.
 	 * @param aBindingSet Allows the calling {@link KnowledgeBase} to limit the
 	 *                    question to specific values for specific variables from
 	 *                    the {@link GraphPattern} in the
@@ -303,6 +304,9 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 			BindingSet aBindingSet) {
 
 		this.checkStopped();
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
+
 		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
 
 		this.bindingValidator.validatePartialBindings(anAKI.getPattern(), aBindingSet);
@@ -328,7 +332,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 */
 	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
-		return this.ask(ki, null, bindings);
+		return this.ask(ki, new RecipientSelector(), bindings);
 	}
 
 	/**
@@ -374,7 +378,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                      wildcard or something in between where potential
 	 *                      {@link KnowledgeBase} recipients are selected based on
-	 *                      criteria from the KnowledgeBase ontology.
+	 *                      criteria from the KnowledgeBase ontology. Cannot be
+	 *                      {@code null}.
 	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
 	 *                      question to specific values for specific variables from
 	 *                      the {@link GraphPattern} in the
@@ -387,6 +392,9 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments) {
 		this.checkStopped();
+
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
 
 		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
 
@@ -413,7 +421,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 */
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
-		return this.post(ki, null, argument);
+		return this.post(ki, new RecipientSelector(), argument);
 	}
 
 	/**
