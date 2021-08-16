@@ -455,6 +455,8 @@ components:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
+        prefixes:
+          $ref: '#/components/schemas/Prefixes'
     KnowledgeInteractionWithId:
       allOf:
         - anyOf:
@@ -598,3 +600,8 @@ components:
         expires:
           type: string
           format: date-time
+    Prefixes:
+      type: object
+      additionalProperties:
+        type: string
+        pattern: url
