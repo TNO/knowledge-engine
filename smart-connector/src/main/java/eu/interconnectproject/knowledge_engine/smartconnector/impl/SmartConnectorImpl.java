@@ -1,6 +1,8 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.impl;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +43,6 @@ import eu.interconnectproject.knowledge_engine.smartconnector.runtime.KeRuntime;
  * reactively exchange data.
  */
 public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider {
-
 	private final Logger LOG;
 
 	private final KnowledgeBase myKnowledgeBase;
@@ -60,6 +61,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 
 	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
 
+	private Instant started;
+
 	/**
 	 * Create a {@link SmartConnectorImpl}
 	 *
@@ -67,6 +70,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 *                       to.
 	 */
 	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
+		this.started = Instant.now();
 		this.myKnowledgeBase = aKnowledgeBase;
 
 		this.LOG = this.getLogger(SmartConnectorImpl.class);
@@ -471,11 +475,18 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	}
 
 	void communicationReady() {
+		Instant beforePopulate = Instant.now();
+		LOG.info("Getting comms ready took {} ms", Duration.between(this.started, beforePopulate).toMillis());
 		// Populate the initial knowledge base store.
 		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
+			LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
+			Instant beforeAnnounce = Instant.now();
 			// Then tell the other knowledge bases about our existence.
 			this.metaKnowledgeBase.postNewKnowledgeBase().thenRun(() -> {
+				LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
+				Instant beforeConstructorFinished = Instant.now();
 				this.constructorFinished.thenRun(() -> {
+					LOG.info("Constructor finished took {} ms", Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is
 					// ready for action!
@@ -484,7 +495,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 						try {
 							this.myKnowledgeBase.smartConnectorReady(this);
 						} catch (Throwable t) {
-							this.LOG.error("KnowledgeBase threw exception", t);
+							LOG.error("KnowledgeBase threw exception", t);
 						}
 					});
 				});
@@ -497,7 +508,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 			try {
 				this.myKnowledgeBase.smartConnectorConnectionLost(this);
 			} catch (Throwable t) {
-				this.LOG.error("KnowledgeBase threw exception", t);
+				LOG.error("KnowledgeBase threw exception", t);
 			}
 		});
 	}
@@ -507,7 +518,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 			try {
 				this.myKnowledgeBase.smartConnectorConnectionRestored(this);
 			} catch (Throwable t) {
-				this.LOG.error("KnowledgeBase threw exception", t);
+				LOG.error("KnowledgeBase threw exception", t);
 			}
 		});
 	}
