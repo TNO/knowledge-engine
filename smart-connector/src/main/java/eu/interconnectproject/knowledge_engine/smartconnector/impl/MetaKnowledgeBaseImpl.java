@@ -314,9 +314,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}
 		model.setNsPrefix("kb", Vocab.ONTO_URI);
 
-		StringWriter sw = new StringWriter();
-		model.write(sw, "turtle");
-		this.LOG.trace("Incoming RDF: {}", sw.toString());
+		// StringWriter sw = new StringWriter();
+		// model.write(sw, "turtle");
+		// this.LOG.trace("Incoming RDF: {}", sw.toString());
 
 		Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 
