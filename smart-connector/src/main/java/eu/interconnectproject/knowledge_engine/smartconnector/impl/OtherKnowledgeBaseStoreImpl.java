@@ -58,6 +58,10 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 		for (URI id : newIds) {
 
 			if (!id.equals(this.sc.getKnowledgeBaseId())) {
+				if (this.otherKnowledgeBases.containsKey(id)) {
+					this.LOG.trace("Skipping KB that I already had in my store: {}", id);
+					continue;
+				}
 
 				// retrieve metadata about other knowledge base
 				CompletableFuture<Void> otherKnowledgeBaseFuture = this.metaKnowledgeBase.getOtherKnowledgeBase(id)
