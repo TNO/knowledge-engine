@@ -35,6 +35,8 @@ To start a new instance of the REST API knowledge engine version 0.1.12, make su
 ### Starting the Knowledge Engine in local mode
 When no additional configuration parameters are provided, the Knowledge Engine will be default run in local mode. This means you can create multiple Smart Connectors that can communicate with each other through the REST API, but the Knowledge Engine will not connect to a Knowledge Directory and will not be able to connect with Smart Connectors on other machines.
 
+Keep in mind that the `java` commands below assume a *linux* environment. If you are using a *windows* environment, there might be slight differences (like using semi-colons (;) instead of colons (:) to separate classpath entries).
+
 Now, go to the target directory of the `smart-connector-rest-dist` module:
 
 ```bash
@@ -61,7 +63,7 @@ First of all, you need to start a Knowledge Directory. The desired port number f
 ```bash
 cd knowledge-directory/target/
 
-java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-0.1.12.jar;dependency/*" eu.interconnectproject.knowledge_engine.knowledgedirectory.Main 8080
+java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-0.1.12.jar:dependency/*" eu.interconnectproject.knowledge_engine.knowledgedirectory.Main 8080
 ```
 
 As explained in the local mode section, nohup can be used to run the process in the background. On overview of the registered Knowledge Engine Runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
