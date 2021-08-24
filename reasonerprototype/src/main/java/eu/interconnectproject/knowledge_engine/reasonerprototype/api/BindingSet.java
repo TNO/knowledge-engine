@@ -54,4 +54,25 @@ public class BindingSet extends ArrayList<Binding> {
 		return merged;
 	}
 
+	/**
+	 * The current {@link BindingSet#merge(BindingSet)} method, does indeed not
+	 * handle BindingTest#testStillOther() correctly.
+	 * 
+	 * The algorithm should be similar to a SQL join. If two bindings do not have
+	 * overlapping variables, then each of the pairs of the one, should be combined
+	 * with each of the pairs of the other.
+	 * 
+	 * If two bindings _do_ have overlapping variables, then it depends on whether
+	 * all these overlapping variables have the same value or not what the action
+	 * should be. If all overlapping variables have the same value, the two bindings
+	 * can be merged into a single one. If not all overlapping variables have the
+	 * same value, then both should be incorporated into the merged version.
+	 * 
+	 * @param other
+	 * @return
+	 */
+	public BindingSet altMerge(BindingSet other) {
+		return null;
+	}
+
 }

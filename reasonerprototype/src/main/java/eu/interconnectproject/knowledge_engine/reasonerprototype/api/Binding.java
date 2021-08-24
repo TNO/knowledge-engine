@@ -1,6 +1,7 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
@@ -55,12 +56,44 @@ public class Binding extends HashMap<Triple.Variable, Triple.Literal> {
 	}
 
 	public Binding merge(Binding other) {
-		assert !this.isConflicting(other);
+//		assert !this.isConflicting(other);
 
 		Binding b = new Binding();
 		b.putAll(this);
 		b.putAll(other);
 		return b;
+	}
+
+	/**
+	 * Base case is combine every entry of this binding with every entry of the
+	 * other binding. Then put in place some restrictins, but not all of them are
+	 * correct.
+	 * 
+	 * @param other
+	 * @return
+	 */
+	public Binding altMerge(Binding other) {
+
+		Binding mergedBinding = new Binding();
+
+		// Cartesian product is the base case
+		for (Map.Entry<Triple.Variable, Triple.Literal> thisEntry : this.entrySet()) {
+
+			for (Map.Entry<Triple.Variable, Triple.Literal> otherEntry : other.entrySet()) {
+
+				if (thisEntry.getKey().equals(otherEntry.getKey())) {
+					
+				}
+				else 
+				{
+					
+				}
+
+			}
+
+		}
+
+		return mergedBinding;
 	}
 
 }
