@@ -72,7 +72,20 @@ public class BindingSet extends ArrayList<Binding> {
 	 * @return
 	 */
 	public BindingSet altMerge(BindingSet other) {
-		return null;
+		BindingSet merged = new BindingSet();
+
+		// Cartesian product is the base case
+		for (Binding thisB : this) {
+			for (Binding otherB : other) {
+
+				// always add a merged version of the two bindings, except when they conflict.
+				if (!thisB.isConflicting(otherB)) {
+					merged.add(thisB.merge(otherB));
+				}
+			}
+		}
+
+		return merged;
 	}
 
 }
