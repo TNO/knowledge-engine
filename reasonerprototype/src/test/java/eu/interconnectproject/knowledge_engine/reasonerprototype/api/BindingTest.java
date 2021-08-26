@@ -101,7 +101,7 @@ public class BindingTest {
 		Map<Integer, Compare<BindingSet>> failed = new HashMap<>();
 
 		for (int i = 0; i < tests.length; i = i + 3) {
-			BindingSet merged = toBindingSet(tests[i + first]).merge(toBindingSet(tests[i + second]));
+			BindingSet merged = toBindingSet(tests[i + first]).altMerge(toBindingSet(tests[i + second]));
 			if (!toBindingSet(tests[i + expected]).equals(merged)) {
 
 				failed.put(i / 3, new Compare<BindingSet>(toBindingSet(tests[i + expected]), merged));
