@@ -2,6 +2,8 @@ package eu.interconnectproject.knowledge_engine.smartconnector.misc;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -13,9 +15,11 @@ import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeNetwork;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.MockedKnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
+import eu.interconnectproject.knowledge_engine.smartconnector.impl.SmartConnectorBuilder;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SmartConnectorRegistrationStressTest {
@@ -38,20 +42,39 @@ public class SmartConnectorRegistrationStressTest {
 	}
 
 	@Test
-	public void testRegisterWhenManySmartConnectorsExist() throws ExecutionException, InterruptedException {
+	public void testRegisterWhenManySmartConnectorsExist() throws ExecutionException, InterruptedException, URISyntaxException {
 		Instant beforeRegistration = Instant.now();
 
 		var future = new CompletableFuture<Void>();
 
-		var kb = new MockedKnowledgeBase("TEST-KB") {
+		var testKBUri = new URI("https://www.tno.nl/TEST-KB");
+
+		var kb = new KnowledgeBase() {
+			@Override
+			public URI getKnowledgeBaseId() { return testKBUri; }
+
+			@Override
+			public String getKnowledgeBaseName() { return "TEST KB"; }
+
+			@Override
+			public String getKnowledgeBaseDescription() { return "A test KB"; }
+
 			@Override
 			public void smartConnectorReady(SmartConnector sc) {
 				future.complete(null);
 			}
+
+			@Override
+			public void smartConnectorConnectionLost(SmartConnector aSC) {}
+
+			@Override
+			public void smartConnectorConnectionRestored(SmartConnector aSC) {}
+
+			@Override
+			public void smartConnectorStopped(SmartConnector aSC) {}
 		};
-		kn.addKB(kb); // Might not even be necessary.
 		
-		kb.start(); // Triggers the creation of the smart connector
+		SmartConnectorBuilder.newSmartConnector(kb).create();
 
 		future.get(); // Waits for the future.
 
