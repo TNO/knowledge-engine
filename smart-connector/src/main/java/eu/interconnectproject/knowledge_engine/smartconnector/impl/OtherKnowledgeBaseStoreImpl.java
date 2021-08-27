@@ -58,10 +58,6 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 		for (URI id : newIds) {
 
 			if (!id.equals(this.sc.getKnowledgeBaseId())) {
-				if (this.otherKnowledgeBases.containsKey(id)) {
-					this.LOG.trace("Skipping KB that I already had in my store: {}", id);
-					continue;
-				}
 
 				// retrieve metadata about other knowledge base
 				CompletableFuture<Void> otherKnowledgeBaseFuture = this.metaKnowledgeBase.getOtherKnowledgeBase(id)
@@ -130,6 +126,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 	@Override
 	public void knowledgeBaseIdSetChanged() {
 		LOG.info("List of Smart Connectors changed, repopulating the the OtherKnowledgeBaseStore");
+		// it might be too brute force to start a complete repopulate when something changes. Can we refactor this to be more specific (i.e. which KnowledgeBaseIds were changed?).
 		this.populate();
 	}
 }
