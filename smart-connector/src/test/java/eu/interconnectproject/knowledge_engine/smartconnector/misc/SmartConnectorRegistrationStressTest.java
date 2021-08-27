@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -74,7 +75,7 @@ public class SmartConnectorRegistrationStressTest {
 			public void smartConnectorStopped(SmartConnector aSC) {}
 		};
 		
-		SmartConnectorBuilder.newSmartConnector(kb).create();
+		var sc = SmartConnectorBuilder.newSmartConnector(kb).create();
 
 		future.get(); // Waits for the future.
 
@@ -84,5 +85,12 @@ public class SmartConnectorRegistrationStressTest {
 
 		LOG.info("Registration took {} milliseconds.", duration.toMillis());
 		assertTrue(duration.toSeconds() < TEST_FAIL_THRESHOLD_SECONDS);
+
+		sc.stop();
+	}
+
+	@AfterAll
+	void cleanup() {
+		this.kn.stop().join();
 	}
 }
