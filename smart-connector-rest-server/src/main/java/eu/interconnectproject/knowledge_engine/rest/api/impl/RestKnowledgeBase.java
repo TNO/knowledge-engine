@@ -22,6 +22,9 @@ import javax.ws.rs.core.Response;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -274,6 +277,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			ca = new CommunicativeAct();
 		}
 
+		PrefixMapping prefixMapping;
+		if (ki.getPrefixes() != null) {
+			prefixMapping = new PrefixMappingMem();
+			prefixMapping.setNsPrefixes(ki.getPrefixes());
+		} else {
+			prefixMapping = new PrefixMappingZero();
+		}
+
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
@@ -283,7 +294,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
-			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(aki.getGraphPattern()));
+			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()));
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -293,7 +304,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ANSWER knowledge interactions.");
 			}
-			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(aki.getGraphPattern()));
+			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()));
 
 			kiId = this.sc.register(answerKI, this.answerHandler);
 
@@ -306,10 +317,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			GraphPattern resGP = null;
 
 			if (pki.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(pki.getArgumentGraphPattern());
+				argGP = new GraphPattern(prefixMapping, pki.getArgumentGraphPattern());
 			}
 			if (pki.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(pki.getResultGraphPattern());
+				resGP = new GraphPattern(prefixMapping, pki.getResultGraphPattern());
 			}
 
 			if (resGP == null && argGP == null) {
@@ -329,10 +340,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			GraphPattern resGP = null;
 
 			if (rki.getArgumentGraphPattern() != null) {
-				argGP = new GraphPattern(rki.getArgumentGraphPattern());
+				argGP = new GraphPattern(prefixMapping, rki.getArgumentGraphPattern());
 			}
 			if (rki.getResultGraphPattern() != null) {
-				resGP = new GraphPattern(rki.getResultGraphPattern());
+				resGP = new GraphPattern(prefixMapping, rki.getResultGraphPattern());
 			}
 
 			if (resGP == null && argGP == null) {

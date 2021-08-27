@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Prologue;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.lang.arq.ARQParser;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.syntax.Element;
@@ -16,6 +17,8 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.interconnectproject.knowledge_engine.smartconnector.util.GraphPatternSerialization;
 
 /**
  * A {@link GraphPattern} expresses a 'shape' of knowledge. We use Basic Graph
@@ -30,8 +33,6 @@ import org.slf4j.LoggerFactory;
 public class GraphPattern {
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphPattern.class);
-
-	private final PrefixMapping prefixes;
 
 	private final ElementPathBlock epb;
 
@@ -55,10 +56,23 @@ public class GraphPattern {
 	 * @throws ParseException
 	 */
 	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) throws IllegalArgumentException {
-		this.prefixes = aPrefixMapping;
-		this.pattern = String.join("", somePatternFragments);
+		String patternWithPrefixes = String.join("", somePatternFragments);
+		
+		// First we parse the graph pattern with the given prefixes.
+		ElementPathBlock epb;
 		try {
-			this.epb = this.parseGraphPattern();
+			epb = this.parseGraphPattern(aPrefixMapping, patternWithPrefixes);
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(String.format("Invalid graph pattern: %s", patternWithPrefixes), e);
+		}
+
+		// From this, we serialize it to a canonical pattern with full IRIs.
+		this.pattern = GraphPatternSerialization.serialize(epb);
+
+		// Then we parse it from the canonical pattern to an ElementPathBlock again
+		// (we cache this object).
+		try {
+			this.epb = this.parseGraphPattern(new PrefixMappingZero(), this.pattern);
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(String.format("Invalid graph pattern: %s", this.pattern), e);
 		}
@@ -77,7 +91,7 @@ public class GraphPattern {
 	 * @throws ParseException
 	 */
 	public GraphPattern(String... somePatternFragments) {
-		this(PrefixMapping.Standard, somePatternFragments);
+		this(new PrefixMappingZero(), somePatternFragments);
 	}
 
 	/**
@@ -115,13 +129,13 @@ public class GraphPattern {
 		return this.epb;
 	}
 
-	private ElementPathBlock parseGraphPattern() throws ParseException {
+	private ElementPathBlock parseGraphPattern(PrefixMapping prefixes, String pattern) throws ParseException {
 
-		LOG.trace("prefixes: {}- pattern: {}", this.prefixes, this.pattern);
+		LOG.trace("prefixes: {}- pattern: {}", prefixes, pattern);
 
 		ElementGroup eg;
-		ARQParser parser = new ARQParser(new StringReader(this.pattern));
-		parser.setPrologue(new Prologue(this.prefixes));
+		ARQParser parser = new ARQParser(new StringReader(pattern));
+		parser.setPrologue(new Prologue(prefixes));
 
 		Element e = null;
 		e = parser.GroupGraphPatternSub();
@@ -130,7 +144,7 @@ public class GraphPattern {
 		Element last = eg.getLast();
 
 		if (!(last instanceof ElementPathBlock)) {
-			LOG.error("This knowledge '{}' should be parseable to a ElementPathBlock", this.pattern);
+			LOG.error("This knowledge '{}' should be parseable to a ElementPathBlock", pattern);
 			throw new ParseException(
 					"The knowledge should be parseable to a ARQ ElementPathBlock (i.e. a BasicGraphPattern in the SPARQL syntax specification)");
 		}
