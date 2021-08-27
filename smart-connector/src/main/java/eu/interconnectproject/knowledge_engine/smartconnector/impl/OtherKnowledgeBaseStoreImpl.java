@@ -126,6 +126,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 	@Override
 	public void knowledgeBaseIdSetChanged() {
 		LOG.info("List of Smart Connectors changed, repopulating the the OtherKnowledgeBaseStore");
+		// it might be too brute force to start a complete repopulate when something changes. Can we refactor this to be more specific (i.e. which KnowledgeBaseIds were changed?).
 		this.populate();
 	}
 }

@@ -29,6 +29,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
@@ -85,7 +86,7 @@ public class InteractionProcessorImplTest {
 
 		CompletableFuture<AskResult> future = this.interactionProcessor
 				.processAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
-						new URI("http://www.tno.nl/"), askInteraction, null, null, false), null, new BindingSet());
+						new URI("http://www.tno.nl/"), askInteraction, null, null, false), new RecipientSelector(), new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
 

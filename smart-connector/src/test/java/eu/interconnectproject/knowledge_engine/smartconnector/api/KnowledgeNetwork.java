@@ -1,9 +1,11 @@
 package eu.interconnectproject.knowledge_engine.smartconnector.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Phaser;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -100,4 +102,17 @@ public class KnowledgeNetwork {
 		LOG.info("Everyone is up to date after {} rounds!", count);
 	}
 
+	/**
+	 * Stops all knowledge bases in this network, and returns a future that
+	 * completes when all SCs have stopped.
+	 */
+	public CompletableFuture<Void> stop() {
+		var kbStoppedFutures = new ArrayList<CompletableFuture<Void>>();
+		this.knowledgeBases.forEach(kb -> {
+			kb.stop();
+			kbStoppedFutures.add(kb.getStopFuture());
+		});
+		this.knowledgeBases.clear();
+		return CompletableFuture.allOf(kbStoppedFutures.toArray(new CompletableFuture<?>[kbStoppedFutures.size()]));
+	}
 }

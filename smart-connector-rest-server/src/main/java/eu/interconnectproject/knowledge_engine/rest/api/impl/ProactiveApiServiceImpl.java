@@ -24,9 +24,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
-import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import eu.interconnectproject.knowledge_engine.rest.api.NotFoundException;
 import eu.interconnectproject.knowledge_engine.rest.model.AskExchangeInfo;
@@ -52,10 +53,21 @@ public class ProactiveApiServiceImpl {
 	public void scAskPost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid List<Map<String, String>> bindings,
+
+			@ApiParam(value = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId, bindings);
+		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+				recipientAndBindingSet);
+
+		RecipientAndBindingSet recipientAndBindingSetObject;
+		try {
+			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
+		} catch (IllegalArgumentException e) {
+			LOG.debug("", e);
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+			return;
+		}
 
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
@@ -94,7 +106,8 @@ public class ProactiveApiServiceImpl {
 		}
 
 		try {
-			var askFuture = kb.ask(knowledgeInteractionId, bindings);
+			var askFuture = kb.ask(knowledgeInteractionId, recipientAndBindingSetObject.recipient,
+					recipientAndBindingSetObject.bindingSet);
 
 			askFuture.thenAccept(askResult -> {
 
@@ -117,9 +130,11 @@ public class ProactiveApiServiceImpl {
 			});
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+			LOG.trace("", e);
 			asyncResponse.resume(Response.status(500)
 					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
 		} catch (IllegalArgumentException e) {
+			LOG.trace("", e);
 			asyncResponse.resume(Response.status(400).entity(e.getMessage()).build());
 		}
 	}
@@ -155,11 +170,21 @@ public class ProactiveApiServiceImpl {
 	public void scPostPost(
 			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid List<Map<String, String>> bindings,
+			@ApiParam(value = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException {
 
-		LOG.debug("scPostPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId, bindings);
+		LOG.debug("scPostPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+				recipientAndBindingSet);
+
+		RecipientAndBindingSet recipientAndBindingSetObject;
+		try {
+			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
+		} catch (IllegalArgumentException e) {
+			LOG.trace("", e);
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+			return;
+		}
 
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
@@ -177,6 +202,7 @@ public class ProactiveApiServiceImpl {
 		try {
 			new URI(knowledgeInteractionId);
 		} catch (URISyntaxException e) {
+			LOG.trace("", e);
 			asyncResponse.resume(Response.status(400)
 					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
 			return;
@@ -198,7 +224,8 @@ public class ProactiveApiServiceImpl {
 		} else {
 
 			try {
-				var postFuture = kb.post(knowledgeInteractionId, bindings);
+				var postFuture = kb.post(knowledgeInteractionId, recipientAndBindingSetObject.recipient,
+						recipientAndBindingSetObject.bindingSet);
 
 				postFuture.thenAccept(postResult -> {
 
@@ -224,9 +251,11 @@ public class ProactiveApiServiceImpl {
 				});
 
 			} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+				LOG.trace("", e);
 				asyncResponse.resume(Response.status(500)
 						.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
 			} catch (IllegalArgumentException e) {
+				LOG.trace("", e);
 				asyncResponse.resume(Response.status(400).entity(e.getMessage()).build());
 			}
 		}

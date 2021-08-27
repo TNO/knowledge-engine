@@ -213,7 +213,7 @@ paths:
                 type: string
   /sc/ask:
     post:
-      summary: Execute the given Ask Knowledge Interaction with the given binding set.
+      summary: Execute the given Ask Knowledge Interaction with the given binding set. It is possible to target this ask to a specific Knowledge Base by including a RecipientSelector in the requestBody.
       tags:
         - proactive
       parameters:
@@ -231,11 +231,27 @@ paths:
             type: string
       requestBody:
         required: true
-        description: The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.
+        description: Either a RecipientSelector and BindingSet or a BindingSet only. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys (i.e. variables) in the BindingSet are allowed to be incomplete, but they must correspond to the keys that were defined in the graph pattern of the knowledge interaction.
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/BindingSet'
+              oneOf:
+                - $ref: '#/components/schemas/RecipientAndBindingSet'
+                - $ref: '#/components/schemas/BindingSet'
+            examples:
+              bindingset only:
+                value:
+                  - p: <http://www.tno.nl/s1>
+                    q: <http://www.tno.nl/p1>
+                    r: <http://www.tno.nl/o1>
+              recipient and bindingset:
+                value:
+                  recipientSelector:
+                    singleKnowledgeBase: http://www.tno.nl/kb2
+                  bindingSet:
+                    - p: <http://www.tno.nl/s1>
+                      q: <http://www.tno.nl/p1>
+                      r: <http://www.tno.nl/o1>
       responses:
         '200':
           description: If the ask was successful it returns all found variable
@@ -439,6 +455,19 @@ components:
         nullable: false # Enforced manually, but kept here nonetheles.
         type: object
         additionalProperties:
+          type: string
+    RecipientAndBindingSet:
+      type: object
+      required: [recipientSelector, bindingSet]
+      properties:
+        recipientSelector:
+          $ref: '#/components/schemas/RecipientSelector'
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    RecipientSelector:
+      type: object
+      properties:
+        "singleKnowledgeBase": 
           type: string
     KnowledgeInteractionBase:
       type: object

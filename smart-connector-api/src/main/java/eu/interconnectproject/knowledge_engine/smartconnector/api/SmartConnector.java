@@ -143,7 +143,7 @@ public interface SmartConnector {
 	 * @param aBindingSet Allows the calling {@link KnowledgeBase} to limit the
 	 *                    question to specific values for specific variables from
 	 *                    the {@link GraphPattern} in the
-	 *                    {@link AskKnowledgeInteraction}.
+	 *                    {@link AskKnowledgeInteraction}. Cannot be null!
 	 * @return A {@link CompletableFuture} that will return a {@link AskResult} in
 	 *         the future when the question is successfully processed by the
 	 *         {@link SmartConnectorImpl}.
@@ -208,7 +208,7 @@ public interface SmartConnector {
 	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                      wildcard or something in between where potential
 	 *                      {@link KnowledgeBase} recipients are selected based on
-	 *                      criteria from the KnowledgeBase ontology.
+	 *                      criteria from the KnowledgeBase ontology. Cannot be null!
 	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
 	 *                      question to specific values for specific variables from
 	 *                      the {@link GraphPattern} in the

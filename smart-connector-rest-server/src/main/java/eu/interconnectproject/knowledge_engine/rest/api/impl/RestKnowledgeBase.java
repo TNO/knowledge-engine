@@ -43,6 +43,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInter
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnector;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnectorProvider;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.SmartConnectorSPI;
@@ -146,8 +147,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private final Runnable onReady;
 
 	/**
-	 * The lease that must be periodically renewed to keep using the smart connector.
-	 * If this is `null`, the lease is permanent.
+	 * The lease that must be periodically renewed to keep using the smart
+	 * connector. If this is `null`, the lease is permanent.
 	 */
 	private final SmartConnectorLease lease;
 
@@ -156,10 +157,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 */
 	private final Integer leaseRenewalTime;
 
-	public RestKnowledgeBase(
-		eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel,
-		final Runnable onReady
-	) {
+	public RestKnowledgeBase(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector scModel,
+			final Runnable onReady) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
@@ -172,14 +171,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		if (this.leaseRenewalTime != null) {
 			// Issue the initial lease.
-			LOG.info("Creating REST Knowledge Base with lease that must be renewed every {} seconds.", this.leaseRenewalTime);
+			LOG.info("Creating REST Knowledge Base with lease that must be renewed every {} seconds.",
+					this.leaseRenewalTime);
 
 			Date expiration = new Date();
 			expiration.setTime(expiration.getTime() + 1000 * this.leaseRenewalTime);
 
-			this.lease = new SmartConnectorLease()
-				.knowledgeBaseId(this.knowledgeBaseId)
-				.expires(expiration);
+			this.lease = new SmartConnectorLease().knowledgeBaseId(this.knowledgeBaseId).expires(expiration);
 		} else {
 			this.lease = null;
 		}
@@ -475,7 +473,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public CompletableFuture<eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult> ask(String kiId,
-			List<Map<String, String>> bindings) throws URISyntaxException, InterruptedException, ExecutionException {
+			RecipientSelector recipientSelector, List<Map<String, String>> bindings)
+			throws URISyntaxException, InterruptedException, ExecutionException {
 		KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
@@ -492,13 +491,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// ASK the bindings to the smart connector and wait for a response. If
 		// anything misbehaves, this will throw and it's up to the caller of this
 		// method to handle it.
-		var askFuture = this.sc.ask((AskKnowledgeInteraction) ki, listToBindingSet(bindings));
+		var askFuture = this.sc.ask((AskKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
 		return askFuture;
 	}
 
 	public CompletableFuture<eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult> post(String kiId,
-			List<Map<String, String>> bindings) throws URISyntaxException, InterruptedException, ExecutionException {
+			RecipientSelector recipientSelector, List<Map<String, String>> bindings)
+			throws URISyntaxException, InterruptedException, ExecutionException {
 		KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
@@ -516,7 +516,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// POST the bindings to the smart connector and wait for a response. If
 		// anything misbehaves, this will throw and it's up to the caller of this
 		// method to handle it.
-		var postFuture = this.sc.post((PostKnowledgeInteraction) ki, listToBindingSet(bindings));
+		var postFuture = this.sc.post((PostKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
 		return postFuture;
 	}
