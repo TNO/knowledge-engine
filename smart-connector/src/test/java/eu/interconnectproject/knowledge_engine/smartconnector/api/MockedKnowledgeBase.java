@@ -32,6 +32,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	protected String name;
 	private Phaser readyPhaser;
 
+	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
+
 	public MockedKnowledgeBase(String aName) {
 		this.kis = new HashSet<>();
 		this.name = aName;
@@ -87,7 +89,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	@Override
 	public void smartConnectorStopped(SmartConnector aSC) {
 		LOG.info(this.name + " smartconnnector stopped");
-
+		this.stoppedFuture.complete(null);
 	}
 
 	@Override
@@ -101,6 +103,10 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	public void stop() {
 		this.sc.stop();
+	}
+
+	public CompletableFuture<Void> getStopFuture() {
+		return this.stoppedFuture;
 	}
 
 	@Override
