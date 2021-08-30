@@ -154,9 +154,31 @@ paths:
           application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/KnowledgeInteractionBase'
-            example:
-              knowledgeInteractionType: AskKnowledgeInteraction
-              graphPattern: "?s ?p ?o"
+            examples:
+              ASK without prefixes:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+              ASK with prefixes:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a rdf:type ex:Something ."
+                  prefixes:
+                    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ex: "http://example.org/"
+              REACT with prefixes:
+                value:
+                  knowledgeInteractionType: ReactKnowledgeInteraction
+                  argumentGraphPattern:
+                    ?a rdf:type ex:Measurement .
+                    ?a ex:hasValueInMeters ?b .
+                  resultGraphPattern:
+                    ?a rdf:type ex:Measurement .
+                    ?a ex:hasValueInYards ?b .
+                  prefixes:
+                    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ex: "http://example.org/"
+            
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
