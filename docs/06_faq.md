@@ -259,3 +259,11 @@ Result:
 	- *Answer*: If two services A and B want to exchange data in an interoperable manner, they both should use InterConnect's interoperability layer. They first register their capabilities (using the Ask and Answer Knowledge Interactions) and then the actual data exchange can happen. This data exchange is orchestrated by the interoperability layer and, so, the data transits through the interoperability layer. Service A asks the temperature set point to its Smart Connector and the interoperability layer will contact the Smart Connector of Service B to retrieve the answer from its Service B and sends the result back.
 
 	For more information about the Knowledge Engine and Knowledge Interactions, see the recorded workshop on our shared drive: https://drive.inesctec.pt/f/16182787
+
+*Quesiton*: We noticed that we cannot get consistent results when testing a POST/REACT exchange, both locally and with a partner. So to summarize:
+* we can send a POST request
+* the REACT sides don't receive 100% of the time (more like 25%), whether it is locally running or from our partner's platform
+* When receiving the POST, the REACT side sends the confirmation properly
+* The POST side rarely receives the confirmation from REACT (around 5% of the time)
+	
+- *Answer*: We were doing tests with 2 REACT KB that had different result graph patterns. One matched our post but not the other. This prevented the react process to react to the post and so the post never got a response. So to remember to work properly: For the same argument graph pattern, ALL reacts and ALL posts need the same answer graph pattern. Also: the post will receive the answers from the react once they have all answered. The answers will be aggregated into one.
