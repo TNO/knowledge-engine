@@ -21,10 +21,10 @@ public class KeReasonerTest2 {
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addKnowledgeInteraction(new TransitivityTestKnowledgeInteraction());
-
 		reasoner.addLocalRule(new LocalRule(Arrays.asList(new Triple("?a someProp ?b"), new Triple("?b someProp ?c")),
 				Arrays.asList(new Triple("?a someProp ?c"))));
+		reasoner.addKnowledgeInteraction(new TransitivityTestKnowledgeInteraction());
+
 	}
 
 	@Test

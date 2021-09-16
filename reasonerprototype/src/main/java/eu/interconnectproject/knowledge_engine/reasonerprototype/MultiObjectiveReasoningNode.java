@@ -34,6 +34,17 @@ public class MultiObjectiveReasoningNode implements ReasoningNode {
 
 		boolean success = false;
 		for (Rule rule : rules) {
+
+			// detect infinite loops
+			if (this.parent instanceof RuleReasoningNode) {
+
+				RuleReasoningNode p = (RuleReasoningNode) this.parent;
+
+				if (p.rule.equals(rule)) {
+					continue;
+				}
+
+			}
 			RuleReasoningNode<?> childNode = null;
 			if (rule instanceof RemoteRule) {
 				childNode = new RemoteRuleReasoningNode(this, keReasoner, objectives, binding, (RemoteRule) rule);
@@ -60,6 +71,7 @@ public class MultiObjectiveReasoningNode implements ReasoningNode {
 					return false;
 				}
 			}
+
 		}
 		return success;
 	}

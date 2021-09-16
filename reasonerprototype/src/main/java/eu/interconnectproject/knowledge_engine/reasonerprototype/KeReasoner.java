@@ -65,7 +65,6 @@ public class KeReasoner implements ReasoningNode {
 
 	private void createRules() {
 		rules.clear();
-		rules.addAll(localRules);
 		for (KnowledgeInteraction knowledgeInteraction : knowledgeInteractions.values()) {
 			if (knowledgeInteraction instanceof AnswerKnowledgeInteraction) {
 				rules.add(new RemoteRule(Collections.emptyList(),
@@ -78,6 +77,7 @@ public class KeReasoner implements ReasoningNode {
 						knowledgeInteraction.getId()));
 			}
 		}
+		rules.addAll(localRules);
 		System.out.println("Rules:");
 		for (Rule rule : rules) {
 			System.out.println(rule);
