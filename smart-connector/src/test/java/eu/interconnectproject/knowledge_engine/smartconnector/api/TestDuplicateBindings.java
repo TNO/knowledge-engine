@@ -74,8 +74,8 @@ public class TestDuplicateBindings {
 		});
 
 		reactKI1 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp1_1, gp1_2);
-		kb1.register(reactKI1, (ReactHandler) (aRKI, aBindingSet) -> {
-			assertFalse(aBindingSet.isEmpty());
+		kb1.register(reactKI1, (ReactHandler) (aRKI, aReactExchangeInfo) -> {
+			assertFalse(aReactExchangeInfo.getArgumentBindings().isEmpty());
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -102,8 +102,8 @@ public class TestDuplicateBindings {
 		});
 
 		reactKI3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3_1, gp3_2);
-		kb3.register(reactKI3, (ReactHandler) (aRKI, aBindingSet) -> {
-			assertFalse(aBindingSet.isEmpty());
+		kb3.register(reactKI3, (ReactHandler) (aRKI, aReactExchangeInfo) -> {
+			assertFalse(aReactExchangeInfo.getArgumentBindings().isEmpty());
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();

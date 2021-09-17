@@ -33,10 +33,10 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
-import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
@@ -255,9 +255,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		CompletableFuture<BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+
+		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
+
 		// TODO This should happen in the single thread for the knowledge base
 		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
-		future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
+
+		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", aPostMsg);

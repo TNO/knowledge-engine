@@ -59,8 +59,8 @@ public class TestReactMetadata {
 		kb2.register(ki2, new ReactHandler() {
 
 			@Override
-			public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
-
+			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
+				var argument = aReactExchangeInfo.getArgumentBindings();
 				Model m;
 				try {
 					m = Util.generateModel(anRKI.getArgument(), argument);

@@ -42,6 +42,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
@@ -124,10 +125,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private ReactHandler reactHandler = new ReactHandler() {
 
 		@Override
-		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
-			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
+			List<Map<String, String>> bindings = bindingSetToList(aReactExchangeInfo.getArgumentBindings());
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
 					KnowledgeInteractionType.REACT, bindings, future);
@@ -136,7 +137,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future;
 		}
 
-		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+		public BindingSet react(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
 	};

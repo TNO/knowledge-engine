@@ -116,8 +116,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aBindingSet) -> {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
+			this.otherKnowledgeBaseStore.addKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
@@ -125,9 +125,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aBindingSet) -> {
+		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
 			this.otherKnowledgeBaseStore
-					.updateKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+					.updateKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
@@ -135,9 +135,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
-		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aBindingSet) -> {
+		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
 			this.otherKnowledgeBaseStore
-					.removeKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aBindingSet));
+					.removeKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 	}

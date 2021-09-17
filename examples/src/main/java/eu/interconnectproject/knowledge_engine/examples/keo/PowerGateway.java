@@ -209,9 +209,10 @@ public class PowerGateway implements MqttCallback, KnowledgeBase {
 		);
 
 		// When receiving an actuation command, send it to EEBUS via the queue
-		this.sc.register(this.rkiPowerLimit, (rki, bindings) -> {
+		this.sc.register(this.rkiPowerLimit, (rki, aReactExchangeInfo) -> {
+			var argument = aReactExchangeInfo.getArgumentBindings();
 			try {
-				var b = bindings.iterator().next();
+				var b = argument.iterator().next();
 				var limit = (Float) SSE.parseNode(b.get("limitValue")).getLiteralValue();
 				LOG.info("Setting limit at {}", limit);
 				this.sendPowerLimitMessage(Math.round(limit * 100), -2, 5);

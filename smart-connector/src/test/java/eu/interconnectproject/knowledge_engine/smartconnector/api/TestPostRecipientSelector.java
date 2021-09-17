@@ -57,10 +57,10 @@ public class TestPostRecipientSelector {
 
 		GraphPattern gp3 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g");
 		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3, null);
-		kb3.register(ki3, (anRKI, argument) -> {
+		kb3.register(ki3, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.trace("KB3 Reacting...");
-
+			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 

@@ -62,9 +62,9 @@ class VariableBindingNameTest {
 				argGraphPattern2, resGraphPattern2);
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
-			public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
-
+			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
 				LOG.info("Reacting to sensor value.");
+				var argument = aReactExchangeInfo.getArgumentBindings();
 				Iterator<Binding> iterator = argument.iterator();
 				assertTrue(iterator.hasNext());
 
