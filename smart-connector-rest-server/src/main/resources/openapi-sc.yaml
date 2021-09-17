@@ -635,6 +635,8 @@ components:
           type: integer
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
+        requestingKnowledgeBaseId:
+          type: string
     HandleResponse:
       type: object
       required: [handleRequestId, bindingSet]

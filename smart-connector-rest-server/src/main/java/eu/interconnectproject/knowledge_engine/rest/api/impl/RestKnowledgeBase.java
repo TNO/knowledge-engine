@@ -111,7 +111,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
-					KnowledgeInteractionType.ANSWER, bindings, future);
+					KnowledgeInteractionType.ANSWER, bindings, anAnswerExchangeInfo.getAskingKnowledgeBaseId(), future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
@@ -131,7 +131,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			List<Map<String, String>> bindings = bindingSetToList(aReactExchangeInfo.getArgumentBindings());
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
-					KnowledgeInteractionType.REACT, bindings, future);
+					KnowledgeInteractionType.REACT, bindings, aReactExchangeInfo.getPostingKnowledgeBaseId(), future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
@@ -209,7 +209,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 				eu.interconnectproject.knowledge_engine.rest.model.HandleRequest object = new eu.interconnectproject.knowledge_engine.rest.model.HandleRequest()
 						.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
-						.knowledgeInteractionId(knowledgeInteractionId);
+						.knowledgeInteractionId(knowledgeInteractionId)
+						.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
 
 				this.asyncResponse.resume(Response.status(200).entity(object).build());
 				this.asyncResponse = null;
