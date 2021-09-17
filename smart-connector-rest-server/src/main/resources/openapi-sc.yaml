@@ -56,6 +56,23 @@ paths:
           application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/SmartConnector'
+            examples:
+              without lease:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+              with 60 seconds lease:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+                  leaseRenewalTime: 60
+                description:
+                  The created smart connector will be cleaned up automatically
+                  after about 60 seconds. To postpone the cleanup, your
+                  knowledge base has to call /sc/lease/renew to extend the lease
+                  by 60 seconds.
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
