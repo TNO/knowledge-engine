@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnectorLease;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
@@ -98,8 +99,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
 		@Override
-		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
-
+		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
+			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
@@ -115,7 +116,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future;
 		}
 
-		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+		public BindingSet answer(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
 	};

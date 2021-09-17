@@ -89,7 +89,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				"?gp kb:hasPattern ?pattern .");
 
 		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, aBindingSet) -> this.fillMetaBindings(), true);
+		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(), true);
 
 		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);

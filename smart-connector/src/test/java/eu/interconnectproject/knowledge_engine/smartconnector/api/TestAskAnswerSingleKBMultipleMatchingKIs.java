@@ -51,8 +51,8 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
-		kb1.register(aKI1, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(aKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -65,8 +65,8 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 		gp = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AnswerKnowledgeInteraction aKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
-		kb1.register(aKI2, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(aKI2, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();

@@ -56,8 +56,8 @@ public class TestAskAnswer3 {
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb1.register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -70,8 +70,8 @@ public class TestAskAnswer3 {
 
 		GraphPattern gp3 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
-		kb3.register(aKI3, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb3.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -84,8 +84,8 @@ public class TestAskAnswer3 {
 
 		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g.");
 		AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
-		kb4.register(aKI4, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb4.register(aKI4, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();

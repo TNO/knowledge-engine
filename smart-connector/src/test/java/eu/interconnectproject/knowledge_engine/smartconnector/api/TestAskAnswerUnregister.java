@@ -47,8 +47,8 @@ public class TestAskAnswerUnregister {
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb1.register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -95,8 +95,8 @@ public class TestAskAnswerUnregister {
 
 		GraphPattern gp3 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/p> ?c.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
-		kb1.register(aKI3, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("a", "<https://www.tno.nl/example/a>");

@@ -25,6 +25,7 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
@@ -35,6 +36,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AnswerMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.AskMessage;
 import eu.interconnectproject.knowledge_engine.smartconnector.messaging.PostMessage;
@@ -182,7 +184,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-		future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
+		var aei = new AnswerExchangeInfo(
+			anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction()
+		);
+
+		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", anAskMsg);
