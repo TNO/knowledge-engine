@@ -90,8 +90,9 @@ public class BindingTest {
 	
 		String[] tests = new String[] {
 		
-				"a:1,b:1|a:1,b:2", "a:1,c:1|a:1,c:2", "a:1,b:1,c:1|a:1,b:1,c:2|a:1,b:2,c:1|a:1,b:2,c:2",
-				"?room:r1,?sensor:s1|?room:r1,?sensor:s2", "?room:r1,?isOn:true", "?room:r1,?sensor:s1,?isOn:true|?room:r1,?sensor:s2,?isOn:true",
+				"a:1,b:1|a:1,b:2", "a:1,c:1|a:1,c:2", "a:1,b:1|a:1,b:2|a:1,c:1|a:1,c:2|a:1,b:1,c:1|a:1,b:1,c:2|a:1,b:2,c:1|a:1,b:2,c:2",
+				"?room:r1,?sensor:s1|?room:r1,?sensor:s2", "?room:r1,?isOn:true", "?room:r1,?sensor:s1|?room:r1,?sensor:s2|?room:r1,?isOn:true|?room:r1,?sensor:s1,?isOn:true|?room:r1,?sensor:s2,?isOn:true",
+				"a:1,b:1|a:1,b:2|a:2,b:3", "b:2,c:1|b:3,c:1|b:3,c:2", "a:1,b:2,c:1|a:2,b:3,c:1|a:2,b:3,c:2|a:1,b:1|a:1,b:2|a:2,b:3|b:2,c:1|b:3,c:1|b:3,c:2",
 							
 		};
 		//@formatter:on

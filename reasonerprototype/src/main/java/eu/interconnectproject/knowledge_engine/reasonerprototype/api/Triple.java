@@ -226,5 +226,5 @@ public class Triple {
 	public boolean containsVariables() {
 		return subject instanceof Variable || predicate instanceof Variable || object instanceof Variable;
 	}
-
+	
 }

@@ -1,10 +1,10 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 
-public class BindingSet extends ArrayList<Binding> {
+public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 8263643495419009027L;
 
 	public BindingSet() {
@@ -74,15 +74,23 @@ public class BindingSet extends ArrayList<Binding> {
 	public BindingSet altMerge(BindingSet other) {
 		BindingSet merged = new BindingSet();
 
+		boolean firstTime = true;
+
 		// Cartesian product is the base case
 		for (Binding thisB : this) {
+			merged.add(thisB);
+
 			for (Binding otherB : other) {
 
+				if (firstTime) {
+					merged.add(otherB);
+				}
 				// always add a merged version of the two bindings, except when they conflict.
 				if (!thisB.isConflicting(otherB)) {
 					merged.add(thisB.merge(otherB));
 				}
 			}
+			firstTime = false;
 		}
 
 		return merged;
