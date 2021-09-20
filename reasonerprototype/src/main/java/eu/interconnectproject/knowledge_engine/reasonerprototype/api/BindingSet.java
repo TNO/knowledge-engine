@@ -81,7 +81,9 @@ public class BindingSet extends HashSet<Binding> {
 	public BindingSet altMerge(BindingSet other) {
 		BindingSet merged = new BindingSet();
 
-		boolean firstTime = true;
+		for (Binding otherB : other) {
+			merged.add(otherB);
+		}
 
 		// Cartesian product is the base case
 		for (Binding thisB : this) {
@@ -89,20 +91,23 @@ public class BindingSet extends HashSet<Binding> {
 
 			for (Binding otherB : other) {
 
-				if (firstTime) {
-					merged.add(otherB);
-				}
 				// always add a merged version of the two bindings, except when they conflict.
 				if (!thisB.isConflicting(otherB)) {
 					merged.add(thisB.merge(otherB));
 				}
 			}
-			firstTime = false;
 		}
 
 		return merged;
 	}
 
+	/**
+	 * Translate this bindingset using the given match. The variablenames will be
+	 * changed and variables not relevant in the match will be removed.
+	 * 
+	 * @param match
+	 * @return
+	 */
 	public BindingSet translate(Set<Map<Triple, Triple>> match) {
 
 		BindingSet newOne = new BindingSet();
@@ -116,13 +121,13 @@ public class BindingSet extends HashSet<Binding> {
 						Value v = fullMap.get(pair.getKey());
 						if (v instanceof Variable) {
 							Variable var = (Variable) v;
-							newB.put(var, b.get(pair.getKey()));
+							newB.put(var, pair.getValue());
 						}
 					}
 				}
 			}
-			if (!b.isEmpty()) {
-				newOne.add(b);
+			if (!newB.isEmpty()) {
+				newOne.add(newB);
 			}
 		}
 		return newOne;

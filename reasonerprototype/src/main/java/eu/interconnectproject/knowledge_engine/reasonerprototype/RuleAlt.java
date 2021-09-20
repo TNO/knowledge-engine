@@ -1,13 +1,15 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
 
 public class RuleAlt {
 
@@ -25,6 +27,39 @@ public class RuleAlt {
 	public RuleAlt(Set<Triple> anAntecedent, Set<Triple> aConsequent) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
+		bindingSetHandler = new BindingSetHandler() {
+			@Override
+			public BindingSet handle(BindingSet bs) {
+
+				BindingSet newBS = new BindingSet();
+
+				Binding newB;
+
+				Set<Variable> vars = RuleAlt.this.getVars(RuleAlt.this.consequent);
+				for (Binding b : bs) {
+					newB = new Binding();
+					for (Variable v : vars) {
+						if (b.containsKey(v)) {
+							newB.put(v, b.get(v));
+						} else {
+							System.err.println(
+									"Not all variable in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
+						}
+					}
+					newBS.add(newB);
+				}
+
+				return newBS;
+			}
+		};
+	}
+
+	public Set<Variable> getVars(Set<Triple> aPattern) {
+		Set<Variable> vars = new HashSet<Variable>();
+		for (Triple t : aPattern) {
+			vars.addAll(t.getVars());
+		}
+		return vars;
 	}
 
 	public Set<Map<Triple, Triple>> consequentMatches(Set<Triple> objective) {

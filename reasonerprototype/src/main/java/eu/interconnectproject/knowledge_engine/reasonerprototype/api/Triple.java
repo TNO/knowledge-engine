@@ -1,7 +1,10 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Triple {
 
@@ -226,5 +229,21 @@ public class Triple {
 	public boolean containsVariables() {
 		return subject instanceof Variable || predicate instanceof Variable || object instanceof Variable;
 	}
-	
+
+	public Set<Variable> getVars() {
+
+		Set<Variable> vars = new HashSet<>();
+		if (this.getSubject() instanceof Variable) {
+			vars.add((Variable) this.getSubject());
+		}
+		if (this.getPredicate() instanceof Variable) {
+			vars.add((Variable) this.getPredicate());
+		}
+		if (this.getObject() instanceof Variable) {
+			vars.add((Variable) this.getObject());
+		}
+
+		return vars;
+	}
+
 }

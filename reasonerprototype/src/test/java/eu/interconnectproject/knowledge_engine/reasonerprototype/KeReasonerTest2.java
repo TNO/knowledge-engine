@@ -40,10 +40,13 @@ public class KeReasonerTest2 {
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						BindingSet bindingSet = Util.toBindingSet("?a:<sensor3>,?b:69|?a:<sensor4>,?b:71");
+						BindingSet bindingSet = Util.toBindingSet("?e:<sensor3>,?f:69|?e:<sensor4>,?f:71");
 						return bindingSet;
 					}
 				}));
+
+		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new Triple("?e type Sensor"))),
+				new HashSet<>(Arrays.asList(new Triple("?e type Device")))));
 
 		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new Triple("?x hasValInF ?y"))),
 				new HashSet<>(Arrays.asList(new Triple("?x hasValInC ?z"))), new BindingSetHandler() {
@@ -53,7 +56,7 @@ public class KeReasonerTest2 {
 						String bindings = "";
 						for (Binding b : bs) {
 							Float celcius = Float.valueOf(b.get(new Variable("?y")).getValue());
-							bindings += "?y:" + convert(celcius) + ",|?x:" + b.get(new Variable("?x")).getValue();
+							bindings += "?z:" + convert(celcius) + ",?x:" + b.get(new Variable("?x")).getValue() + "|";
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings);
 						return bindingSet;
@@ -71,7 +74,7 @@ public class KeReasonerTest2 {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<Triple> objective = new HashSet<>();
-		objective.add(new Triple("?p type Sensor"));
+		objective.add(new Triple("?p type Device"));
 		objective.add(new Triple("?p hasValInC ?q"));
 
 		// Start reasoning
@@ -79,11 +82,14 @@ public class KeReasonerTest2 {
 
 		System.out.println(root);
 
-		BindingSet bind = root.reason(new BindingSet());
+		BindingSet bind;
+		while ((bind = root.continueReasoning(new BindingSet())) == null) {
+//			System.out.println("tasks: " + TaskBoard.instance().tasks);
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
 
-		System.out.println(bind);
-
-		System.out.println(TaskBoard.instance().tasks);
+		System.out.println("bindings: " + bind);
 
 	}
 
