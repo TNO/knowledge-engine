@@ -1,13 +1,10 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
@@ -17,190 +14,124 @@ public class RuleAlt {
 	public Set<Triple> antecedent;
 	public Set<Triple> consequent;
 
+	public BindingSetHandler bindingSetHandler;
+
+	public RuleAlt(Set<Triple> anAntecedent, Set<Triple> aConsequent, BindingSetHandler aBindingSetHandler) {
+		this.antecedent = anAntecedent;
+		this.consequent = aConsequent;
+		bindingSetHandler = aBindingSetHandler;
+	}
+
 	public RuleAlt(Set<Triple> anAntecedent, Set<Triple> aConsequent) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 	}
 
-	/**
-	 * Should match the biggest possible overlap.
-	 * 
-	 * @param toBeMatched
-	 * @return
-	 */
-	public Set<Map<Triple, Triple>> findMatchesWithConsequent(Set<Triple> toBeMatchedGP) {
-
-		List<Triple> consequentList = new ArrayList<>(consequent);
-		List<Triple> toBeMatchedList = new ArrayList<>(toBeMatchedGP);
-
-		boolean[][] m = getMatrix(consequentList, toBeMatchedList);
-		printMatrix(m);
-
-		Set<Map<Integer, Integer>> matches = findDiagonals(m);
-
-		return null;
-	}
-
-	public Set<Map<Integer, Integer>> findDiagonals(boolean[][] m) {
-
-		Set<Map<Integer, Integer>> matches = new HashSet<>();
-
-		int total = m.length * m[0].length;
-
-		for (int p = 0; p < total; p++) {
-
-			int i = p / m[0].length; // col
-			int j = p % m[0].length; // row
-
-			if (j == 0) {
-				System.out.println();
-			}
-
-			System.out.print(i + "," + j + "\t");
-
-			if (m[i][j]) {
-				// see if i+1,j-1 or i+1,j+1 is also true
-				// see if i+2,j-2 or i+2,j+2 is also true
-				// see if i+3,j-3 or i+3,j+3 is also true
-
-				boolean continueLeft = true, continueRight = true;
-
-				Map<Integer, Integer> leftRange = new HashMap<>();
-				leftRange.put(i, j);
-				Map<Integer, Integer> rightRange = new HashMap<>();
-				rightRange.put(i, j);
-				for (int d = 1; d < m[0].length; d++) {
-
-					if ()
-					
-				}
-				
-				//add ranges to matches
-			}
-
-		}
-		System.out.println();
+	public Set<Map<Triple, Triple>> consequentMatches(Set<Triple> objective) {
+		Set<Map<Triple, Triple>> matches = matches(objective, consequent, new HashMap<>());
 		return matches;
 	}
 
-	private void printMatrix(boolean[][] m) {
-		for (int i = 0; i < m.length; i++) {
-			for (int j = 0; j < m[0].length; j++) {
-				System.out.print(m[i][j] + "\t");
-			}
-			System.out.println();
-		}
+	public BindingSetHandler getBindingSetHandler() {
+		return bindingSetHandler;
 	}
 
-	public Set<Map<Triple, Triple>> findMatches(Set<Triple> toBeMatchedGP) {
-		Stack<Context> matchingStack = new Stack<>();
+	/**
+	 * 
+	 * We match every triple from the objective with every triple of the rhs.
+	 * 
+	 * TODO It's recursive and uses the Java stack. There is a limit to the stack
+	 * size in Java, so this limits the sizes of the graph patterns. We consdered
+	 * using a loop instead of recursing, but we could not figure out how to do it.
+	 * Also, this method is far from efficient, we need to figure out a way to
+	 * improve its performance. Maybe using the dynamic programming algorithm
+	 * described via here: {@see <a href=
+	 * "https://stackoverflow.com/questions/32163716/partial-string-matching-in-two-large-strings">https://stackoverflow.com/questions/32163716/partial-string-matching-in-two-large-strings</a>}.
+	 * 
+	 * @param objective
+	 * @param binding
+	 */
+	private Set<Map<Triple, Triple>> matches(Set<Triple> objective, Set<Triple> consequent, Map<Value, Value> context) {
+		Set<Map<Triple, Triple>> isos = new HashSet<>();
 
-		Context root = new Context(toBeMatchedGP, consequent);
-		matchingStack.push(root);
-		Context c;
-		while (!matchingStack.empty()) {
+		for (Triple objTriple : objective) {
+			Map<Triple, Map<Value, Value>> allMatches = rhsMatchesAlt(objTriple, consequent);
 
-			c = matchingStack.peek();
-			if (c.hasNextConsequent()) {
-				Map<Value, Value> map = c.consequentCurrent.matchesWithSubstitutionMap(c.toBeMatchedCurrent);
+			Set<Triple> reducedObj = new HashSet<>(objective);
+			reducedObj.remove(objTriple);
+			Set<Triple> reducedRhs;
+			for (Map.Entry<Triple, Map<Value, Value>> entry : allMatches.entrySet()) {
 
-				// push a new reduced context onto stack
-				if (map != null) {
+				reducedRhs = new HashSet<>(consequent);
+				reducedRhs.remove(entry.getKey());
+				Map<Value, Value> newContext = entry.getValue();
+				Map<Value, Value> mergedContext;
 
-					Map<Triple, Triple> match = new HashMap<>();
-					match.put(c.consequentCurrent, c.toBeMatchedCurrent);
-					c.addMatch(match);
-					matchingStack.push(c.getReducedContext());
+				if ((mergedContext = mergeContexts(context, newContext)) != null) {
+
+					Set<Map<Triple, Triple>> otherIsos = new HashSet<>();
+					if (!reducedObj.isEmpty()) {
+
+						otherIsos = matches(reducedObj, reducedRhs, mergedContext);
+
+						if (!otherIsos.isEmpty()) {
+							for (Map<Triple, Triple> iso : otherIsos) {
+								iso.put(objTriple, entry.getKey());
+							}
+						} else {
+							Map<Triple, Triple> otherIso = new HashMap<Triple, Triple>();
+							otherIso.put(objTriple, entry.getKey());
+							otherIsos.add(otherIso);
+						}
+					} else {
+						Map<Triple, Triple> otherIso = new HashMap<Triple, Triple>();
+						otherIso.put(objTriple, entry.getKey());
+						otherIsos.add(otherIso);
+					}
+					isos.addAll(otherIsos);
 				}
+			}
+		}
+		return isos;
+	}
 
-			} else if (c.toBeMatchedIter.hasNext()) {
-				c.nextToBeMatched();
+	/**
+	 * Returns null if the contexts have conflicting values.
+	 * 
+	 * @param existingContext
+	 * @param newContext
+	 * @return
+	 */
+	private Map<Value, Value> mergeContexts(Map<Value, Value> existingContext, Map<Value, Value> newContext) {
+
+		Map<Value, Value> mergedContext = new HashMap<Value, Value>(existingContext);
+
+		for (Map.Entry<Value, Value> newEntry : newContext.entrySet()) {
+			if (existingContext.containsKey(newEntry.getKey())) {
+				if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
+					return null;
+				}
 			} else {
-				matchingStack.pop();
-			}
-		}
-		return root.getMatches();
-	}
-
-	private boolean[][] getMatrix(List<Triple> consequent, List<Triple> toBeMatched) {
-		boolean[][] m = new boolean[consequent.size()][toBeMatched.size()];
-
-		for (int i = 0; i < consequent.size(); i++) {
-			Triple consequentTriple = consequent.get(i);
-			for (int j = 0; j < toBeMatched.size(); j++) {
-				Triple toBeMatchedTriple = toBeMatched.get(j);
-				m[i][j] = consequentTriple.matches(toBeMatchedTriple);
+				mergedContext.put(newEntry.getKey(), newEntry.getValue());
 			}
 		}
 
-		return m;
+		return mergedContext;
 	}
 
-	static class Context {
-
-		Triple toBeMatchedCurrent;
-		Triple consequentCurrent;
-		Set<Triple> toBeMatched;
-		Set<Triple> consequent;
-		Iterator<Triple> toBeMatchedIter;
-		Iterator<Triple> consequentIter;
-		Set<Map<Triple, Triple>> matches;
-
-		public Context(Set<Triple> aToBeMatched, Set<Triple> aConsequent) {
-
-			assert !aToBeMatched.isEmpty();
-			assert !aConsequent.isEmpty();
-
-			matches = new HashSet<>();
-
-			this.toBeMatched = aToBeMatched;
-			this.consequent = aConsequent;
-
-			this.toBeMatchedIter = aToBeMatched.iterator();
-			this.consequentIter = aConsequent.iterator();
-
-			this.toBeMatchedCurrent = toBeMatchedIter.next();
-			this.consequentCurrent = consequentIter.next();
+	private Map<Triple, Map<Value, Value>> rhsMatchesAlt(Triple objTriple, Set<Triple> rhs) {
+		Map<Triple, Map<Value, Value>> allMatches = new HashMap<>();
+		for (Triple myTriple : rhs) {
+			Map<Value, Value> map = myTriple.matchesWithSubstitutionMap(objTriple);
+			if (map != null)
+				allMatches.put(myTriple, map);
 		}
+		return allMatches;
+	}
 
-		public Set<Map<Triple, Triple>> getMatches() {
-			return this.matches;
-		}
-
-		public boolean hasNextToBeMatched() {
-			return this.toBeMatchedIter.hasNext();
-		}
-
-		public Triple nextToBeMatched() {
-			return (this.toBeMatchedCurrent = this.toBeMatchedIter.next());
-		}
-
-		public boolean hasNextConsequent() {
-			return this.consequentIter.hasNext();
-		}
-
-		public Triple nextConsequent() {
-			return (this.consequentCurrent = this.consequentIter.next());
-		}
-
-		public void resetConsequentIter() {
-			this.consequentIter = this.consequent.iterator();
-		}
-
-		public void addMatch(Map<Triple, Triple> match) {
-			this.matches.add(match);
-		}
-
-		public Context getReducedContext() {
-			Set<Triple> reducedToBeMatched = new HashSet<>(this.toBeMatched);
-			Set<Triple> reducedConsequent = new HashSet<>(this.consequent);
-
-			reducedToBeMatched.remove(this.toBeMatchedCurrent);
-			reducedConsequent.remove(this.consequentCurrent);
-
-			return new Context(reducedToBeMatched, reducedConsequent);
-		}
-
+	@Override
+	public String toString() {
+		return "RuleAlt [antecedent=" + antecedent + ", consequent=" + consequent + "]";
 	}
 
 }

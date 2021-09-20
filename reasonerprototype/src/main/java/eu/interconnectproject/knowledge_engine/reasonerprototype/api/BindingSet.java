@@ -1,8 +1,15 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
 
 public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 8263643495419009027L;
@@ -94,6 +101,51 @@ public class BindingSet extends HashSet<Binding> {
 		}
 
 		return merged;
+	}
+
+	public BindingSet translate(Set<Map<Triple, Triple>> match) {
+
+		BindingSet newOne = new BindingSet();
+		Binding newB;
+		for (Binding b : this) {
+			newB = new Binding();
+			for (Map.Entry<Variable, Literal> pair : b.entrySet()) {
+				for (Map<Triple, Triple> entry : match) {
+					Map<Value, Value> fullMap = invert(convert(entry));
+					if (pair.getKey() instanceof Variable) {
+						Value v = fullMap.get(pair.getKey());
+						if (v instanceof Variable) {
+							Variable var = (Variable) v;
+							newB.put(var, b.get(pair.getKey()));
+						}
+					}
+				}
+			}
+			if (!b.isEmpty()) {
+				newOne.add(b);
+			}
+		}
+		return newOne;
+	}
+
+	public Map<Value, Value> invert(Map<Value, Value> incoming) {
+		Map<Value, Value> outgoing = new HashMap<>();
+		for (Map.Entry<Value, Value> entry : incoming.entrySet()) {
+			outgoing.put(entry.getValue(), entry.getKey());
+		}
+		return outgoing;
+	}
+
+	public Map<Value, Value> convert(Map<Triple, Triple> match) {
+
+		Map<Value, Value> fullMap = new HashMap<Value, Value>();
+
+		for (Map.Entry<Triple, Triple> mapping : match.entrySet()) {
+			Map<Value, Value> substitutionMap = mapping.getKey().matchesWithSubstitutionMap(mapping.getValue());
+			fullMap.putAll(substitutionMap);
+		}
+
+		return fullMap;
 	}
 
 }

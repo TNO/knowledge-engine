@@ -2,6 +2,7 @@ package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -73,10 +74,10 @@ public class BindingTest {
 		Map<Integer, Compare<Binding>> failed = new HashMap<>();
 
 		for (int i = 0; i < tests.length; i = i + 3) {
-			Binding merged = toBinding(tests[i + first]).merge(toBinding(tests[i + second]));
-			if (!toBinding(tests[i + expected]).equals(merged)) {
+			Binding merged = Util.toBinding(tests[i + first]).merge(Util.toBinding(tests[i + second]));
+			if (!Util.toBinding(tests[i + expected]).equals(merged)) {
 
-				failed.put(i / 3, new Compare<Binding>(toBinding(tests[i + expected]), merged));
+				failed.put(i / 3, new Compare<Binding>(Util.toBinding(tests[i + expected]), merged));
 			}
 		}
 
@@ -102,15 +103,43 @@ public class BindingTest {
 		Map<Integer, Compare<BindingSet>> failed = new HashMap<>();
 
 		for (int i = 0; i < tests.length; i = i + 3) {
-			BindingSet merged = toBindingSet(tests[i + first]).altMerge(toBindingSet(tests[i + second]));
-			if (!toBindingSet(tests[i + expected]).equals(merged)) {
+			BindingSet merged = Util.toBindingSet(tests[i + first]).altMerge(Util.toBindingSet(tests[i + second]));
+			if (!Util.toBindingSet(tests[i + expected]).equals(merged)) {
 
-				failed.put(i / 3, new Compare<BindingSet>(toBindingSet(tests[i + expected]), merged));
+				failed.put(i / 3, new Compare<BindingSet>(Util.toBindingSet(tests[i + expected]), merged));
 			}
 		}
 
 		// nothing should fail.
 		assertEquals(new HashMap<Integer, Compare<BindingSet>>(), failed);
+
+	}
+
+	@Test
+	public void testConvert() {
+
+		Triple triple1 = new Triple("?s type Sensor");
+		Triple triple2 = new Triple("?t type MultiSensor");
+		Set<Triple> goal = new HashSet<>(Arrays.asList(triple1, triple2));
+
+		Triple triple3 = new Triple("?a type ?b");
+		Set<Triple> consequence = new HashSet<>(Arrays.asList(triple3));
+
+		Set<Map<Triple, Triple>> mapping = new HashSet<>();
+
+		Map<Triple, Triple> map = new HashMap<Triple, Triple>();
+		map.put(triple3, triple1);
+
+		mapping.add(map);
+		Map<Triple, Triple> map2 = new HashMap<Triple, Triple>();
+		map2.put(triple3, triple2);
+		mapping.add(map2);
+
+		BindingSet b = Util.toBindingSet("?s:<sensor>|?t:<sensor>");
+
+		BindingSet converted = b.translate(mapping);
+
+		System.out.println(converted);
 
 	}
 
@@ -131,37 +160,6 @@ public class BindingTest {
 		public String toString() {
 			return "Compare [expected=" + expected + ", actual=" + actual + "]";
 		}
-	}
-
-	private Binding toBinding(String encodedBinding) {
-
-		Binding b = new Binding();
-		String[] entries = encodedBinding.split(",");
-
-		int varIdx = 0, valIdx = 1;
-
-		for (String entry : entries) {
-
-			if (!entry.isEmpty()) {
-				String[] keyVal = entry.split(":");
-				b.put(keyVal[varIdx], keyVal[valIdx]);
-			}
-		}
-		return b;
-	}
-
-	private BindingSet toBindingSet(String encodedBindingSet) {
-
-		BindingSet bs = new BindingSet();
-		String[] entries = encodedBindingSet.split("\\|");
-
-		for (String entry : entries) {
-			if (!entry.isEmpty()) {
-				Binding b = toBinding(entry);
-				bs.add(b);
-			}
-		}
-		return bs;
 	}
 
 }

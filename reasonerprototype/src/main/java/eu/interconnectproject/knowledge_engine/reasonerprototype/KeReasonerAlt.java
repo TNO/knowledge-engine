@@ -3,7 +3,6 @@ package eu.interconnectproject.knowledge_engine.reasonerprototype;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
@@ -11,35 +10,19 @@ import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
 public class KeReasonerAlt {
 
 	// rules might need an order to prevent infinite loops
-	private List<Rule> rules = new ArrayList<Rule>();
+	private List<RuleAlt> rules = new ArrayList<RuleAlt>();
 
-	public BindingSet reason(Set<Triple> goal, BindingSet bindings) {
-
-		AltNode root = new AltNode(goal);
-
-		Stack<AltNode> s = new Stack<>();
-		s.push(root);
-
-		while (!s.isEmpty()) {
-
-			AltNode goalNode = s.pop();
-
-		}
-		return null;
+	public void addRule(RuleAlt rule) {
+		rules.add(rule);
 	}
 
-	private List<Rule> findRulesWithOverlappingConsequences(Set<Triple> aGoal, BindingSet bindings) {
+	public NodeAlt plan(Set<Triple> aGoal) {
+		NodeAlt root = new NodeAlt(aGoal, rules, null, null);
+		return root;
+	}
 
-		List<Rule> overlappingRules = new ArrayList<>();
-		for (Rule r : this.rules) {
-
-//			if (r.gpMatches(aGoal, r.getRhs())) {
-//				overlappingRules.add(r);
-//			}
-
-		}
+	public BindingSet reason(NodeAlt root, BindingSet aBindingSet) {
 		return null;
-
 	}
 
 }

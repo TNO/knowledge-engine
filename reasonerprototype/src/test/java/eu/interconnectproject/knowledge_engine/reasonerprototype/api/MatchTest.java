@@ -112,7 +112,22 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Map<Triple, Triple>> findMatchesWithConsequent = r.findMatches(obj);
+		Set<Map<Triple, Triple>> findMatchesWithConsequent = r.consequentMatches(obj);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher2() {
+		Triple t1 = new Triple("?s type ?t");
+		Triple t2 = new Triple("?s hasVal ?d");
+		Set<Triple> obj = new HashSet<>(Arrays.asList(t1, t2));
+
+		Triple triple2 = new Triple("?b hasVal ?v");
+		Set<Triple> rhs = new HashSet<>(Arrays.asList(triple2));
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Map<Triple, Triple>> findMatchesWithConsequent = r.consequentMatches(obj);
 		System.out.println(findMatchesWithConsequent);
 	}
 

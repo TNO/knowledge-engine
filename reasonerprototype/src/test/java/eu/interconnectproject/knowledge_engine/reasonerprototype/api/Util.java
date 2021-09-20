@@ -15,4 +15,35 @@ public class Util {
 		return text;
 	}
 
+	public static Binding toBinding(String encodedBinding) {
+
+		Binding b = new Binding();
+		String[] entries = encodedBinding.split(",");
+
+		int varIdx = 0, valIdx = 1;
+
+		for (String entry : entries) {
+
+			if (!entry.isEmpty()) {
+				String[] keyVal = entry.split(":");
+				b.put(keyVal[varIdx], keyVal[valIdx]);
+			}
+		}
+		return b;
+	}
+
+	public static BindingSet toBindingSet(String encodedBindingSet) {
+
+		BindingSet bs = new BindingSet();
+		String[] entries = encodedBindingSet.split("\\|");
+
+		for (String entry : entries) {
+			if (!entry.isEmpty()) {
+				Binding b = toBinding(entry);
+				bs.add(b);
+			}
+		}
+		return bs;
+	}
+
 }
