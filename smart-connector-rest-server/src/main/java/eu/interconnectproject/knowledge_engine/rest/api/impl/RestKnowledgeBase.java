@@ -99,6 +99,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
+		/**
+		 * Creates a future for the response of this knowledge base, and passes it
+		 * to the knowledge base to be processed.
+		 */
 		@Override
 		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
 			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
@@ -117,6 +121,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future;
 		}
 
+		/**
+		 * By overriding the {@link AnswerHandler#answerAsync} method, this method
+		 * should no longer be called. But we still have to implement it, which is
+		 * unfortunate.
+		 */
 		public BindingSet answer(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
@@ -124,6 +133,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private ReactHandler reactHandler = new ReactHandler() {
 
+		/**
+		 * Creates a future for the response of this knowledge base, and passes it
+		 * to the knowledge base to be processed.
+		 */
 		@Override
 		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 
@@ -137,6 +150,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future;
 		}
 
+		/**
+		 * By overriding the {@link ReactHandler#reactAsync} method, this method
+		 * should no longer be called. But we still have to implement it, which is
+		 * unfortunate.
+		 */
 		public BindingSet react(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
