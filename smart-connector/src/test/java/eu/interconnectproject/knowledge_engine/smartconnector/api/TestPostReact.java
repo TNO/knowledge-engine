@@ -79,9 +79,9 @@ public class TestPostReact {
 				GraphPattern gp = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 				ReactKnowledgeInteraction ki = new ReactKnowledgeInteraction(new CommunicativeAct(), gp, null);
 
-				aSC.register(ki, (ReactHandler) (anRKI, argument) -> {
-
+				aSC.register(ki, (ReactHandler) (anRKI, aReactExchangeInfo) -> {
 					LOG.trace("Reacting...");
+					var argument = aReactExchangeInfo.getArgumentBindings();
 
 					Iterator<Binding> iter = argument.iterator();
 					Binding b = iter.next();

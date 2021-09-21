@@ -1,5 +1,6 @@
 package eu.interconnectproject.knowledge_engine.rest.api.impl;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,16 +22,18 @@ public class HandleRequest {
 	private int handleRequestId;
 	private List<Map<String, String>> bindingSet;
 	private KnowledgeInteraction knowledgeInteraction;
+	private final URI requestingKnowledgeBaseId;
 
 	private KnowledgeInteractionType knowledgeInteractionType;
 
 	public HandleRequest(int aHandleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionType type,
-			List<Map<String, String>> aBindingSet, CompletableFuture<BindingSet> future) {
+			List<Map<String, String>> aBindingSet, URI aRequestingKnowledgeBaseId, CompletableFuture<BindingSet> future) {
 		this.future = future;
 		this.handleRequestId = aHandleRequestId;
 		this.knowledgeInteractionType = type;
 		this.knowledgeInteraction = aKI;
 		this.bindingSet = aBindingSet;
+		this.requestingKnowledgeBaseId = aRequestingKnowledgeBaseId;
 	}
 
 	public CompletableFuture<BindingSet> getFuture() {
@@ -63,6 +66,10 @@ public class HandleRequest {
 
 	public KnowledgeInteractionType getKnowledgeInteractionType() {
 		return knowledgeInteractionType;
+	}
+
+	public URI getRequestingKnowledgeBaseId() {
+		return requestingKnowledgeBaseId;
 	}
 
 	public void validateBindings(BindingSet bindings) {

@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionBase;
 import eu.interconnectproject.knowledge_engine.rest.model.KnowledgeInteractionWithId;
 import eu.interconnectproject.knowledge_engine.rest.model.SmartConnectorLease;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskKnowledgeInteraction;
@@ -41,6 +42,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeBase;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactHandler;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
@@ -97,9 +99,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
+		/**
+		 * Creates a future for the response of this knowledge base, and passes it
+		 * to the knowledge base to be processed.
+		 */
 		@Override
-		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
-
+		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
+			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
 
@@ -109,33 +115,47 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			assert previous + 1 == next;
 
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
-					KnowledgeInteractionType.ANSWER, bindings, future);
+					KnowledgeInteractionType.ANSWER, bindings, anAnswerExchangeInfo.getAskingKnowledgeBaseId(), future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
 		}
 
-		public BindingSet answer(AnswerKnowledgeInteraction anAKI, BindingSet aBindingSet) {
+		/**
+		 * By overriding the {@link AnswerHandler#answerAsync} method, this method
+		 * should no longer be called. But we still have to implement it, which is
+		 * unfortunate.
+		 */
+		public BindingSet answer(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
 	};
 
 	private ReactHandler reactHandler = new ReactHandler() {
 
+		/**
+		 * Creates a future for the response of this knowledge base, and passes it
+		 * to the knowledge base to be processed.
+		 */
 		@Override
-		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
-			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
+			List<Map<String, String>> bindings = bindingSetToList(aReactExchangeInfo.getArgumentBindings());
 			int myHandleRequestId = handleRequestId.incrementAndGet();
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
-					KnowledgeInteractionType.REACT, bindings, future);
+					KnowledgeInteractionType.REACT, bindings, aReactExchangeInfo.getPostingKnowledgeBaseId(), future);
 
 			toBeProcessedByKnowledgeBase(hr);
 			return future;
 		}
 
-		public BindingSet react(ReactKnowledgeInteraction aRKI, BindingSet aBindingSet) {
+		/**
+		 * By overriding the {@link ReactHandler#reactAsync} method, this method
+		 * should no longer be called. But we still have to implement it, which is
+		 * unfortunate.
+		 */
+		public BindingSet react(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
 		}
 	};
@@ -207,7 +227,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 				eu.interconnectproject.knowledge_engine.rest.model.HandleRequest object = new eu.interconnectproject.knowledge_engine.rest.model.HandleRequest()
 						.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
-						.knowledgeInteractionId(knowledgeInteractionId);
+						.knowledgeInteractionId(knowledgeInteractionId)
+						.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
 
 				this.asyncResponse.resume(Response.status(200).entity(object).build());
 				this.asyncResponse = null;

@@ -81,7 +81,8 @@ public class PowerUI implements KnowledgeBase {
 		
 		// When receiving such a power measurement, do some business logic and post
 		// a power limit to the network.
-		this.sc.register(this.rkiPower, (rki, bindings) -> {
+		this.sc.register(this.rkiPower, (rki, aReactExchangeInfo) -> {
+			var bindings = aReactExchangeInfo.getArgumentBindings();
 			var binding = bindings.iterator().next();
 			var value = binding.get("value");
 			

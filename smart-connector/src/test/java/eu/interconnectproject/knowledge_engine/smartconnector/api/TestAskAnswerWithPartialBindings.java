@@ -40,7 +40,8 @@ public class TestAskAnswerWithPartialBindings {
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb1.register(aKI, (AnswerHandler) (anAKI, aBindingSet) -> {
+		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
 			assertTrue(!aBindingSet.isEmpty(), "The incoming binding set should not be empty.");
 
 			LOG.info("Incoming bindingset: {}", aBindingSet);

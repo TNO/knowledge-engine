@@ -46,10 +46,10 @@ public class TestPostReact2 {
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
-		kb2.register(ki2, (anRKI, argument) -> {
+		kb2.register(ki2, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.trace("KB2 Reacting...");
-
+			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 
@@ -63,10 +63,11 @@ public class TestPostReact2 {
 
 		GraphPattern gp3 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g");
 		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3, null);
-		kb3.register(ki3, (anRKI, argument) -> {
+		kb3.register(ki3, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.trace("KB3 Reacting...");
 
+			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 

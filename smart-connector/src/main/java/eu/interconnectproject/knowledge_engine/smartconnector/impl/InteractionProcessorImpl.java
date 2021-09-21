@@ -25,6 +25,7 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.AskResult;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Binding;
@@ -32,6 +33,7 @@ import eu.interconnectproject.knowledge_engine.smartconnector.api.BindingSet;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.CommunicativeAct;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.GraphPattern;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.PostResult;
+import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactExchangeInfo;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.RecipientSelector;
 import eu.interconnectproject.knowledge_engine.smartconnector.api.Vocab;
@@ -182,7 +184,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-		future = handler.answerAsync(answerKnowledgeInteraction, anAskMsg.getBindings());
+		var aei = new AnswerExchangeInfo(
+			anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction()
+		);
+
+		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", anAskMsg);
@@ -249,9 +255,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		CompletableFuture<BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
+
+		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
+
 		// TODO This should happen in the single thread for the knowledge base
 		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
-		future = handler.reactAsync(reactKnowledgeInteraction, aPostMsg.getArgument());
+
+		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
 		return future.exceptionally((e) -> {
 			LOG.error("An error occurred while answering msg: {}", aPostMsg);

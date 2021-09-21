@@ -61,8 +61,8 @@ public class TestDuplicateBindings {
 		GraphPattern gp1_1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		GraphPattern gp1_2 = new GraphPattern(prefixes, "?b <https://www.tno.nl/example/c> ?d.");
 		answerKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1_1);
-		kb1.register(answerKI1, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb1.register(answerKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -74,8 +74,8 @@ public class TestDuplicateBindings {
 		});
 
 		reactKI1 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp1_1, gp1_2);
-		kb1.register(reactKI1, (ReactHandler) (aRKI, aBindingSet) -> {
-			assertFalse(aBindingSet.isEmpty());
+		kb1.register(reactKI1, (ReactHandler) (aRKI, aReactExchangeInfo) -> {
+			assertFalse(aReactExchangeInfo.getArgumentBindings().isEmpty());
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -89,8 +89,8 @@ public class TestDuplicateBindings {
 		GraphPattern gp3_2 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/c> ?g.");
 
 		answerKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3_1);
-		kb3.register(answerKI3, (AnswerHandler) (anAKI, aBindingSet) -> {
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+		kb3.register(answerKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -102,8 +102,8 @@ public class TestDuplicateBindings {
 		});
 
 		reactKI3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3_1, gp3_2);
-		kb3.register(reactKI3, (ReactHandler) (aRKI, aBindingSet) -> {
-			assertFalse(aBindingSet.isEmpty());
+		kb3.register(reactKI3, (ReactHandler) (aRKI, aReactExchangeInfo) -> {
+			assertFalse(aReactExchangeInfo.getArgumentBindings().isEmpty());
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();

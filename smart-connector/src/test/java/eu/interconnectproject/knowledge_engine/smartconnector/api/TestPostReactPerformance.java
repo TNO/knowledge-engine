@@ -44,8 +44,8 @@ public class TestPostReactPerformance {
 		long bindingCount = 100;
 		long count = 1000;
 
-		kb2.register(reactKI, (ReactHandler) (anRKI, argument) -> {
-
+		kb2.register(reactKI, (ReactHandler) (anRKI, aReactExchangeInfo) -> {
+			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
 			int idx = 0;
 			while (iter.hasNext()) {

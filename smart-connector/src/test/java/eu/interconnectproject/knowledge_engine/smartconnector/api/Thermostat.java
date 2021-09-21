@@ -87,8 +87,8 @@ public class Thermostat {
 				obsGraphPattern, null);
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
-			public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
-
+			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
+				var argument = aReactExchangeInfo.getArgumentBindings();
 				LOG.info("Reacting to sensor value.");
 				Iterator<Binding> iterator = argument.iterator();
 				assert iterator.hasNext();
@@ -123,7 +123,8 @@ public class Thermostat {
 				actGraphPattern, null);
 		heating.register(heatingReactKI, new ReactHandler() {
 			@Override
-			public BindingSet react(ReactKnowledgeInteraction anRKI, BindingSet argument) {
+			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
+				var argument = aReactExchangeInfo.getArgumentBindings();
 				Iterator<Binding> i = argument.iterator();
 				assert i.hasNext();
 				Binding b = i.next();
