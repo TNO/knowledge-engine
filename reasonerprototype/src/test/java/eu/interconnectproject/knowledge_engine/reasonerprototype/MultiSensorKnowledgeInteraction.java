@@ -11,24 +11,24 @@ import java.util.stream.Stream;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.ki.AnswerKnowledgeInteraction;
 
 public class MultiSensorKnowledgeInteraction extends AnswerKnowledgeInteraction {
 
-	private static final Triple.Variable VAR_R = new Triple.Variable("?r");
-	private static final Triple.Variable VAR_S = new Triple.Variable("?s");
-	private static final Triple.Variable VAR_O = new Triple.Variable("?o");
+	private static final TriplePattern.Variable VAR_R = new TriplePattern.Variable("?r");
+	private static final TriplePattern.Variable VAR_S = new TriplePattern.Variable("?s");
+	private static final TriplePattern.Variable VAR_O = new TriplePattern.Variable("?o");
 
-	private final Map<Triple.Literal, Triple.Literal> data = new HashMap<>();
+	private final Map<TriplePattern.Literal, TriplePattern.Literal> data = new HashMap<>();
 
 	public MultiSensorKnowledgeInteraction() throws URISyntaxException {
-		super(new URI("urn:multisensor"), new Triple("?s rdf:type Sensor"), new Triple("?s isInRoom ?r"),
-				new Triple("?s isOn ?o"));
-		data.put(new Triple.Literal("sensorA"), new Triple.Literal("room1"));
-		data.put(new Triple.Literal("sensorB"), new Triple.Literal("room2"));
-		data.put(new Triple.Literal("sensorC"), new Triple.Literal("room3"));
+		super(new URI("urn:multisensor"), new TriplePattern("?s rdf:type Sensor"), new TriplePattern("?s isInRoom ?r"),
+				new TriplePattern("?s isOn ?o"));
+		data.put(new TriplePattern.Literal("sensorA"), new TriplePattern.Literal("room1"));
+		data.put(new TriplePattern.Literal("sensorB"), new TriplePattern.Literal("room2"));
+		data.put(new TriplePattern.Literal("sensorC"), new TriplePattern.Literal("room3"));
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class MultiSensorKnowledgeInteraction extends AnswerKnowledgeInteraction 
 				Binding b = new Binding();
 				b.put(VAR_S, e.getKey());
 				b.put(VAR_R, e.getValue());
-				b.put(VAR_O, new Triple.Literal("true"));
+				b.put(VAR_O, new TriplePattern.Literal("true"));
 				response.add(b);
 			}
 		} else {
@@ -59,7 +59,7 @@ public class MultiSensorKnowledgeInteraction extends AnswerKnowledgeInteraction 
 					stream = stream.filter(e -> e.getValue().equals(requestBinding.get(VAR_R)));
 				}
 				if (requestBinding.containsKey(VAR_O)) {
-					stream = stream.filter(e -> new Triple.Literal("true").equals(requestBinding.get(VAR_O)));
+					stream = stream.filter(e -> new TriplePattern.Literal("true").equals(requestBinding.get(VAR_O)));
 				}
 				List<Entry<Literal, Literal>> filterResult = stream.collect(Collectors.toList());
 				for (Entry<Literal, Literal> e : filterResult) {
@@ -67,7 +67,7 @@ public class MultiSensorKnowledgeInteraction extends AnswerKnowledgeInteraction 
 					b.put(VAR_S, e.getKey());
 					b.put(VAR_R, e.getValue());
 					// It's always on
-					b.put(VAR_O, new Triple.Literal("true"));
+					b.put(VAR_O, new TriplePattern.Literal("true"));
 					response.add(b);
 				}
 			}

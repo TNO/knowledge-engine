@@ -1,12 +1,11 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Triple {
+public class TriplePattern {
 
 	public static abstract class Value {
 
@@ -101,30 +100,30 @@ public class Triple {
 	private final Value predicate;
 	private final Value object;
 
-	public Triple(Value subject, Value predicate, Value object) {
+	public TriplePattern(Value subject, Value predicate, Value object) {
 		// TODO I assume a variable name is used only once
 		this.subject = subject;
 		this.predicate = predicate;
 		this.object = object;
 	}
 
-	public Triple(String string) {
+	public TriplePattern(String string) {
 		Value subject, predicate, object;
 		String[] split = string.split(" ");
 		if (split[0].startsWith("?")) {
-			subject = new Triple.Variable(split[0]);
+			subject = new TriplePattern.Variable(split[0]);
 		} else {
-			subject = new Triple.Literal(split[0]);
+			subject = new TriplePattern.Literal(split[0]);
 		}
 		if (split[1].startsWith("?")) {
-			predicate = new Triple.Variable(split[1]);
+			predicate = new TriplePattern.Variable(split[1]);
 		} else {
-			predicate = new Triple.Literal(split[1]);
+			predicate = new TriplePattern.Literal(split[1]);
 		}
 		if (split[2].startsWith("?")) {
-			object = new Triple.Variable(split[2]);
+			object = new TriplePattern.Variable(split[2]);
 		} else {
-			object = new Triple.Literal(split[2]);
+			object = new TriplePattern.Literal(split[2]);
 		}
 		this.subject = subject;
 		this.predicate = predicate;
@@ -143,7 +142,7 @@ public class Triple {
 		return object;
 	}
 
-	public Triple substitude(Binding b) {
+	public TriplePattern substitude(Binding b) {
 		Value subject, predicate, object;
 		if (this.subject instanceof Variable && b.containsKey((this.subject))) {
 			subject = b.get(this.subject);
@@ -160,15 +159,15 @@ public class Triple {
 		} else {
 			object = this.object;
 		}
-		return new Triple(subject, predicate, object);
+		return new TriplePattern(subject, predicate, object);
 	}
 
-	public boolean matches(Triple other, Binding binding) {
-		Triple substituted = other.substitude(binding);
+	public boolean matches(TriplePattern other, Binding binding) {
+		TriplePattern substituted = other.substitude(binding);
 		return this.matches(substituted);
 	}
 
-	public boolean matches(Triple other) {
+	public boolean matches(TriplePattern other) {
 		if (this.getSubject() instanceof Literal && other.getSubject() instanceof Literal
 				&& !this.getSubject().equals(other.subject)) {
 			return false;
@@ -192,8 +191,8 @@ public class Triple {
 	 * @param other
 	 * @return
 	 */
-	public Map<Triple.Value, Triple.Value> matchesWithSubstitutionMap(Triple other) {
-		Map<Triple.Value, Triple.Value> substitutionMap = new HashMap<>();
+	public Map<TriplePattern.Value, TriplePattern.Value> matchesWithSubstitutionMap(TriplePattern other) {
+		Map<TriplePattern.Value, TriplePattern.Value> substitutionMap = new HashMap<>();
 		if (this.getSubject() instanceof Literal && other.getSubject() instanceof Literal) {
 			if (!this.getSubject().equals(other.getSubject())) {
 				return null;
@@ -223,7 +222,7 @@ public class Triple {
 
 	@Override
 	public String toString() {
-		return subject + " " + predicate + " " + object + " . ";
+		return subject + " " + predicate + " " + object;
 	}
 
 	public boolean containsVariables() {
@@ -244,6 +243,49 @@ public class Triple {
 		}
 
 		return vars;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((object == null) ? 0 : object.hashCode());
+		result = prime * result + ((predicate == null) ? 0 : predicate.hashCode());
+		result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof TriplePattern)) {
+			return false;
+		}
+		TriplePattern other = (TriplePattern) obj;
+		if (object == null) {
+			if (other.object != null) {
+				return false;
+			}
+		} else if (!object.equals(other.object)) {
+			return false;
+		}
+		if (predicate == null) {
+			if (other.predicate != null) {
+				return false;
+			}
+		} else if (!predicate.equals(other.predicate)) {
+			return false;
+		}
+		if (subject == null) {
+			if (other.subject != null) {
+				return false;
+			}
+		} else if (!subject.equals(other.subject)) {
+			return false;
+		}
+		return true;
 	}
 
 }

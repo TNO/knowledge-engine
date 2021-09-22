@@ -7,24 +7,24 @@ import java.util.Set;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class RuleAlt {
 
-	public Set<Triple> antecedent;
-	public Set<Triple> consequent;
+	public Set<TriplePattern> antecedent;
+	public Set<TriplePattern> consequent;
 
 	public BindingSetHandler bindingSetHandler;
 
-	public RuleAlt(Set<Triple> anAntecedent, Set<Triple> aConsequent, BindingSetHandler aBindingSetHandler) {
+	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = aBindingSetHandler;
 	}
 
-	public RuleAlt(Set<Triple> anAntecedent, Set<Triple> aConsequent) {
+	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = new BindingSetHandler() {
@@ -54,16 +54,16 @@ public class RuleAlt {
 		};
 	}
 
-	public Set<Variable> getVars(Set<Triple> aPattern) {
+	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
 		Set<Variable> vars = new HashSet<Variable>();
-		for (Triple t : aPattern) {
+		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVars());
 		}
 		return vars;
 	}
 
-	public Set<Map<Triple, Triple>> consequentMatches(Set<Triple> objective) {
-		Set<Map<Triple, Triple>> matches = matches(objective, consequent, new HashMap<>());
+	public Set<Map<TriplePattern, TriplePattern>> consequentMatches(Set<TriplePattern> objective) {
+		Set<Map<TriplePattern, TriplePattern>> matches = matches(objective, consequent, new HashMap<>());
 		return matches;
 	}
 
@@ -86,16 +86,16 @@ public class RuleAlt {
 	 * @param objective
 	 * @param binding
 	 */
-	private Set<Map<Triple, Triple>> matches(Set<Triple> objective, Set<Triple> consequent, Map<Value, Value> context) {
-		Set<Map<Triple, Triple>> isos = new HashSet<>();
+	private Set<Map<TriplePattern, TriplePattern>> matches(Set<TriplePattern> objective, Set<TriplePattern> consequent, Map<Value, Value> context) {
+		Set<Map<TriplePattern, TriplePattern>> isos = new HashSet<>();
 
-		for (Triple objTriple : objective) {
-			Map<Triple, Map<Value, Value>> allMatches = rhsMatchesAlt(objTriple, consequent);
+		for (TriplePattern objTriple : objective) {
+			Map<TriplePattern, Map<Value, Value>> allMatches = rhsMatchesAlt(objTriple, consequent);
 
-			Set<Triple> reducedObj = new HashSet<>(objective);
+			Set<TriplePattern> reducedObj = new HashSet<>(objective);
 			reducedObj.remove(objTriple);
-			Set<Triple> reducedRhs;
-			for (Map.Entry<Triple, Map<Value, Value>> entry : allMatches.entrySet()) {
+			Set<TriplePattern> reducedRhs;
+			for (Map.Entry<TriplePattern, Map<Value, Value>> entry : allMatches.entrySet()) {
 
 				reducedRhs = new HashSet<>(consequent);
 				reducedRhs.remove(entry.getKey());
@@ -104,22 +104,22 @@ public class RuleAlt {
 
 				if ((mergedContext = mergeContexts(context, newContext)) != null) {
 
-					Set<Map<Triple, Triple>> otherIsos = new HashSet<>();
+					Set<Map<TriplePattern, TriplePattern>> otherIsos = new HashSet<>();
 					if (!reducedObj.isEmpty()) {
 
 						otherIsos = matches(reducedObj, reducedRhs, mergedContext);
 
 						if (!otherIsos.isEmpty()) {
-							for (Map<Triple, Triple> iso : otherIsos) {
+							for (Map<TriplePattern, TriplePattern> iso : otherIsos) {
 								iso.put(objTriple, entry.getKey());
 							}
 						} else {
-							Map<Triple, Triple> otherIso = new HashMap<Triple, Triple>();
+							Map<TriplePattern, TriplePattern> otherIso = new HashMap<TriplePattern, TriplePattern>();
 							otherIso.put(objTriple, entry.getKey());
 							otherIsos.add(otherIso);
 						}
 					} else {
-						Map<Triple, Triple> otherIso = new HashMap<Triple, Triple>();
+						Map<TriplePattern, TriplePattern> otherIso = new HashMap<TriplePattern, TriplePattern>();
 						otherIso.put(objTriple, entry.getKey());
 						otherIsos.add(otherIso);
 					}
@@ -154,9 +154,9 @@ public class RuleAlt {
 		return mergedContext;
 	}
 
-	private Map<Triple, Map<Value, Value>> rhsMatchesAlt(Triple objTriple, Set<Triple> rhs) {
-		Map<Triple, Map<Value, Value>> allMatches = new HashMap<>();
-		for (Triple myTriple : rhs) {
+	private Map<TriplePattern, Map<Value, Value>> rhsMatchesAlt(TriplePattern objTriple, Set<TriplePattern> rhs) {
+		Map<TriplePattern, Map<Value, Value>> allMatches = new HashMap<>();
+		for (TriplePattern myTriple : rhs) {
 			Map<Value, Value> map = myTriple.matchesWithSubstitutionMap(objTriple);
 			if (map != null)
 				allMatches.put(myTriple, map);
@@ -167,6 +167,19 @@ public class RuleAlt {
 	@Override
 	public String toString() {
 		return "RuleAlt [antecedent=" + antecedent + ", consequent=" + consequent + "]";
+	}
+
+	public Set<Variable> getVars() {
+
+		Set<Variable> vars = new HashSet<>();
+		;
+		if (this.antecedent != null)
+			vars.addAll(this.getVars(this.antecedent));
+
+		if (this.consequent != null)
+			vars.addAll(this.getVars(this.consequent));
+
+		return vars;
 	}
 
 }

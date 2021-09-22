@@ -3,10 +3,10 @@ package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
 
-public class Binding extends HashMap<Triple.Variable, Triple.Literal> {
+public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Literal> {
 
 	private static final long serialVersionUID = 2381462612239850018L;
 
@@ -14,17 +14,21 @@ public class Binding extends HashMap<Triple.Variable, Triple.Literal> {
 		super();
 	}
 
-	public Binding(Triple.Variable var, Triple.Literal lit) {
+	public Binding(TriplePattern.Variable var, TriplePattern.Literal lit) {
 		super();
 		this.put(var, lit);
 	}
 
 	public Binding(String var, String val) {
-		this(new Triple.Variable(var), new Triple.Literal(val));
+		this(new TriplePattern.Variable(var), new TriplePattern.Literal(val));
+	}
+
+	public Binding(Binding b) {
+		super(b);
 	}
 
 	public Literal put(String var, String val) {
-		return this.put(new Triple.Variable(var), new Triple.Literal(val));
+		return this.put(new TriplePattern.Variable(var), new TriplePattern.Literal(val));
 	}
 
 	/**
@@ -62,6 +66,23 @@ public class Binding extends HashMap<Triple.Variable, Triple.Literal> {
 		b.putAll(this);
 		b.putAll(other);
 		return b;
+	}
+
+	public Map<String, String> toMap() {
+
+		Map<String, String> result = new HashMap<String, String>();
+		for (Map.Entry<Variable, Literal> entry : this.entrySet()) {
+			result.put(entry.getKey().toString(), entry.getValue().toString());
+		}
+
+		return result;
+	}
+
+	public void putMap(Map<String, String> map) {
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			this.put(entry.getKey(), entry.getValue());
+		}
+
 	}
 
 }

@@ -12,22 +12,22 @@ public class TripleTest {
 
 	@Test
 	public void test() {
-		Triple t1, t2;
+		TriplePattern t1, t2;
 		Binding b;
-		Map<Triple.Value, Triple.Value> expected;
+		Map<TriplePattern.Value, TriplePattern.Value> expected;
 
-		t1 = new Triple("?s p o");
-		t2 = new Triple("?sub p o");
+		t1 = new TriplePattern("?s p o");
+		t2 = new TriplePattern("?sub p o");
 		assertTrue(t1.matches(t2, new Binding()));
 		expected = new HashMap<>();
-		expected.put(new Triple.Variable("?s"), new Triple.Variable("?sub"));
+		expected.put(new TriplePattern.Variable("?s"), new TriplePattern.Variable("?sub"));
 		assertEquals(expected, t1.matchesWithSubstitutionMap(t2));
 
-		t1 = new Triple("s p o");
-		t2 = new Triple("?sub p o");
+		t1 = new TriplePattern("s p o");
+		t2 = new TriplePattern("?sub p o");
 		assertTrue(t1.matches(t2, new Binding()));
 		expected = new HashMap<>();
-		expected.put(new Triple.Literal("s"), new Triple.Variable("?sub"));
+		expected.put(new TriplePattern.Literal("s"), new TriplePattern.Variable("?sub"));
 		assertEquals(expected, t1.matchesWithSubstitutionMap(t2));
 	}
 

@@ -10,6 +10,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
+
 public class BindingTest {
 
 	@Test
@@ -103,7 +106,8 @@ public class BindingTest {
 		Map<Integer, Compare<BindingSet>> failed = new HashMap<>();
 
 		for (int i = 0; i < tests.length; i = i + 3) {
-			BindingSet merged = Util.toBindingSet(tests[i + first]).altMerge(Util.toBindingSet(tests[i + second]));
+			BindingSet merged = Util.toBindingSet(tests[i + first]).altMerge(Util.toBindingSet(tests[i + second]), true,
+					true);
 			if (!Util.toBindingSet(tests[i + expected]).equals(merged)) {
 
 				failed.put(i / 3, new Compare<BindingSet>(Util.toBindingSet(tests[i + expected]), merged));
@@ -118,20 +122,20 @@ public class BindingTest {
 	@Test
 	public void testConvert() {
 
-		Triple triple1 = new Triple("?s type Sensor");
-		Triple triple2 = new Triple("?t type MultiSensor");
-		Set<Triple> goal = new HashSet<>(Arrays.asList(triple1, triple2));
+		TriplePattern triple1 = new TriplePattern("?s type Sensor");
+		TriplePattern triple2 = new TriplePattern("?t type MultiSensor");
+		Set<TriplePattern> goal = new HashSet<>(Arrays.asList(triple1, triple2));
 
-		Triple triple3 = new Triple("?a type ?b");
-		Set<Triple> consequence = new HashSet<>(Arrays.asList(triple3));
+		TriplePattern triple3 = new TriplePattern("?a type ?b");
+		Set<TriplePattern> consequence = new HashSet<>(Arrays.asList(triple3));
 
-		Set<Map<Triple, Triple>> mapping = new HashSet<>();
+		Set<Map<TriplePattern, TriplePattern>> mapping = new HashSet<>();
 
-		Map<Triple, Triple> map = new HashMap<Triple, Triple>();
+		Map<TriplePattern, TriplePattern> map = new HashMap<TriplePattern, TriplePattern>();
 		map.put(triple3, triple1);
 
 		mapping.add(map);
-		Map<Triple, Triple> map2 = new HashMap<Triple, Triple>();
+		Map<TriplePattern, TriplePattern> map2 = new HashMap<TriplePattern, TriplePattern>();
 		map2.put(triple3, triple2);
 		mapping.add(map2);
 
@@ -160,6 +164,48 @@ public class BindingTest {
 		public String toString() {
 			return "Compare [expected=" + expected + ", actual=" + actual + "]";
 		}
+	}
+
+	@Test
+	public void testGraphPatternBindingSets() {
+		TriplePattern t1 = new TriplePattern("?a type Sensor");
+		TriplePattern t2 = new TriplePattern("?a hasVal ?b");
+		TripleVarBinding tb1 = new TripleVarBinding();
+		tb1.put(new TripleVar(t1, "?a"), new Literal("<sensor1>"));
+
+		TripleVarBinding tb2 = new TripleVarBinding();
+		tb2.put(new TripleVar(t2, "?b"), "22");
+		tb2.put(new TripleVar(t2, "?a"), "<sensor1>");
+		tb2.put(new TripleVar(t1, "?a"), "<sensor1>");
+
+		Set<TriplePattern> aGraphPattern = new HashSet<>(Arrays.asList(t1, t2));
+		GraphBindingSet gbs = new GraphBindingSet(aGraphPattern);
+		gbs.add(tb1);
+		gbs.add(tb2);
+
+		System.out.println(gbs);
+
+		BindingSet bs = gbs.toBindingSet();
+		System.out.println(bs);
+
+		GraphBindingSet gbsReturned = bs.toGraphBindingSet(aGraphPattern);
+
+		System.out.println(gbsReturned);
+	}
+
+	@Test
+	public void testTripleVarBinding() {
+		TriplePattern tp1 = new TriplePattern("?s type Sensor");
+		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+
+		TripleVarBinding tvb1 = new TripleVarBinding();
+		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
+
+		TripleVarBinding tvb2 = new TripleVarBinding();
+		tvb2.put(new TripleVar(tp2, "?s"), "<sensor1>");
+		tvb2.put(new TripleVar(tp2, "?v"), "22");
+
+		System.out.println(tvb1.merge(tvb2));
 	}
 
 }

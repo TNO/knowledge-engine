@@ -7,9 +7,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 8263643495419009027L;
@@ -75,25 +75,36 @@ public class BindingSet extends HashSet<Binding> {
 	 * can be merged into a single one. If not all overlapping variables have the
 	 * same value, then both should be incorporated into the merged version.
 	 * 
+	 * Sometimes we want to remove bindings from the other bindingset that are
+	 * incompatible with the existing bindings in this bindingset. The boolean
+	 * incompatibleBindingsAllowed sets this behaviour.
+	 * 
 	 * @param other
 	 * @return
 	 */
-	public BindingSet altMerge(BindingSet other) {
+	public BindingSet altMerge(BindingSet other, boolean incompatibleBindingsAllowed, boolean addCartesianProduct) {
 		BindingSet merged = new BindingSet();
 
-		for (Binding otherB : other) {
-			merged.add(otherB);
-		}
-
-		// Cartesian product is the base case
-		for (Binding thisB : this) {
-			merged.add(thisB);
-
+		if (this.isEmpty()) {
 			for (Binding otherB : other) {
+				merged.add(otherB);
+			}
+		} else {
+			// Cartesian product is the base case
+			for (Binding thisB : this) {
+				merged.add(thisB);
 
-				// always add a merged version of the two bindings, except when they conflict.
-				if (!thisB.isConflicting(otherB)) {
-					merged.add(thisB.merge(otherB));
+				for (Binding otherB : other) {
+
+					// always add a merged version of the two bindings, except when they conflict.
+					if (!thisB.isConflicting(otherB)) {
+						merged.add(otherB);
+						if (addCartesianProduct) {
+							merged.add(thisB.merge(otherB));
+						}
+					} else if (incompatibleBindingsAllowed) {
+						merged.add(otherB);
+					}
 				}
 			}
 		}
@@ -108,15 +119,15 @@ public class BindingSet extends HashSet<Binding> {
 	 * @param match
 	 * @return
 	 */
-	public BindingSet translate(Set<Map<Triple, Triple>> match) {
+	public BindingSet translate(Set<Map<TriplePattern, TriplePattern>> match) {
 
 		BindingSet newOne = new BindingSet();
 		Binding newB;
 		for (Binding b : this) {
 			newB = new Binding();
 			for (Map.Entry<Variable, Literal> pair : b.entrySet()) {
-				for (Map<Triple, Triple> entry : match) {
-					Map<Value, Value> fullMap = invert(convert(entry));
+				for (Map<TriplePattern, TriplePattern> entry : match) {
+					Map<Value, Value> fullMap = convert(entry);
 					if (pair.getKey() instanceof Variable) {
 						Value v = fullMap.get(pair.getKey());
 						if (v instanceof Variable) {
@@ -126,9 +137,7 @@ public class BindingSet extends HashSet<Binding> {
 					}
 				}
 			}
-			if (!newB.isEmpty()) {
-				newOne.add(newB);
-			}
+			newOne.add(newB);
 		}
 		return newOne;
 	}
@@ -141,16 +150,52 @@ public class BindingSet extends HashSet<Binding> {
 		return outgoing;
 	}
 
-	public Map<Value, Value> convert(Map<Triple, Triple> match) {
+	public Map<Value, Value> convert(Map<TriplePattern, TriplePattern> match) {
 
 		Map<Value, Value> fullMap = new HashMap<Value, Value>();
 
-		for (Map.Entry<Triple, Triple> mapping : match.entrySet()) {
+		for (Map.Entry<TriplePattern, TriplePattern> mapping : match.entrySet()) {
 			Map<Value, Value> substitutionMap = mapping.getKey().matchesWithSubstitutionMap(mapping.getValue());
 			fullMap.putAll(substitutionMap);
 		}
 
 		return fullMap;
+	}
+
+	/**
+	 * Extend the bindingset into a graph bindingset. It will contain the same
+	 * amount of bindings, but variable keys are now accompanied by the Triple in
+	 * which they occur.
+	 * 
+	 * @param aGraphPattern
+	 * @return
+	 */
+	public GraphBindingSet toGraphBindingSet(Set<TriplePattern> aGraphPattern) {
+
+		GraphBindingSet gbs = new GraphBindingSet(aGraphPattern);
+
+		TripleVarBinding tvb;
+		for (Binding b : this) {
+			tvb = new TripleVarBinding();
+			for (TriplePattern triplePattern : aGraphPattern) {
+				for (Variable var : triplePattern.getVars()) {
+					if (b.containsKey(var)) {
+						tvb.put(new TripleVar(triplePattern, var), b.get(var));
+					}
+				}
+			}
+			gbs.add(tvb);
+		}
+		return gbs;
+	}
+
+	public void addAll(Set<Map<String, String>> maps) {
+
+		Binding b = new Binding();
+		for (Map<String, String> map : maps) {
+			b.putMap(map);
+		}
+		this.add(b);
 	}
 
 }

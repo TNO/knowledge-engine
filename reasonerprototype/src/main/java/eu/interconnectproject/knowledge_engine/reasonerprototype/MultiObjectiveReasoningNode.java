@@ -5,18 +5,18 @@ import java.util.List;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.ChildDataNodeBase.ChildData;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 
 public class MultiObjectiveReasoningNode implements ReasoningNode {
 
 	private final ReasoningNode parent;
 	private final KeReasoner keReasoner;
-	private final List<Triple> objectives;
+	private final List<TriplePattern> objectives;
 	private final Binding binding;
 
 	private final ChildDataNodeBase<RuleReasoningNode<?>> children = new ChildDataNodeBase<>();
 
-	public MultiObjectiveReasoningNode(ReasoningNode parent, KeReasoner keReasoner, List<Triple> objectives,
+	public MultiObjectiveReasoningNode(ReasoningNode parent, KeReasoner keReasoner, List<TriplePattern> objectives,
 			Binding binding) {
 		this.parent = parent;
 		this.keReasoner = keReasoner;
@@ -58,7 +58,7 @@ public class MultiObjectiveReasoningNode implements ReasoningNode {
 			}
 
 			// All all objectives covered by these rules?
-			for (Triple objective : objectives) {
+			for (TriplePattern objective : objectives) {
 				boolean found = false;
 				for (ChildData<RuleReasoningNode<?>> cd : children) {
 					if (cd.getChild().getRule().rhsMatches(objective, binding)) {

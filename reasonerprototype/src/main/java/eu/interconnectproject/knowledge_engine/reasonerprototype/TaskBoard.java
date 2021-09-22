@@ -1,19 +1,20 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
 
 public class TaskBoard {
 
-	public Map<NodeAlt, BindingSet> tasks;
-
+	public Set<Task> tasks;
 	private static TaskBoard instance;
 
 	private TaskBoard() {
-		tasks = new HashMap<>();
+		tasks = new HashSet<>();
 	}
 
 	public static TaskBoard instance() {
@@ -25,25 +26,74 @@ public class TaskBoard {
 
 	}
 
+	/**
+	 * Add the task to the list. TODO Currently, there is no aggregation of tasks
+	 * which we do typically want to happen here. We should find a structure in
+	 * which new tasks are merged with existing ones. The endresult of a task need
+	 * to split again before sending it back to the correct node.
+	 * 
+	 * @param aNode
+	 * @param aBindingSet
+	 */
+	public void addTask(NodeAlt aNode, BindingSet aBindingSet) {
+		Set<Task> tasks = TaskBoard.instance().tasks;
+		tasks.add(new Task(aNode, aBindingSet));
+	}
+
 	public void executeScheduledTasks() {
 
 		BindingSet resultingBindingSet;
 		NodeAlt node;
 		RuleAlt rule;
 
-		Iterator<Map.Entry<NodeAlt, BindingSet>> iter = tasks.entrySet().iterator();
+		Iterator<Task> iter = tasks.iterator();
 
 		while (iter.hasNext()) {
-			Map.Entry<NodeAlt, BindingSet> entry = iter.next();
-			node = entry.getKey();
+			Task task = iter.next();
+			node = task.getNodes().iterator().next();
 			assert node != null;
 			rule = node.getRule();
 			assert rule != null;
-			assert entry.getValue() != null;
-			resultingBindingSet = rule.getBindingSetHandler().handle(entry.getValue());
-			entry.getKey().setBindingSet(resultingBindingSet);
+			assert task.getBindingSet(node) != null;
+			resultingBindingSet = rule.getBindingSetHandler().handle(task.getBindingSet(node));
+			node.setBindingSet(resultingBindingSet);
 			iter.remove();
+		}
 
+	}
+
+	private static class Task {
+		/**
+		 * Contains all the bindingSets that were merged into a single one to be handled
+		 * as a single task.
+		 */
+		private Map<NodeAlt, BindingSet> collectedBindingSets;
+
+		/**
+		 * The rule that is being applied for this task.
+		 */
+		private RuleAlt rule;
+
+		public Task(NodeAlt aNode, BindingSet aBindingSet) {
+			collectedBindingSets = new HashMap<>();
+			collectedBindingSets.put(aNode, aBindingSet);
+			rule = aNode.getRule();
+		}
+
+		public BindingSet getBindingSet(NodeAlt node) {
+			return this.collectedBindingSets.get(node);
+		}
+
+		public RuleAlt getRule() {
+			return this.rule;
+		}
+
+		public void mergeWith(NodeAlt aNode, BindingSet aBindingSet) {
+
+		}
+
+		public Set<NodeAlt> getNodes() {
+			return this.collectedBindingSets.keySet();
 		}
 
 	}

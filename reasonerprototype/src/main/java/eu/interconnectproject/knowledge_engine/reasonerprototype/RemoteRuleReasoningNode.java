@@ -5,11 +5,11 @@ import java.util.List;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 
 public class RemoteRuleReasoningNode extends RuleReasoningNode<RemoteRule> {
 
-	public RemoteRuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<Triple> objective,
+	public RemoteRuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<TriplePattern> objective,
 			Binding objectiveBinding, RemoteRule rule) {
 		super(parent, keReasoner, objective, objectiveBinding, rule);
 	}

@@ -8,17 +8,17 @@ import java.util.Map.Entry;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Literal;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Literal;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
 
 public abstract class RuleReasoningNode<R extends Rule> implements ReasoningNode {
 
 	protected final MultiObjectiveReasoningNode parent;
 	protected final KeReasoner keReasoner;
 	/** Reasoning objective for this rule */
-	protected final List<Triple> objective;
+	protected final List<TriplePattern> objective;
 	/** Binding for the objective with variable names from objective */
 	protected final Binding objectiveBinding;
 
@@ -34,7 +34,7 @@ public abstract class RuleReasoningNode<R extends Rule> implements ReasoningNode
 	protected BindingSet childBindingSet;
 	protected final R rule;
 
-	public RuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<Triple> objective,
+	public RuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<TriplePattern> objective,
 			Binding objectiveBinding, R rule) {
 		this.parent = parent;
 		this.keReasoner = keReasoner;
@@ -79,8 +79,8 @@ public abstract class RuleReasoningNode<R extends Rule> implements ReasoningNode
 
 	protected void createBindingKeyMap() {
 		bindingKeyMap = new HashMap<>();
-		for (Triple rhsTriple : rule.getRhs()) {
-			for (Triple objectiveTriple : objective) {
+		for (TriplePattern rhsTriple : rule.getRhs()) {
+			for (TriplePattern objectiveTriple : objective) {
 				Map<Value, Value> subMap = rhsTriple.matchesWithSubstitutionMap(objectiveTriple);
 				if (subMap != null) {
 					bindingKeyMap.putAll(subMap);

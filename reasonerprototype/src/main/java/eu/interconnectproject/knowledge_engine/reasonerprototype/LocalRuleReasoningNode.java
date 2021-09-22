@@ -4,11 +4,11 @@ import java.util.List;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 
 public class LocalRuleReasoningNode extends RuleReasoningNode<LocalRule> {
 
-	public LocalRuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<Triple> objective,
+	public LocalRuleReasoningNode(MultiObjectiveReasoningNode parent, KeReasoner keReasoner, List<TriplePattern> objective,
 			Binding objectiveBinding, LocalRule rule) {
 		super(parent, keReasoner, objective, objectiveBinding, rule);
 	}

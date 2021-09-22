@@ -1,11 +1,12 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 
 public class KeReasonerAlt {
 
@@ -16,13 +17,20 @@ public class KeReasonerAlt {
 		rules.add(rule);
 	}
 
-	public NodeAlt plan(Set<Triple> aGoal) {
-		NodeAlt root = new NodeAlt(aGoal, rules, null, null);
-		return root;
-	}
+	public NodeAlt plan(Set<TriplePattern> aGoal) {
+		RuleAlt goalRule = new RuleAlt(aGoal, new HashSet<>(), new BindingSetHandler() {
 
-	public BindingSet reason(NodeAlt root, BindingSet aBindingSet) {
-		return null;
+			/**
+			 * The root node should just return the bindingset as is.
+			 */
+			@Override
+			public BindingSet handle(BindingSet bs) {
+				return bs;
+			}
+
+		});
+		NodeAlt root = new NodeAlt(rules, null, goalRule);
+		return root;
 	}
 
 }

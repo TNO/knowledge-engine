@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 
 public class KeReasonerTest {
 
@@ -24,16 +24,16 @@ public class KeReasonerTest {
 		reasoner.addKnowledgeInteraction(new Sensor1KnowledgeInteraction());
 		reasoner.addKnowledgeInteraction(new ConvertKnowledgeInteraction());
 		reasoner.addKnowledgeInteraction(new LocationKnowledgeInteraction());
-		reasoner.addLocalRule(new LocalRule(Collections.singletonList(new Triple("?s rdf:type Sensor")),
-				Collections.singletonList(new Triple("?s rdf:type Thing"))));
+		reasoner.addLocalRule(new LocalRule(Collections.singletonList(new TriplePattern("?s rdf:type Sensor")),
+				Collections.singletonList(new TriplePattern("?s rdf:type Thing"))));
 	}
 
 	@Test
 	public void testConversion() throws URISyntaxException {
 		// Formulate objective
 		Binding b = new Binding();
-		b.put(new Triple.Variable("?sens"), new Triple.Literal("sensor1"));
-		List<Triple> objective = Collections.singletonList(new Triple("?sens hasTempCelsius ?tc"));
+		b.put(new TriplePattern.Variable("?sens"), new TriplePattern.Literal("sensor1"));
+		List<TriplePattern> objective = Collections.singletonList(new TriplePattern("?sens hasTempCelsius ?tc"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);
@@ -45,10 +45,10 @@ public class KeReasonerTest {
 	public void testMultiTripleObjective() {
 		// Formulate objective
 		Binding b = new Binding();
-		b.put(new Triple.Variable("?room"), new Triple.Literal("room1"));
-		List<Triple> objective = new ArrayList<>();
-		objective.add(new Triple("?sensor rdf:type Sensor"));
-		objective.add(new Triple("?sensor isInRoom ?room"));
+		b.put(new TriplePattern.Variable("?room"), new TriplePattern.Literal("room1"));
+		List<TriplePattern> objective = new ArrayList<>();
+		objective.add(new TriplePattern("?sensor rdf:type Sensor"));
+		objective.add(new TriplePattern("?sensor isInRoom ?room"));
 //		objective.add(new Triple("?sensor isOn ?isOn"));
 
 		// Start reasoning
@@ -61,8 +61,8 @@ public class KeReasonerTest {
 	public void testSubset() {
 		// Formulate objective
 		Binding b = new Binding();
-		List<Triple> objective = new ArrayList<>();
-		objective.add(new Triple("?sensor isInRoom ?room"));
+		List<TriplePattern> objective = new ArrayList<>();
+		objective.add(new TriplePattern("?sensor isInRoom ?room"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);
@@ -74,9 +74,9 @@ public class KeReasonerTest {
 	public void testCombiningDifferentWays() {
 		// Formulate objective
 		Binding b = new Binding();
-		List<Triple> objective = new ArrayList<>();
-		objective.add(new Triple("?SENSOR rdf:type Sensor"));
-		objective.add(new Triple("?SENSOR isInRoom ?ROOM"));
+		List<TriplePattern> objective = new ArrayList<>();
+		objective.add(new TriplePattern("?SENSOR rdf:type Sensor"));
+		objective.add(new TriplePattern("?SENSOR isInRoom ?ROOM"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);
@@ -88,8 +88,8 @@ public class KeReasonerTest {
 	public void testLocalRule() {
 		// Formulate objective
 		Binding b = new Binding();
-		List<Triple> objective = new ArrayList<>();
-		objective.add(new Triple("?thing rdf:type Thing"));
+		List<TriplePattern> objective = new ArrayList<>();
+		objective.add(new TriplePattern("?thing rdf:type Thing"));
 
 		// Start reasoning
 		BindingSet bindingSet = reasoner.reason(objective, b);

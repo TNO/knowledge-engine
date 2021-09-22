@@ -1,8 +1,12 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -10,8 +14,8 @@ import org.junit.Test;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Variable;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Util;
 
 public class KeReasonerTest2 {
@@ -23,33 +27,89 @@ public class KeReasonerTest2 {
 		// Initialize
 		reasoner = new KeReasonerAlt();
 		reasoner.addRule(new RuleAlt(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new Triple("?a type Sensor"), new Triple("?a hasValInC ?b"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?a type Sensor"), new TriplePattern("?a hasValInC ?b"))),
 				new BindingSetHandler() {
+
+					private Table data = new Table(new String[] {
+				//@formatter:off
+							"?a", "?b"
+							//@formatter:on
+					}, new String[] {
+				//@formatter:off
+							"<sensor1>,22",
+							"<sensor2>,21",
+							//@formatter:on
+					});
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						BindingSet bindingSet = Util.toBindingSet("?a:<sensor1>,?b:22|?a:<sensor2>,?b:21");
-						return bindingSet;
+
+						BindingSet newBS = new BindingSet();
+						if (!bs.isEmpty()) {
+
+							for (Binding b : bs) {
+
+								if (!b.isEmpty()) {
+									Set<Map<String, String>> map = data.query(b.toMap());
+									if (!map.isEmpty())
+										newBS.addAll(map);
+								} else {
+									newBS.addAll(this.data.getData());
+								}
+							}
+						} else {
+							newBS.addAll(this.data.getData());
+						}
+						return newBS;
 					}
 
 				}));
 
 		reasoner.addRule(new RuleAlt(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new Triple("?e type Sensor"), new Triple("?e hasValInF ?f"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?e type Sensor"), new TriplePattern("?e hasValInF ?f"))),
 				new BindingSetHandler() {
+
+					private Table data = new Table(new String[] {
+				//@formatter:off
+					"?e", "?f"
+					//@formatter:on
+					}, new String[] {
+				//@formatter:off
+					"<sensor3>,69",
+					"<sensor4>,71",
+					//@formatter:on
+					});
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						BindingSet bindingSet = Util.toBindingSet("?e:<sensor3>,?f:69|?e:<sensor4>,?f:71");
-						return bindingSet;
+
+						BindingSet newBS = new BindingSet();
+
+						if (!bs.isEmpty()) {
+
+							for (Binding b : bs) {
+
+								if (!b.isEmpty()) {
+									Set<Map<String, String>> map = data.query(b.toMap());
+									newBS.addAll(map);
+								} else {
+									newBS.addAll(this.data.getData());
+								}
+							}
+						} else {
+							newBS.addAll(this.data.getData());
+						}
+
+						return newBS;
 					}
+
 				}));
 
-		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new Triple("?e type Sensor"))),
-				new HashSet<>(Arrays.asList(new Triple("?e type Device")))));
+		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?s type Device")))));
 
-		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new Triple("?x hasValInF ?y"))),
-				new HashSet<>(Arrays.asList(new Triple("?x hasValInC ?z"))), new BindingSetHandler() {
+		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInF ?y"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
@@ -70,27 +130,105 @@ public class KeReasonerTest2 {
 	}
 
 	@Test
-	public void testConverter() {
+	public void testRequestNonExistingData() {
 		// Formulate objective
 		Binding b = new Binding();
-		Set<Triple> objective = new HashSet<>();
-		objective.add(new Triple("?p type Device"));
-		objective.add(new Triple("?p hasValInC ?q"));
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Device"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
+		// not work
 
 		// Start reasoning
 		NodeAlt root = reasoner.plan(objective);
-
 		System.out.println(root);
 
+		BindingSet bs = new BindingSet();
+//		Binding binding = new Binding();
+//		binding.put("?q", "22");
+//		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("?p", "<sensor1>");
+		binding2.put("?q", "21");
+		bs.add(binding2);
+
 		BindingSet bind;
-		while ((bind = root.continueReasoning(new BindingSet())) == null) {
-//			System.out.println("tasks: " + TaskBoard.instance().tasks);
+		while ((bind = root.continueReasoning(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
+		assertTrue(bind.isEmpty());
 
+	}
+
+	@Test
+	public void testConverter() {
+		// Formulate objective
+		Binding b = new Binding();
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Device"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
+		// not work
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+//		Binding binding = new Binding();
+//		binding.put("?q", "22");
+//		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("?p", "<sensor1>");
+		binding2.put("?q", "22");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertFalse(bind.isEmpty());
+
+	}
+
+	@Test
+	public void testTwoPropsToAndFromTheSameVars() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Device"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p nonExistentProp ?q"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+//		Binding binding = new Binding();
+//		binding.put("?q", "22");
+//		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("?p", "<sensor1>");
+		binding2.put("?q", "22");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertTrue(bind.isEmpty());
 	}
 
 }

@@ -12,23 +12,23 @@ import org.junit.Test;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.LocalRule;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.Rule;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.RuleAlt;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple.Value;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern.Value;
 
 public class MatchTest {
 
 	@Test
 	public void singleTripleTest() {
 
-		Triple t = new Triple("?s type ?t");
+		TriplePattern t = new TriplePattern("?s type ?t");
 
-		Triple triple = new Triple("?b type Sensor");
-		Triple triple2 = new Triple("?b hasVal ?v");
-		Triple triple3 = new Triple("?v type e");
-		List<Triple> rhs = Arrays.asList(triple, triple2, triple3);
+		TriplePattern triple = new TriplePattern("?b type Sensor");
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		TriplePattern triple3 = new TriplePattern("?v type e");
+		List<TriplePattern> rhs = Arrays.asList(triple, triple2, triple3);
 
 		Rule r = new LocalRule(null, rhs);
 
-		Map<Triple, Map<Value, Value>> matches = r.rhsMatchesAlt(t, rhs);
+		Map<TriplePattern, Map<Value, Value>> matches = r.rhsMatchesAlt(t, rhs);
 
 		System.out.println("Matches: " + matches);
 		// correct
@@ -38,18 +38,18 @@ public class MatchTest {
 	@Test
 	public void multiTripleTest2() {
 
-		Triple t1 = new Triple("?s type ?t");
-		Triple t2 = new Triple("?s hasVal ?d");
-		List<Triple> obj = Arrays.asList(t1, t2);
+		TriplePattern t1 = new TriplePattern("?s type ?t");
+		TriplePattern t2 = new TriplePattern("?s hasVal ?d");
+		List<TriplePattern> obj = Arrays.asList(t1, t2);
 
-		Triple triple = new Triple("?b type Sensor");
-		Triple triple2 = new Triple("?b hasVal ?v");
-		Triple triple3 = new Triple("?v type e");
-		List<Triple> rhs = Arrays.asList(triple, triple2, triple3);
+		TriplePattern triple = new TriplePattern("?b type Sensor");
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		TriplePattern triple3 = new TriplePattern("?v type e");
+		List<TriplePattern> rhs = Arrays.asList(triple, triple2, triple3);
 
 		Rule r = new LocalRule(null, rhs);
 
-		List<List<Triple>> matches = r.rhsMatchesAlt(obj, rhs);
+		List<List<TriplePattern>> matches = r.rhsMatchesAlt(obj, rhs);
 
 		System.out.println("Matches: " + matches);
 		// correct
@@ -59,18 +59,18 @@ public class MatchTest {
 	@Test
 	public void multiTripleTest() {
 
-		List<Triple> rhs = loadTriple("/pilot.gp");
+		List<TriplePattern> rhs = loadTriple("/pilot.gp");
 
-		Triple triple1 = new Triple(
+		TriplePattern triple1 = new TriplePattern(
 				"?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building>");
-		Triple triple2 = new Triple("?c <https://saref.etsi.org/saref4bldg/hasSpace> ?z");
-		Triple triple3 = new Triple(
+		TriplePattern triple2 = new TriplePattern("?c <https://saref.etsi.org/saref4bldg/hasSpace> ?z");
+		TriplePattern triple3 = new TriplePattern(
 				"?z <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace>");
-		List<Triple> obj = Arrays.asList(triple1, triple3, triple2);
+		List<TriplePattern> obj = Arrays.asList(triple1, triple3, triple2);
 
 		Rule r = new LocalRule(null, rhs);
 
-		List<List<Triple>> matches = r.rhsMatchesAlt(obj, rhs);
+		List<List<TriplePattern>> matches = r.rhsMatchesAlt(obj, rhs);
 
 		System.out.println("Matches: " + matches);
 
@@ -78,56 +78,56 @@ public class MatchTest {
 
 	@Test
 	public void multipleTripleTest2() {
-		List<Triple> rhs = Arrays.asList(new Triple("?a someProp ?b"), new Triple("?b someProp ?c"));
-		List<Triple> obj = Arrays.asList(new Triple("?thing someProp ?otherThing"));
+		List<TriplePattern> rhs = Arrays.asList(new TriplePattern("?a someProp ?b"), new TriplePattern("?b someProp ?c"));
+		List<TriplePattern> obj = Arrays.asList(new TriplePattern("?thing someProp ?otherThing"));
 
 		Rule r = new LocalRule(null, null);
-		List<List<Triple>> matches = r.rhsMatchesAlt(obj, rhs);
+		List<List<TriplePattern>> matches = r.rhsMatchesAlt(obj, rhs);
 
 		System.out.println("Matches: " + matches);
 	}
 
-	private List<Triple> loadTriple(String aResource) {
+	private List<TriplePattern> loadTriple(String aResource) {
 		String gp = Util.getStringFromInputStream(MatchTest.class.getResourceAsStream(aResource));
 
 		String[] tripleArray = gp.replace("\n", "").split(" \\.");
 
-		List<Triple> triples = new ArrayList<Triple>();
+		List<TriplePattern> triples = new ArrayList<TriplePattern>();
 		for (String t : tripleArray) {
-			triples.add(new Triple(t.trim()));
+			triples.add(new TriplePattern(t.trim()));
 		}
 		return triples;
 	}
 
 	@Test
 	public void testGPMatcher() {
-		Triple t1 = new Triple("?s type ?t");
-		Triple t2 = new Triple("?s hasVal ?d");
-		Set<Triple> obj = new HashSet<>(Arrays.asList(t1, t2));
+		TriplePattern t1 = new TriplePattern("?s type ?t");
+		TriplePattern t2 = new TriplePattern("?s hasVal ?d");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
 
-		Triple triple = new Triple("?b type Sensor");
-		Triple triple2 = new Triple("?b hasVal ?v");
-		Triple triple3 = new Triple("?v type e");
-		Set<Triple> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
+		TriplePattern triple = new TriplePattern("?b type Sensor");
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		TriplePattern triple3 = new TriplePattern("?v type e");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Map<Triple, Triple>> findMatchesWithConsequent = r.consequentMatches(obj);
+		Set<Map<TriplePattern, TriplePattern>> findMatchesWithConsequent = r.consequentMatches(obj);
 		System.out.println(findMatchesWithConsequent);
 	}
 
 	@Test
 	public void testGPMatcher2() {
-		Triple t1 = new Triple("?s type ?t");
-		Triple t2 = new Triple("?s hasVal ?d");
-		Set<Triple> obj = new HashSet<>(Arrays.asList(t1, t2));
+		TriplePattern t1 = new TriplePattern("?s type ?t");
+		TriplePattern t2 = new TriplePattern("?s hasVal ?d");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
 
-		Triple triple2 = new Triple("?b hasVal ?v");
-		Set<Triple> rhs = new HashSet<>(Arrays.asList(triple2));
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple2));
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Map<Triple, Triple>> findMatchesWithConsequent = r.consequentMatches(obj);
+		Set<Map<TriplePattern, TriplePattern>> findMatchesWithConsequent = r.consequentMatches(obj);
 		System.out.println(findMatchesWithConsequent);
 	}
 

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Binding;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.api.BindingSet;
-import eu.interconnectproject.knowledge_engine.reasonerprototype.api.Triple;
+import eu.interconnectproject.knowledge_engine.reasonerprototype.api.TriplePattern;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.ki.AnswerKnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.ki.KnowledgeInteraction;
 import eu.interconnectproject.knowledge_engine.reasonerprototype.ki.ReactKnowledgeInteraction;
@@ -35,7 +35,7 @@ public class KeReasoner implements ReasoningNode {
 		this.localRules.add(localRule);
 	}
 
-	public BindingSet reason(List<Triple> objective, Binding binding) {
+	public BindingSet reason(List<TriplePattern> objective, Binding binding) {
 		System.out.println("Reasoning objective: " + objective + " with binding " + binding + "\n");
 
 		createRules();
@@ -85,11 +85,11 @@ public class KeReasoner implements ReasoningNode {
 		System.out.println("");
 	}
 
-	List<Rule> findRulesFor(Triple objective, Binding binding) {
+	List<Rule> findRulesFor(TriplePattern objective, Binding binding) {
 		return rules.stream().filter(r -> r.rhsMatches(objective, binding)).collect(Collectors.toList());
 	}
 
-	List<Rule> findRulesFor(List<Triple> objective, Binding binding) {
+	List<Rule> findRulesFor(List<TriplePattern> objective, Binding binding) {
 		return rules.stream().filter(r -> r.rhsMatches(objective, binding)).collect(Collectors.toList());
 	}
 
