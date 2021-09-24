@@ -163,7 +163,8 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return new eu.interconnectproject.knowledge_engine.rest.model.SmartConnector()
 					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
 					.knowledgeBaseName(restKb.getKnowledgeBaseName())
-					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription());
+					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription())
+					.leaseRenewalTime(restKb.getLeaseRenewalTime());
 		}).toArray(eu.interconnectproject.knowledge_engine.rest.model.SmartConnector[]::new);
 	}
 }
