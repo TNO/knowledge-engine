@@ -50,7 +50,11 @@ public class RestServer {
 		} catch (Exception ex) {
 			LOG.error("{}", ex);
 		} finally {
-
+			try {
+				server.stop();
+			} catch (Exception e) {
+				LOG.warn("Exception while stopping server. Will destroy server nonetheless.", e);
+			}
 			server.destroy();
 		}
 	}
