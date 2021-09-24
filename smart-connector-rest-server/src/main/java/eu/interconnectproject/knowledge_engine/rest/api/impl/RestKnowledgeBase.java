@@ -623,6 +623,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	/**
+	 * @return The lease renewal time of this smart connector, in seconds.
+	 */
+	public Integer getLeaseRenewalTime() {
+		return this.leaseRenewalTime;
+	}
+
+	/**
 	 * Renew the lease of this KB's smart connector with the configured renewal
 	 * time.
 	 */
