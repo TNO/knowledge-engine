@@ -185,33 +185,43 @@ public class GraphBindingSet {
 	 * Translate this bindingset using the given match. The variablenames will be
 	 * changed and variables not relevant in the match will be removed.
 	 * 
+	 * The format of the mapping is expected to be translate <from triple pattern>,
+	 * <to triple pattern>.
+	 * 
 	 * @param match
 	 * @return
 	 */
-	public GraphBindingSet translate(Set<Map<TriplePattern, TriplePattern>> match) {
-
-		GraphBindingSet newOne = new GraphBindingSet(this.graphPattern);
+	public GraphBindingSet translate(Set<TriplePattern> graphPattern, Set<Map<TriplePattern, TriplePattern>> match) {
+		GraphBindingSet newOne = new GraphBindingSet(graphPattern);
 		TripleVarBinding newB;
+
 		for (TripleVarBinding b : this.bindings) {
 			newB = new TripleVarBinding();
-			for (TripleVar tv : b.getTripleVars()) {
-
-				Literal value = b.get(tv);
-				for (Map<TriplePattern, TriplePattern> entry : match) {
-
-					if (entry.containsKey(tv.tp)) {
-
-						Map<Value, Value> mapping = tv.tp.matchesWithSubstitutionMap(entry.get(tv.tp));
-
-						Value v = mapping.get(tv.var);
-						if (v instanceof Variable) {
-							newB.put(new TripleVar(entry.get(tv.tp), (Variable) v), value);
+			for (Map<TriplePattern, TriplePattern> entry : match) {
+				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.entrySet()) {
+					if (b.containsTriplePattern(keyValue.getKey())) {
+						Map<Value, Value> mapping = keyValue.getKey().matchesWithSubstitutionMap(keyValue.getValue());
+						for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
+							if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
+								newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+										(Literal) singleMap.getKey());
+							} else if (singleMap.getValue() instanceof Variable
+									&& b.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))) {
+								TripleVar aTripleVar2 = new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey());
+								newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+										b.get(aTripleVar2));
+							}
 						}
 					}
 				}
 			}
 			newOne.add(newB);
 		}
+
 		return newOne;
+	}
+
+	public void addAll(Set<TripleVarBinding> permutatedTVBs) {
+		this.bindings.addAll(permutatedTVBs);
 	}
 }

@@ -1,6 +1,7 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -208,4 +209,96 @@ public class BindingTest {
 		System.out.println(tvb1.merge(tvb2));
 	}
 
+	@Test
+	public void testTripleVarBindingComplication() {
+		TriplePattern tp1 = new TriplePattern("?s type ?t");
+		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+
+		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb1 = new TripleVarBinding();
+		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
+		tvb1.put(new TripleVar(tp2, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp2, "?v"), "22");
+		gbs1.add(tvb1);
+
+		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb2 = new TripleVarBinding();
+		tvb2.put(new TripleVar(tp1, "?s"), "<sensor1>");
+		tvb2.put(new TripleVar(tp1, "?t"), "Device");
+		gbs2.add(tvb2);
+
+		GraphBindingSet merge = gbs1.merge(gbs2);
+		System.out.println(merge);
+
+		assertTrue(merge.isEmpty());
+
+		// we want two full TripleVarBindings but one with Device and the other with
+		// Sensor. The question is how to achieve this when there is only a single
+		// TripleVar,value in common. And do we want the same behaviour if the common
+		// TripleVar,value is the 22?
+	}
+
+	@Test
+	public void testTripleVarBindingComplication2() {
+		TriplePattern tp1 = new TriplePattern("?s type ?t");
+		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+
+		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb1 = new TripleVarBinding();
+		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
+		tvb1.put(new TripleVar(tp2, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp2, "?v"), "22");
+		gbs1.add(tvb1);
+
+		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb2 = new TripleVarBinding();
+		tvb2.put(new TripleVar(tp2, "?s"), "<sensor2>");
+		tvb2.put(new TripleVar(tp2, "?v"), "22");
+		gbs2.add(tvb2);
+
+		GraphBindingSet merge = gbs1.merge(gbs2);
+		System.out.println(merge);
+
+		assertTrue(merge.isEmpty());
+
+		// Do we want the same behavior (as complication1) if the common
+		// TripleVar,value is the 22? Probably not, so, apparently, we cannot just
+		// blindly look at the bindingsets and ignore the triples when merging.
+		// Is it caused by the type of the 'thing in common'? Do we need to distinguish
+		// between IRIs and Literals?
+	}
+
+	@Test
+	public void testTripleVarBindingComplication3() {
+		TriplePattern tp1 = new TriplePattern("?s type ?t");
+		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+
+		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb1 = new TripleVarBinding();
+		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
+		tvb1.put(new TripleVar(tp2, "?s"), "<sensor1>");
+		tvb1.put(new TripleVar(tp2, "?v"), "<22>");
+		gbs1.add(tvb1);
+
+		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBinding tvb2 = new TripleVarBinding();
+		tvb2.put(new TripleVar(tp2, "?s"), "<sensor2>");
+		tvb2.put(new TripleVar(tp2, "?v"), "<22>");
+		gbs2.add(tvb2);
+
+		GraphBindingSet merge = gbs1.merge(gbs2);
+		System.out.println(merge);
+
+		assertTrue(merge.isEmpty());
+
+		// Do we want the same behavior (as complication1) if the common
+		// TripleVar,value is the 22? Probably not, so, apparently, we cannot just
+		// blindly look at the bindingsets and ignore the triples when merging.
+		// Is it caused by the type of the 'thing in common'? Do we need to distinguish
+		// between IRIs and Literals?
+	}
+	
 }

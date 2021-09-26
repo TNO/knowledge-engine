@@ -1,5 +1,6 @@
 package eu.interconnectproject.knowledge_engine.reasonerprototype;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -129,14 +130,21 @@ public class NodeAlt {
 				GraphBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
 				BindingSet childBindings = child
-						.continueReasoning(preparedBindings2.toBindingSet().translate(childMatch));
+						.continueReasoning(preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
 					allBindingSetsAvailable = false;
 				} else {
-					GraphBindingSet convertedChildBindings = childBindings.toGraphBindingSet(child.rule.consequent)
-							.translate(invert(childMatch));
+					GraphBindingSet childGraphBindingSet = childBindings.toGraphBindingSet(child.rule.consequent);
 
-					combinedBindings = combinedBindings.merge(convertedChildBindings);
+					// create powerset of graph pattern triples and use those to create additional
+					// triplevarbindings.
+
+					GraphBindingSet powerChildGraphBindingSet = generateAdditionalTripleVarBindings(
+							childGraphBindingSet);
+
+					GraphBindingSet convertedChildGraphBindingSet = powerChildGraphBindingSet
+							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
+					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
 				}
 			}
 
@@ -191,6 +199,42 @@ public class NodeAlt {
 		}
 	}
 
+	private GraphBindingSet generateAdditionalTripleVarBindings(GraphBindingSet childGraphBindingSet) {
+
+		// create powerset
+		Set<TriplePattern> graphPattern = childGraphBindingSet.getGraphPattern();
+		Set<List<Boolean>> binarySubsets = createBinarySubsets(graphPattern.size());
+		Set<Set<TriplePattern>> gpPowerSet = createPowerSet(new ArrayList<TriplePattern>(graphPattern), binarySubsets);
+
+		// create additional triplevarbindings
+		GraphBindingSet newGraphBindingSet = new GraphBindingSet(graphPattern);
+		Set<TripleVarBinding> permutatedTVBs;
+		for (TripleVarBinding tvb : childGraphBindingSet.getBindings()) {
+			permutatedTVBs = permutateTripleVarBinding(tvb, gpPowerSet);
+			newGraphBindingSet.addAll(permutatedTVBs);
+		}
+
+		return newGraphBindingSet;
+	}
+
+	private Set<TripleVarBinding> permutateTripleVarBinding(TripleVarBinding tvb, Set<Set<TriplePattern>> powerSets) {
+
+		Set<TripleVarBinding> permutated = new HashSet<>();
+		for (Set<TriplePattern> set : powerSets) {
+			TripleVarBinding newTVB = new TripleVarBinding();
+			for (TriplePattern tp : set) {
+				for (TripleVar tv2 : tvb.getTripleVars()) {
+					if (tv2.tp.equals(tp)) {
+						newTVB.put(tv2, tvb.get(tv2));
+					}
+				}
+			}
+			permutated.add(newTVB);
+		}
+
+		return permutated;
+	}
+
 	/**
 	 * Only keep those bindings in bindingSet2 that are compatible with the bindings
 	 * in bindingSet.
@@ -208,7 +252,12 @@ public class NodeAlt {
 			if (!bindingSet.isEmpty()) {
 				for (TripleVarBinding b2 : bindingSet.getBindings()) {
 
-					if (b.isOverlapping(b2) && !b.isConflicting(b2)) {
+					if (!b2.isEmpty()) {
+
+						if (b.isOverlapping(b2) && !b.isConflicting(b2)) {
+							newBS.add(b);
+						}
+					} else {
 						newBS.add(b);
 					}
 				}
@@ -324,6 +373,65 @@ public class NodeAlt {
 
 	public RuleAlt getRule() {
 		return this.rule;
+	}
+
+	private static Set<Set<TriplePattern>> createPowerSet(List<TriplePattern> graphPattern,
+			Set<List<Boolean>> binarySubsets) {
+
+		Set<Set<TriplePattern>> powerSet = new HashSet<>();
+		Set<TriplePattern> subSet;
+		for (List<Boolean> binaryList : binarySubsets) {
+			subSet = new HashSet<>();
+			for (int i = 0; i < binaryList.size(); i++) {
+				Boolean b = binaryList.get(i);
+				if (b) {
+					subSet.add(graphPattern.get(i));
+				}
+			}
+			powerSet.add(subSet);
+		}
+		return powerSet;
+	}
+
+	private static Set<List<Boolean>> createBinarySubsets(int setSize) {
+
+		// what is minimum int that you can represent {@code setSize} bits? 0
+		// what is maximum int that you can represent {@code setSize} bits? 2^setSize
+
+		int start = 0;
+		int end = 1 << setSize;
+		Set<List<Boolean>> set = new HashSet<>(end);
+		String endBin = Integer.toBinaryString(end);
+
+		for (int i = start; i < end; i++) {
+			String bin = toBinary(i, endBin.length() - 1);
+			List<Boolean> bools = fromCharToBoolean(bin);
+			set.add(bools);
+		}
+
+		return set;
+	}
+
+	private static String toBinary(int val, int len) {
+		return Integer.toBinaryString((1 << len) | val).substring(1);
+
+	}
+
+	private static List<Boolean> fromCharToBoolean(String in) {
+		List<Boolean> list = new ArrayList<>();
+
+		for (int i = 0; i < in.length(); i++) {
+			char charAt = in.charAt(i);
+			if (charAt == '0') {
+				list.add(Boolean.valueOf(false));
+			} else if (charAt == '1') {
+				list.add(Boolean.valueOf(true));
+			} else {
+				throw new IllegalArgumentException("The input string should only contains 0s or 1s and not: " + charAt);
+			}
+		}
+
+		return list;
 	}
 
 }

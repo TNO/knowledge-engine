@@ -191,11 +191,14 @@ public class BindingSet extends HashSet<Binding> {
 
 	public void addAll(Set<Map<String, String>> maps) {
 
-		Binding b = new Binding();
+		BindingSet bs = new BindingSet();
+		Binding b;
 		for (Map<String, String> map : maps) {
+			b = new Binding();
 			b.putMap(map);
+			bs.add(b);
 		}
-		this.add(b);
+		this.addAll(bs);
 	}
 
 }

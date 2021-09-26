@@ -74,31 +74,30 @@ public class TripleVarBinding {
 	}
 
 	/**
-	 * True if two Bindings have a different value for at least one variable
+	 * True if two Bindings have a different value for at least one variable. Note
+	 * that it looks not at variable instances.
 	 */
 	public boolean isConflicting(TripleVarBinding tvb) {
 
 		for (Map.Entry<TripleVar, Literal> e : this.tripleVarMapping.entrySet()) {
-			if (tvb.containsKey(e.getKey())) {
-				if (!e.getValue().equals(tvb.get(e.getKey()))) {
-					return true;
-				}
+			Literal l = tvb.getVarValue(e.getKey().var);
+
+			if (l != null && !e.getValue().equals(l)) {
+				return true;
 			}
 		}
 		return false;
 	}
 
 	/**
-	 * True if two Bindings have the same value for at least one variable. Note that
-	 * the variables might occur in different triplevars.
+	 * True if two Bindings have at least one variable in common. Note that the
+	 * variables might occur in different triplevars.
 	 */
 	public boolean isOverlapping(TripleVarBinding tvb) {
 
 		for (Map.Entry<TripleVar, Literal> e : this.tripleVarMapping.entrySet()) {
 			if (tvb.containsVar(e.getKey().var)) {
-				if (e.getValue().equals(tvb.getVarValue(e.getKey().var))) {
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;
@@ -199,6 +198,15 @@ public class TripleVarBinding {
 
 	public boolean isEmpty() {
 		return this.tripleVarMapping.isEmpty();
+	}
+
+	public boolean containsTriplePattern(TriplePattern value) {
+		for (TripleVar tv : this.tripleVarMapping.keySet()) {
+			if (tv.tp.equals(value)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

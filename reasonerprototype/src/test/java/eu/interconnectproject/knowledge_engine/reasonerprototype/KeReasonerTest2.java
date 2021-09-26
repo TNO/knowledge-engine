@@ -136,8 +136,6 @@ public class KeReasonerTest2 {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type Device"));
 		objective.add(new TriplePattern("?p hasValInC ?q"));
-		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
-		// not work
 
 		// Start reasoning
 		NodeAlt root = reasoner.plan(objective);
@@ -169,6 +167,34 @@ public class KeReasonerTest2 {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+//		binding2.put("?p", "<sensor1>");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertFalse(bind.isEmpty());
+
+	}
+
+	@Test
+	public void testMoreThanOneInputBinding() {
+		// Formulate objective
+		Binding b = new Binding();
+		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type Device"));
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
@@ -179,13 +205,12 @@ public class KeReasonerTest2 {
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
-//		Binding binding = new Binding();
-//		binding.put("?q", "22");
-//		bs.add(binding);
+		Binding binding = new Binding();
+		binding.put("?p", "<sensor2>");
+		bs.add(binding);
 
 		Binding binding2 = new Binding();
 		binding2.put("?p", "<sensor1>");
-		binding2.put("?q", "22");
 		bs.add(binding2);
 
 		BindingSet bind;
@@ -229,6 +254,61 @@ public class KeReasonerTest2 {
 
 		System.out.println("bindings: " + bind);
 		assertTrue(bind.isEmpty());
+	}
+
+	@Test
+	public void testVariableMatchesLiteralInGraphPattern() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type ?t"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+
+		Binding binding2 = new Binding();
+		binding2.put("?p", "<sensor1>");
+		binding2.put("?q", "22");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
+	}
+
+	@Test
+	public void testVariableAsPredicate() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p ?pred 22"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+
+//		Binding binding2 = new Binding();
+//		binding2.put("?p", "<sensor1>");
+//		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
 	}
 
 }
