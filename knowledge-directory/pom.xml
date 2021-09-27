@@ -6,7 +6,7 @@
 	<name>Knowledge Engine - Knowledge Directory</name>
 
 	<parent>
-		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
 		<version>0.1.14-SNAPSHOT</version>
 		<relativePath>..</relativePath>
@@ -166,9 +166,9 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.interconnectproject.knowledge_engine.knowledgedirectory</packageName>
-							<apiPackage>eu.interconnectproject.knowledge_engine.knowledgedirectory.api</apiPackage>
-							<modelPackage>eu.interconnectproject.knowledge_engine.knowledgedirectory.model</modelPackage>
+							<packageName>eu.knowledge.engine.knowledgedirectory</packageName>
+							<apiPackage>eu.knowledge.engine.knowledgedirectory.api</apiPackage>
+							<modelPackage>eu.knowledge.engine.knowledgedirectory.model</modelPackage>
 							<inputSpec>${project.basedir}/src/main/resources/openapi-kd.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
