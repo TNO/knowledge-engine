@@ -103,8 +103,7 @@ public class NodeAlt {
 			TripleVarBinding aTripleVarBinding;
 			for (Binding b : bindingSet) {
 				aTripleVarBinding = new TripleVarBinding(this.rule.antecedent, b);
-				if (!aTripleVarBinding.isEmpty())
-					antecedentPredefinedBindings.add(aTripleVarBinding);
+				antecedentPredefinedBindings.add(aTripleVarBinding);
 			}
 
 			// include the allBindingSetsAvailable into the while condition, to process a
@@ -128,10 +127,6 @@ public class NodeAlt {
 
 				GraphBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 				GraphBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
-
-				System.out.println("Sent to child " + child.rule + ": "
-						+ preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
-				System.out.println("From: " + preparedBindings2);
 
 				BindingSet childBindings = child.continueReasoning(
 						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());

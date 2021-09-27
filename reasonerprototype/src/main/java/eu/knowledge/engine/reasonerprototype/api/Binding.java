@@ -27,6 +27,14 @@ public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Liter
 		super(b);
 	}
 
+	public boolean containsKey(String var) {
+		return this.containsKey(new Variable(var));
+	}
+
+	public Literal get(String var) {
+		return this.get(new Variable(var));
+	}
+
 	public Literal put(String var, String val) {
 		return this.put(new TriplePattern.Variable(var), new TriplePattern.Literal(val));
 	}

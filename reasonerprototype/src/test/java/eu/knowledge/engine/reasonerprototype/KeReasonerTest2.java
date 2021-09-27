@@ -146,9 +146,6 @@ public class KeReasonerTest2 {
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
-//		Binding binding = new Binding();
-//		binding.put("?q", "22");
-//		bs.add(binding);
 
 		Binding binding2 = new Binding();
 		binding2.put("?p", "<sensor1>");
@@ -293,6 +290,33 @@ public class KeReasonerTest2 {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p ?pred 21.666666"));
+//		objective.add(new TriplePattern("?p ?pred 22"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
+	}
+	
+	@Test
+	public void testVariableAsPredicate2() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Sensor"));
 //		objective.add(new TriplePattern("?p ?pred 21.666666"));
 		objective.add(new TriplePattern("?p ?pred 22"));
 
@@ -300,11 +324,10 @@ public class KeReasonerTest2 {
 		NodeAlt root = reasoner.plan(objective);
 		System.out.println(root);
 
+		//empty binding is necessary
 		BindingSet bs = new BindingSet();
-
-//		Binding binding2 = new Binding();
-//		binding2.put("?p", "<sensor1>");
-//		bs.add(binding2);
+		Binding binding2 = new Binding();
+		bs.add(binding2);
 
 		BindingSet bind;
 		while ((bind = root.continueReasoning(bs)) == null) {

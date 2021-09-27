@@ -236,10 +236,11 @@ public class GraphBindingSet {
 									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
 											b.get(aTripleVar2));
 								} else if (singleMap.getValue() instanceof Literal
-										&& b.containsKey(
+										&& (!b.containsKey(
+												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey())) || (b.containsKey(
 												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
 										&& b.get(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
-												.equals(singleMap.getValue())) {
+												.equals(singleMap.getValue())))) {
 									// we do not have to add it, if we translate it back.
 									skip = false;
 									
