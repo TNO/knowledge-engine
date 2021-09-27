@@ -5,13 +5,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.12-SNAPSHOT</version>
+		<version>0.1.14-SNAPSHOT</version>
 	</parent>
-	<groupId>eu.interconnectproject.knowledge_engine</groupId>
 	<artifactId>reasonerprototype</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>reasonerprototype</name>
 	<url>http://maven.apache.org</url>
 	<properties>
