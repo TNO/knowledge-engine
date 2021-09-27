@@ -6,7 +6,7 @@
 	<packaging>jar</packaging>
 	<name>Knowledge Engine - Smart Connector</name>
 	<parent>
-		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
 		<version>0.1.14-SNAPSHOT</version>
 		<relativePath>..</relativePath>
@@ -15,7 +15,7 @@
 	<dependencies>
 		<!-- Only needed as dependency for unit tests -->
 		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>knowledge-directory</artifactId>
 			<version>0.1.14-SNAPSHOT</version>
 			<scope>test</scope>
@@ -152,7 +152,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -183,9 +183,9 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker</packageName>
-							<apiPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.api</apiPackage>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.inter_ker.model</modelPackage>
+							<packageName>eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker</packageName>
+							<apiPackage>eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api</apiPackage>
+							<modelPackage>eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model</modelPackage>
 							<inputSpec>${project.basedir}/src/main/resources/openapi-inter-ker.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
@@ -208,7 +208,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<modelPackage>eu.interconnectproject.knowledge_engine.smartconnector.runtime.messaging.kd.model</modelPackage>
+							<modelPackage>eu.knowledge.engine.smartconnector.runtime.messaging.kd.model</modelPackage>
 							<inputSpec>${project.basedir}/../knowledge-directory/src/main/resources/openapi-kd.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>false</generateSupportingFiles>

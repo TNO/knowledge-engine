@@ -27,7 +27,7 @@ ex:parent1 ex:hasChild ex:child3 .
 ex:child3 rdf:type ex:Child .
 ```
 
-As you can see, RDF is perfectly capable of expressing one-to-many relations. Now imagine that you want to use the InterConnect Interoperability layer to exchange information about parents and their children. For this you need to let the Interoperability layer know that you can participate in data exchanges about parents and their children. You do this using a graph pattern (and for example an AnswerKnowledgeInteraction). Let's take the following graph pattern:
+As you can see, RDF is perfectly capable of expressing one-to-many relations. Now imagine that you want to use the Interoperability layer to exchange information about parents and their children. For this you need to let the Interoperability layer know that you can participate in data exchanges about parents and their children. You do this using a graph pattern (and for example an AnswerKnowledgeInteraction). Let's take the following graph pattern:
  
 ```
 ?parent rdf:type ex:Parent .

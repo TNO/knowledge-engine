@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  title: InterConnect Knowledge Engine REST Developer API
+  title: Knowledge Engine REST Developer API
   
   description:
     This API describes how Smart Connectors are instantiated, Knowledge
@@ -9,9 +9,6 @@ info:
     Base Id to identify yourself.
   version: 0.1.14-SNAPSHOT
   
-servers:
-  - url: https://ke.interconnectproject.eu/rest/
-    description: InterConnect Cloud Interoperability Layer
 paths:
   /sc:
     get:
