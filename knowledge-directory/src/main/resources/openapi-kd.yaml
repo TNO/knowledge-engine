@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  title: InterConnect Knowledge Engine - Knowledge Directory API
+  title: Knowledge Engine - Knowledge Directory API
   
   description:
     This file describes the API between the Smart Connectors and the Knowledge Directory
