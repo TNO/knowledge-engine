@@ -246,7 +246,7 @@ Result:
 	So, there are several ways to handle this and each approach has advantages and disadvantages. Unfortunately, there is not a single best practice to solve this.
 
 *Question*: Have there been any discussions about availability and scalability of knowledge engine? Seeing as a knowledge base can only have a single polling connection, it does not seem possible to spin up multiple instances of a reactive adapter to the same knowledge base. This would limit the scalability potential by quite a lot. Are there any workarounds around this perhaps?
-	- *Answer*: Although scalability and availability have been mentioned several times now, there has not been any thorough discussions about them. One reason for this is that other things have been our priority in the last couple of months. This also means that the Knowledge Engine has not been designed to handle enormous amounts of data (although it is event-based and multi-threaded), but we expect it to be good enough for most InterConnect use cases. The exact limitations with respect to throughput and latency will probably become clearer in the comings months and since we have not been really concerned with performance I expect there is also still room for improvement.
+	- *Answer*: Although scalability and availability have been mentioned several times now, there has not been any thorough discussions about them. One reason for this is that other things have been our priority in the last couple of months. This also means that the Knowledge Engine has not been designed to handle enormous amounts of data (although it is event-based and multi-threaded), but we expect it to be good enough for most use cases. The exact limitations with respect to throughput and latency will probably become clearer in the comings months and since we have not been really concerned with performance I expect there is also still room for improvement.
 
 	Regarding multiple instances of a reactive adapter, we advice a single smart connector per knowledge base and each knowledge base is indeed limited to a single long polling connection. There are several ways to circumvent this limitation:
 	1) consider using the _Java_ Developer API (not sure if the generic adapter will provide this in a future version). It uses handlers and is multi threaded, so it is much better scalable than the _REST_ Developer API.
@@ -256,6 +256,170 @@ Result:
 
 *Question*: I can hardly figure how data are exchanged between services in the Interworking layer architecure. When a service A ask for data form another service (B) through the KE (for example give me the temperature setpoint for this household) it is not clear if the final data (ie the temprature setpoint) is sent directly from Servica A Endpoint to Service B Endpoint or if it transit through the Interworking layer infrastructure.
 
-	- *Answer*: If two services A and B want to exchange data in an interoperable manner, they both should use InterConnect's interoperability layer. They first register their capabilities (using the Ask and Answer Knowledge Interactions) and then the actual data exchange can happen. This data exchange is orchestrated by the interoperability layer and, so, the data transits through the interoperability layer. Service A asks the temperature set point to its Smart Connector and the interoperability layer will contact the Smart Connector of Service B to retrieve the answer from its Service B and sends the result back.
+	- *Answer*: If two services A and B want to exchange data in an interoperable manner, they both should use interoperability layer. They first register their capabilities (using the Ask and Answer Knowledge Interactions) and then the actual data exchange can happen. This data exchange is orchestrated by the interoperability layer and, so, the data transits through the interoperability layer. Service A asks the temperature set point to its Smart Connector and the interoperability layer will contact the Smart Connector of Service B to retrieve the answer from its Service B and sends the result back.
 
 	For more information about the Knowledge Engine and Knowledge Interactions, see the recorded workshop on our shared drive: https://drive.inesctec.pt/f/16182787
+
+*Quesiton*: We noticed that we cannot get consistent results when testing a POST/REACT exchange, both locally and with a partner. So to summarize:
+* we can send a POST request
+* the REACT sides don't receive 100% of the time (more like 25%), whether it is locally running or from our partner's platform
+* When receiving the POST, the REACT side sends the confirmation properly
+* The POST side rarely receives the confirmation from REACT (around 5% of the time)
+	
+- *Answer*: We were doing tests with 2 REACT KB that had different result graph patterns. One matched our post but not the other. This prevented the react process to react to the post and so the post never got a response. So to remember to work properly: For the same argument graph pattern, ALL reacts and ALL posts need the same answer graph pattern. Also: the post will receive the answers from the react once they have all answered. The answers will be aggregated into one.
+
+*Question*: I have a question about how the compliance checker and reasoner are supposed to work. **If this is the wrong place for asking this, please direct me to the right people!**
+
+An example: the following graph pattern defines a **device** and the **type** of itâ€™s **property**.
+
+```
+?device <https://saref.etsi.org/core/measuresProperty> ?property .
+?property a ?propertyType .
+```
+
+The only parameters we need here are **device** and **propertyType**. The **property** variable is redundant, but it still needs to be in the graph pattern. What we decided to do, is replace this variable by a placeholder individual : `http://interconnectproject.eu/pilots/greek/property#property`. The resulting pattern would then look like this:
+
+```
+?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
+```
+
+Iâ€™m wondering if referring to individuals that are not in any ontology, in **subjects** and **objects**, will cause problems with compliance or reasoning?
+
+I guess my question is more specifically: â€œWill the compliance checker look at **subjects** and **objects** in graph patterns, or only at predicates? And will the reasoner be able to handle these kinds of structures?â€�
+
+- *Answer*: I think it helps if we distinguish between syntax and semantics here. Using a pattern like:
+
+	```
+	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+	<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
+	```
+
+	is syntactically correct and it should be accepted by both the validator and reasoner. The difficulty here is with the semantics that it expresses. Imagine the following bindingset:
+
+	| ?device   | ?propertyType |
+	|-----------|---------------|
+	| \<sensor1\> | saref:Motion  |
+	| \<sensor1\> | saref:Smoke   |
+	| \<sensor2\> | saref:Energy  |
+
+	If we combine the above Graph Pattern with the above BindingSet, we get the following RDF triples (I am a bit inconsistent with the prefixes):
+
+	1.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	2.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Motion .`
+
+	3.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	4.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Smoke .`
+
+	5.	`<sensor2> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	6.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .`
+
+	Now, if we draw these triples as a graph figure, we get something like the following:
+
+	![fixed_iri_in_gp](/uploads/6cbb12403ebb8610271df081961cb368/fixed_iri_in_gp.png)
+
+	Note:
+	- that there are 6 triples in the above graph pattern, but only 5 edges in this figure. This is caused by the fact that the 1st and 3rd triple of the graph pattern above are exactly the same and triples can only occur once in a graph. So, if you write them twice, they will still only occur once. 
+	- the effect that using a fixed individual greek:property in the graph pattern is causing; it makes it semantically impossible to determine that sensor1 is measuring property Motion and Smoke, while sensor2 is measuring Energy!
+
+	Conclusion: while the fixed property is syntactically correct, it is semantically incorrect. So, using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected. This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and bindingset and when you ask something like:
+
+	```
+	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+	<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .
+	```
+
+	(note that ?propertyType has been substituted with saref:Energy)
+
+	This graph pattern represents the query: â€œgive me all devices that measure energyâ€� and it will answer with the following bindingset:
+
+	| ?device   |
+	|-----------|
+	| \<sensor1\> |
+	| \<sensor2\> |
+
+	Which is not correct and is caused by the fixed  property. So, there are two solutions here. The practical one, which I think happens quite a lot, is for the ontology to provide an individual per property. So, you would have a `interconnect:motionIndividual`, `interconnect:energyIndividual` and `interconnect:smokeIndividual`. These can be used instead of the greek:property and will make sure that it remains semantically correct. A less practical (and philosophically debatable) one is to have a unique property individual for every property a device measures. So, you would get something like `<sensor1/individual/motion>`, `<sensor1/individual/smoke>` and `<sensor2/individual/energy>` and even more for all other devices.
+
+	And last but not least, a short reaction to Georgâ€™s remark: â€œI think it makes sense to think about the GP as the body of a queryâ€�. It certainly does, although within the context of the Knowledge Engine graph patterns are also used for non-query like interactions.
+
+*Quesiton*: We noticed that we cannot get consistent results when testing a POST/REACT exchange, both locally and with a partner. So to summarize:
+* we can send a POST request
+* the REACT sides don't receive 100% of the time (more like 25%), whether it is locally running or from our partner's platform
+* When receiving the POST, the REACT side sends the confirmation properly
+* The POST side rarely receives the confirmation from REACT (around 5% of the time)
+	
+- *Answer*: We were doing tests with 2 REACT KB that had different result graph patterns. One matched our post but not the other. This prevented the react process to react to the post and so the post never got a response. So to remember to work properly: For the same argument graph pattern, ALL reacts and ALL posts need the same answer graph pattern. Also: the post will receive the answers from the react once they have all answered. The answers will be aggregated into one.
+
+*Question*: I have a question about how the compliance checker and reasoner are supposed to work. **If this is the wrong place for asking this, please direct me to the right people!**
+
+An example: the following graph pattern defines a **device** and the **type** of it’s **property**.
+
+```
+?device <https://saref.etsi.org/core/measuresProperty> ?property .
+?property a ?propertyType .
+```
+
+The only parameters we need here are **device** and **propertyType**. The **property** variable is redundant, but it still needs to be in the graph pattern. What we decided to do, is replace this variable by a placeholder individual : `http://interconnectproject.eu/pilots/greek/property#property`. The resulting pattern would then look like this:
+
+```
+?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
+```
+
+I’m wondering if referring to individuals that are not in any ontology, in **subjects** and **objects**, will cause problems with compliance or reasoning?
+
+I guess my question is more specifically: “Will the compliance checker look at **subjects** and **objects** in graph patterns, or only at predicates? And will the reasoner be able to handle these kinds of structures?”
+
+- *Answer*: I think it helps if we distinguish between syntax and semantics here. Using a pattern like:
+
+	```
+	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+	<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
+	```
+
+	is syntactically correct and it should be accepted by both the validator and reasoner. The difficulty here is with the semantics that it expresses. Imagine the following bindingset:
+
+	| ?device   | ?propertyType |
+	|-----------|---------------|
+	| \<sensor1\> | saref:Motion  |
+	| \<sensor1\> | saref:Smoke   |
+	| \<sensor2\> | saref:Energy  |
+
+	If we combine the above Graph Pattern with the above BindingSet, we get the following RDF triples (I am a bit inconsistent with the prefixes):
+
+	1.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	2.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Motion .`
+
+	3.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	4.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Smoke .`
+
+	5.	`<sensor2> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
+	6.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .`
+
+	Now, if we draw these triples as a graph figure, we get something like the following:
+
+	![fixed_iri_in_gp](/uploads/6cbb12403ebb8610271df081961cb368/fixed_iri_in_gp.png)
+
+	Note:
+	- that there are 6 triples in the above graph pattern, but only 5 edges in this figure. This is caused by the fact that the 1st and 3rd triple of the graph pattern above are exactly the same and triples can only occur once in a graph. So, if you write them twice, they will still only occur once. 
+	- the effect that using a fixed individual greek:property in the graph pattern is causing; it makes it semantically impossible to determine that sensor1 is measuring property Motion and Smoke, while sensor2 is measuring Energy!
+
+	Conclusion: while the fixed property is syntactically correct, it is semantically incorrect. So, using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected. This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and bindingset and when you ask something like:
+
+	```
+	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
+	<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .
+	```
+
+	(note that ?propertyType has been substituted with saref:Energy)
+
+	This graph pattern represents the query: “give me all devices that measure energy” and it will answer with the following bindingset:
+
+	| ?device   |
+	|-----------|
+	| \<sensor1\> |
+	| \<sensor2\> |
+
+	Which is not correct and is caused by the fixed  property. So, there are two solutions here. The practical one, which I think happens quite a lot, is for the ontology to provide an individual per property. So, you would have a `interconnect:motionIndividual`, `interconnect:energyIndividual` and `interconnect:smokeIndividual`. These can be used instead of the greek:property and will make sure that it remains semantically correct. A less practical (and philosophically debatable) one is to have a unique property individual for every property a device measures. So, you would get something like `<sensor1/individual/motion>`, `<sensor1/individual/smoke>` and `<sensor2/individual/energy>` and even more for all other devices.
+
+	And last but not least, a short reaction to Georg’s remark: “I think it makes sense to think about the GP as the body of a query”. It certainly does, although within the context of the Knowledge Engine graph patterns are also used for non-query like interactions.

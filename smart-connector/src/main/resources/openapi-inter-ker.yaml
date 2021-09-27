@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  title: InterConnect Knowledge Engine - Inter-Knowledge Engine Runtime API (a.k.a. SPARQL+)
+  title: Knowledge Engine - Inter-Knowledge Engine Runtime API (a.k.a. SPARQL+)
   
   description:
     This file describes the API for communication between Smart Connectors

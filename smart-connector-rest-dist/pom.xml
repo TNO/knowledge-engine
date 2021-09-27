@@ -3,21 +3,21 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.12-SNAPSHOT</version>
+		<version>0.1.14-SNAPSHOT</version>
 	</parent>
 	<artifactId>smart-connector-rest-dist</artifactId>
 	<name>Knowledge Engine - Smart Connector Rest Dist</name>
 
 	<dependencies>
 		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector-rest-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector</artifactId>
 			<version>${project.version}</version>
 		</dependency>

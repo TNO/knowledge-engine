@@ -5,9 +5,9 @@
 	<packaging>jar</packaging>
 	<name>Knowledge Engine - Admin UI</name>
 	<parent>
-		<groupId>eu.interconnectproject.knowledge_engine</groupId>
+		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.12-SNAPSHOT</version>
+		<version>0.1.14-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -15,7 +15,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>eu.interconnectproject.knowledge_engine</groupId>
+			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector</artifactId>
 			<version>${project.version}</version>
 		</dependency>

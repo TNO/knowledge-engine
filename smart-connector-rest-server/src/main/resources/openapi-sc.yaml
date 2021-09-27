@@ -1,17 +1,14 @@
 openapi: "3.0.0"
 info:
-  title: InterConnect Knowledge Engine REST Developer API
+  title: Knowledge Engine REST Developer API
   
   description:
     This API describes how Smart Connectors are instantiated, Knowledge
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 0.1.12-SNAPSHOT
+  version: 0.1.14-SNAPSHOT
   
-servers:
-  - url: https://ke.interconnectproject.eu/rest/
-    description: InterConnect Cloud Interoperability Layer
 paths:
   /sc:
     get:
@@ -56,6 +53,23 @@ paths:
           application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/SmartConnector'
+            examples:
+              without lease:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+              with 60 seconds lease:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+                  leaseRenewalTime: 60
+                description:
+                  The created smart connector will be cleaned up automatically
+                  after about 60 seconds. To postpone the cleanup, your
+                  knowledge base has to call /sc/lease/renew to extend the lease
+                  by 60 seconds.
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
@@ -81,6 +95,37 @@ paths:
           description: If the Smart Connector for the given Knowledge Base is successfully deleted.
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+  /sc/lease/renew:
+    put:
+      summary: Renew the lease of a Smart Connector.
+      tags:
+        - smart connector lease
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The ID of the Knowledge Base whose lease you wish to renew.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The renewed lease
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/SmartConnectorLease'
+        '400':
+          description: The request was faulty.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '404':
+          description: The Knowledge Base doesn't exist (anymore), or doesn't have a lease.
           content:
             text/plain; charset=UTF-8:
               schema:
@@ -123,9 +168,31 @@ paths:
           application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/KnowledgeInteractionBase'
-            example:
-              knowledgeInteractionType: AskKnowledgeInteraction
-              graphPattern: "?s ?p ?o"
+            examples:
+              ASK without prefixes:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+              ASK with prefixes:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a rdf:type ex:Something ."
+                  prefixes:
+                    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ex: "http://example.org/"
+              REACT with prefixes:
+                value:
+                  knowledgeInteractionType: ReactKnowledgeInteraction
+                  argumentGraphPattern:
+                    ?a rdf:type ex:Measurement .
+                    ?a ex:hasValueInMeters ?b .
+                  resultGraphPattern:
+                    ?a rdf:type ex:Measurement .
+                    ?a ex:hasValueInYards ?b .
+                  prefixes:
+                    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ex: "http://example.org/"
+            
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
@@ -182,7 +249,7 @@ paths:
                 type: string
   /sc/ask:
     post:
-      summary: Execute the given Ask Knowledge Interaction with the given binding set.
+      summary: Execute the given Ask Knowledge Interaction with the given binding set. It is possible to target this ask to a specific Knowledge Base by including a RecipientSelector in the requestBody.
       tags:
         - proactive
       parameters:
@@ -200,11 +267,27 @@ paths:
             type: string
       requestBody:
         required: true
-        description: The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.
+        description: Either a RecipientSelector and BindingSet or a BindingSet only. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys (i.e. variables) in the BindingSet are allowed to be incomplete, but they must correspond to the keys that were defined in the graph pattern of the knowledge interaction.
         content:
           application/json; charset=UTF-8:
             schema:
-              $ref: '#/components/schemas/BindingSet'
+              oneOf:
+                - $ref: '#/components/schemas/RecipientAndBindingSet'
+                - $ref: '#/components/schemas/BindingSet'
+            examples:
+              bindingset only:
+                value:
+                  - p: <http://www.tno.nl/s1>
+                    q: <http://www.tno.nl/p1>
+                    r: <http://www.tno.nl/o1>
+              recipient and bindingset:
+                value:
+                  recipientSelector:
+                    singleKnowledgeBase: http://www.tno.nl/kb2
+                  bindingSet:
+                    - p: <http://www.tno.nl/s1>
+                      q: <http://www.tno.nl/p1>
+                      r: <http://www.tno.nl/o1>
       responses:
         '200':
           description: If the ask was successful it returns all found variable
@@ -394,12 +477,33 @@ components:
           type: string
         knowledgeBaseDescription:
           type: string
+        leaseRenewalTime:
+          type: integer
+          minimum: 30
+          maximum: 3600
+          description: Include this property if you want to have your knowledge
+            base automatically unregistered when you don't renew your lease. Expiry
+            is checked periodically, so your knowledge base may actually be
+            valid for longer than the given time.
     BindingSet:
       type: array
       items:
         nullable: false # Enforced manually, but kept here nonetheles.
         type: object
         additionalProperties:
+          type: string
+    RecipientAndBindingSet:
+      type: object
+      required: [recipientSelector, bindingSet]
+      properties:
+        recipientSelector:
+          $ref: '#/components/schemas/RecipientSelector'
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    RecipientSelector:
+      type: object
+      properties:
+        "singleKnowledgeBase": 
           type: string
     KnowledgeInteractionBase:
       type: object
@@ -416,6 +520,8 @@ components:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
+        prefixes:
+          $ref: '#/components/schemas/Prefixes'
     KnowledgeInteractionWithId:
       allOf:
         - anyOf:
@@ -543,6 +649,8 @@ components:
           type: integer
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
+        requestingKnowledgeBaseId:
+          type: string
     HandleResponse:
       type: object
       required: [handleRequestId, bindingSet]
@@ -551,3 +659,21 @@ components:
           type: integer
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
+    SmartConnectorLease:
+      type: object
+      properties:
+        knowledgeBaseId:
+          type: string
+        expires:
+          type: string
+          format: date-time
+    Prefixes:
+      type: object
+      additionalProperties:
+        type: string
+        pattern: url
+      description:
+        If you include a Prefixes object when registering a knowledge interaction,
+        you are allowed to use those prefixes in the graph pattern(s) that the 
+        knowledge interaction contains. Keep in mind that the prefixes can only
+        be used in your graph pattern during registration, and not within bindings.

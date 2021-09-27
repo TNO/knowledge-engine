@@ -8,4 +8,4 @@ COPY ${DEPENDENCY_DIR} /knowledge_engine/
 COPY ${JAR_FILE} /knowledge_engine/
 
 # Add that directory to the class path.
-ENTRYPOINT ["java", "-cp", "/knowledge_engine/*", "eu.interconnectproject.knowledge_engine.rest.Main", "8280"]
+ENTRYPOINT ["java", "-cp", "/knowledge_engine/*", "eu.knowledge.engine.rest.Main", "8280"]
