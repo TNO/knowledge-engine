@@ -99,7 +99,6 @@ public class KeReasonerTest2 {
 						} else {
 							newBS.addAll(this.data.getData());
 						}
-
 						return newBS;
 					}
 
@@ -289,6 +288,7 @@ public class KeReasonerTest2 {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type Sensor"));
+//		objective.add(new TriplePattern("?p ?pred 21.666666"));
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
@@ -306,6 +306,7 @@ public class KeReasonerTest2 {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
+		System.out.println(root);
 
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1

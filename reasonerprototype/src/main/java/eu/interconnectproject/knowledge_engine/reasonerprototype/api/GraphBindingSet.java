@@ -188,6 +188,8 @@ public class GraphBindingSet {
 	 * The format of the mapping is expected to be translate <from triple pattern>,
 	 * <to triple pattern>.
 	 * 
+	 * It also filters bindings that are incompatible with the match.
+	 * 
 	 * @param match
 	 * @return
 	 */
@@ -195,30 +197,65 @@ public class GraphBindingSet {
 		GraphBindingSet newOne = new GraphBindingSet(graphPattern);
 		TripleVarBinding newB;
 
-		for (TripleVarBinding b : this.bindings) {
-			newB = new TripleVarBinding();
+		if (this.bindings.isEmpty()) {
+			// bindings coming through the match.
 			for (Map<TriplePattern, TriplePattern> entry : match) {
+				newB = new TripleVarBinding();
 				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.entrySet()) {
-					if (b.containsTriplePattern(keyValue.getKey())) {
-						Map<Value, Value> mapping = keyValue.getKey().matchesWithSubstitutionMap(keyValue.getValue());
-						for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
-							if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
-								newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
-										(Literal) singleMap.getKey());
-							} else if (singleMap.getValue() instanceof Variable
-									&& b.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))) {
-								TripleVar aTripleVar2 = new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey());
-								newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
-										b.get(aTripleVar2));
+					Map<Value, Value> mapping = keyValue.getKey().matchesWithSubstitutionMap(keyValue.getValue());
+					for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
+						if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
+							// if the binding set is empty (and we are translating child results back to current node results, we actually do not want to add the static literal.
+							newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+									(Literal) singleMap.getKey());
+						}
+					}
+
+				}
+				newOne.add(newB);
+			}
+
+		} else {
+
+			for (TripleVarBinding b : this.bindings) {
+				newB = new TripleVarBinding();
+				boolean skip = false;
+				for (Map<TriplePattern, TriplePattern> entry : match) {
+					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.entrySet()) {
+						if (b.containsTriplePattern(keyValue.getKey())) {
+							Map<Value, Value> mapping = keyValue.getKey()
+									.matchesWithSubstitutionMap(keyValue.getValue());
+							for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
+								if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
+									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+											(Literal) singleMap.getKey());
+								} else if (singleMap.getValue() instanceof Variable && b
+										.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))) {
+									TripleVar aTripleVar2 = new TripleVar(keyValue.getKey(),
+											(Variable) singleMap.getKey());
+									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+											b.get(aTripleVar2));
+								} else if (singleMap.getValue() instanceof Literal
+										&& b.containsKey(
+												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+										&& b.get(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+												.equals(singleMap.getValue())) {
+									// we do not have to add it, if we translate it back.
+									skip = false;
+									
+								} else {
+									skip = true;
+								}
 							}
 						}
 					}
 				}
+				if (!skip)
+					newOne.add(newB);
 			}
-			newOne.add(newB);
 		}
-
 		return newOne;
+
 	}
 
 	public void addAll(Set<TripleVarBinding> permutatedTVBs) {

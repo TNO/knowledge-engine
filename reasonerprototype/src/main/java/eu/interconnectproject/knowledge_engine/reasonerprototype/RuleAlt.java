@@ -18,7 +18,8 @@ public class RuleAlt {
 
 	public BindingSetHandler bindingSetHandler;
 
-	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
+	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+			BindingSetHandler aBindingSetHandler) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = aBindingSetHandler;
@@ -67,16 +68,29 @@ public class RuleAlt {
 		return matches;
 	}
 
+	public Set<Map<TriplePattern, TriplePattern>> consequentMatches2(Set<TriplePattern> objective) {
+		Set<Map<TriplePattern, TriplePattern>> matches = new HashSet<>();
+
+		for (TriplePattern objTriple : objective) {
+			for (TriplePattern consTriple : this.consequent) {
+
+			}
+
+		}
+
+		return matches;
+	}
+
 	public BindingSetHandler getBindingSetHandler() {
 		return bindingSetHandler;
 	}
 
 	/**
 	 * 
-	 * We match every triple from the objective with every triple of the rhs.
+	 * We match every triple from the objective with every triple of the consequent.
 	 * 
 	 * TODO It's recursive and uses the Java stack. There is a limit to the stack
-	 * size in Java, so this limits the sizes of the graph patterns. We consdered
+	 * size in Java, so this limits the sizes of the graph patterns. We considered
 	 * using a loop instead of recursing, but we could not figure out how to do it.
 	 * Also, this method is far from efficient, we need to figure out a way to
 	 * improve its performance. Maybe using the dynamic programming algorithm
@@ -86,7 +100,8 @@ public class RuleAlt {
 	 * @param objective
 	 * @param binding
 	 */
-	private Set<Map<TriplePattern, TriplePattern>> matches(Set<TriplePattern> objective, Set<TriplePattern> consequent, Map<Value, Value> context) {
+	private Set<Map<TriplePattern, TriplePattern>> matches(Set<TriplePattern> objective, Set<TriplePattern> consequent,
+			Map<Value, Value> context) {
 		Set<Map<TriplePattern, TriplePattern>> isos = new HashSet<>();
 
 		for (TriplePattern objTriple : objective) {
@@ -96,6 +111,11 @@ public class RuleAlt {
 			reducedObj.remove(objTriple);
 			Set<TriplePattern> reducedRhs;
 			for (Map.Entry<TriplePattern, Map<Value, Value>> entry : allMatches.entrySet()) {
+
+				// add singleton match
+				Map<TriplePattern, TriplePattern> singletonMatch = new HashMap<TriplePattern, TriplePattern>();
+				singletonMatch.put(objTriple, entry.getKey());
+				isos.add(singletonMatch);
 
 				reducedRhs = new HashSet<>(consequent);
 				reducedRhs.remove(entry.getKey());

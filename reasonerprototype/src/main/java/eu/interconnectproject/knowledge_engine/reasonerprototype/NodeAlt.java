@@ -61,13 +61,13 @@ public class NodeAlt {
 	}
 
 	private Map<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> findRulesWithOverlappingConsequences(
-			Set<TriplePattern> aGoal) {
+			Set<TriplePattern> aPattern) {
 
 		Set<Map<TriplePattern, TriplePattern>> possibleMatches;
 		Map<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> overlappingRules = new HashMap<>();
 		for (RuleAlt r : this.allRules) {
 
-			if (!(possibleMatches = r.consequentMatches(aGoal)).isEmpty()) {
+			if (!(possibleMatches = r.consequentMatches(aPattern)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
 		}
@@ -129,8 +129,12 @@ public class NodeAlt {
 				GraphBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 				GraphBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
-				BindingSet childBindings = child
-						.continueReasoning(preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
+				System.out.println("Sent to child " + child.rule + ": "
+						+ preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
+				System.out.println("From: " + preparedBindings2);
+
+				BindingSet childBindings = child.continueReasoning(
+						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
 					allBindingSetsAvailable = false;
 				} else {
@@ -156,8 +160,10 @@ public class NodeAlt {
 				} else {
 					consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
 							bindingSet.toGraphBindingSet(this.rule.antecedent), combinedBindings);
+
 					consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
 							consequentAntecedentBindings);
+
 				}
 
 				if (false) {
@@ -168,11 +174,11 @@ public class NodeAlt {
 					} else {
 						this.resultingBindingSet = new BindingSet();
 						this.state = BINDINGSET_AVAILABLE;
+						return this.resultingBindingSet;
 					}
 				} else {
 
 					// call the handler directly, to make debugging easier.
-
 					if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 						this.resultingBindingSet = this.rule.getBindingSetHandler()
@@ -182,6 +188,7 @@ public class NodeAlt {
 						this.resultingBindingSet = new BindingSet();
 						this.state = BINDINGSET_AVAILABLE;
 					}
+					return this.resultingBindingSet;
 
 				}
 			}
@@ -217,19 +224,28 @@ public class NodeAlt {
 		return newGraphBindingSet;
 	}
 
+	/**
+	 * Returns the permutation (except for the empty set).
+	 * 
+	 * @param tvb
+	 * @param powerSets
+	 * @return
+	 */
 	private Set<TripleVarBinding> permutateTripleVarBinding(TripleVarBinding tvb, Set<Set<TriplePattern>> powerSets) {
 
 		Set<TripleVarBinding> permutated = new HashSet<>();
 		for (Set<TriplePattern> set : powerSets) {
-			TripleVarBinding newTVB = new TripleVarBinding();
-			for (TriplePattern tp : set) {
-				for (TripleVar tv2 : tvb.getTripleVars()) {
-					if (tv2.tp.equals(tp)) {
-						newTVB.put(tv2, tvb.get(tv2));
+			if (!set.isEmpty()) {
+				TripleVarBinding newTVB = new TripleVarBinding();
+				for (TriplePattern tp : set) {
+					for (TripleVar tv2 : tvb.getTripleVars()) {
+						if (tv2.tp.equals(tp)) {
+							newTVB.put(tv2, tvb.get(tv2));
+						}
 					}
 				}
+				permutated.add(newTVB);
 			}
-			permutated.add(newTVB);
 		}
 
 		return permutated;
