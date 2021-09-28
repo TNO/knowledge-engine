@@ -227,8 +227,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 				eu.knowledge.engine.rest.model.HandleRequest object = new eu.knowledge.engine.rest.model.HandleRequest()
 						.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
-						.knowledgeInteractionId(knowledgeInteractionId)
+						.knowledgeInteractionId(knowledgeInteractionId);
+
+				if (handleRequest.getRequestingKnowledgeBaseId() != null) {
+					object
 						.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
+				}
 
 				this.asyncResponse.resume(Response.status(200).entity(object).build());
 				this.asyncResponse = null;
