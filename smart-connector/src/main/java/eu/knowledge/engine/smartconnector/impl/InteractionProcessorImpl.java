@@ -101,8 +101,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
+//		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
+//				otherKnowledgeInteractions, this.messageRouter);
+		
+		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for

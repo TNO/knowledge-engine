@@ -42,6 +42,9 @@ public class NodeAlt {
 	private int state = BINDINGSET_NOT_REQUESTED;
 
 	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule) {
+
+		System.out.println("Node for rule: " + aRule);
+
 		this.allRules = someRules;
 		this.rule = aRule;
 		this.children = new HashMap<NodeAlt, Set<Map<TriplePattern, TriplePattern>>>();
@@ -89,6 +92,8 @@ public class NodeAlt {
 
 		// send the binding set down the tree and combine the resulting bindingsets to
 		// the actual result.
+
+		System.out.println(this.rule + ": " + bindingSet);
 
 		if (this.state != BINDINGSET_AVAILABLE) {
 
@@ -161,7 +166,7 @@ public class NodeAlt {
 
 				}
 
-				if (false) {
+				if (true) {
 					if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 						TaskBoard.instance().addTask(this, consequentAntecedentBindings.toBindingSet());

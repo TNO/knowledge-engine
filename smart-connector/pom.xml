@@ -156,6 +156,11 @@
 			<artifactId>smart-connector-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>eu.knowledge.engine</groupId>
+			<artifactId>reasonerprototype</artifactId>
+			<version>0.1.14-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<properties>
