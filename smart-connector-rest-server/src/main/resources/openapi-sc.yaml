@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 0.1.14-SNAPSHOT
+  version: 1.0.0
   
 paths:
   /sc:
