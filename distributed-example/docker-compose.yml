@@ -26,7 +26,7 @@ services:
     ports:
       - 8281:8280
   
-  # The example script is a JavaScript application that sets up a KB in each
-  # runtime, and lets them exchange knowledge.
+  # The example script is a JavaScript/TypeScript application that sets up a KB
+  # in each runtime, and lets them exchange knowledge.
   knowledge-exchange-script:
     build: ./knowledge-exchange-script
