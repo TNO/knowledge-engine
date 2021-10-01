@@ -2,13 +2,13 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:latest
+    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.0.0
 
   # These two services are separate Knowledge Engine runtime, which can host
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port
   # number than the ones configured below. It is still the default 8280.
   runtime-1:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.14-SNAPSHOT
+    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.0.0
     environment: 
       HOSTNAME: runtime-1
       PORT: 8081 # The (knowledge engine internal) port that is used for inter-runtime communication
@@ -17,7 +17,7 @@ services:
     ports:
       - 8280:8280
   runtime-2:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:0.1.14-SNAPSHOT
+    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.0.0
     environment: 
       HOSTNAME: runtime-2
       PORT: 8081 # The (knowledge engine internal) port that is used for inter-runtime communication
