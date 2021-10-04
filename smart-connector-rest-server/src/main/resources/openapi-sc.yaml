@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 0.1.14-SNAPSHOT
+  version: 1.0.1-SNAPSHOT
   
 paths:
   /sc:
@@ -374,10 +374,10 @@ paths:
         requests (both for Answer and React Knowledge Interactions) for the
         given Knowledge-Base-Id will be received via a single long polling http
         connection. The Knowledge Interaction Id can be used to distinguish
-        between different Knowledge Interactions. The <i>handle request id</i>
+        between different Knowledge Interactions. The *handle request id*
         (which is unique per Knowledge Base Id) should be used when sending the
         result back to the server. It allows the server to know which handle
-        request you are reacting to in the <i>post</i> method of this path. </b>
+        request you are reacting to in the *post* method of this path.
       tags:
         - reactive
       parameters:
@@ -394,6 +394,13 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/HandleRequest'
+              example:
+                knowledgeInteractionId: http://example.org/ki/your-knowledge-interaction-id
+                handleRequestId: 1
+                bindingSet:
+                  - a: <http://example.org/some-incoming-value>
+                    b: <http://example.org/another-incoming-value>
+                requestingKnowledgeBaseId: http://example.org/knowledge-base-id-of-requesting-side
         '202':
           description: No problems, but please reinitiate the long polling request. To prevent very long open connections (which might cause problems for some systems), we regularly return with status code 202 to renew the long polling connection. Note that no handlerequests will be missed, because these are queued automatically.
           content:
@@ -413,7 +420,7 @@ paths:
               schema:
                 type: string
         '410':
-          description: This long polling connection has stopped because the server will shut down, please do <b>not</b> reinitiate this request.
+          description: This long polling connection has stopped because the server will shut down, please do __not__ reinitiate this request.
           content:
             text/plain; charset=UTF-8:
               schema:

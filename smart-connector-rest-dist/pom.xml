@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>0.1.14-SNAPSHOT</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>smart-connector-rest-dist</artifactId>
 	<name>Knowledge Engine - Smart Connector Rest Dist</name>
