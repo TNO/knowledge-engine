@@ -120,7 +120,7 @@ public class RuleAlt {
 
 			}
 
-			allMatches.put(entry.getValue(), entry.getValue());
+//			allMatches.put(entry.getValue(), entry.getValue());
 
 		}
 
