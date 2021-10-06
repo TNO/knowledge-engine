@@ -142,7 +142,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -159,8 +159,15 @@ public class KeReasonerTest2 {
 		}
 
 		System.out.println("bindings: " + bind);
-		assertTrue(bind.isEmpty());
+		assertTrue(isEmpty(bind));
 
+	}
+
+	private boolean isEmpty(BindingSet b) {
+		if (b.isEmpty() || b.iterator().next().isEmpty())
+			return true;
+
+		return false;
 	}
 
 	@Test
@@ -172,7 +179,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -202,7 +209,7 @@ public class KeReasonerTest2 {
 		// not work
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -234,7 +241,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p nonExistentProp ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -265,7 +272,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -294,7 +301,7 @@ public class KeReasonerTest2 {
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -311,20 +318,19 @@ public class KeReasonerTest2 {
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty());
 	}
-	
+
 	@Test
 	public void testVariableAsPredicate2() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type Sensor"));
-//		objective.add(new TriplePattern("?p ?pred 21.666666"));
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
-		//empty binding is necessary
+		// empty binding is necessary
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);

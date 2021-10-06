@@ -17,7 +17,7 @@ public class KeReasonerAlt {
 		rules.add(rule);
 	}
 
-	public NodeAlt plan(Set<TriplePattern> aGoal) {
+	public NodeAlt plan(Set<TriplePattern> aGoal, boolean aFullMatchOnly) {
 		RuleAlt goalRule = new RuleAlt(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
@@ -29,7 +29,7 @@ public class KeReasonerAlt {
 			}
 
 		});
-		NodeAlt root = new NodeAlt(rules, null, goalRule);
+		NodeAlt root = new NodeAlt(rules, null, goalRule, aFullMatchOnly);
 		return root;
 	}
 

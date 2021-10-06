@@ -8,9 +8,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
+import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class TripleTest {
 
@@ -35,6 +34,23 @@ public class TripleTest {
 		assertEquals(expected, t1.matchesWithSubstitutionMap(t2));
 
 		assertEquals(expected, t1.matchesWithSubstitutionMap(t2));
+	}
+
+	@Test
+	public void tripleSubstituteTest() {
+		TriplePattern t1 = new TriplePattern("?s type Sensor");
+		TriplePattern t2 = new TriplePattern("?s type Sensor");
+
+		// if two triples matche exactly, we still need to store the matching variables,
+		// otherwise we cannot detect conflicts when merging!
+
+		Map<Value, Value> actual = t1.matchesWithSubstitutionMap(t2);
+
+		Map<Value, Value> expected = new HashMap<>();
+		expected.put(new Variable("?s"), new Variable("?s"));
+
+		assertEquals(expected, actual);
+
 	}
 
 }

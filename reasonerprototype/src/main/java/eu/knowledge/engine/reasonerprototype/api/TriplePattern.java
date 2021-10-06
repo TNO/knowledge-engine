@@ -142,7 +142,7 @@ public class TriplePattern {
 		return object;
 	}
 
-	public TriplePattern substitude(Binding b) {
+	public TriplePattern substitute(Binding b) {
 		Value subject, predicate, object;
 		if (this.subject instanceof Variable && b.containsKey((this.subject))) {
 			subject = b.get(this.subject);
@@ -163,7 +163,7 @@ public class TriplePattern {
 	}
 
 	public boolean matches(TriplePattern other, Binding binding) {
-		TriplePattern substituted = other.substitude(binding);
+		TriplePattern substituted = other.substitute(binding);
 		return this.matches(substituted);
 	}
 
@@ -188,6 +188,10 @@ public class TriplePattern {
 	 * between the two triples. This map is used to translatae a binding with the
 	 * variable names from one triple the variable names of the other.
 	 *
+	 * The mapping is null if the triple patterns conflict, empty if nothing needs
+	 * to be mapped to translate a bindingset from one to the other and non-empty if
+	 * something needs to happen to translate one thing to the other.
+	 *
 	 * @param other
 	 * @return
 	 */
@@ -199,6 +203,7 @@ public class TriplePattern {
 			}
 		} else {
 			// at least one of those is a variable
+
 			substitutionMap.put(this.getSubject(), other.getSubject());
 		}
 		if (this.getPredicate() instanceof Literal && other.getPredicate() instanceof Literal) {

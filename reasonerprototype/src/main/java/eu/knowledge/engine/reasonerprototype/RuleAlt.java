@@ -1,10 +1,14 @@
 package eu.knowledge.engine.reasonerprototype;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -68,61 +72,82 @@ public class RuleAlt {
 		return matches;
 	}
 
+	public Set<Match> consequentMatches2(Set<TriplePattern> antecedent, boolean aFullMatchOnly) {
+		Set<Match> matches = matches2(antecedent, consequent, aFullMatchOnly);
+		return matches;
+	}
+
 	public BindingSetHandler getBindingSetHandler() {
 		return bindingSetHandler;
 	}
 
-	private Set<Map<TriplePattern, TriplePattern>> matches2(Set<TriplePattern> objective, Set<TriplePattern> consequent,
-			boolean fullMatchOnly) {
+	private Set<Match> matches2(Set<TriplePattern> antecedent, Set<TriplePattern> consequent, boolean fullMatchOnly) {
 
-		assert objective != null;
+		assert antecedent != null;
 		assert consequent != null;
-		assert !objective.isEmpty();
+		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
 
-		Set<Map<TriplePattern, TriplePattern>> isos = new HashSet<>();
+		// first find all triples in the consequent that match each triple in the
+		// antecedent
+		Set<Match> allMatches = new HashSet<>();
 
-		Map<Map<TriplePattern, TriplePattern>, Map<Value, Value>> allMatches = new HashMap<>();
-
-		Map<TriplePattern, Map<Value, Value>> consMatches;
-		for (TriplePattern objTriple : objective) {
-
-			// find all possible matches of the current objective triple in the consequent
-			consMatches = containsMatchingTriplePattern(consequent, objTriple);
-
-			// store all found matches individually
-			storeConsequentMatches(objTriple, consMatches, allMatches);
-
-			// update existing matches with newly found ones (taking fullMatchOnly into
-			// account)
-
+		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
+		for (TriplePattern anteTriple : antecedent) {
+			// find all possible matches of the current antecedent triple in the consequent
+			matchesPerTriple.put(anteTriple, findMatches(anteTriple, consequent));
 		}
 
-		assert isos != null;
+		// if not every triple pattern can be matched, we stop the process if we require
+		// a full match.
+		if (fullMatchOnly && matchesPerTriple.keySet().size() < antecedent.size())
+			return allMatches;
 
-		return isos;
-	}
+		// next, correctly combine all found matches
+		Match mergedMatch = null;
+		Set<Match> matches = null, newMatches = null;
+		boolean firstTime = true;
+		for (Map.Entry<TriplePattern, Set<Match>> entry : matchesPerTriple.entrySet()) {
 
-	private void storeConsequentMatches(TriplePattern objTriple, Map<TriplePattern, Map<Value, Value>> consMatches,
-			Map<Map<TriplePattern, TriplePattern>, Map<Value, Value>> allMatches) {
+			// keep a set of new matches, so we can add them at the end of this loop
+			newMatches = new HashSet<>();
 
-		assert consMatches != null;
-		assert allMatches != null;
+			matches = entry.getValue();
+			assert matches != null;
 
-		Map<Map<TriplePattern, TriplePattern>, Map<Value, Value>> newAllMatches = new HashMap<>(allMatches);
+			if (firstTime) {
+				// first time there is nothing there.
+				newMatches.addAll(matches);
+				firstTime = false;
+			} else {
+				for (Match m1 : matches) {
+					// check if we need to merge with existing matches
+					for (Match m2 : allMatches) {
+						mergedMatch = m1.merge(m2);
+						if (mergedMatch != null) {
+							newMatches.add(mergedMatch);
+						}
+					}
+				}
 
-		for (Map.Entry<TriplePattern, Map<Value, Value>> entry : consMatches.entrySet()) {
-
-			for (Map.Entry<Map<TriplePattern, TriplePattern>, Map<Value, Value>> allMatchesEntry : newAllMatches
-					.entrySet()) {
-
-				//
-
+				if (!fullMatchOnly && newMatches.isEmpty()) {
+					// we only add the individual ones, if we could not add them to existing ones.
+					newMatches.addAll(matches);
+				}
 			}
 
-//			allMatches.put(entry.getValue(), entry.getValue());
+			if (fullMatchOnly) {
+				allMatches = newMatches;
+			} else {
+				allMatches.addAll(newMatches);
+			}
+			newMatches = null;
 
 		}
+
+		assert allMatches != null;
+		System.out.println("All matches: " + allMatches.size());
+		return allMatches;
 
 	}
 
@@ -144,9 +169,7 @@ public class RuleAlt {
 	private Set<Map<TriplePattern, TriplePattern>> matches(Set<TriplePattern> objective, Set<TriplePattern> consequent,
 			Map<Value, Value> context) {
 		Set<Map<TriplePattern, TriplePattern>> isos = new HashSet<>();
-		System.out.println("matches: " + objective + ", " + context);
 		for (TriplePattern objTriple : objective) {
-			System.out.println("next objective triple");
 			Map<TriplePattern, Map<Value, Value>> allMatches = rhsMatchesAlt(objTriple, consequent);
 
 			Set<TriplePattern> reducedObj = new HashSet<>(objective);
@@ -221,30 +244,24 @@ public class RuleAlt {
 		for (TriplePattern myTriple : rhs) {
 			Map<Value, Value> map = myTriple.matchesWithSubstitutionMap(objTriple);
 
-			assert map != null;
-
-			if (!map.isEmpty())
+			if (map != null && !map.isEmpty())
 				allMatches.put(myTriple, map);
 		}
 		return allMatches;
 	}
 
-	private Map<TriplePattern, Map<Value, Value>> containsMatchingTriplePattern(Set<TriplePattern> consequent,
-			TriplePattern pattern) {
+	private Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
 
 		assert consequent != null;
-		assert pattern != null;
+		assert antecedent != null;
 		assert !consequent.isEmpty();
 
-		Map<TriplePattern, Map<Value, Value>> matchingTriplePatterns = new HashMap<>();
+		Set<Match> matchingTriplePatterns = new HashSet<>();
 		Map<Value, Value> map;
 		for (TriplePattern tp : consequent) {
-			map = tp.matchesWithSubstitutionMap(pattern);
-
-			assert map != null;
-
-			if (!map.isEmpty()) {
-				matchingTriplePatterns.put(tp, map);
+			map = antecedent.matchesWithSubstitutionMap(tp);
+			if (map != null) {
+				matchingTriplePatterns.add(new Match(antecedent, tp, map));
 			}
 		}
 
@@ -270,62 +287,128 @@ public class RuleAlt {
 		return vars;
 	}
 
+	/**
+	 * Represents a single match between two graph patterns.
+	 *
+	 * It contains which triple matches upon which triple and it contains the
+	 * required mapping from variables to literals and vice versa to realize the
+	 * match.
+	 * 
+	 * Note that we assume that this match is only used within a single matching
+	 * process between two graph patterns. These matches should not be transferred
+	 * in other matching processes.
+	 *
+	 * @author nouwtb
+	 *
+	 */
 	public static class Match {
 
 		/**
-		 * keys: things that are matching values: things upon which they match
+		 * keys: things that are matching, values: things upon which they match
 		 */
-		private Map<TriplePattern, TriplePattern> matchingPatterns;
+		private final Map<TriplePattern, TriplePattern> matchingPatterns;
 
 		/**
-		 * keys: thing that is mapped values: thing upon which it maps
+		 * keys: thing that is mapped, values: thing upon which it maps
+		 * 
+		 * Note that the semantics of this mapping is that it contains all mappings that
+		 * involve variables. Literal to literal mappings are left out.
 		 */
-		private Map<Value, Value> mapping;
+		private final Map<Value, Value> mapping;
 
 		public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<Value, Value> someMapping) {
+			Map<TriplePattern, TriplePattern> someMatchingPatterns = new HashMap<>();
+			someMatchingPatterns.put(matchTriple, uponTriple);
+			this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 
-			matchingPatterns = new HashMap<>();
-			mapping = new HashMap<>();
+			Map<Value, Value> newMapping = new HashMap<>();
+			newMapping.putAll(someMapping);
+			this.mapping = Collections.unmodifiableMap(someMapping);
 
-			matchingPatterns.put(matchTriple, uponTriple);
-			mapping.putAll(someMapping);
-		}
-
-		/**
-		 * Only merges if they are not conflicting.
-		 * 
-		 * @param otherMatch
-		 * @return a new merged match, otherwise {@code null}.
-		 */
-		public Match merge(Match otherMatch) {
-
-			// check if the mappings do not conflict.
-
-			Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.matchingPatterns);
-			Map<Value, Value> newMapping = new HashMap<>(this.mapping);
-			newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
-			newMapping.putAll(otherMatch.getMappings());
-			Match m = new Match(newMatchingPatterns, newMapping);
-			return m;
-		}
-
-		private Map<Value, Value> getMappings() {
-			return this.mapping;
-		}
-
-		private Map<TriplePattern, TriplePattern> getMatchingPatterns() {
-			return this.matchingPatterns;
 		}
 
 		private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<Value, Value> someMapping) {
-			this.matchingPatterns = someMatchingPatterns;
-			this.mapping = someMapping;
+			this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
+			this.mapping = Collections.unmodifiableMap(someMapping);
 		}
 
-		public Match clone() {
-			Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.matchingPatterns);
-			Map<Value, Value> newMapping = new HashMap<>(this.mapping);
-			return new Match(newMatchingPatterns, newMapping);
+		/**
+		 * Only merges if they are not conflicting. Conflicts arise if the mapping
+		 * conflicts or the matching patterns conflict (i.e. matching multiple times to
+		 * or from the same triple)
+		 * 
+		 * @param otherMatch
+		 * @return a new consistently merged match, otherwise {@code null}.
+		 */
+		public Match merge(Match otherMatch) {
+
+			Match m = null;
+
+			// if both sides of the matching patterns do not overlap
+			boolean doKeysIntersect = doIntersect(this.getMatchingPatterns().keySet(),
+					otherMatch.getMatchingPatterns().keySet());
+
+			boolean doValuesIntersect = doIntersect(this.getMatchingPatterns().values(),
+					otherMatch.getMatchingPatterns().values());
+
+			if (!doKeysIntersect && !doValuesIntersect) {
+
+				// and if the mappings do not conflict
+				Map<Value, Value> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
+				if (mergedMapping != null) {
+					// if both patterns and mappings do not conflict.
+					Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
+					newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
+
+					Map<Value, Value> newMapping = new HashMap<>(this.getMappings());
+					newMapping.putAll(otherMatch.getMappings());
+					m = new Match(newMatchingPatterns, newMapping);
+				}
+			}
+			return m;
+		}
+
+		private boolean doIntersect(Collection<TriplePattern> aFirstSet, Collection<TriplePattern> aSecondSet) {
+
+			for (TriplePattern tp1 : aFirstSet) {
+				for (TriplePattern tp2 : aSecondSet) {
+					if (tp1.equals(tp2))
+						return true;
+				}
+			}
+
+			return false;
+		}
+
+		public Map<Value, Value> getMappings() {
+			return this.mapping;
+		}
+
+		public Map<TriplePattern, TriplePattern> getMatchingPatterns() {
+			return this.matchingPatterns;
+		}
+
+		/**
+		 * Returns null if the contexts have conflicting values.
+		 * 
+		 * @param existingContext
+		 * @param newContext
+		 * @return
+		 */
+		private Map<Value, Value> mergeContexts(Map<Value, Value> existingContext, Map<Value, Value> newContext) {
+
+			Map<Value, Value> mergedContext = new HashMap<Value, Value>(existingContext);
+			for (Map.Entry<Value, Value> newEntry : newContext.entrySet()) {
+				if (existingContext.containsKey(newEntry.getKey())) {
+					if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
+						return null;
+					}
+				} else {
+					mergedContext.put(newEntry.getKey(), newEntry.getValue());
+				}
+			}
+
+			return mergedContext;
 		}
 
 		@Override
@@ -361,6 +444,30 @@ public class RuleAlt {
 				return false;
 			}
 			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Match [matchingPatterns=" + matchingPatterns + ", mapping=" + mapping + "]";
+		}
+
+		/**
+		 * invert the triple patterns and mapping.
+		 * 
+		 * @return
+		 */
+		public Match inverse() {
+			Map<Value, Value> invertedMap = new HashMap<Value, Value>();
+			Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<TriplePattern, TriplePattern>();
+
+			for (Map.Entry<TriplePattern, TriplePattern> someMatchingPatterns : this.matchingPatterns.entrySet()) {
+				newMatchingPatterns.put(someMatchingPatterns.getValue(), someMatchingPatterns.getKey());
+			}
+
+			for (Map.Entry<Value, Value> entry : this.getMappings().entrySet()) {
+				invertedMap.put(entry.getValue(), entry.getKey());
+			}
+			return new Match(newMatchingPatterns, invertedMap);
 		}
 	}
 

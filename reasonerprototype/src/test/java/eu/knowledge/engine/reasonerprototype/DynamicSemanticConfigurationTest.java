@@ -113,7 +113,7 @@ public class DynamicSemanticConfigurationTest {
 		objective.add(new TriplePattern("?id hasName ?name"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective);
+		NodeAlt root = reasoner.plan(objective, false);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

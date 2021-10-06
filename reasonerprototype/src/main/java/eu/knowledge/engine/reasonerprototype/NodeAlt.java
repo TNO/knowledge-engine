@@ -8,17 +8,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.GraphBindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
+import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.knowledge.engine.reasonerprototype.api.TripleVar;
 import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class NodeAlt {
 
-	private Map<NodeAlt, Set<Map<TriplePattern, TriplePattern>>> children;
+	private Map<NodeAlt, Set<Match>> children;
 
 	private List<RuleAlt> allRules;
 
@@ -41,41 +42,52 @@ public class NodeAlt {
 	 */
 	private int state = BINDINGSET_NOT_REQUESTED;
 
-	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule) {
+	/**
+	 * Whether this node only accepts children reasoning nodes that full match its
+	 * antecedent. Note that setting this to true effectively disables the reasoning
+	 * functionality and reduces this algorithm to a matching algorithm.
+	 */
+	private boolean fullMatchOnly;
 
-		System.out.println("Node for rule: " + aRule);
+	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule, boolean aFullMatchOnly) {
 
+		this.fullMatchOnly = aFullMatchOnly;
 		this.allRules = someRules;
 		this.rule = aRule;
-		this.children = new HashMap<NodeAlt, Set<Map<TriplePattern, TriplePattern>>>();
+		this.children = new HashMap<NodeAlt, Set<Match>>();
 
 		// generate children
-		Map<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> relevantRules = findRulesWithOverlappingConsequences(
-				this.rule.antecedent);
+		if (!this.rule.antecedent.isEmpty()) {
+			Map<RuleAlt, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
+					this.fullMatchOnly);
 
-		NodeAlt child;
-		for (Map.Entry<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> entry : relevantRules.entrySet()) {
-			// create a childnode
-			child = new NodeAlt(this.allRules, this, entry.getKey());
-			this.children.put(child, entry.getValue());
+			NodeAlt child;
+			for (Map.Entry<RuleAlt, Set<Match>> entry : relevantRules.entrySet()) {
+				// create a childnode
+				child = new NodeAlt(this.allRules, this, entry.getKey(), this.fullMatchOnly);
+				this.children.put(child, entry.getValue());
+			}
 		}
 
 		// TODO we need some ininite loop detection (see transitivity rule)
 	}
 
-	private Map<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> findRulesWithOverlappingConsequences(
-			Set<TriplePattern> aPattern) {
+	private Map<RuleAlt, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
+			boolean fullMatchOnly) {
 
-		Set<Map<TriplePattern, TriplePattern>> possibleMatches;
-		Map<RuleAlt, Set<Map<TriplePattern, TriplePattern>>> overlappingRules = new HashMap<>();
+		assert aPattern != null;
+		assert !aPattern.isEmpty();
+
+		Set<Match> possibleMatches;
+		Map<RuleAlt, Set<Match>> overlappingRules = new HashMap<>();
 		for (RuleAlt r : this.allRules) {
 
-			if (!(possibleMatches = r.consequentMatches(aPattern)).isEmpty()) {
+			if (!(possibleMatches = r.consequentMatches2(aPattern, fullMatchOnly)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
 		}
+		assert overlappingRules != null;
 		return overlappingRules;
-
 	}
 
 	/**
@@ -92,9 +104,6 @@ public class NodeAlt {
 
 		// send the binding set down the tree and combine the resulting bindingsets to
 		// the actual result.
-
-		System.out.println(this.rule + ": " + bindingSet);
-
 		if (this.state != BINDINGSET_AVAILABLE) {
 
 			boolean allBindingSetsAvailable = true;
@@ -124,7 +133,7 @@ public class NodeAlt {
 			Iterator<NodeAlt> someIter = someChildren.iterator();
 			while (/* allBindingSetsAvailable && */someIter.hasNext()) {
 				NodeAlt child = someIter.next();
-				Set<Map<TriplePattern, TriplePattern>> childMatch = this.children.get(child);
+				Set<Match> childMatch = this.children.get(child);
 
 				// we can combine all different matches of this child's consequent into a single
 				// bindingset. We do not want to send bindings with variables that do not exist
@@ -322,18 +331,12 @@ public class NodeAlt {
 		return this.state;
 	}
 
-	public Set<Map<TriplePattern, TriplePattern>> invert(Set<Map<TriplePattern, TriplePattern>> set) {
-
-		Set<Map<TriplePattern, TriplePattern>> inverted = new HashSet<>();
-		for (Map<TriplePattern, TriplePattern> map : set) {
-			Map<TriplePattern, TriplePattern> invertedMap = new HashMap<TriplePattern, TriplePattern>();
-			for (Map.Entry<TriplePattern, TriplePattern> entry : map.entrySet()) {
-				invertedMap.put(entry.getValue(), entry.getKey());
-			}
-			inverted.add(invertedMap);
+	public Set<Match> invert(Set<Match> set) {
+		Set<Match> inverted = new HashSet<>();
+		for (Match map : set) {
+			inverted.add(map.inverse());
 		}
 		return inverted;
-
 	}
 
 	/**

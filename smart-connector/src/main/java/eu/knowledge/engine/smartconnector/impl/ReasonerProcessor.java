@@ -1,20 +1,24 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
 import eu.knowledge.engine.reasonerprototype.KeReasonerAlt;
 import eu.knowledge.engine.reasonerprototype.NodeAlt;
 import eu.knowledge.engine.reasonerprototype.RuleAlt;
+import eu.knowledge.engine.reasonerprototype.TaskBoard;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
@@ -27,12 +31,15 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
+import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
+import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 
 public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerProcessor.class);
 
 	private KeReasonerAlt reasoner;
+	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter) {
 		super(knowledgeInteractions, messageRouter);
@@ -44,7 +51,35 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(new RuleAlt(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp))));
+				reasoner.addRule(new RuleAlt(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
+						new BindingSetHandler() {
+
+							@Override
+							public eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
+									eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
+
+								BindingSet newBS = translateBindingSetFrom(bs);
+
+								AskMessage askMessage = new AskMessage(
+										ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+										ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
+										kii.getId(), newBS);
+
+								CompletableFuture<AnswerMessage> sendAskMessage = new CompletableFuture<AnswerMessage>();
+								try {
+									LOG.info("Eek before...");
+									sendAskMessage = ReasonerProcessor.this.messageRouter.sendAskMessage(askMessage);
+									AnswerMessage answerMessage = sendAskMessage.get();
+									LOG.info("Eek after: {}", answerMessage);
+									return translateBindingSetTo(answerMessage.getBindings());
+								} catch (IOException | InterruptedException | ExecutionException e) {
+									LOG.error("No errors should occur while sending an AskMessage.", e);
+									sendAskMessage.completeExceptionally(e);
+								}
+								return new eu.knowledge.engine.reasonerprototype.api.BindingSet();
+							}
+
+						}));
 			}
 		}
 	}
@@ -52,16 +87,21 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	@Override
 	public CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo aAKI,
 			BindingSet someBindings) {
-
 		KnowledgeInteraction ki = aAKI.getKnowledgeInteraction();
+
+		this.myKnowledgeInteraction = aAKI;
+
 		eu.knowledge.engine.reasonerprototype.api.BindingSet bs = null;
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 
-			NodeAlt node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()));
+			NodeAlt node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), true);
 
 			while ((bs = node.continueReasoning(translateBindingSetTo(someBindings))) == null) {
 				System.out.println(node);
+
+				TaskBoard.instance().executeScheduledTasks();
+
 			}
 
 		} else {
@@ -79,7 +119,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		for (eu.knowledge.engine.reasonerprototype.api.Binding b : bs) {
 			newB = new Binding();
 			for (Map.Entry<Variable, Literal> entry : b.entrySet()) {
-				newB.put(entry.getKey().getVariableName(), entry.getValue().getValue());
+
+				String value = entry.getValue().getValue();
+				if (entry.getValue().getValue().startsWith("https:")) {
+					value = "<" + value + ">";
+				}
+
+				newB.put(entry.getKey().getVariableName().substring(1), value);
 			}
 			newBS.add(newB);
 		}
@@ -94,7 +140,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			newBinding = new eu.knowledge.engine.reasonerprototype.api.Binding();
 			for (String var : b.getVariables()) {
-				newBinding.put(var, b.get(var));
+				newBinding.put("?" + var, b.get(var));
 			}
 			newBindingSet.add(newBinding);
 		}

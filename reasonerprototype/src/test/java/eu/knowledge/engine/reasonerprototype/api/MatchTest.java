@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasonerprototype.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import org.junit.Test;
 import eu.knowledge.engine.reasonerprototype.LocalRule;
 import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.reasonerprototype.RuleAlt;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
+import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 
 public class MatchTest {
@@ -79,7 +80,8 @@ public class MatchTest {
 
 	@Test
 	public void multipleTripleTest2() {
-		List<TriplePattern> rhs = Arrays.asList(new TriplePattern("?a someProp ?b"), new TriplePattern("?b someProp ?c"));
+		List<TriplePattern> rhs = Arrays.asList(new TriplePattern("?a someProp ?b"),
+				new TriplePattern("?b someProp ?c"));
 		List<TriplePattern> obj = Arrays.asList(new TriplePattern("?thing someProp ?otherThing"));
 
 		Rule r = new LocalRule(null, null);
@@ -130,6 +132,145 @@ public class MatchTest {
 
 		Set<Map<TriplePattern, TriplePattern>> findMatchesWithConsequent = r.consequentMatches(obj);
 		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher3() {
+		TriplePattern t1 = new TriplePattern("?s type ?t");
+		TriplePattern t2 = new TriplePattern("?s hasVal ?d");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
+
+		TriplePattern triple = new TriplePattern("?b type Sensor");
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		TriplePattern triple3 = new TriplePattern("?v type e");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher4() {
+		TriplePattern t1 = new TriplePattern("sens1 type Sensor");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1));
+
+		TriplePattern triple = new TriplePattern("sens1 type Sensor");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+
+		// there should be a match, but its mapping should be empty nothing needs to
+		// happen to translate one to the other.
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher5() {
+		TriplePattern t1 = new TriplePattern("?s ?p ?o");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1));
+
+		TriplePattern triple = new TriplePattern("?s ?p ?o");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+
+		// there should be a match and its mapping should be empty because nothing needs
+		// to happen to translate one to the other.
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher6() {
+		TriplePattern t1 = new TriplePattern("?s type ?t");
+		TriplePattern t2 = new TriplePattern("?s hasVal ?d");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
+
+		TriplePattern triple = new TriplePattern("?b type Sensor");
+		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
+		TriplePattern triple3 = new TriplePattern("?b type Device");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher7() {
+		TriplePattern t1 = new TriplePattern("?req type ?reqType");
+		TriplePattern t2 = new TriplePattern("?act type CommunicativeAct");
+		TriplePattern t3 = new TriplePattern("?act hasSatisfaction ?sat");
+		TriplePattern t4 = new TriplePattern("?sat type ?satType");
+		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t6 = new TriplePattern("?kb hasDescription ?description");
+		TriplePattern t7 = new TriplePattern("?ki type ?kiType");
+		TriplePattern t8 = new TriplePattern("?ki hasCommunicativeAct ?act");
+		TriplePattern t9 = new TriplePattern("?gp hasPattern ?pattern");
+		TriplePattern t10 = new TriplePattern("?act hasRequirement ?req");
+		TriplePattern t11 = new TriplePattern("?gp type GraphPattern");
+		TriplePattern t12 = new TriplePattern("?ki isMeta ?isMeta");
+		TriplePattern t13 = new TriplePattern("?kb hasName ?name");
+		TriplePattern t14 = new TriplePattern("?kb hasKnowledgeInteraction ?ki");
+		TriplePattern t15 = new TriplePattern("?ki hasGraphPattern ?gp");
+		TriplePattern t16 = new TriplePattern("?kb type KnowledgeBase");
+		Set<TriplePattern> obj = new HashSet<>(
+				Arrays.asList(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
+//				Arrays.asList(t4, t6, t16));
+
+		Set<TriplePattern> rhs = obj;
+
+		RuleAlt r = new RuleAlt(null, rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testMatchObjects() {
+
+		TriplePattern tp1_1 = new TriplePattern("?p type ?t");
+		TriplePattern tp1_2 = new TriplePattern("?p hasV ?q");
+
+		TriplePattern tp2_1 = new TriplePattern("?s type Sensor");
+		TriplePattern tp2_2 = new TriplePattern("?s hasV ?val");
+		TriplePattern tp2_3 = new TriplePattern("?s type Device");
+
+		Map<Value, Value> mapping1 = new HashMap<Value, Value>();
+		mapping1.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
+		mapping1.put(new TriplePattern.Variable("?t"), new TriplePattern.Variable("Sensor"));
+
+		Match m1 = new Match(tp1_1, tp2_1, mapping1);
+
+		Map<Value, Value> mapping2 = new HashMap<Value, Value>();
+		mapping2.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
+		mapping2.put(new TriplePattern.Variable("?q"), new TriplePattern.Variable("?val"));
+
+		Match m2 = new Match(tp1_2, tp2_2, mapping2);
+
+		// should correctly create a combined match (because no conflict)
+		Match m3 = m1.merge(m2);
+		System.out.println("Match: " + m3);
+
+		// should correctly create the same combined match as previous merge (because
+		// merge should be symmetrical)
+		Match m4 = m2.merge(m1);
+		System.out.println("Match: " + m4);
+
+		Map<Value, Value> mapping3 = new HashMap<Value, Value>();
+		mapping3.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
+		mapping3.put(new TriplePattern.Variable("?t"), new TriplePattern.Variable("Device"));
+		Match m5 = new Match(tp1_1, tp2_3, mapping3);
+
+		// conflict, so should be null
+		Match m6 = m5.merge(m1);
+		System.out.println("Match: " + m6);
 	}
 
 }

@@ -1,10 +1,10 @@
 package eu.knowledge.engine.reasonerprototype.api;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
@@ -193,19 +193,20 @@ public class GraphBindingSet {
 	 * @param match
 	 * @return
 	 */
-	public GraphBindingSet translate(Set<TriplePattern> graphPattern, Set<Map<TriplePattern, TriplePattern>> match) {
+	public GraphBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
 		GraphBindingSet newOne = new GraphBindingSet(graphPattern);
 		TripleVarBinding newB;
 
 		if (this.bindings.isEmpty()) {
 			// bindings coming through the match.
-			for (Map<TriplePattern, TriplePattern> entry : match) {
+			for (Match entry : match) {
 				newB = new TripleVarBinding();
-				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.entrySet()) {
+				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 					Map<Value, Value> mapping = keyValue.getKey().matchesWithSubstitutionMap(keyValue.getValue());
 					for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
 						if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
-							// if the binding set is empty (and we are translating child results back to current node results, we actually do not want to add the static literal.
+							// if the binding set is empty (and we are translating child results back to
+							// current node results, we actually do not want to add the static literal.
 							newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
 									(Literal) singleMap.getKey());
 						}
@@ -220,8 +221,8 @@ public class GraphBindingSet {
 			for (TripleVarBinding b : this.bindings) {
 				newB = new TripleVarBinding();
 				boolean skip = false;
-				for (Map<TriplePattern, TriplePattern> entry : match) {
-					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.entrySet()) {
+				for (Match entry : match) {
+					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 						if (b.containsTriplePattern(keyValue.getKey())) {
 							Map<Value, Value> mapping = keyValue.getKey()
 									.matchesWithSubstitutionMap(keyValue.getValue());
@@ -235,15 +236,16 @@ public class GraphBindingSet {
 											(Variable) singleMap.getKey());
 									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
 											b.get(aTripleVar2));
-								} else if (singleMap.getValue() instanceof Literal
-										&& (!b.containsKey(
-												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey())) || (b.containsKey(
+								} else if (singleMap.getValue() instanceof Literal && (!b
+										.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+										|| (b.containsKey(
 												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
-										&& b.get(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
-												.equals(singleMap.getValue())))) {
+												&& b.get(
+														new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+														.equals(singleMap.getValue())))) {
 									// we do not have to add it, if we translate it back.
 									skip = false;
-									
+
 								} else {
 									skip = true;
 								}
