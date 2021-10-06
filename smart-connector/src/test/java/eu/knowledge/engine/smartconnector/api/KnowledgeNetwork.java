@@ -71,7 +71,7 @@ public class KnowledgeNetwork {
 				"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
 				"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}

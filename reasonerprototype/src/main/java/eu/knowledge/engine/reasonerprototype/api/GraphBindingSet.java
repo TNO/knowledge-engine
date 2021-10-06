@@ -246,6 +246,9 @@ public class GraphBindingSet {
 									// we do not have to add it, if we translate it back.
 									skip = false;
 
+								} else if (singleMap.getValue() instanceof Variable
+										&& singleMap.getKey() instanceof Variable) {
+									skip = false;
 								} else {
 									skip = true;
 								}

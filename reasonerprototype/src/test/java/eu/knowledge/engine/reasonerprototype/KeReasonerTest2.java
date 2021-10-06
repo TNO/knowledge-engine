@@ -233,6 +233,37 @@ public class KeReasonerTest2 {
 	}
 
 	@Test
+	public void testMoreThanOneInputBinding2() {
+		// Formulate objective
+		Binding b = new Binding();
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+
+		// Start reasoning
+		NodeAlt root = reasoner.plan(objective, false);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding = new Binding();
+		binding.put("?p", "<sensor2>");
+		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("?p", "<sensor1>");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueReasoning(bs)) == null) {
+			System.out.println(root);
+			TaskBoard.instance().executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertFalse(bind.isEmpty());
+
+	}
+	
+	@Test
 	public void testTwoPropsToAndFromTheSameVars() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();

@@ -10,7 +10,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.sparql.core.TriplePath;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,7 @@ import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
+import eu.knowledge.engine.smartconnector.util.GraphPatternSerialization;
 
 public class ReasonerProcessor extends SingleInteractionProcessor {
 
@@ -161,8 +164,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		while (iter.hasNext()) {
 
 			triplePath = iter.next();
-			triple = triplePath.asTriple().getSubject() + " " + triplePath.asTriple().getPredicate() + " "
-					+ triplePath.asTriple().getObject();
+
+			triple = FmtUtils.stringForTriple(triplePath.asTriple(), new PrefixMappingZero());
 
 			tp = new TriplePattern(triple);
 			triplePatterns.add(tp);

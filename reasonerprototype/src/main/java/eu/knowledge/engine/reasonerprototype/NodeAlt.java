@@ -152,10 +152,10 @@ public class NodeAlt {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					GraphBindingSet powerChildGraphBindingSet = generateAdditionalTripleVarBindings(
-							childGraphBindingSet);
+					if (!this.fullMatchOnly)
+						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
 
-					GraphBindingSet convertedChildGraphBindingSet = powerChildGraphBindingSet
+					GraphBindingSet convertedChildGraphBindingSet = childGraphBindingSet
 							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
 					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
 				}
