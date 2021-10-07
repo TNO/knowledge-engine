@@ -21,8 +21,7 @@ public class Rule {
 
 	public BindingSetHandler bindingSetHandler;
 
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
-			BindingSetHandler aBindingSetHandler) {
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = aBindingSetHandler;
@@ -102,9 +101,12 @@ public class Rule {
 		Set<Match> allMatches = new HashSet<>(2 ^ antecedent.size());
 
 		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
+		Set<Match> findMatches;
 		for (TriplePattern anteTriple : antecedent) {
 			// find all possible matches of the current antecedent triple in the consequent
-			matchesPerTriple.put(anteTriple, findMatches(anteTriple, consequent));
+			findMatches = findMatches(anteTriple, consequent);
+			if (!findMatches.isEmpty())
+				matchesPerTriple.put(anteTriple, findMatches);
 		}
 
 		// if not every triple pattern can be matched, we stop the process if we require

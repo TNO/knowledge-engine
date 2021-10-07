@@ -174,6 +174,24 @@ public class MatchTest {
 	}
 
 	@Test
+	public void testGPMatcher9() {
+		TriplePattern tp1_1 = new TriplePattern("?p type ?t");
+		TriplePattern tp1_2 = new TriplePattern("?p hasV ?q");
+		TriplePattern tp1_3 = new TriplePattern("?p hasV2 ?q2");
+		Set<TriplePattern> tp1 = new HashSet<>(Arrays.asList(tp1_1, tp1_2, tp1_3));
+
+		TriplePattern tp2_1 = new TriplePattern("?s type Sensor");
+		TriplePattern tp2_2 = new TriplePattern("?s hasV ?val");
+		TriplePattern tp2_3 = new TriplePattern("?s type Device");
+		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
+
+		Rule r = new Rule(null, tp2);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
 	public void testMatchObjects() {
 
 		TriplePattern tp1_1 = new TriplePattern("?p type ?t");
