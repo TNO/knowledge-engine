@@ -153,7 +153,7 @@ public class NodeAlt {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					if (this.fullMatchOnly.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
+					if (!this.fullMatchOnly.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
 						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
 
 					GraphBindingSet convertedChildGraphBindingSet = childGraphBindingSet
