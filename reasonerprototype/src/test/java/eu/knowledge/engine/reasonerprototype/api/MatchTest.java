@@ -115,7 +115,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Map<TriplePattern, TriplePattern>> findMatchesWithConsequent = r.consequentMatches(obj);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -130,7 +130,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Map<TriplePattern, TriplePattern>> findMatchesWithConsequent = r.consequentMatches(obj);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -147,7 +147,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -161,7 +161,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 
 		// there should be a match, but its mapping should be empty nothing needs to
 		// happen to translate one to the other.
@@ -178,7 +178,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 
 		// there should be a match and its mapping should be empty because nothing needs
 		// to happen to translate one to the other.
@@ -198,19 +198,15 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
 		System.out.println(findMatchesWithConsequent);
 	}
 
 	@Test
 	public void testGPMatcher7() {
-		TriplePattern t1 = new TriplePattern("?req type ?reqType");
 		TriplePattern t2 = new TriplePattern("?act type CommunicativeAct");
 		TriplePattern t3 = new TriplePattern("?act hasSatisfaction ?sat");
-		TriplePattern t4 = new TriplePattern("?sat type ?satType");
-		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
 		TriplePattern t6 = new TriplePattern("?kb hasDescription ?description");
-		TriplePattern t7 = new TriplePattern("?ki type ?kiType");
 		TriplePattern t8 = new TriplePattern("?ki hasCommunicativeAct ?act");
 		TriplePattern t9 = new TriplePattern("?gp hasPattern ?pattern");
 		TriplePattern t10 = new TriplePattern("?act hasRequirement ?req");
@@ -220,15 +216,33 @@ public class MatchTest {
 		TriplePattern t14 = new TriplePattern("?kb hasKnowledgeInteraction ?ki");
 		TriplePattern t15 = new TriplePattern("?ki hasGraphPattern ?gp");
 		TriplePattern t16 = new TriplePattern("?kb type KnowledgeBase");
+		TriplePattern t17 = new TriplePattern("?kb1 type KnowledgeBase");
+		TriplePattern t18 = new TriplePattern("?kb2 type KnowledgeBase");
 		Set<TriplePattern> obj = new HashSet<>(
-				Arrays.asList(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
-//				Arrays.asList(t4, t6, t16));
+				Arrays.asList(t2, t3, t6, t8, t9, t10, t11, t12, t13, t14, t15, t16 /* , t17, t18 */));
 
-		Set<TriplePattern> rhs = obj;
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(t13, t16));
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches2(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		System.out.println(findMatchesWithConsequent);
+	}
+
+	@Test
+	public void testGPMatcher8() {
+		TriplePattern tp1_1 = new TriplePattern("?p type ?t");
+		TriplePattern tp1_2 = new TriplePattern("?p hasV ?q");
+		Set<TriplePattern> tp1 = new HashSet<>(Arrays.asList(tp1_1, tp1_2));
+
+		TriplePattern tp2_1 = new TriplePattern("?s type Sensor");
+		TriplePattern tp2_2 = new TriplePattern("?s hasV ?val");
+		TriplePattern tp2_3 = new TriplePattern("?s type Device");
+		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
+
+		RuleAlt r = new RuleAlt(null, tp2);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, false);
 		System.out.println(findMatchesWithConsequent);
 	}
 

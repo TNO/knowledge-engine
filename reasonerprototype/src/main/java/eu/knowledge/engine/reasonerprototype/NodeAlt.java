@@ -82,7 +82,7 @@ public class NodeAlt {
 		Map<RuleAlt, Set<Match>> overlappingRules = new HashMap<>();
 		for (RuleAlt r : this.allRules) {
 
-			if (!(possibleMatches = r.consequentMatches2(aPattern, fullMatchOnly)).isEmpty()) {
+			if (!(possibleMatches = r.consequentMatches(aPattern, fullMatchOnly)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
 		}

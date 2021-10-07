@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -67,13 +66,8 @@ public class RuleAlt {
 		return vars;
 	}
 
-	public Set<Map<TriplePattern, TriplePattern>> consequentMatches(Set<TriplePattern> objective) {
-		Set<Map<TriplePattern, TriplePattern>> matches = matches(objective, consequent, new HashMap<>());
-		return matches;
-	}
-
-	public Set<Match> consequentMatches2(Set<TriplePattern> antecedent, boolean aFullMatchOnly) {
-		Set<Match> matches = matches2(antecedent, consequent, aFullMatchOnly);
+	public Set<Match> consequentMatches(Set<TriplePattern> antecedent, boolean aFullMatchOnly) {
+		Set<Match> matches = matches(antecedent, consequent, aFullMatchOnly);
 		return matches;
 	}
 
@@ -81,16 +75,26 @@ public class RuleAlt {
 		return bindingSetHandler;
 	}
 
-	private Set<Match> matches2(Set<TriplePattern> antecedent, Set<TriplePattern> consequent, boolean fullMatchOnly) {
+	/**
+	 * FInd the biggest matches bewteen two graph patterns.
+	 * 
+	 * @param antecedent
+	 * @param consequent
+	 * @param fullMatchOnly
+	 * @return
+	 */
+	private Set<Match> matches(Set<TriplePattern> antecedent, Set<TriplePattern> consequent, boolean fullMatchOnly) {
 
 		assert antecedent != null;
 		assert consequent != null;
 		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
 
+		long start = System.currentTimeMillis();
+
 		// first find all triples in the consequent that match each triple in the
 		// antecedent
-		Set<Match> allMatches = new HashSet<>();
+		Set<Match> allMatches = new HashSet<>(2 ^ antecedent.size());
 
 		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
 		for (TriplePattern anteTriple : antecedent) {
@@ -105,12 +109,13 @@ public class RuleAlt {
 
 		// next, correctly combine all found matches
 		Match mergedMatch = null;
-		Set<Match> matches = null, newMatches = null;
+		Set<Match> matches = null, newMatches = null, removeMatches = null;
 		boolean firstTime = true;
 		for (Map.Entry<TriplePattern, Set<Match>> entry : matchesPerTriple.entrySet()) {
 
 			// keep a set of new matches, so we can add them at the end of this loop
-			newMatches = new HashSet<>();
+			newMatches = new HashSet<>(allMatches.size());
+			removeMatches = new HashSet<>();
 
 			matches = entry.getValue();
 			assert matches != null;
@@ -122,132 +127,44 @@ public class RuleAlt {
 			} else {
 				for (Match m1 : matches) {
 					// check if we need to merge with existing matches
-					for (Match m2 : allMatches) {
-						mergedMatch = m1.merge(m2);
+
+					Iterator<Match> iter = allMatches.iterator();
+					
+					while (iter.hasNext()) {
+						Match m2 = iter.next();
+						mergedMatch = m2.merge(m1);
 						if (mergedMatch != null) {
 							newMatches.add(mergedMatch);
+							if (fullMatchOnly)
+								removeMatches.add(m2);
 						}
 					}
 				}
 
-				if (!fullMatchOnly && newMatches.isEmpty()) {
+				if (!fullMatchOnly) {
 					// we only add the individual ones, if we could not add them to existing ones.
 					newMatches.addAll(matches);
 				}
+
+				if (fullMatchOnly)
+					allMatches.removeAll(removeMatches);
 			}
 
-			if (fullMatchOnly) {
-				allMatches = newMatches;
-			} else {
-				allMatches.addAll(newMatches);
-			}
+			allMatches.addAll(newMatches);
+
+			long end = System.currentTimeMillis();
+			System.out.println("Nr of matches (" + (end - start) + "): " + allMatches.size());
 			newMatches = null;
 
 		}
 
 		assert allMatches != null;
-		System.out.println("All matches: " + allMatches.size());
+
+		long finalEnd = System.currentTimeMillis();
+
+		System.out.println("All matches (" + (finalEnd - start) + "):" + allMatches.size());
 		return allMatches;
 
-	}
-
-	/**
-	 * 
-	 * We match every triple from the objective with every triple of the consequent.
-	 * 
-	 * TODO It's recursive and uses the Java stack. There is a limit to the stack
-	 * size in Java, so this limits the sizes of the graph patterns. We considered
-	 * using a loop instead of recursing, but we could not figure out how to do it.
-	 * Also, this method is far from efficient, we need to figure out a way to
-	 * improve its performance. Maybe using the dynamic programming algorithm
-	 * described via here: {@see <a href=
-	 * "https://stackoverflow.com/questions/32163716/partial-string-matching-in-two-large-strings">https://stackoverflow.com/questions/32163716/partial-string-matching-in-two-large-strings</a>}.
-	 * 
-	 * @param objective
-	 * @param binding
-	 */
-	private Set<Map<TriplePattern, TriplePattern>> matches(Set<TriplePattern> objective, Set<TriplePattern> consequent,
-			Map<Value, Value> context) {
-		Set<Map<TriplePattern, TriplePattern>> isos = new HashSet<>();
-		for (TriplePattern objTriple : objective) {
-			Map<TriplePattern, Map<Value, Value>> allMatches = rhsMatchesAlt(objTriple, consequent);
-
-			Set<TriplePattern> reducedObj = new HashSet<>(objective);
-			reducedObj.remove(objTriple);
-			Set<TriplePattern> reducedRhs;
-			for (Map.Entry<TriplePattern, Map<Value, Value>> entry : allMatches.entrySet()) {
-
-				// add singleton match
-				Map<TriplePattern, TriplePattern> singletonMatch = new HashMap<TriplePattern, TriplePattern>();
-				singletonMatch.put(objTriple, entry.getKey());
-				isos.add(singletonMatch);
-
-				reducedRhs = new HashSet<>(consequent);
-				reducedRhs.remove(entry.getKey());
-				Map<Value, Value> newContext = entry.getValue();
-				Map<Value, Value> mergedContext;
-
-				if ((mergedContext = mergeContexts(context, newContext)) != null) {
-
-					Set<Map<TriplePattern, TriplePattern>> otherIsos = new HashSet<>();
-					if (!reducedObj.isEmpty()) {
-
-						otherIsos = matches(reducedObj, reducedRhs, mergedContext);
-
-						if (!otherIsos.isEmpty()) {
-							for (Map<TriplePattern, TriplePattern> iso : otherIsos) {
-								iso.put(objTriple, entry.getKey());
-							}
-						} else {
-							Map<TriplePattern, TriplePattern> otherIso = new HashMap<TriplePattern, TriplePattern>();
-							otherIso.put(objTriple, entry.getKey());
-							otherIsos.add(otherIso);
-						}
-					} else {
-						Map<TriplePattern, TriplePattern> otherIso = new HashMap<TriplePattern, TriplePattern>();
-						otherIso.put(objTriple, entry.getKey());
-						otherIsos.add(otherIso);
-					}
-					isos.addAll(otherIsos);
-				}
-			}
-		}
-		return isos;
-	}
-
-	/**
-	 * Returns null if the contexts have conflicting values.
-	 * 
-	 * @param existingContext
-	 * @param newContext
-	 * @return
-	 */
-	private Map<Value, Value> mergeContexts(Map<Value, Value> existingContext, Map<Value, Value> newContext) {
-
-		Map<Value, Value> mergedContext = new HashMap<Value, Value>(existingContext);
-
-		for (Map.Entry<Value, Value> newEntry : newContext.entrySet()) {
-			if (existingContext.containsKey(newEntry.getKey())) {
-				if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
-					return null;
-				}
-			} else {
-				mergedContext.put(newEntry.getKey(), newEntry.getValue());
-			}
-		}
-
-		return mergedContext;
-	}
-
-	private Map<TriplePattern, Map<Value, Value>> rhsMatchesAlt(TriplePattern objTriple, Set<TriplePattern> rhs) {
-		Map<TriplePattern, Map<Value, Value>> allMatches = new HashMap<>();
-		for (TriplePattern myTriple : rhs) {
-			Map<Value, Value> map = myTriple.matchesWithSubstitutionMap(objTriple);
-
-			if (map != null && !map.isEmpty())
-				allMatches.put(myTriple, map);
-		}
-		return allMatches;
 	}
 
 	private Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
@@ -306,7 +223,7 @@ public class RuleAlt {
 		/**
 		 * keys: things that are matching, values: things upon which they match
 		 */
-		private final Map<TriplePattern, TriplePattern> matchingPatterns;
+		private Map<TriplePattern, TriplePattern> matchingPatterns;
 
 		/**
 		 * keys: thing that is mapped, values: thing upon which it maps
@@ -314,7 +231,7 @@ public class RuleAlt {
 		 * Note that the semantics of this mapping is that it contains all mappings that
 		 * involve variables. Literal to literal mappings are left out.
 		 */
-		private final Map<Value, Value> mapping;
+		private Map<Value, Value> mapping;
 
 		public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<Value, Value> someMapping) {
 			Map<TriplePattern, TriplePattern> someMatchingPatterns = new HashMap<>();
@@ -403,6 +320,8 @@ public class RuleAlt {
 					if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
 						return null;
 					}
+				} else if (existingContext.values().contains(newEntry.getValue())) {
+					return null;
 				} else {
 					mergedContext.put(newEntry.getKey(), newEntry.getValue());
 				}
