@@ -20,6 +20,7 @@ import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
 import eu.knowledge.engine.reasonerprototype.KeReasonerAlt;
 import eu.knowledge.engine.reasonerprototype.NodeAlt;
 import eu.knowledge.engine.reasonerprototype.RuleAlt;
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.TaskBoard;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
@@ -98,7 +99,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 
-			NodeAlt node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), true);
+			NodeAlt node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), MatchStrategy.FIND_ONLY_FULL_MATCHES);
 
 			while ((bs = node.continueReasoning(translateBindingSetTo(someBindings))) == null) {
 				System.out.println(node);
