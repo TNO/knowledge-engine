@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 
@@ -17,7 +18,7 @@ public class KeReasonerAlt {
 		rules.add(rule);
 	}
 
-	public NodeAlt plan(Set<TriplePattern> aGoal, boolean aFullMatchOnly) {
+	public NodeAlt plan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
 		RuleAlt goalRule = new RuleAlt(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
@@ -29,7 +30,7 @@ public class KeReasonerAlt {
 			}
 
 		});
-		NodeAlt root = new NodeAlt(rules, null, goalRule, aFullMatchOnly);
+		NodeAlt root = new NodeAlt(rules, null, goalRule, aMatchStrategy);
 		return root;
 	}
 

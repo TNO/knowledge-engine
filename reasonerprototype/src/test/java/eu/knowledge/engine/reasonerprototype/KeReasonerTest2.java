@@ -17,6 +17,7 @@ import eu.knowledge.engine.reasonerprototype.KeReasonerAlt;
 import eu.knowledge.engine.reasonerprototype.NodeAlt;
 import eu.knowledge.engine.reasonerprototype.RuleAlt;
 import eu.knowledge.engine.reasonerprototype.TaskBoard;
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -142,7 +143,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -179,7 +180,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -209,7 +210,7 @@ public class KeReasonerTest2 {
 		// not work
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -240,7 +241,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -262,7 +263,7 @@ public class KeReasonerTest2 {
 		assertFalse(bind.isEmpty());
 
 	}
-	
+
 	@Test
 	public void testTwoPropsToAndFromTheSameVars() {
 		// Formulate objective
@@ -272,7 +273,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p nonExistentProp ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -303,7 +304,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -332,7 +333,7 @@ public class KeReasonerTest2 {
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -358,7 +359,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		// empty binding is necessary

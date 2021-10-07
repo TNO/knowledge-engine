@@ -14,6 +14,7 @@ import eu.knowledge.engine.reasonerprototype.LocalRule;
 import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.reasonerprototype.RuleAlt;
 import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 
 public class MatchTest {
@@ -115,7 +116,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -130,7 +131,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -147,7 +148,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -161,7 +162,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
 		// there should be a match, but its mapping should be empty nothing needs to
 		// happen to translate one to the other.
@@ -178,7 +179,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
 		// there should be a match and its mapping should be empty because nothing needs
 		// to happen to translate one to the other.
@@ -198,7 +199,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -223,9 +224,9 @@ public class MatchTest {
 
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(t13, t16));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		RuleAlt r = new RuleAlt(null, obj);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -242,7 +243,7 @@ public class MatchTest {
 
 		RuleAlt r = new RuleAlt(null, tp2);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, false);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
 	}
 

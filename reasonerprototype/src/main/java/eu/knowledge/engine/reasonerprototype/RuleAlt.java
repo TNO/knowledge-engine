@@ -66,7 +66,7 @@ public class RuleAlt {
 		return vars;
 	}
 
-	public Set<Match> consequentMatches(Set<TriplePattern> antecedent, boolean aFullMatchOnly) {
+	public Set<Match> consequentMatches(Set<TriplePattern> antecedent, MatchStrategy aFullMatchOnly) {
 		Set<Match> matches = matches(antecedent, consequent, aFullMatchOnly);
 		return matches;
 	}
@@ -75,15 +75,20 @@ public class RuleAlt {
 		return bindingSetHandler;
 	}
 
+	public enum MatchStrategy {
+		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
+	}
+
 	/**
 	 * FInd the biggest matches bewteen two graph patterns.
 	 * 
 	 * @param antecedent
 	 * @param consequent
-	 * @param fullMatchOnly
+	 * @param aMatchStrategy
 	 * @return
 	 */
-	private Set<Match> matches(Set<TriplePattern> antecedent, Set<TriplePattern> consequent, boolean fullMatchOnly) {
+	private Set<Match> matches(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
+			MatchStrategy aMatchStrategy) {
 
 		assert antecedent != null;
 		assert consequent != null;
@@ -104,14 +109,23 @@ public class RuleAlt {
 
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
-		if (fullMatchOnly && matchesPerTriple.keySet().size() < antecedent.size())
+		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
+				&& matchesPerTriple.keySet().size() < antecedent.size())
 			return allMatches;
 
 		// next, correctly combine all found matches
 		Match mergedMatch = null;
 		Set<Match> matches = null, newMatches = null, removeMatches = null;
-		boolean firstTime = true;
-		for (Map.Entry<TriplePattern, Set<Match>> entry : matchesPerTriple.entrySet()) {
+
+		Iterator<Map.Entry<TriplePattern, Set<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
+
+		// always add first matches
+		if (matchIter.hasNext()) {
+			allMatches.addAll(matchIter.next().getValue());
+		}
+
+		while (matchIter.hasNext()) {
+			Map.Entry<TriplePattern, Set<Match>> entry = matchIter.next();
 
 			// keep a set of new matches, so we can add them at the end of this loop
 			newMatches = new HashSet<>(allMatches.size());
@@ -120,35 +134,25 @@ public class RuleAlt {
 			matches = entry.getValue();
 			assert matches != null;
 
-			if (firstTime) {
-				// first time there is nothing there.
-				newMatches.addAll(matches);
-				firstTime = false;
-			} else {
-				for (Match m1 : matches) {
-					// check if we need to merge with existing matches
+			for (Match m1 : matches) {
+				// check if we need to merge with existing matches
 
-					Iterator<Match> iter = allMatches.iterator();
-					
-					while (iter.hasNext()) {
-						Match m2 = iter.next();
-						mergedMatch = m2.merge(m1);
-						if (mergedMatch != null) {
-							newMatches.add(mergedMatch);
-							if (fullMatchOnly)
-								removeMatches.add(m2);
-						}
+				for (Match m2 : allMatches) {
+					mergedMatch = m2.merge(m1);
+					if (mergedMatch != null) {
+						newMatches.add(mergedMatch);
+						removeMatches.add(m2);
 					}
 				}
-
-				if (!fullMatchOnly) {
-					// we only add the individual ones, if we could not add them to existing ones.
-					newMatches.addAll(matches);
-				}
-
-				if (fullMatchOnly)
-					allMatches.removeAll(removeMatches);
 			}
+
+			if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)
+					|| (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES) && newMatches.isEmpty())) {
+				newMatches.addAll(matches);
+			}
+
+			if (!aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES))
+				allMatches.removeAll(removeMatches);
 
 			allMatches.addAll(newMatches);
 
@@ -157,7 +161,6 @@ public class RuleAlt {
 			newMatches = null;
 
 		}
-
 		assert allMatches != null;
 
 		long finalEnd = System.currentTimeMillis();

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -113,7 +114,7 @@ public class DynamicSemanticConfigurationTest {
 		objective.add(new TriplePattern("?id hasName ?name"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, false);
+		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

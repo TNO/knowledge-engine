@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
+import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.GraphBindingSet;
@@ -47,11 +48,11 @@ public class NodeAlt {
 	 * antecedent. Note that setting this to true effectively disables the reasoning
 	 * functionality and reduces this algorithm to a matching algorithm.
 	 */
-	private boolean fullMatchOnly;
+	private MatchStrategy fullMatchOnly;
 
-	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule, boolean aFullMatchOnly) {
+	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule, MatchStrategy aMatchStrategy) {
 
-		this.fullMatchOnly = aFullMatchOnly;
+		this.fullMatchOnly = aMatchStrategy;
 		this.allRules = someRules;
 		this.rule = aRule;
 		this.children = new HashMap<NodeAlt, Set<Match>>();
@@ -73,7 +74,7 @@ public class NodeAlt {
 	}
 
 	private Map<RuleAlt, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
-			boolean fullMatchOnly) {
+			MatchStrategy aMatchStrategy) {
 
 		assert aPattern != null;
 		assert !aPattern.isEmpty();
@@ -82,7 +83,7 @@ public class NodeAlt {
 		Map<RuleAlt, Set<Match>> overlappingRules = new HashMap<>();
 		for (RuleAlt r : this.allRules) {
 
-			if (!(possibleMatches = r.consequentMatches(aPattern, fullMatchOnly)).isEmpty()) {
+			if (!(possibleMatches = r.consequentMatches(aPattern, aMatchStrategy)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
 		}
@@ -152,7 +153,7 @@ public class NodeAlt {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					if (!this.fullMatchOnly)
+					if (this.fullMatchOnly.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
 						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
 
 					GraphBindingSet convertedChildGraphBindingSet = childGraphBindingSet
