@@ -17,10 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
-import eu.knowledge.engine.reasonerprototype.KeReasonerAlt;
-import eu.knowledge.engine.reasonerprototype.NodeAlt;
-import eu.knowledge.engine.reasonerprototype.RuleAlt;
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.KeReasoner;
+import eu.knowledge.engine.reasonerprototype.ReasoningNode;
+import eu.knowledge.engine.reasonerprototype.Rule;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.TaskBoard;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
@@ -42,20 +42,20 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerProcessor.class);
 
-	private KeReasonerAlt reasoner;
+	private KeReasoner reasoner;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter) {
 		super(knowledgeInteractions, messageRouter);
 
-		reasoner = new KeReasonerAlt();
+		reasoner = new KeReasoner();
 
 		for (KnowledgeInteractionInfo kii : knowledgeInteractions) {
 			KnowledgeInteraction ki = kii.getKnowledgeInteraction();
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(new RuleAlt(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
+				reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
 						new BindingSetHandler() {
 
 							@Override
@@ -99,7 +99,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 
-			NodeAlt node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), MatchStrategy.FIND_ONLY_FULL_MATCHES);
+			ReasoningNode node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), MatchStrategy.FIND_ONLY_FULL_MATCHES);
 
 			while ((bs = node.continueReasoning(translateBindingSetTo(someBindings))) == null) {
 				System.out.println(node);

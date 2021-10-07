@@ -11,7 +11,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -19,13 +19,13 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 
 public class DynamicSemanticConfigurationTest {
 
-	private KeReasonerAlt reasoner;
+	private KeReasoner reasoner;
 
 	@Before
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasonerAlt();
-		reasoner.addRule(new RuleAlt(new HashSet<>(),
+		reasoner = new KeReasoner();
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?id type Target"), new TriplePattern("?id hasName ?name"))),
 				new BindingSetHandler() {
@@ -65,12 +65,12 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new RuleAlt(
+		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id type Target"),
 						new TriplePattern("?id hasCountry Russia"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id type HighValueTarget")))));
 
-		reasoner.addRule(new RuleAlt(
+		reasoner.addRule(new Rule(
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?id type Target"), new TriplePattern("?id hasName ?name"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id hasCountry ?c"))), new BindingSetHandler() {
@@ -114,7 +114,7 @@ public class DynamicSemanticConfigurationTest {
 		objective.add(new TriplePattern("?id hasName ?name"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

@@ -13,11 +13,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
-import eu.knowledge.engine.reasonerprototype.KeReasonerAlt;
-import eu.knowledge.engine.reasonerprototype.NodeAlt;
-import eu.knowledge.engine.reasonerprototype.RuleAlt;
+import eu.knowledge.engine.reasonerprototype.KeReasoner;
+import eu.knowledge.engine.reasonerprototype.ReasoningNode;
+import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.reasonerprototype.TaskBoard;
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
@@ -26,13 +26,13 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class KeReasonerTest2 {
 
-	private KeReasonerAlt reasoner;
+	private KeReasoner reasoner;
 
 	@Before
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasonerAlt();
-		reasoner.addRule(new RuleAlt(new HashSet<>(),
+		reasoner = new KeReasoner();
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?a type Sensor"), new TriplePattern("?a hasValInC ?b"))),
 				new BindingSetHandler() {
 
@@ -71,7 +71,7 @@ public class KeReasonerTest2 {
 
 				}));
 
-		reasoner.addRule(new RuleAlt(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?e type Sensor"), new TriplePattern("?e hasValInF ?f"))),
 				new BindingSetHandler() {
 
@@ -110,10 +110,10 @@ public class KeReasonerTest2 {
 
 				}));
 
-		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s type Device")))));
 
-		reasoner.addRule(new RuleAlt(new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInF ?y"))),
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInF ?y"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
@@ -143,7 +143,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -180,7 +180,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -210,7 +210,7 @@ public class KeReasonerTest2 {
 		// not work
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -241,7 +241,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -273,7 +273,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p nonExistentProp ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -304,7 +304,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -333,7 +333,7 @@ public class KeReasonerTest2 {
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -359,7 +359,7 @@ public class KeReasonerTest2 {
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		NodeAlt root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		// empty binding is necessary

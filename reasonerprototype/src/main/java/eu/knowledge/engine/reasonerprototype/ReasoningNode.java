@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.Rule.Match;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.GraphBindingSet;
@@ -18,16 +18,16 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.knowledge.engine.reasonerprototype.api.TripleVar;
 import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
 
-public class NodeAlt {
+public class ReasoningNode {
 
-	private Map<NodeAlt, Set<Match>> children;
+	private Map<ReasoningNode, Set<Match>> children;
 
-	private List<RuleAlt> allRules;
+	private List<Rule> allRules;
 
 	/**
 	 * Goals are represented as rules with an antecedent without a consequent.
 	 */
-	private RuleAlt rule;
+	private Rule rule;
 
 	private static final int BINDINGSET_NOT_REQUESTED = 0, BINDINGSET_REQUESTED = 1, BINDINGSET_AVAILABLE = 2;
 
@@ -50,22 +50,22 @@ public class NodeAlt {
 	 */
 	private MatchStrategy fullMatchOnly;
 
-	public NodeAlt(List<RuleAlt> someRules, NodeAlt aParent, RuleAlt aRule, MatchStrategy aMatchStrategy) {
+	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy) {
 
 		this.fullMatchOnly = aMatchStrategy;
 		this.allRules = someRules;
 		this.rule = aRule;
-		this.children = new HashMap<NodeAlt, Set<Match>>();
+		this.children = new HashMap<ReasoningNode, Set<Match>>();
 
 		// generate children
 		if (!this.rule.antecedent.isEmpty()) {
-			Map<RuleAlt, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
+			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
 					this.fullMatchOnly);
 
-			NodeAlt child;
-			for (Map.Entry<RuleAlt, Set<Match>> entry : relevantRules.entrySet()) {
+			ReasoningNode child;
+			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 				// create a childnode
-				child = new NodeAlt(this.allRules, this, entry.getKey(), this.fullMatchOnly);
+				child = new ReasoningNode(this.allRules, this, entry.getKey(), this.fullMatchOnly);
 				this.children.put(child, entry.getValue());
 			}
 		}
@@ -73,15 +73,15 @@ public class NodeAlt {
 		// TODO we need some ininite loop detection (see transitivity rule)
 	}
 
-	private Map<RuleAlt, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
+	private Map<Rule, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
 			MatchStrategy aMatchStrategy) {
 
 		assert aPattern != null;
 		assert !aPattern.isEmpty();
 
 		Set<Match> possibleMatches;
-		Map<RuleAlt, Set<Match>> overlappingRules = new HashMap<>();
-		for (RuleAlt r : this.allRules) {
+		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
+		for (Rule r : this.allRules) {
 
 			if (!(possibleMatches = r.consequentMatches(aPattern, aMatchStrategy)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
@@ -109,7 +109,7 @@ public class NodeAlt {
 
 			boolean allBindingSetsAvailable = true;
 
-			Set<NodeAlt> someChildren = this.children.keySet();
+			Set<ReasoningNode> someChildren = this.children.keySet();
 
 			// we transfer the incomingBindingSet (from the consequent) to the antecedent
 			// bindingset (if it exists). This latter one is send to the different children.
@@ -131,9 +131,9 @@ public class NodeAlt {
 			// consequent might be smart.
 			GraphBindingSet combinedBindings = new GraphBindingSet(this.rule.antecedent);
 
-			Iterator<NodeAlt> someIter = someChildren.iterator();
+			Iterator<ReasoningNode> someIter = someChildren.iterator();
 			while (/* allBindingSetsAvailable && */someIter.hasNext()) {
-				NodeAlt child = someIter.next();
+				ReasoningNode child = someIter.next();
 				Set<Match> childMatch = this.children.get(child);
 
 				// we can combine all different matches of this child's consequent into a single
@@ -371,7 +371,7 @@ public class NodeAlt {
 			sb.append(this.rule.antecedent);
 		}
 		sb.append("\n");
-		for (NodeAlt child : children.keySet()) {
+		for (ReasoningNode child : children.keySet()) {
 			for (int i = 0; i < tabIndex + 1; i++)
 				sb.append("\t");
 
@@ -391,7 +391,7 @@ public class NodeAlt {
 		return null;
 	}
 
-	public RuleAlt getRule() {
+	public Rule getRule() {
 		return this.rule;
 	}
 

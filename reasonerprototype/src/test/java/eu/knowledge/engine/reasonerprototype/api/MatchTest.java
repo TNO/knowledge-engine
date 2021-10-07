@@ -10,9 +10,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt;
-import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.Rule;
+import eu.knowledge.engine.reasonerprototype.Rule.Match;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 
 public class MatchTest {
@@ -40,7 +40,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?v type e");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -55,7 +55,7 @@ public class MatchTest {
 		TriplePattern triple2 = new TriplePattern("?b hasVal ?v");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple2));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -72,7 +72,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?v type e");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -86,7 +86,7 @@ public class MatchTest {
 		TriplePattern triple = new TriplePattern("sens1 type Sensor");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
@@ -103,7 +103,7 @@ public class MatchTest {
 		TriplePattern triple = new TriplePattern("?s ?p ?o");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
@@ -123,7 +123,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?b type Device");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		RuleAlt r = new RuleAlt(null, rhs);
+		Rule r = new Rule(null, rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -150,7 +150,7 @@ public class MatchTest {
 
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(t13, t16));
 
-		RuleAlt r = new RuleAlt(null, obj);
+		Rule r = new Rule(null, obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -167,7 +167,7 @@ public class MatchTest {
 		TriplePattern tp2_3 = new TriplePattern("?s type Device");
 		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
 
-		RuleAlt r = new RuleAlt(null, tp2);
+		Rule r = new Rule(null, tp2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);

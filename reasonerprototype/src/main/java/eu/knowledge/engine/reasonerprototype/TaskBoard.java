@@ -35,7 +35,7 @@ public class TaskBoard {
 	 * @param aNode
 	 * @param aBindingSet
 	 */
-	public void addTask(NodeAlt aNode, BindingSet aBindingSet) {
+	public void addTask(ReasoningNode aNode, BindingSet aBindingSet) {
 		Set<Task> tasks = TaskBoard.instance().tasks;
 		tasks.add(new Task(aNode, aBindingSet));
 	}
@@ -43,8 +43,8 @@ public class TaskBoard {
 	public void executeScheduledTasks() {
 
 		BindingSet resultingBindingSet;
-		NodeAlt node;
-		RuleAlt rule;
+		ReasoningNode node;
+		Rule rule;
 
 		Iterator<Task> iter = tasks.iterator();
 
@@ -67,32 +67,32 @@ public class TaskBoard {
 		 * Contains all the bindingSets that were merged into a single one to be handled
 		 * as a single task.
 		 */
-		private Map<NodeAlt, BindingSet> collectedBindingSets;
+		private Map<ReasoningNode, BindingSet> collectedBindingSets;
 
 		/**
 		 * The rule that is being applied for this task.
 		 */
-		private RuleAlt rule;
+		private Rule rule;
 
-		public Task(NodeAlt aNode, BindingSet aBindingSet) {
+		public Task(ReasoningNode aNode, BindingSet aBindingSet) {
 			collectedBindingSets = new HashMap<>();
 			collectedBindingSets.put(aNode, aBindingSet);
 			rule = aNode.getRule();
 		}
 
-		public BindingSet getBindingSet(NodeAlt node) {
+		public BindingSet getBindingSet(ReasoningNode node) {
 			return this.collectedBindingSets.get(node);
 		}
 
-		public RuleAlt getRule() {
+		public Rule getRule() {
 			return this.rule;
 		}
 
-		public void mergeWith(NodeAlt aNode, BindingSet aBindingSet) {
+		public void mergeWith(ReasoningNode aNode, BindingSet aBindingSet) {
 
 		}
 
-		public Set<NodeAlt> getNodes() {
+		public Set<ReasoningNode> getNodes() {
 			return this.collectedBindingSets.keySet();
 		}
 

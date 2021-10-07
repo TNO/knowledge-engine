@@ -5,21 +5,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt.MatchStrategy;
+import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 
-public class KeReasonerAlt {
+public class KeReasoner {
 
 	// rules might need an order to prevent infinite loops
-	private List<RuleAlt> rules = new ArrayList<RuleAlt>();
+	private List<Rule> rules = new ArrayList<Rule>();
 
-	public void addRule(RuleAlt rule) {
+	public void addRule(Rule rule) {
 		rules.add(rule);
 	}
 
-	public NodeAlt plan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
-		RuleAlt goalRule = new RuleAlt(aGoal, new HashSet<>(), new BindingSetHandler() {
+	public ReasoningNode plan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
+		Rule goalRule = new Rule(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
 			 * The root node should just return the bindingset as is.
@@ -30,7 +30,7 @@ public class KeReasonerAlt {
 			}
 
 		});
-		NodeAlt root = new NodeAlt(rules, null, goalRule, aMatchStrategy);
+		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy);
 		return root;
 	}
 

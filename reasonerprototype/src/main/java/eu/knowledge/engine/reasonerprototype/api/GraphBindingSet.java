@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.RuleAlt.Match;
+import eu.knowledge.engine.reasonerprototype.Rule.Match;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;

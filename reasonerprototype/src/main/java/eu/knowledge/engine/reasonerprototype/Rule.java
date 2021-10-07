@@ -14,21 +14,21 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
-public class RuleAlt {
+public class Rule {
 
 	public Set<TriplePattern> antecedent;
 	public Set<TriplePattern> consequent;
 
 	public BindingSetHandler bindingSetHandler;
 
-	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
 			BindingSetHandler aBindingSetHandler) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = aBindingSetHandler;
 	}
 
-	public RuleAlt(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = new BindingSetHandler() {
@@ -39,7 +39,7 @@ public class RuleAlt {
 
 				Binding newB;
 
-				Set<Variable> vars = RuleAlt.this.getVars(RuleAlt.this.consequent);
+				Set<Variable> vars = Rule.this.getVars(Rule.this.consequent);
 				for (Binding b : bs) {
 					newB = new Binding();
 					for (Variable v : vars) {
@@ -191,7 +191,7 @@ public class RuleAlt {
 
 	@Override
 	public String toString() {
-		return "RuleAlt [antecedent=" + antecedent + ", consequent=" + consequent + "]";
+		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
 	}
 
 	public Set<Variable> getVars() {
