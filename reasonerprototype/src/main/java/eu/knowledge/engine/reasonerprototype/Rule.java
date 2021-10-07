@@ -159,7 +159,6 @@ public class Rule {
 			allMatches.addAll(newMatches);
 
 			long end = System.currentTimeMillis();
-			System.out.println("Nr of matches (" + (end - start) + "): " + allMatches.size());
 			newMatches = null;
 
 		}
@@ -167,7 +166,6 @@ public class Rule {
 
 		long finalEnd = System.currentTimeMillis();
 
-		System.out.println("All matches (" + (finalEnd - start) + "):" + allMatches.size());
 		return allMatches;
 
 	}
