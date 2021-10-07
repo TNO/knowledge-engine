@@ -24,7 +24,7 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.Util;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
-public class KeReasonerTest2 {
+public class KeReasonerTest {
 
 	private KeReasoner reasoner;
 
