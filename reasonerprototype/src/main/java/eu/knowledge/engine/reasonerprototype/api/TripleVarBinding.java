@@ -26,7 +26,7 @@ public class TripleVarBinding {
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
 		this();
 		for (TriplePattern tp : aGraphPattern) {
-			for (Variable var : tp.getVars()) {
+			for (Variable var : tp.getVariables()) {
 				if (aBinding.containsKey(var))
 					tripleVarMapping.put(new TripleVar(tp, var), aBinding.get(var));
 			}

@@ -66,7 +66,7 @@ public class Rule {
 	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
 		Set<Variable> vars = new HashSet<Variable>();
 		for (TriplePattern t : aPattern) {
-			vars.addAll(t.getVars());
+			vars.addAll(t.getVariables());
 		}
 		return vars;
 	}
@@ -184,7 +184,7 @@ public class Rule {
 		Set<Match> matchingTriplePatterns = new HashSet<>();
 		Map<Value, Value> map;
 		for (TriplePattern tp : consequent) {
-			map = antecedent.matchesWithSubstitutionMap(tp);
+			map = antecedent.findMatches(tp);
 			if (map != null) {
 				matchingTriplePatterns.add(new Match(antecedent, tp, map));
 			}

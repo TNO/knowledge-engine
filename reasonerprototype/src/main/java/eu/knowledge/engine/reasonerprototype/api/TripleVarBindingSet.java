@@ -43,49 +43,11 @@ public class TripleVarBindingSet {
 	public Set<TripleVar> getTripleVars() {
 		Set<TripleVar> vars = new HashSet<>();
 		for (TriplePattern tp : graphPattern) {
-			for (Variable var : tp.getVars()) {
+			for (Variable var : tp.getVariables()) {
 				vars.add(new TripleVar(tp, var));
 			}
 		}
 		return vars;
-	}
-
-	public TripleVarBindingSet getFullBindingSet() {
-
-		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
-		Set<TripleVar> vars = this.getTripleVars();
-		int nrOfVars = vars.size();
-		for (TripleVarBinding tvb : bindings) {
-			if (tvb.keySet().size() == nrOfVars) {
-				gbs.add(tvb);
-			}
-		}
-		return gbs;
-	}
-
-	/**
-	 * Checks whether all variables in the triples in the given graph pattern are
-	 * fully bound.
-	 * 
-	 * @param graphPattern
-	 * @return
-	 */
-	public TripleVarBindingSet getFullBindingSet(Set<TriplePattern> graphPattern) {
-
-		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
-		for (TripleVarBinding tvb : bindings) {
-			boolean allVariablesAvailable = true;
-			for (TriplePattern tp : graphPattern) {
-				for (Variable var : tp.getVars()) {
-					if (!tvb.containsKey(new TripleVar(tp, var))) {
-						allVariablesAvailable = false;
-					}
-				}
-			}
-			if (allVariablesAvailable)
-				gbs.add(tvb);
-		}
-		return gbs;
 	}
 
 	public TripleVarBindingSet getPartialBindingSet() {
@@ -202,7 +164,7 @@ public class TripleVarBindingSet {
 			for (Match entry : match) {
 				newB = new TripleVarBinding();
 				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
-					Map<Value, Value> mapping = keyValue.getKey().matchesWithSubstitutionMap(keyValue.getValue());
+					Map<Value, Value> mapping = keyValue.getKey().findMatches(keyValue.getValue());
 					for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
 						if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
 							// if the binding set is empty (and we are translating child results back to
@@ -219,13 +181,12 @@ public class TripleVarBindingSet {
 		} else {
 
 			for (TripleVarBinding b : this.bindings) {
-				newB = new TripleVarBinding();
 				boolean skip = false;
 				for (Match entry : match) {
+					newB = new TripleVarBinding();
 					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 						if (b.containsTriplePattern(keyValue.getKey())) {
-							Map<Value, Value> mapping = keyValue.getKey()
-									.matchesWithSubstitutionMap(keyValue.getValue());
+							Map<Value, Value> mapping = keyValue.getKey().findMatches(keyValue.getValue());
 							for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
 								if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
 									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
@@ -255,9 +216,9 @@ public class TripleVarBindingSet {
 							}
 						}
 					}
+					if (!skip)
+						newOne.add(newB);
 				}
-				if (!skip)
-					newOne.add(newB);
 			}
 		}
 		return newOne;

@@ -180,7 +180,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

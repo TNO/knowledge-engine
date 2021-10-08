@@ -48,11 +48,11 @@ public class ReasoningNode {
 	 * antecedent. Note that setting this to true effectively disables the reasoning
 	 * functionality and reduces this algorithm to a matching algorithm.
 	 */
-	private MatchStrategy fullMatchOnly;
+	private MatchStrategy matchStrategy;
 
 	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy) {
 
-		this.fullMatchOnly = aMatchStrategy;
+		this.matchStrategy = aMatchStrategy;
 		this.allRules = someRules;
 		this.rule = aRule;
 		this.children = new HashMap<ReasoningNode, Set<Match>>();
@@ -60,12 +60,12 @@ public class ReasoningNode {
 		// generate children
 		if (!this.rule.antecedent.isEmpty()) {
 			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
-					this.fullMatchOnly);
+					this.matchStrategy);
 
 			ReasoningNode child;
 			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 				// create a childnode
-				child = new ReasoningNode(this.allRules, this, entry.getKey(), this.fullMatchOnly);
+				child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy);
 				this.children.put(child, entry.getValue());
 			}
 		}
@@ -153,7 +153,7 @@ public class ReasoningNode {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					if (!this.fullMatchOnly.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
+					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
 						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
 
 					TripleVarBindingSet convertedChildGraphBindingSet = childGraphBindingSet
@@ -220,8 +220,8 @@ public class ReasoningNode {
 
 		// create powerset
 		Set<TriplePattern> graphPattern = childGraphBindingSet.getGraphPattern();
-		Set<List<Boolean>> binarySubsets = createBinarySubsets(graphPattern.size());
-		Set<Set<TriplePattern>> gpPowerSet = createPowerSet(new ArrayList<TriplePattern>(graphPattern), binarySubsets);
+		List<List<Boolean>> binarySubsets = createBinarySubsets(graphPattern.size());
+		List<Set<TriplePattern>> gpPowerSet = createPowerSet(new ArrayList<TriplePattern>(graphPattern), binarySubsets);
 
 		// create additional triplevarbindings
 		TripleVarBindingSet newGraphBindingSet = new TripleVarBindingSet(graphPattern);
@@ -241,7 +241,7 @@ public class ReasoningNode {
 	 * @param powerSets
 	 * @return
 	 */
-	private Set<TripleVarBinding> permutateTripleVarBinding(TripleVarBinding tvb, Set<Set<TriplePattern>> powerSets) {
+	private Set<TripleVarBinding> permutateTripleVarBinding(TripleVarBinding tvb, List<Set<TriplePattern>> powerSets) {
 
 		Set<TripleVarBinding> permutated = new HashSet<>();
 		for (Set<TriplePattern> set : powerSets) {
@@ -269,7 +269,8 @@ public class ReasoningNode {
 	 * @param bindingSet2
 	 * @return
 	 */
-	private TripleVarBindingSet keepOnlyCompatiblePatternBindings(TripleVarBindingSet bindingSet, TripleVarBindingSet bindingSet2) {
+	private TripleVarBindingSet keepOnlyCompatiblePatternBindings(TripleVarBindingSet bindingSet,
+			TripleVarBindingSet bindingSet2) {
 
 		TripleVarBindingSet newBS = new TripleVarBindingSet(bindingSet2.getGraphPattern());
 
@@ -313,7 +314,7 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Variable var : tp.getVars()) {
+			for (Variable var : tp.getVariables()) {
 				allTVs.add(new TripleVar(tp, var));
 			}
 		}
@@ -323,7 +324,7 @@ public class ReasoningNode {
 	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
 		Set<Variable> vars = new HashSet<Variable>();
 		for (TriplePattern t : aPattern) {
-			vars.addAll(t.getVars());
+			vars.addAll(t.getVariables());
 		}
 		return vars;
 	}
@@ -395,10 +396,10 @@ public class ReasoningNode {
 		return this.rule;
 	}
 
-	private static Set<Set<TriplePattern>> createPowerSet(List<TriplePattern> graphPattern,
-			Set<List<Boolean>> binarySubsets) {
+	private static List<Set<TriplePattern>> createPowerSet(List<TriplePattern> graphPattern,
+			List<List<Boolean>> binarySubsets) {
 
-		Set<Set<TriplePattern>> powerSet = new HashSet<>();
+		List<Set<TriplePattern>> powerSet = new ArrayList<>();
 		Set<TriplePattern> subSet;
 		for (List<Boolean> binaryList : binarySubsets) {
 			subSet = new HashSet<>();
@@ -413,14 +414,14 @@ public class ReasoningNode {
 		return powerSet;
 	}
 
-	private static Set<List<Boolean>> createBinarySubsets(int setSize) {
+	private static List<List<Boolean>> createBinarySubsets(int setSize) {
 
 		// what is minimum int that you can represent {@code setSize} bits? 0
 		// what is maximum int that you can represent {@code setSize} bits? 2^setSize
 
 		int start = 0;
 		int end = 1 << setSize;
-		Set<List<Boolean>> set = new HashSet<>(end);
+		List<List<Boolean>> set = new ArrayList<>(end);
 		String endBin = Integer.toBinaryString(end);
 
 		for (int i = start; i < end; i++) {

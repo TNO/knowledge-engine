@@ -142,47 +142,6 @@ public class TriplePattern {
 		return object;
 	}
 
-	public TriplePattern substitute(Binding b) {
-		Value subject, predicate, object;
-		if (this.subject instanceof Variable && b.containsKey((this.subject))) {
-			subject = b.get(this.subject);
-		} else {
-			subject = this.subject;
-		}
-		if (this.predicate instanceof Variable && b.containsKey((this.predicate))) {
-			predicate = b.get(this.predicate);
-		} else {
-			predicate = this.predicate;
-		}
-		if (this.object instanceof Variable && b.containsKey((this.object))) {
-			object = b.get(this.object);
-		} else {
-			object = this.object;
-		}
-		return new TriplePattern(subject, predicate, object);
-	}
-
-	public boolean matches(TriplePattern other, Binding binding) {
-		TriplePattern substituted = other.substitute(binding);
-		return this.matches(substituted);
-	}
-
-	public boolean matches(TriplePattern other) {
-		if (this.getSubject() instanceof Literal && other.getSubject() instanceof Literal
-				&& !this.getSubject().equals(other.subject)) {
-			return false;
-		}
-		if (this.getPredicate() instanceof Literal && other.getPredicate() instanceof Literal
-				&& !this.getPredicate().equals(other.getPredicate())) {
-			return false;
-		}
-		if (this.getObject() instanceof Literal && other.getObject() instanceof Literal
-				&& !this.getObject().equals(other.getObject())) {
-			return false;
-		}
-		return true;
-	}
-
 	/**
 	 * Checks if two Triples match, and when they do, return a map of how values map
 	 * between the two triples. This map is used to translatae a binding with the
@@ -195,7 +154,7 @@ public class TriplePattern {
 	 * @param other
 	 * @return
 	 */
-	public Map<TriplePattern.Value, TriplePattern.Value> matchesWithSubstitutionMap(TriplePattern other) {
+	public Map<TriplePattern.Value, TriplePattern.Value> findMatches(TriplePattern other) {
 		Map<TriplePattern.Value, TriplePattern.Value> substitutionMap = new HashMap<>();
 		if (this.getSubject() instanceof Literal && other.getSubject() instanceof Literal) {
 			if (!this.getSubject().equals(other.getSubject())) {
@@ -230,11 +189,7 @@ public class TriplePattern {
 		return subject + " " + predicate + " " + object;
 	}
 
-	public boolean containsVariables() {
-		return subject instanceof Variable || predicate instanceof Variable || object instanceof Variable;
-	}
-
-	public Set<Variable> getVars() {
+	public Set<Variable> getVariables() {
 
 		Set<Variable> vars = new HashSet<>();
 		if (this.getSubject() instanceof Variable) {
