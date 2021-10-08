@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +17,10 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
 public class Rule {
+
+	public static enum MatchStrategy {
+		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
+	}
 
 	public Set<TriplePattern> antecedent;
 	public Set<TriplePattern> consequent;
@@ -74,10 +80,6 @@ public class Rule {
 		return bindingSetHandler;
 	}
 
-	public enum MatchStrategy {
-		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
-	}
-
 	/**
 	 * FInd the biggest matches bewteen two graph patterns.
 	 * 
@@ -98,7 +100,7 @@ public class Rule {
 
 		// first find all triples in the consequent that match each triple in the
 		// antecedent
-		Set<Match> allMatches = new HashSet<>(2 ^ antecedent.size());
+		List<Match> allMatches = new LinkedList<>();
 
 		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
 		Set<Match> findMatches;
@@ -113,11 +115,12 @@ public class Rule {
 		// a full match.
 		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
 				&& matchesPerTriple.keySet().size() < antecedent.size())
-			return allMatches;
+			return new HashSet<>(allMatches);
 
 		// next, correctly combine all found matches
 		Match mergedMatch = null;
-		Set<Match> matches = null, newMatches = null, removeMatches = null;
+		Set<Match> matches = null;
+		List<Match> newMatches = null, removeMatches = null;
 
 		Iterator<Map.Entry<TriplePattern, Set<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
 
@@ -130,8 +133,8 @@ public class Rule {
 			Map.Entry<TriplePattern, Set<Match>> entry = matchIter.next();
 
 			// keep a set of new matches, so we can add them at the end of this loop
-			newMatches = new HashSet<>(allMatches.size());
-			removeMatches = new HashSet<>();
+			newMatches = new LinkedList<>();
+			removeMatches = new LinkedList<>();
 
 			matches = entry.getValue();
 			assert matches != null;
@@ -166,7 +169,9 @@ public class Rule {
 
 		long finalEnd = System.currentTimeMillis();
 
-		return allMatches;
+		System.out.println("Time: " + (finalEnd - start));
+
+		return new HashSet<>(allMatches);
 
 	}
 

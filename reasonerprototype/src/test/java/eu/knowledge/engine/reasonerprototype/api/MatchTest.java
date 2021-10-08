@@ -143,8 +143,6 @@ public class MatchTest {
 		TriplePattern t14 = new TriplePattern("?kb hasKnowledgeInteraction ?ki");
 		TriplePattern t15 = new TriplePattern("?ki hasGraphPattern ?gp");
 		TriplePattern t16 = new TriplePattern("?kb type KnowledgeBase");
-		TriplePattern t17 = new TriplePattern("?kb1 type KnowledgeBase");
-		TriplePattern t18 = new TriplePattern("?kb2 type KnowledgeBase");
 		Set<TriplePattern> obj = new HashSet<>(
 				Arrays.asList(t2, t3, t6, t8, t9, t10, t11, t12, t13, t14, t15, t16 /* , t17, t18 */));
 
@@ -153,7 +151,8 @@ public class MatchTest {
 		Rule r = new Rule(null, obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
-		System.out.println(findMatchesWithConsequent);
+		System.out.println("Size: " + findMatchesWithConsequent.size());
+//		System.out.println(findMatchesWithConsequent);
 	}
 
 	@Test
