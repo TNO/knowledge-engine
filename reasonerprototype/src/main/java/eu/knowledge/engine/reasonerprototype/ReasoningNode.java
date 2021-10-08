@@ -12,7 +12,7 @@ import eu.knowledge.engine.reasonerprototype.Rule.Match;
 import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.GraphBindingSet;
+import eu.knowledge.engine.reasonerprototype.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.knowledge.engine.reasonerprototype.api.TripleVar;
@@ -113,8 +113,8 @@ public class ReasoningNode {
 
 			// we transfer the incomingBindingSet (from the consequent) to the antecedent
 			// bindingset (if it exists). This latter one is send to the different children.
-			GraphBindingSet antecedentPredefinedBindings;
-			antecedentPredefinedBindings = new GraphBindingSet(this.rule.antecedent);
+			TripleVarBindingSet antecedentPredefinedBindings;
+			antecedentPredefinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 			TripleVarBinding aTripleVarBinding;
 			for (Binding b : bindingSet) {
 				aTripleVarBinding = new TripleVarBinding(this.rule.antecedent, b);
@@ -129,7 +129,7 @@ public class ReasoningNode {
 			// TODO the order in which we iterate the children is important. A strategy like
 			// first processing the children that have the incoming variables in their
 			// consequent might be smart.
-			GraphBindingSet combinedBindings = new GraphBindingSet(this.rule.antecedent);
+			TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 
 			Iterator<ReasoningNode> someIter = someChildren.iterator();
 			while (/* allBindingSetsAvailable && */someIter.hasNext()) {
@@ -140,15 +140,15 @@ public class ReasoningNode {
 				// bindingset. We do not want to send bindings with variables that do not exist
 				// for that child.
 
-				GraphBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
-				GraphBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
+				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
+				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
 				BindingSet childBindings = child.continueReasoning(
 						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
 					allBindingSetsAvailable = false;
 				} else {
-					GraphBindingSet childGraphBindingSet = childBindings.toGraphBindingSet(child.rule.consequent);
+					TripleVarBindingSet childGraphBindingSet = childBindings.toGraphBindingSet(child.rule.consequent);
 
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
@@ -156,7 +156,7 @@ public class ReasoningNode {
 					if (!this.fullMatchOnly.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
 						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
 
-					GraphBindingSet convertedChildGraphBindingSet = childGraphBindingSet
+					TripleVarBindingSet convertedChildGraphBindingSet = childGraphBindingSet
 							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
 					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
 				}
@@ -164,7 +164,7 @@ public class ReasoningNode {
 
 			if (allBindingSetsAvailable) {
 
-				GraphBindingSet consequentAntecedentBindings;
+				TripleVarBindingSet consequentAntecedentBindings;
 				if (this.children.isEmpty()) {
 					consequentAntecedentBindings = bindingSet.toGraphBindingSet(this.rule.consequent);
 				} else {
@@ -216,7 +216,7 @@ public class ReasoningNode {
 		}
 	}
 
-	private GraphBindingSet generateAdditionalTripleVarBindings(GraphBindingSet childGraphBindingSet) {
+	private TripleVarBindingSet generateAdditionalTripleVarBindings(TripleVarBindingSet childGraphBindingSet) {
 
 		// create powerset
 		Set<TriplePattern> graphPattern = childGraphBindingSet.getGraphPattern();
@@ -224,7 +224,7 @@ public class ReasoningNode {
 		Set<Set<TriplePattern>> gpPowerSet = createPowerSet(new ArrayList<TriplePattern>(graphPattern), binarySubsets);
 
 		// create additional triplevarbindings
-		GraphBindingSet newGraphBindingSet = new GraphBindingSet(graphPattern);
+		TripleVarBindingSet newGraphBindingSet = new TripleVarBindingSet(graphPattern);
 		Set<TripleVarBinding> permutatedTVBs;
 		for (TripleVarBinding tvb : childGraphBindingSet.getBindings()) {
 			permutatedTVBs = permutateTripleVarBinding(tvb, gpPowerSet);
@@ -269,9 +269,9 @@ public class ReasoningNode {
 	 * @param bindingSet2
 	 * @return
 	 */
-	private GraphBindingSet keepOnlyCompatiblePatternBindings(GraphBindingSet bindingSet, GraphBindingSet bindingSet2) {
+	private TripleVarBindingSet keepOnlyCompatiblePatternBindings(TripleVarBindingSet bindingSet, TripleVarBindingSet bindingSet2) {
 
-		GraphBindingSet newBS = new GraphBindingSet(bindingSet2.getGraphPattern());
+		TripleVarBindingSet newBS = new TripleVarBindingSet(bindingSet2.getGraphPattern());
 
 		for (TripleVarBinding b : bindingSet2.getBindings()) {
 
@@ -295,9 +295,9 @@ public class ReasoningNode {
 		return newBS;
 	}
 
-	private GraphBindingSet keepOnlyFullGraphPatternBindings(Set<TriplePattern> graphPattern,
-			GraphBindingSet someBindings) {
-		GraphBindingSet bs = new GraphBindingSet(someBindings.getGraphPattern());
+	private TripleVarBindingSet keepOnlyFullGraphPatternBindings(Set<TriplePattern> graphPattern,
+			TripleVarBindingSet someBindings) {
+		TripleVarBindingSet bs = new TripleVarBindingSet(someBindings.getGraphPattern());
 		for (TripleVarBinding b : someBindings.getBindings()) {
 			if (isFullBinding(graphPattern, b)) {
 				bs.add(new TripleVarBinding(b));

@@ -9,12 +9,12 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
-public class GraphBindingSet {
+public class TripleVarBindingSet {
 
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
 
-	public GraphBindingSet(Set<TriplePattern> aGraphPattern) {
+	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
 		this.graphPattern = aGraphPattern;
 		bindings = new HashSet<>();
@@ -50,9 +50,9 @@ public class GraphBindingSet {
 		return vars;
 	}
 
-	public GraphBindingSet getFullBindingSet() {
+	public TripleVarBindingSet getFullBindingSet() {
 
-		GraphBindingSet gbs = new GraphBindingSet(this.graphPattern);
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 		Set<TripleVar> vars = this.getTripleVars();
 		int nrOfVars = vars.size();
 		for (TripleVarBinding tvb : bindings) {
@@ -70,9 +70,9 @@ public class GraphBindingSet {
 	 * @param graphPattern
 	 * @return
 	 */
-	public GraphBindingSet getFullBindingSet(Set<TriplePattern> graphPattern) {
+	public TripleVarBindingSet getFullBindingSet(Set<TriplePattern> graphPattern) {
 
-		GraphBindingSet gbs = new GraphBindingSet(this.graphPattern);
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 		for (TripleVarBinding tvb : bindings) {
 			boolean allVariablesAvailable = true;
 			for (TriplePattern tp : graphPattern) {
@@ -88,8 +88,8 @@ public class GraphBindingSet {
 		return gbs;
 	}
 
-	public GraphBindingSet getPartialBindingSet() {
-		GraphBindingSet gbs = new GraphBindingSet(this.graphPattern);
+	public TripleVarBindingSet getPartialBindingSet() {
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 		Set<TripleVar> vars = this.getTripleVars();
 		int nrOfVars = vars.size();
 		for (TripleVarBinding tvb : bindings) {
@@ -114,10 +114,10 @@ public class GraphBindingSet {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof GraphBindingSet)) {
+		if (!(obj instanceof TripleVarBindingSet)) {
 			return false;
 		}
-		GraphBindingSet other = (GraphBindingSet) obj;
+		TripleVarBindingSet other = (TripleVarBindingSet) obj;
 		if (bindings == null) {
 			if (other.bindings != null) {
 				return false;
@@ -146,8 +146,8 @@ public class GraphBindingSet {
 	 * @param gbs
 	 * @return
 	 */
-	public GraphBindingSet merge(GraphBindingSet aGraphBindingSet) {
-		GraphBindingSet gbs = new GraphBindingSet(this.graphPattern);
+	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 
 		if (this.bindings.isEmpty()) {
 			for (TripleVarBinding tvb2 : aGraphBindingSet.getBindings()) {
@@ -193,8 +193,8 @@ public class GraphBindingSet {
 	 * @param match
 	 * @return
 	 */
-	public GraphBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
-		GraphBindingSet newOne = new GraphBindingSet(graphPattern);
+	public TripleVarBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
+		TripleVarBindingSet newOne = new TripleVarBindingSet(graphPattern);
 		TripleVarBinding newB;
 
 		if (this.bindings.isEmpty()) {

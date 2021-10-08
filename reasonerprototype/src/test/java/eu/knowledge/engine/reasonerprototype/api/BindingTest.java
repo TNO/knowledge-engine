@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import eu.knowledge.engine.reasonerprototype.api.Binding;
 import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.GraphBindingSet;
+import eu.knowledge.engine.reasonerprototype.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TripleVar;
 import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
@@ -186,7 +186,7 @@ public class BindingTest {
 		tb2.put(new TripleVar(t1, "?a"), "<sensor1>");
 
 		Set<TriplePattern> aGraphPattern = new HashSet<>(Arrays.asList(t1, t2));
-		GraphBindingSet gbs = new GraphBindingSet(aGraphPattern);
+		TripleVarBindingSet gbs = new TripleVarBindingSet(aGraphPattern);
 		gbs.add(tb1);
 		gbs.add(tb2);
 
@@ -195,7 +195,7 @@ public class BindingTest {
 		BindingSet bs = gbs.toBindingSet();
 		System.out.println(bs);
 
-		GraphBindingSet gbsReturned = bs.toGraphBindingSet(aGraphPattern);
+		TripleVarBindingSet gbsReturned = bs.toGraphBindingSet(aGraphPattern);
 
 		System.out.println(gbsReturned);
 	}
@@ -220,7 +220,7 @@ public class BindingTest {
 		TriplePattern tp1 = new TriplePattern("?s type ?t");
 		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
 
-		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
 		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
@@ -228,13 +228,13 @@ public class BindingTest {
 		tvb1.put(new TripleVar(tp2, "?v"), "22");
 		gbs1.add(tvb1);
 
-		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs2 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb2 = new TripleVarBinding();
 		tvb2.put(new TripleVar(tp1, "?s"), "<sensor1>");
 		tvb2.put(new TripleVar(tp1, "?t"), "Device");
 		gbs2.add(tvb2);
 
-		GraphBindingSet merge = gbs1.merge(gbs2);
+		TripleVarBindingSet merge = gbs1.merge(gbs2);
 		System.out.println(merge);
 
 		assertTrue(merge.isEmpty());
@@ -250,7 +250,7 @@ public class BindingTest {
 		TriplePattern tp1 = new TriplePattern("?s type ?t");
 		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
 
-		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
 		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
@@ -258,13 +258,13 @@ public class BindingTest {
 		tvb1.put(new TripleVar(tp2, "?v"), "22");
 		gbs1.add(tvb1);
 
-		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs2 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb2 = new TripleVarBinding();
 		tvb2.put(new TripleVar(tp2, "?s"), "<sensor2>");
 		tvb2.put(new TripleVar(tp2, "?v"), "22");
 		gbs2.add(tvb2);
 
-		GraphBindingSet merge = gbs1.merge(gbs2);
+		TripleVarBindingSet merge = gbs1.merge(gbs2);
 		System.out.println(merge);
 
 		assertTrue(merge.isEmpty());
@@ -281,7 +281,7 @@ public class BindingTest {
 		TriplePattern tp1 = new TriplePattern("?s type ?t");
 		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
 
-		GraphBindingSet gbs1 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
 		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
@@ -289,13 +289,13 @@ public class BindingTest {
 		tvb1.put(new TripleVar(tp2, "?v"), "<22>");
 		gbs1.add(tvb1);
 
-		GraphBindingSet gbs2 = new GraphBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
+		TripleVarBindingSet gbs2 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb2 = new TripleVarBinding();
 		tvb2.put(new TripleVar(tp2, "?s"), "<sensor2>");
 		tvb2.put(new TripleVar(tp2, "?v"), "<22>");
 		gbs2.add(tvb2);
 
-		GraphBindingSet merge = gbs1.merge(gbs2);
+		TripleVarBindingSet merge = gbs1.merge(gbs2);
 		System.out.println(merge);
 
 		assertTrue(merge.isEmpty());

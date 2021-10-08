@@ -170,9 +170,9 @@ public class BindingSet extends HashSet<Binding> {
 	 * @param aGraphPattern
 	 * @return
 	 */
-	public GraphBindingSet toGraphBindingSet(Set<TriplePattern> aGraphPattern) {
+	public TripleVarBindingSet toGraphBindingSet(Set<TriplePattern> aGraphPattern) {
 
-		GraphBindingSet gbs = new GraphBindingSet(aGraphPattern);
+		TripleVarBindingSet gbs = new TripleVarBindingSet(aGraphPattern);
 
 		TripleVarBinding tvb;
 		for (Binding b : this) {
