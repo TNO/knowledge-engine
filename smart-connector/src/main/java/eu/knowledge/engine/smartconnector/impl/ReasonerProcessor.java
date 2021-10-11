@@ -101,7 +101,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			ReasoningNode node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
-			while ((bs = node.continueReasoning(translateBindingSetTo(someBindings))) == null) {
+			while ((bs = node.executeBackward(translateBindingSetTo(someBindings))) == null) {
 //				System.out.println(node);
 
 				TaskBoard.instance().executeScheduledTasks();

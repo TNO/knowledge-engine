@@ -120,7 +120,7 @@ public class DynamicSemanticConfigurationTest {
 		BindingSet bs = new BindingSet();
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}

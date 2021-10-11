@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -34,81 +33,29 @@ public class KeReasonerTest {
 		reasoner = new KeReasoner();
 		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?a type Sensor"), new TriplePattern("?a hasValInC ?b"))),
-				new BindingSetHandler() {
-
-					private Table data = new Table(new String[] {
+				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
-							"?a", "?b"
-							//@formatter:on
-					}, new String[] {
+						"?a", "?b"
+						//@formatter:on
+				}, new String[] {
 				//@formatter:off
-							"<sensor1>,22",
-							"<sensor2>,21",
-							//@formatter:on
-					});
-
-					@Override
-					public BindingSet handle(BindingSet bs) {
-
-						BindingSet newBS = new BindingSet();
-						if (!bs.isEmpty()) {
-
-							for (Binding b : bs) {
-
-								if (!b.isEmpty()) {
-									Set<Map<String, String>> map = data.query(b.toMap());
-									if (!map.isEmpty())
-										newBS.addAll(map);
-								} else {
-									newBS.addAll(this.data.getData());
-								}
-							}
-						} else {
-							newBS.addAll(this.data.getData());
-						}
-						return newBS;
-					}
-
-				}));
+						"<sensor1>,22",
+						"<sensor2>,21",
+						//@formatter:on
+				}))));
 
 		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?e type Sensor"), new TriplePattern("?e hasValInF ?f"))),
-				new BindingSetHandler() {
-
-					private Table data = new Table(new String[] {
+				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
-					"?e", "?f"
-					//@formatter:on
-					}, new String[] {
+						"?e", "?f"
+						//@formatter:on
+				}, new String[] {
 				//@formatter:off
-					"<sensor3>,69",
-					"<sensor4>,71",
-					//@formatter:on
-					});
-
-					@Override
-					public BindingSet handle(BindingSet bs) {
-
-						BindingSet newBS = new BindingSet();
-
-						if (!bs.isEmpty()) {
-
-							for (Binding b : bs) {
-
-								if (!b.isEmpty()) {
-									Set<Map<String, String>> map = data.query(b.toMap());
-									newBS.addAll(map);
-								} else {
-									newBS.addAll(this.data.getData());
-								}
-							}
-						} else {
-							newBS.addAll(this.data.getData());
-						}
-						return newBS;
-					}
-
-				}));
+						"<sensor3>,69",
+						"<sensor4>,71",
+						//@formatter:on
+				}))));
 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s type Device")))));
@@ -154,7 +101,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -189,7 +136,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -223,7 +170,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -254,7 +201,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -287,7 +234,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -315,7 +262,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -341,7 +288,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -368,7 +315,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.continueReasoning(bs)) == null) {
+		while ((bind = root.executeBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}

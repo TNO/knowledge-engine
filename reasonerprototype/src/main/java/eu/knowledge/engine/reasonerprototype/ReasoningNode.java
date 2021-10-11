@@ -20,7 +20,16 @@ import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
 
 public class ReasoningNode {
 
+	/**
+	 * All non-loop children.
+	 */
 	private Map<ReasoningNode, Set<Match>> children;
+
+	/**
+	 * All loop children (i.e. children that eventually loop back to this particular
+	 * node).
+	 */
+	private Map<ReasoningNode, Set<Match>> loopChildren;
 
 	private List<Rule> allRules;
 
@@ -50,27 +59,69 @@ public class ReasoningNode {
 	 */
 	private MatchStrategy matchStrategy;
 
+	private ReasoningNode parent;
+
+	/**
+	 * Construct a reasoning node and all children.
+	 * 
+	 * Note that when this node detects a loop (i.e. the consequent of current rule
+	 * matches the antecedent of the current rule, for example as is the case with
+	 * the transitivity rule), it will create a special child to itself. This
+	 * special child is used during backwards execution phase to start a forward
+	 * execution phase because it is not as vulnerable for an infinite loop as the
+	 * backward chaining method.
+	 * 
+	 * @param someRules
+	 * @param aParent
+	 * @param aRule
+	 * @param aMatchStrategy
+	 */
 	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy) {
 
 		this.matchStrategy = aMatchStrategy;
+		this.parent = aParent;
 		this.allRules = someRules;
 		this.rule = aRule;
 		this.children = new HashMap<ReasoningNode, Set<Match>>();
+		this.loopChildren = new HashMap<ReasoningNode, Set<Match>>();
 
 		// generate children
 		if (!this.rule.antecedent.isEmpty()) {
 			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
 					this.matchStrategy);
-
 			ReasoningNode child;
 			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
-				// create a childnode
-				child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy);
-				this.children.put(child, entry.getValue());
+
+				// some infinite loop detection (see transitivity test)
+				ReasoningNode someNode;
+				if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
+					// loop detected: reuse the reasoning node.
+					this.loopChildren.put(someNode, entry.getValue());
+				} else {
+					// create a new childnode
+					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy);
+					this.children.put(child, entry.getValue());
+				}
 			}
 		}
 
-		// TODO we need some ininite loop detection (see transitivity rule)
+	}
+
+	/**
+	 * Check recursively to the root whether the given rule already occurs. If it
+	 * does, we create a loop to prevent an infinite loop.
+	 * 
+	 * @param aRule
+	 * @return
+	 */
+	private ReasoningNode ruleAlreadyOccurs(Rule aRule) {
+
+		if (this.rule.equals(aRule))
+			return this;
+		else if (this.parent != null)
+			return this.parent.ruleAlreadyOccurs(aRule);
+		else
+			return null;
 	}
 
 	private Map<Rule, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
@@ -101,7 +152,7 @@ public class ReasoningNode {
 	 * @param bindingSet the incoming binding set coming from the consequence.
 	 * @return complete bindingset when finished, otherwise null.
 	 */
-	public BindingSet continueReasoning(BindingSet bindingSet) {
+	public BindingSet executeBackward(BindingSet bindingSet) {
 
 		// send the binding set down the tree and combine the resulting bindingsets to
 		// the actual result.
@@ -143,8 +194,8 @@ public class ReasoningNode {
 				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
-				BindingSet childBindings = child.continueReasoning(
-						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
+				BindingSet childBindings = child
+						.executeBackward(preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
 					allBindingSetsAvailable = false;
 				} else {
@@ -160,6 +211,15 @@ public class ReasoningNode {
 							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
 					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
 				}
+			}
+
+			// process the loop children
+			someIter = this.loopChildren.keySet().iterator();
+			while (someIter.hasNext()) {
+				ReasoningNode child = someIter.next();
+				// we use forward reasoning to prevent an infinite loop
+				combinedBindings = combinedBindings.merge(child.executeForward(combinedBindings.toBindingSet())
+						.toGraphBindingSet(combinedBindings.getGraphPattern()));
 			}
 
 			if (allBindingSetsAvailable) {
@@ -214,6 +274,17 @@ public class ReasoningNode {
 			// we start however, with the naive version that does not support this.
 			return this.resultingBindingSet;
 		}
+	}
+
+	/**
+	 * Execute this rule in a forward manner using the given bindings.
+	 * 
+	 * @param someBindings
+	 * @return
+	 */
+	private BindingSet executeForward(BindingSet someBindings) {
+
+		return null;
 	}
 
 	private TripleVarBindingSet generateAdditionalTripleVarBindings(TripleVarBindingSet childGraphBindingSet) {
@@ -378,6 +449,13 @@ public class ReasoningNode {
 
 			sb.append(child.toString(tabIndex + 1));
 		}
+
+		for (ReasoningNode loopChild : loopChildren.keySet()) {
+			for (int i = 0; i < tabIndex + 1; i++)
+				sb.append("\t");
+			sb.append("self").append("\n");
+		}
+
 		return sb.toString();
 	}
 
