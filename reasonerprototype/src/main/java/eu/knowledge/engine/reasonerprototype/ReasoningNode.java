@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasonerprototype;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +19,15 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.knowledge.engine.reasonerprototype.api.TripleVar;
 import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
 
+/**
+ * Represents the application of a rule in the search tree. A rule can be
+ * applied in a backward and forward chaining fashion and note that in some
+ * scenario's (like loops with transitive relations), a reasoning node might be
+ * used backward and forward simultaneously.
+ * 
+ * @author nouwtb
+ *
+ */
 public class ReasoningNode {
 
 	/**
@@ -38,19 +48,43 @@ public class ReasoningNode {
 	 */
 	private Rule rule;
 
-	private static final int BINDINGSET_NOT_REQUESTED = 0, BINDINGSET_REQUESTED = 1, BINDINGSET_AVAILABLE = 2;
+	/**
+	 * The backward chaining (BC) status of this reasoning node. Is the consequent
+	 * bindingset already available, is it requested or not requested.
+	 */
+	private static final int BC_BINDINGSET_NOT_REQUESTED = 0, BC_BINDINGSET_REQUESTED = 1, BC_BINDINGSET_AVAILABLE = 2;
+
+	/**
+	 * The forward chaining (FC) status of this reasoning node.
+	 */
+	private static final int FC_BINDINGSET_NOT_REQUESTED = 0, FC_BINDINGSET_REQUESTED = 1, FC_BINDINGSET_AVAILABLE = 2;
 
 	/**
 	 * This is the bindingset that has been retrieved and is now ready to be used to
-	 * continue the reason process.
+	 * continue the reasoning process.
 	 */
-	private BindingSet resultingBindingSet;
+	private BindingSet resultingBackwardBindingSet;
 
 	/**
-	 * This state keeps track of whether the procedural code (if there is one) to
-	 * remotely access other KBs has already been requested or already available.
+	 * Thisis the bindingset that has been retrieved and is now ready to be used to
+	 * continue the reasoning process.
 	 */
-	private int state = BINDINGSET_NOT_REQUESTED;
+	private BindingSet resultingForwardBindingSet;
+
+	/**
+	 * This bcState keeps track of whether the procedural code (if there is one) to
+	 * for example remotely access other KBs has already been requested or already
+	 * available in the backward chaining (bc) behavior of this node. Note that the
+	 * rule might also just convert the incoming bindings to the outgoing bindings
+	 * without calling remote services.
+	 */
+	private int bcState = BC_BINDINGSET_NOT_REQUESTED;
+
+	/**
+	 * This fcState keeps track of whether the procedural code is already requested
+	 * in the forward chaining behavior of this node, etc.
+	 */
+	private int fcState = FC_BINDINGSET_NOT_REQUESTED;
 
 	/**
 	 * Whether this node only accepts children reasoning nodes that full match its
@@ -60,6 +94,15 @@ public class ReasoningNode {
 	private MatchStrategy matchStrategy;
 
 	private ReasoningNode parent;
+
+	/**
+	 * Whether the plan should be forward or backward chaining. This is important,
+	 * because the rules are inverted between those two strategies. Note that in
+	 * some scenario's (i.e. when loops are detected) a backward chaining plan might
+	 * include some forward chaining. Is there also a scenario in which a forward
+	 * chaining plan includes some backward chaining?
+	 */
+	private boolean shouldPlanBackward;
 
 	/**
 	 * Construct a reasoning node and all children.
@@ -76,7 +119,8 @@ public class ReasoningNode {
 	 * @param aRule
 	 * @param aMatchStrategy
 	 */
-	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy) {
+	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
+			boolean aShouldPlanBackward) {
 
 		this.matchStrategy = aMatchStrategy;
 		this.parent = aParent;
@@ -84,6 +128,7 @@ public class ReasoningNode {
 		this.rule = aRule;
 		this.children = new HashMap<ReasoningNode, Set<Match>>();
 		this.loopChildren = new HashMap<ReasoningNode, Set<Match>>();
+		this.shouldPlanBackward = aShouldPlanBackward;
 
 		// generate children
 		if (!this.rule.antecedent.isEmpty()) {
@@ -99,12 +144,33 @@ public class ReasoningNode {
 					this.loopChildren.put(someNode, entry.getValue());
 				} else {
 					// create a new childnode
-					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy);
+					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
+							this.shouldPlanBackward);
 					this.children.put(child, entry.getValue());
 				}
 			}
 		}
+		
+		if (!shouldPlanBackward) {
+			// generate forward children
+			if (!this.rule.consequent.isEmpty()) {
+				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
+						this.matchStrategy);
+				ReasoningNode child;
+				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
+					if ((child = this.ruleAlreadyOccurs(entry.getKey())) != null) {
+						this.loopChildren.put(child, entry.getValue());
+					} else {
+						// create a new childnode
+						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
+								this.shouldPlanBackward);
+						this.forwardChildren.put(child, entry.getValue());
+					}
+				}
+			}
+
+		}
 	}
 
 	/**
@@ -133,8 +199,24 @@ public class ReasoningNode {
 		Set<Match> possibleMatches;
 		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
 		for (Rule r : this.allRules) {
-
 			if (!(possibleMatches = r.consequentMatches(aPattern, aMatchStrategy)).isEmpty()) {
+				overlappingRules.put(r, possibleMatches);
+			}
+		}
+		assert overlappingRules != null;
+		return overlappingRules;
+	}
+	
+	private Map<Rule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
+			MatchStrategy aMatchStrategy) {
+		assert aConsequentPattern != null;
+		assert !aConsequentPattern.isEmpty();
+
+		Set<Match> possibleMatches;
+		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
+		for (Rule r : this.allRules) {
+
+			if (!(possibleMatches = r.antecedentMatches(aConsequentPattern, aMatchStrategy)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
 		}
@@ -152,18 +234,19 @@ public class ReasoningNode {
 	 * @param bindingSet the incoming binding set coming from the consequence.
 	 * @return complete bindingset when finished, otherwise null.
 	 */
-	public BindingSet executeBackward(BindingSet bindingSet) {
+	public BindingSet continueBackward(BindingSet bindingSet) {
 
 		// send the binding set down the tree and combine the resulting bindingsets to
 		// the actual result.
-		if (this.state != BINDINGSET_AVAILABLE) {
+		if (this.bcState != BC_BINDINGSET_AVAILABLE) {
 
-			boolean allBindingSetsAvailable = true;
+			boolean allChildBindingSetsAvailable = true;
 
 			Set<ReasoningNode> someChildren = this.children.keySet();
 
 			// we transfer the incomingBindingSet (from the consequent) to the antecedent
-			// bindingset (if it exists). This latter one is send to the different children.
+			// bindingset (if it exists). This latter one is send to the different
+			// children.
 			TripleVarBindingSet antecedentPredefinedBindings;
 			antecedentPredefinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 			TripleVarBinding aTripleVarBinding;
@@ -177,8 +260,10 @@ public class ReasoningNode {
 			// first child are send to the second child to check. Otherwise, they get
 			// combined and end up in the result without anyone ever checking them.
 
-			// TODO the order in which we iterate the children is important. A strategy like
-			// first processing the children that have the incoming variables in their
+			// TODO the order in which we iterate the children is important. A
+			// strategy like
+			// first processing the children that have the incoming variables in
+			// their
 			// consequent might be smart.
 			TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 
@@ -194,10 +279,10 @@ public class ReasoningNode {
 				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
-				BindingSet childBindings = child
-						.executeBackward(preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
+				BindingSet childBindings = child.continueBackward(
+						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
-					allBindingSetsAvailable = false;
+					allChildBindingSetsAvailable = false;
 				} else {
 					TripleVarBindingSet childGraphBindingSet = childBindings.toGraphBindingSet(child.rule.consequent);
 
@@ -209,70 +294,85 @@ public class ReasoningNode {
 
 					TripleVarBindingSet convertedChildGraphBindingSet = childGraphBindingSet
 							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
+
+					if (childMatch.size() > 1) {
+						// the child matches in multiple ways, so we need to merge the bindingset with
+						// itself to combine both matches.
+						// TODO or do we want to translate per match and combine each translated
+						// bindingset per match with each other?
+						convertedChildGraphBindingSet = convertedChildGraphBindingSet
+								.merge(convertedChildGraphBindingSet);
+					}
+
 					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
 				}
 			}
 
-			// process the loop children
-			someIter = this.loopChildren.keySet().iterator();
-			while (someIter.hasNext()) {
-				ReasoningNode child = someIter.next();
-				// we use forward reasoning to prevent an infinite loop
-				combinedBindings = combinedBindings.merge(child.executeForward(combinedBindings.toBindingSet())
-						.toGraphBindingSet(combinedBindings.getGraphPattern()));
-			}
+			if (allChildBindingSetsAvailable) {
 
-			if (allBindingSetsAvailable) {
+				boolean finished = true;
+				// process the loop children
+				someIter = this.loopChildren.keySet().iterator();
+				while (someIter.hasNext()) {
+					ReasoningNode child = someIter.next();
+					// we use forward reasoning to prevent an infinite loop
+					combinedBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent, combinedBindings);
 
-				TripleVarBindingSet consequentAntecedentBindings;
-				if (this.children.isEmpty()) {
-					consequentAntecedentBindings = bindingSet.toGraphBindingSet(this.rule.consequent);
-				} else {
-					consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
-							bindingSet.toGraphBindingSet(this.rule.antecedent), combinedBindings);
-
-					consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
-							consequentAntecedentBindings);
-
+					finished &= child.continueForward(combinedBindings.toBindingSet());
 				}
 
-				if (true) {
-					if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
+				if (finished) {
 
-						TaskBoard.instance().addTask(this, consequentAntecedentBindings.toBindingSet());
-						this.state = BINDINGSET_REQUESTED;
+					TripleVarBindingSet consequentAntecedentBindings;
+					if (this.children.isEmpty()) {
+						consequentAntecedentBindings = bindingSet.toGraphBindingSet(this.rule.consequent);
 					} else {
-						this.resultingBindingSet = new BindingSet();
-						this.state = BINDINGSET_AVAILABLE;
-						return this.resultingBindingSet;
+						consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
+								bindingSet.toGraphBindingSet(this.rule.antecedent), combinedBindings);
+
+						consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
+								consequentAntecedentBindings);
+
 					}
-				} else {
 
-					// call the handler directly, to make debugging easier.
-					if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
+					if (true) {
+						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
-						this.resultingBindingSet = this.rule.getBindingSetHandler()
-								.handle(consequentAntecedentBindings.toBindingSet());
-						this.state = BINDINGSET_AVAILABLE;
+							TaskBoard.instance().addTask(this, consequentAntecedentBindings.toBindingSet());
+							this.bcState = BC_BINDINGSET_REQUESTED;
+						} else {
+							this.resultingBackwardBindingSet = new BindingSet();
+							this.bcState = BC_BINDINGSET_AVAILABLE;
+							return this.resultingBackwardBindingSet;
+						}
 					} else {
-						this.resultingBindingSet = new BindingSet();
-						this.state = BINDINGSET_AVAILABLE;
-					}
-					return this.resultingBindingSet;
 
+						// call the handler directly, to make debugging easier.
+						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
+
+							this.resultingBackwardBindingSet = this.rule.getBindingSetHandler()
+									.handle(consequentAntecedentBindings.toBindingSet());
+							this.bcState = BC_BINDINGSET_AVAILABLE;
+						} else {
+							this.resultingBackwardBindingSet = new BindingSet();
+							this.bcState = BC_BINDINGSET_AVAILABLE;
+						}
+						return this.resultingBackwardBindingSet;
+
+					}
 				}
 			}
 
 			return null;
 		} else {
-			assert resultingBindingSet != null;
+			assert resultingBackwardBindingSet != null;
 
 			// TODO internally the bindingset should contain bindings with variables where
 			// instead of having a single entry per variable name, we need an entry per
 			// variable occurrence. This is to make sure that different predicates going to
 			// the same two variables are still correctly matched.
 			// we start however, with the naive version that does not support this.
-			return this.resultingBindingSet;
+			return this.resultingBackwardBindingSet;
 		}
 	}
 
@@ -282,9 +382,88 @@ public class ReasoningNode {
 	 * @param someBindings
 	 * @return
 	 */
-	private BindingSet executeForward(BindingSet someBindings) {
+	public boolean continueForward(BindingSet bindingSet) {
 
-		return null;
+		// the ordering is reversed, I think.
+		// we first call the rule's bindingsethandler with the incoming bindingset (this
+		// should go through the taskboard and requires an additional reasoning step)
+		// the result should be compatible with the consequent of our rule
+		// and we send it to the forward children for further processing.
+
+		boolean allFinished = true;
+		if (this.fcState == FC_BINDINGSET_AVAILABLE) {
+			// bindingset available, so we send it to our children.
+			Set<ReasoningNode> someChildren = this.children.keySet();
+
+			if (!this.resultingForwardBindingSet.isEmpty()) {
+				TripleVarBindingSet consequentPredefinedBindings;
+				consequentPredefinedBindings = new TripleVarBindingSet(this.rule.consequent);
+				TripleVarBinding aTripleVarBinding;
+				for (Binding b : this.resultingForwardBindingSet) {
+					aTripleVarBinding = new TripleVarBinding(this.rule.consequent, b);
+					consequentPredefinedBindings.add(aTripleVarBinding);
+				}
+
+				Iterator<ReasoningNode> someIter = someChildren.iterator();
+				while (someIter.hasNext()) {
+					ReasoningNode child = someIter.next();
+					Set<Match> childMatch = this.children.get(child);
+
+					// we can combine all different matches of this child's consequent into a single
+					// bindingset. We do not want to send bindings with variables that do not exist
+					// for that child.
+
+					consequentPredefinedBindings = consequentPredefinedBindings.translate(child.rule.antecedent,
+							childMatch);
+
+					consequentPredefinedBindings = consequentPredefinedBindings.merge(consequentPredefinedBindings);
+
+					// TODO we probably need to keep track of what child has already finished,
+					// because this child needs to be called again in the next call of this method.
+
+					consequentPredefinedBindings = keepOnlyFullGraphPatternBindings(
+							consequentPredefinedBindings.getGraphPattern(), consequentPredefinedBindings);
+
+					allFinished &= child.continueForward(consequentPredefinedBindings.toBindingSet());
+				}
+
+				// process the loop children
+				someIter = this.loopChildren.keySet().iterator();
+				while (someIter.hasNext()) {
+					ReasoningNode child = someIter.next();
+
+					Set<Match> childMatch = this.loopChildren.get(child);
+
+					TripleVarBindingSet existing = bindingSet.toGraphBindingSet(this.rule.antecedent);
+
+					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
+						existing = generateAdditionalTripleVarBindings(existing);
+
+					TripleVarBindingSet existing3 = existing
+							.merge(this.resultingForwardBindingSet.toGraphBindingSet(this.rule.consequent)
+									.translate(child.rule.antecedent, invert(childMatch)));
+
+					// we use forward reasoning to prevent an infinite loop
+					existing = keepOnlyFullGraphPatternBindings(this.rule.antecedent, existing3);
+
+					this.fcState = FC_BINDINGSET_NOT_REQUESTED;
+
+					child.continueForward(existing.toBindingSet());
+				}
+			}
+		} else {
+			// bindingset not yet available, we need to make sure it does.
+			allFinished = false;
+			if (true) {
+				TaskBoard.instance().addTask(this, bindingSet);
+				this.fcState = FC_BINDINGSET_REQUESTED;
+			} else {
+				this.resultingForwardBindingSet = this.rule.getBindingSetHandler().handle(bindingSet);
+				this.fcState = FC_BINDINGSET_AVAILABLE;
+			}
+		}
+
+		return allFinished;
 	}
 
 	private TripleVarBindingSet generateAdditionalTripleVarBindings(TripleVarBindingSet childGraphBindingSet) {
@@ -401,7 +580,7 @@ public class ReasoningNode {
 	}
 
 	private int getState() {
-		return this.state;
+		return this.bcState;
 	}
 
 	public Set<Match> invert(Set<Match> set) {
@@ -420,11 +599,18 @@ public class ReasoningNode {
 	 */
 	public void setBindingSet(BindingSet bs) {
 
-		// make sure the combinedBindings does not contain partial bindings.
+		if (bcState == BC_BINDINGSET_REQUESTED) {
+			this.resultingBackwardBindingSet = bs;
+			this.bcState = BC_BINDINGSET_AVAILABLE;
+		} else if (fcState == FC_BINDINGSET_REQUESTED) {
 
-		this.resultingBindingSet = bs;
-
-		this.state = BINDINGSET_AVAILABLE;
+			if (resultingForwardBindingSet != null) {
+				this.resultingForwardBindingSet.addAll(bs);
+			} else {
+				this.resultingForwardBindingSet = bs;
+			}
+			this.fcState = FC_BINDINGSET_AVAILABLE;
+		}
 	}
 
 	public String toString() {
@@ -433,10 +619,10 @@ public class ReasoningNode {
 
 	public String toString(int tabIndex) {
 		StringBuilder sb = new StringBuilder();
-		String stateText = getStateText(this.state);
+		String stateText = getStateText(this.bcState);
 
-		if (this.getState() == BINDINGSET_AVAILABLE) {
-			sb.append(this.resultingBindingSet);
+		if (this.getState() == BC_BINDINGSET_AVAILABLE) {
+			sb.append(this.resultingBackwardBindingSet);
 		} else {
 			sb.append(this.rule.consequent).append(" <-");
 			sb.append(stateText).append("- ");
@@ -453,7 +639,7 @@ public class ReasoningNode {
 		for (ReasoningNode loopChild : loopChildren.keySet()) {
 			for (int i = 0; i < tabIndex + 1; i++)
 				sb.append("\t");
-			sb.append("self").append("\n");
+			sb.append("loop").append("\n");
 		}
 
 		return sb.toString();
@@ -461,11 +647,11 @@ public class ReasoningNode {
 
 	private String getStateText(int state2) {
 
-		if (state2 == BINDINGSET_NOT_REQUESTED)
+		if (state2 == BC_BINDINGSET_NOT_REQUESTED)
 			return "x";
-		if (state2 == BINDINGSET_REQUESTED)
+		if (state2 == BC_BINDINGSET_REQUESTED)
 			return "=";
-		if (state2 == BINDINGSET_AVAILABLE)
+		if (state2 == BC_BINDINGSET_AVAILABLE)
 			return "-";
 		return null;
 	}

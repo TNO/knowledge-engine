@@ -99,9 +99,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 
-			ReasoningNode node = this.reasoner.plan(translateGraphPatternTo(aki.getPattern()), ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+			ReasoningNode node = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()), ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
-			while ((bs = node.executeBackward(translateBindingSetTo(someBindings))) == null) {
+			while ((bs = node.continueBackward(translateBindingSetTo(someBindings))) == null) {
 //				System.out.println(node);
 
 				TaskBoard.instance().executeScheduledTasks();

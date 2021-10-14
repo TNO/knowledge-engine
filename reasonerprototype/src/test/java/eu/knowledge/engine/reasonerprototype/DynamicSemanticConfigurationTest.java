@@ -114,13 +114,13 @@ public class DynamicSemanticConfigurationTest {
 		objective.add(new TriplePattern("?id hasName ?name"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}

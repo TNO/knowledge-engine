@@ -18,7 +18,7 @@ public class KeReasoner {
 		rules.add(rule);
 	}
 
-	public ReasoningNode plan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
+	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
 		Rule goalRule = new Rule(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
@@ -30,7 +30,25 @@ public class KeReasoner {
 			}
 
 		});
-		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy);
+		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy, true);
+		return root;
+	}
+
+	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy) {
+
+		Rule premiseRule = new Rule(new HashSet<>(), aPremise, new BindingSetHandler() {
+
+			/**
+			 * The root node should just return the bindingset as is.
+			 */
+			@Override
+			public BindingSet handle(BindingSet bs) {
+				return bs;
+			}
+		});
+
+		ReasoningNode root = new ReasoningNode(rules, null, premiseRule, aMatchStrategy, false);
+
 		return root;
 	}
 

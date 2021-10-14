@@ -38,6 +38,9 @@ public class TransitivityTest {
 				//@formatter:off
 				"<barry>,<fenna>",
 				"<janny>,<barry>",
+				"<fenna>,<benno>",
+				"<benno>,<loes>",
+				"<loes>,<hendrik>",
 				//@formatter:on
 		}));
 
@@ -52,13 +55,15 @@ public class TransitivityTest {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x isVoorouderVan ?y"));
 
-		ReasoningNode rn = reasoner.plan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		BindingSet result = null;
 
-		do {
+		System.out.println(rn);
+		while ((result = rn.continueBackward(new BindingSet())) == null) {
 			System.out.println(rn);
-		} while ((result = rn.executeBackward(new BindingSet())) != null);
-
+			TaskBoard.instance().executeScheduledTasks();
+		}
+		
 		System.out.println("Result: " + result);
 	}
 

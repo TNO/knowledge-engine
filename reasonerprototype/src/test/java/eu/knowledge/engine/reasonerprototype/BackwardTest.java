@@ -23,7 +23,7 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.Util;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
-public class KeReasonerTest {
+public class BackwardTest {
 
 	private KeReasoner reasoner;
 
@@ -90,7 +90,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -101,7 +101,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -127,7 +127,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -136,7 +136,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -157,7 +157,7 @@ public class KeReasonerTest {
 		// not work
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -170,7 +170,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -188,7 +188,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -201,7 +201,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -220,7 +220,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p nonExistentProp ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -234,7 +234,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -251,7 +251,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -262,7 +262,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -280,7 +280,7 @@ public class KeReasonerTest {
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -288,7 +288,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}
@@ -306,7 +306,7 @@ public class KeReasonerTest {
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		// Start reasoning
-		ReasoningNode root = reasoner.plan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
 		// empty binding is necessary
@@ -315,7 +315,7 @@ public class KeReasonerTest {
 		bs.add(binding2);
 
 		BindingSet bind;
-		while ((bind = root.executeBackward(bs)) == null) {
+		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
 			TaskBoard.instance().executeScheduledTasks();
 		}

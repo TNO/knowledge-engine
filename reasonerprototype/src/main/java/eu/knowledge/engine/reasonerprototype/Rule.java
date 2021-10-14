@@ -71,9 +71,16 @@ public class Rule {
 		return vars;
 	}
 
-	public Set<Match> consequentMatches(Set<TriplePattern> antecedent, MatchStrategy aFullMatchOnly) {
-		Set<Match> matches = matches(antecedent, consequent, aFullMatchOnly);
-		return matches;
+	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, MatchStrategy aMatchStrategy) {
+		if (!this.consequent.isEmpty())
+			return matches(anAntecedent, this.consequent, aMatchStrategy);
+		return new HashSet<>();
+	}
+
+	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, MatchStrategy aMatchStrategy) {
+		if (!this.antecedent.isEmpty())
+			return matches(aConsequent, this.antecedent, aMatchStrategy);
+		return new HashSet<>();
 	}
 
 	public BindingSetHandler getBindingSetHandler() {
@@ -83,18 +90,18 @@ public class Rule {
 	/**
 	 * FInd the biggest matches bewteen two graph patterns.
 	 * 
-	 * @param antecedent
-	 * @param consequent
+	 * @param aFirstPattern
+	 * @param aSecondPattern
 	 * @param aMatchStrategy
 	 * @return
 	 */
-	private Set<Match> matches(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
+	private Set<Match> matches(Set<TriplePattern> aFirstPattern, Set<TriplePattern> aSecondPattern,
 			MatchStrategy aMatchStrategy) {
 
-		assert antecedent != null;
-		assert consequent != null;
-		assert !antecedent.isEmpty();
-		assert !consequent.isEmpty();
+		assert aFirstPattern != null;
+		assert aSecondPattern != null;
+		assert !aFirstPattern.isEmpty();
+		assert !aSecondPattern.isEmpty();
 
 		long start = System.currentTimeMillis();
 
@@ -104,9 +111,9 @@ public class Rule {
 
 		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
 		Set<Match> findMatches;
-		for (TriplePattern anteTriple : antecedent) {
+		for (TriplePattern anteTriple : aFirstPattern) {
 			// find all possible matches of the current antecedent triple in the consequent
-			findMatches = findMatches(anteTriple, consequent);
+			findMatches = findMatches(anteTriple, aSecondPattern);
 			if (!findMatches.isEmpty())
 				matchesPerTriple.put(anteTriple, findMatches);
 		}
@@ -114,7 +121,7 @@ public class Rule {
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
 		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
-				&& matchesPerTriple.keySet().size() < antecedent.size())
+				&& matchesPerTriple.keySet().size() < aFirstPattern.size())
 			return new HashSet<>(allMatches);
 
 		// next, correctly combine all found matches
@@ -169,10 +176,7 @@ public class Rule {
 
 		long finalEnd = System.currentTimeMillis();
 
-		System.out.println("Time: " + (finalEnd - start));
-
 		return new HashSet<>(allMatches);
-
 	}
 
 	private Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
