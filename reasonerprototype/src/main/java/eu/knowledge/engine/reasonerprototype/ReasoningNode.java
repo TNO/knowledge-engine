@@ -31,12 +31,12 @@ import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
 public class ReasoningNode {
 
 	/**
-	 * All non-loop children.
+	 * All non-loop backwardChildren.
 	 */
-	private Map<ReasoningNode, Set<Match>> children;
+	private Map<ReasoningNode, Set<Match>> backwardChildren;
 
 	/**
-	 * All loop children (i.e. children that eventually loop back to this particular
+	 * All loop backwardChildren (i.e. backwardChildren that eventually loop back to this particular
 	 * node).
 	 */
 	private Map<ReasoningNode, Set<Match>> loopChildren;
@@ -87,7 +87,7 @@ public class ReasoningNode {
 	private int fcState = FC_BINDINGSET_NOT_REQUESTED;
 
 	/**
-	 * Whether this node only accepts children reasoning nodes that full match its
+	 * Whether this node only accepts backwardChildren reasoning nodes that full match its
 	 * antecedent. Note that setting this to true effectively disables the reasoning
 	 * functionality and reduces this algorithm to a matching algorithm.
 	 */
@@ -104,8 +104,10 @@ public class ReasoningNode {
 	 */
 	private boolean shouldPlanBackward;
 
+	private Map<ReasoningNode, Set<Match>> forwardChildren;
+
 	/**
-	 * Construct a reasoning node and all children.
+	 * Construct a reasoning node and all backwardChildren.
 	 * 
 	 * Note that when this node detects a loop (i.e. the consequent of current rule
 	 * matches the antecedent of the current rule, for example as is the case with
@@ -126,33 +128,35 @@ public class ReasoningNode {
 		this.parent = aParent;
 		this.allRules = someRules;
 		this.rule = aRule;
-		this.children = new HashMap<ReasoningNode, Set<Match>>();
+		this.backwardChildren = new HashMap<ReasoningNode, Set<Match>>();
+		this.forwardChildren = new HashMap<ReasoningNode, Set<Match>>();
 		this.loopChildren = new HashMap<ReasoningNode, Set<Match>>();
 		this.shouldPlanBackward = aShouldPlanBackward;
 
-		// generate children
-		if (!this.rule.antecedent.isEmpty()) {
-			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
-					this.matchStrategy);
-			ReasoningNode child;
-			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
+		if (shouldPlanBackward) {
+			// generate backwardChildren
+			if (!this.rule.antecedent.isEmpty()) {
+				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
+						this.matchStrategy);
+				ReasoningNode child;
+				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
-				// some infinite loop detection (see transitivity test)
-				ReasoningNode someNode;
-				if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
-					// loop detected: reuse the reasoning node.
-					this.loopChildren.put(someNode, entry.getValue());
-				} else {
-					// create a new childnode
-					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
-							this.shouldPlanBackward);
-					this.children.put(child, entry.getValue());
+					// some infinite loop detection (see transitivity test)
+					ReasoningNode someNode;
+					if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
+						// loop detected: reuse the reasoning node.
+						this.loopChildren.put(someNode, entry.getValue());
+					} else {
+						// create a new childnode
+						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
+								this.shouldPlanBackward);
+						this.backwardChildren.put(child, entry.getValue());
+					}
 				}
 			}
-		}
-		
-		if (!shouldPlanBackward) {
-			// generate forward children
+
+		} else if (!shouldPlanBackward) {
+			// generate forward backwardChildren
 			if (!this.rule.consequent.isEmpty()) {
 				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
 						this.matchStrategy);
@@ -206,7 +210,7 @@ public class ReasoningNode {
 		assert overlappingRules != null;
 		return overlappingRules;
 	}
-	
+
 	private Map<Rule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
 			MatchStrategy aMatchStrategy) {
 		assert aConsequentPattern != null;
@@ -242,11 +246,11 @@ public class ReasoningNode {
 
 			boolean allChildBindingSetsAvailable = true;
 
-			Set<ReasoningNode> someChildren = this.children.keySet();
+			Set<ReasoningNode> someChildren = this.backwardChildren.keySet();
 
 			// we transfer the incomingBindingSet (from the consequent) to the antecedent
 			// bindingset (if it exists). This latter one is send to the different
-			// children.
+			// backwardChildren.
 			TripleVarBindingSet antecedentPredefinedBindings;
 			antecedentPredefinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 			TripleVarBinding aTripleVarBinding;
@@ -260,9 +264,9 @@ public class ReasoningNode {
 			// first child are send to the second child to check. Otherwise, they get
 			// combined and end up in the result without anyone ever checking them.
 
-			// TODO the order in which we iterate the children is important. A
+			// TODO the order in which we iterate the backwardChildren is important. A
 			// strategy like
-			// first processing the children that have the incoming variables in
+			// first processing the backwardChildren that have the incoming variables in
 			// their
 			// consequent might be smart.
 			TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
@@ -270,7 +274,7 @@ public class ReasoningNode {
 			Iterator<ReasoningNode> someIter = someChildren.iterator();
 			while (/* allBindingSetsAvailable && */someIter.hasNext()) {
 				ReasoningNode child = someIter.next();
-				Set<Match> childMatch = this.children.get(child);
+				Set<Match> childMatch = this.backwardChildren.get(child);
 
 				// we can combine all different matches of this child's consequent into a single
 				// bindingset. We do not want to send bindings with variables that do not exist
@@ -311,7 +315,7 @@ public class ReasoningNode {
 			if (allChildBindingSetsAvailable) {
 
 				boolean finished = true;
-				// process the loop children
+				// process the loop backwardChildren
 				someIter = this.loopChildren.keySet().iterator();
 				while (someIter.hasNext()) {
 					ReasoningNode child = someIter.next();
@@ -324,7 +328,7 @@ public class ReasoningNode {
 				if (finished) {
 
 					TripleVarBindingSet consequentAntecedentBindings;
-					if (this.children.isEmpty()) {
+					if (this.backwardChildren.isEmpty()) {
 						consequentAntecedentBindings = bindingSet.toGraphBindingSet(this.rule.consequent);
 					} else {
 						consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
@@ -388,12 +392,12 @@ public class ReasoningNode {
 		// we first call the rule's bindingsethandler with the incoming bindingset (this
 		// should go through the taskboard and requires an additional reasoning step)
 		// the result should be compatible with the consequent of our rule
-		// and we send it to the forward children for further processing.
+		// and we send it to the forward backwardChildren for further processing.
 
 		boolean allFinished = true;
 		if (this.fcState == FC_BINDINGSET_AVAILABLE) {
-			// bindingset available, so we send it to our children.
-			Set<ReasoningNode> someChildren = this.children.keySet();
+			// bindingset available, so we send it to our backwardChildren.
+			Set<ReasoningNode> someChildren = this.forwardChildren.keySet();
 
 			if (!this.resultingForwardBindingSet.isEmpty()) {
 				TripleVarBindingSet consequentPredefinedBindings;
@@ -407,7 +411,7 @@ public class ReasoningNode {
 				Iterator<ReasoningNode> someIter = someChildren.iterator();
 				while (someIter.hasNext()) {
 					ReasoningNode child = someIter.next();
-					Set<Match> childMatch = this.children.get(child);
+					Set<Match> childMatch = this.forwardChildren.get(child);
 
 					// we can combine all different matches of this child's consequent into a single
 					// bindingset. We do not want to send bindings with variables that do not exist
@@ -427,7 +431,7 @@ public class ReasoningNode {
 					allFinished &= child.continueForward(consequentPredefinedBindings.toBindingSet());
 				}
 
-				// process the loop children
+				// process the loop backwardChildren
 				someIter = this.loopChildren.keySet().iterator();
 				while (someIter.hasNext()) {
 					ReasoningNode child = someIter.next();
@@ -629,7 +633,7 @@ public class ReasoningNode {
 			sb.append(this.rule.antecedent);
 		}
 		sb.append("\n");
-		for (ReasoningNode child : children.keySet()) {
+		for (ReasoningNode child : backwardChildren.keySet()) {
 			for (int i = 0; i < tabIndex + 1; i++)
 				sb.append("\t");
 
