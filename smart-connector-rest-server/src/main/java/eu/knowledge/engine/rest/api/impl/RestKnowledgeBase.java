@@ -643,7 +643,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			newExpiration.setTime(newExpiration.getTime() + 1000 * leaseRenewalTime);
 			this.lease.setExpires(newExpiration);
 		} else {
-			LOG.warn("renewLease should not be called for knowledge bases that have a permanent lease.");
+			LOG.warn("renewLease should not be called for knowledge bases that have no lease.");
 		}
 	}
 

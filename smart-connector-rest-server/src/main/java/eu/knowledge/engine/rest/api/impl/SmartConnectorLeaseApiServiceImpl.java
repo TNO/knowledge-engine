@@ -32,6 +32,11 @@ public class SmartConnectorLeaseApiServiceImpl extends SmartConnectorLeaseApiSer
 		if (restKb == null) {
 			return Response.status(404).entity("Knowledge base not found. (Has its lease already expired?)").build();
 		}
+		
+		if (restKb.getLease() == null) {
+			return Response.status(404).entity("Knowledge base found, but its lease could not be found. Knowledge bases without a lease do not have to be renewed.").build();
+		}
+
 		restKb.renewLease();
 
 		return Response.ok(restKb.getLease()).build();
