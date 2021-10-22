@@ -36,8 +36,8 @@ public class ReasoningNode {
 	private Map<ReasoningNode, Set<Match>> backwardChildren;
 
 	/**
-	 * All loop backwardChildren (i.e. backwardChildren that eventually loop back to this particular
-	 * node).
+	 * All loop backwardChildren (i.e. backwardChildren that eventually loop back to
+	 * this particular node).
 	 */
 	private Map<ReasoningNode, Set<Match>> loopChildren;
 
@@ -87,9 +87,9 @@ public class ReasoningNode {
 	private int fcState = FC_BINDINGSET_NOT_REQUESTED;
 
 	/**
-	 * Whether this node only accepts backwardChildren reasoning nodes that full match its
-	 * antecedent. Note that setting this to true effectively disables the reasoning
-	 * functionality and reduces this algorithm to a matching algorithm.
+	 * Whether this node only accepts backwardChildren reasoning nodes that full
+	 * match its antecedent. Note that setting this to true effectively disables the
+	 * reasoning functionality and reduces this algorithm to a matching algorithm.
 	 */
 	private MatchStrategy matchStrategy;
 
@@ -105,6 +105,8 @@ public class ReasoningNode {
 	private boolean shouldPlanBackward;
 
 	private Map<ReasoningNode, Set<Match>> forwardChildren;
+
+	private TaskBoard taskboard;
 
 	/**
 	 * Construct a reasoning node and all backwardChildren.
@@ -339,10 +341,10 @@ public class ReasoningNode {
 
 					}
 
-					if (true) {
+					if (false) {
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
-							TaskBoard.instance().addTask(this, consequentAntecedentBindings.toBindingSet());
+							this.taskboard.addTask(this, consequentAntecedentBindings.toBindingSet());
 							this.bcState = BC_BINDINGSET_REQUESTED;
 						} else {
 							this.resultingBackwardBindingSet = new BindingSet();
@@ -428,7 +430,8 @@ public class ReasoningNode {
 					consequentPredefinedBindings = keepOnlyFullGraphPatternBindings(
 							consequentPredefinedBindings.getGraphPattern(), consequentPredefinedBindings);
 
-					allFinished &= child.continueForward(consequentPredefinedBindings.toBindingSet());
+					if (!consequentPredefinedBindings.isEmpty())
+						allFinished &= child.continueForward(consequentPredefinedBindings.toBindingSet());
 				}
 
 				// process the loop backwardChildren
@@ -458,8 +461,8 @@ public class ReasoningNode {
 		} else {
 			// bindingset not yet available, we need to make sure it does.
 			allFinished = false;
-			if (true) {
-				TaskBoard.instance().addTask(this, bindingSet);
+			if (false) {
+				this.taskboard.addTask(this, bindingSet);
 				this.fcState = FC_BINDINGSET_REQUESTED;
 			} else {
 				this.resultingForwardBindingSet = this.rule.getBindingSetHandler().handle(bindingSet);
@@ -634,6 +637,13 @@ public class ReasoningNode {
 		}
 		sb.append("\n");
 		for (ReasoningNode child : backwardChildren.keySet()) {
+			for (int i = 0; i < tabIndex + 1; i++)
+				sb.append("\t");
+
+			sb.append(child.toString(tabIndex + 1));
+		}
+
+		for (ReasoningNode child : forwardChildren.keySet()) {
 			for (int i = 0; i < tabIndex + 1; i++)
 				sb.append("\t");
 

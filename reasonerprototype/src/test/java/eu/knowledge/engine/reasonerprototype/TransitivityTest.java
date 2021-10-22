@@ -54,16 +54,16 @@ public class TransitivityTest {
 	public void test() {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x isVoorouderVan ?y"));
-
+		TaskBoard taskboard = new TaskBoard();
 		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		BindingSet result = null;
-
+		
 		System.out.println(rn);
 		while ((result = rn.continueBackward(new BindingSet())) == null) {
 			System.out.println(rn);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
-		
+
 		System.out.println("Result: " + result);
 	}
 

@@ -52,4 +52,8 @@ public class KeReasoner {
 		return root;
 	}
 
+	public List<Rule> getRules() {
+		return this.rules;
+	}
+
 }

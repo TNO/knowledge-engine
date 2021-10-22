@@ -90,6 +90,7 @@ public class BackwardTest {
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
 		// Start reasoning
+		TaskBoard taskboard = new TaskBoard();
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
 
@@ -103,7 +104,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -126,6 +127,8 @@ public class BackwardTest {
 		objective.add(new TriplePattern("?p type Sensor"));
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
+		TaskBoard taskboard = new TaskBoard();
+
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(root);
@@ -138,7 +141,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -156,6 +159,8 @@ public class BackwardTest {
 		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
 		// not work
 
+		TaskBoard taskboard = new TaskBoard();
+
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
@@ -172,7 +177,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -187,6 +192,8 @@ public class BackwardTest {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 
+		TaskBoard taskboard = new TaskBoard();
+
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
@@ -203,7 +210,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -218,6 +225,8 @@ public class BackwardTest {
 		objective.add(new TriplePattern("?p type Device"));
 		objective.add(new TriplePattern("?p hasValInC ?q"));
 		objective.add(new TriplePattern("?p nonExistentProp ?q"));
+
+		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
@@ -236,7 +245,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -249,6 +258,8 @@ public class BackwardTest {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p type ?t"));
 		objective.add(new TriplePattern("?p hasValInC ?q"));
+
+		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
@@ -264,7 +275,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("bindings: " + bind);
@@ -279,6 +290,8 @@ public class BackwardTest {
 		objective.add(new TriplePattern("?p ?pred 21.666666"));
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
+		TaskBoard taskboard = new TaskBoard();
+
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
@@ -290,7 +303,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 		System.out.println(root);
 
@@ -305,6 +318,8 @@ public class BackwardTest {
 		objective.add(new TriplePattern("?p type Sensor"));
 		objective.add(new TriplePattern("?p ?pred 22"));
 
+		TaskBoard taskboard = new TaskBoard();
+
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(root);
@@ -317,7 +332,7 @@ public class BackwardTest {
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
 			System.out.println(root);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 		System.out.println(root);
 

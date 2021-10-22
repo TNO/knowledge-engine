@@ -60,6 +60,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
+		
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 
@@ -103,7 +104,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// create a new SingleInteractionProcessor to handle this ask.
 //		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
 //				otherKnowledgeInteractions, this.messageRouter);
-		
+
 		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter);
 
 		// give the caller something to chew on while it waits. This method starts the
@@ -186,9 +187,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-		var aei = new AnswerExchangeInfo(
-			anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction()
-		);
+		var aei = new AnswerExchangeInfo(anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(),
+				anAskMsg.getFromKnowledgeInteraction());
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
@@ -233,8 +233,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
+//		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
+//				otherKnowledgeInteractions, this.messageRouter);
+
+		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -244,6 +246,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// KnowledgeBase.
 		CompletableFuture<PostResult> future = processor.processPostInteraction(aPKI, someArguments);
 
+		
 		return future;
 	}
 
@@ -258,7 +261,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		CompletableFuture<BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 
-		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
+		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(),
+				aPostMsg.getFromKnowledgeInteraction());
 
 		// TODO This should happen in the single thread for the knowledge base
 		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);

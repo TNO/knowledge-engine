@@ -1,5 +1,8 @@
 package eu.knowledge.engine.reasonerprototype;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -78,6 +81,8 @@ public class ForwardTest {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x isParentOf ?y"));
 
+		TaskBoard taskboard = new TaskBoard();
+
 		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
 		System.out.println(rn);
@@ -99,10 +104,54 @@ public class ForwardTest {
 
 		while (!rn.continueForward(bs)) {
 			System.out.println(rn);
-			TaskBoard.instance().executeScheduledTasks();
+			taskboard.executeScheduledTasks();
 		}
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
+	}
+
+	@Test
+	public void testDoNotHandleEmptyBindingSets() {
+
+		TriplePattern tp = new TriplePattern("<barry> isGrandParentOf ?z");
+
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), new BindingSetHandler() {
+
+			@Override
+			public BindingSet handle(BindingSet bs) {
+				assertTrue("The binding set should be empty.", bs.isEmpty());
+				fail("An empty bindingset should not be handled.");
+				return new BindingSet();
+			}
+
+		}));
+
+		Set<TriplePattern> aGoal = new HashSet<>();
+		aGoal.add(new TriplePattern("?x isParentOf ?y"));
+		TaskBoard taskboard = new TaskBoard();
+		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+		System.out.println(rn);
+
+		BindingSet bs = new BindingSet();
+
+		bs.addAll(new Table(new String[] {
+				//@formatter:off
+				"?x", "?y"
+				//@formatter:on
+		}, new String[] {
+				//@formatter:off
+				"<fenna>,<benno>",
+				"<benno>,<loes>",
+				//@formatter:on
+		}).getData());
+
+		while (!rn.continueForward(bs)) {
+			System.out.println(rn);
+			taskboard.executeScheduledTasks();
+		}
+
+		System.out.println("Result: none (expected)");
 	}
 
 }

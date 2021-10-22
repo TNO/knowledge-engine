@@ -11,19 +11,9 @@ import eu.knowledge.engine.reasonerprototype.api.BindingSet;
 public class TaskBoard {
 
 	public Set<Task> tasks;
-	private static TaskBoard instance;
 
-	private TaskBoard() {
+	public TaskBoard() {
 		tasks = new HashSet<>();
-	}
-
-	public static TaskBoard instance() {
-
-		if (instance == null)
-			instance = new TaskBoard();
-
-		return instance;
-
 	}
 
 	/**
@@ -36,7 +26,6 @@ public class TaskBoard {
 	 * @param aBindingSet
 	 */
 	public void addTask(ReasoningNode aNode, BindingSet aBindingSet) {
-		Set<Task> tasks = TaskBoard.instance().tasks;
 		tasks.add(new Task(aNode, aBindingSet));
 	}
 
