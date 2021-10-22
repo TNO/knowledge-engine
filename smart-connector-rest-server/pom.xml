@@ -170,6 +170,7 @@
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
 								<useTags>true</useTags>
+								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
 					</execution>
