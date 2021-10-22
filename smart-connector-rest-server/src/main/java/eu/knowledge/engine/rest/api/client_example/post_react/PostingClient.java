@@ -34,9 +34,6 @@ public class PostingClient {
 		);
 		LOG.info("Made new KI with ID {}", ki);
 		
-		// TODO: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/220
-		Thread.sleep(1000);
-		
 		// Post something from the proactive side.
 		var bindings = Arrays.asList(Map.of("a", "<https://www.example.org/some-sensor-1>", "b", "21.1"));
 		LOG.info("Sending POST: {}", bindings);
