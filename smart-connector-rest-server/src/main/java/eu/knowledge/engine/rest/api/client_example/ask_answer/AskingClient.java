@@ -33,9 +33,6 @@ public class AskingClient {
 		);
 		LOG.info("Made new KI with ID {}", ki);
 		
-		// TODO: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/220
-		Thread.sleep(1000);
-		
 		// ASK something from the proactive side.
 		var result = client.postAsk(ki);
 		LOG.info("Got ASK result: {}", result);
