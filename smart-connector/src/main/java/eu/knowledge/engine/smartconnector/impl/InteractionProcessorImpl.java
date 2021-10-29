@@ -191,7 +191,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
 		return future.exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {}", anAskMsg);
+			LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
 			return new BindingSet();
 		}).thenApply((b) -> {
 			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
@@ -264,7 +264,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
 		return future.exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {}", aPostMsg);
+			LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
 			return new BindingSet();
 		}).thenApply(b -> {
 			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
