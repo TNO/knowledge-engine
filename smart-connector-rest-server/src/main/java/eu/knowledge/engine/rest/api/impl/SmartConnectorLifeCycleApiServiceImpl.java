@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.*;
 import javax.ws.rs.container.*;
 import javax.validation.constraints.*;
@@ -146,10 +147,15 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		}
 
 		if (manager.hasKB(knowledgeBaseId)) {
-			manager.deleteKB(knowledgeBaseId);
-			LOG.info("Deleted smart connector with ID {}.", knowledgeBaseId);
-			asyncResponse.resume(Response.ok().build());
-			return;
+			if (manager.deleteKB(knowledgeBaseId)) {
+				LOG.info("Deleted smart connector with ID {}.", knowledgeBaseId);
+				asyncResponse.resume(Response.ok().build());
+				return;
+			} else {
+				LOG.warn("Deletion failed of smart connector with ID {} because it was already stopping. Returning 404.", knowledgeBaseId);
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity("Deletion of knowledge base failed, because it was already being deleted.").build());
+				return;
+			}
 		} else {
 			asyncResponse.resume(Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.")
 					.build());

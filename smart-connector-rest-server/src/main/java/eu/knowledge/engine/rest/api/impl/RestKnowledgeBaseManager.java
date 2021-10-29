@@ -69,13 +69,21 @@ public class RestKnowledgeBaseManager {
 		return Collections.unmodifiableSet(new HashSet<>(this.restKnowledgeBases.values()));
 	}
 
-	public void deleteKB(String knowledgeBaseId) {
+	public boolean deleteKB(String knowledgeBaseId) {
 		// Note: We first stop the knowledge base before removing it from our list.
 		// (Because in the meantime (while stopping) we cannot have that someone
 		// tries to register the same ID)
 		var rkb = this.restKnowledgeBases.get(knowledgeBaseId);
-		rkb.stop();
+
+		boolean success = false;
+		try {
+			rkb.stop();
+			success = true;
+		} catch (IllegalStateException e) {
+			success = false;
+		}
 		this.restKnowledgeBases.remove(knowledgeBaseId);
+		return success;
 	}
 
 	private void removeExpiredSmartConnectors() {
