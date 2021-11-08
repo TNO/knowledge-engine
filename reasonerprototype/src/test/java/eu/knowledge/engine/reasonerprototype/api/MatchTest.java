@@ -10,8 +10,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import eu.knowledge.engine.reasonerprototype.Match;
 import eu.knowledge.engine.reasonerprototype.Rule;
-import eu.knowledge.engine.reasonerprototype.Rule.Match;
 import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 
