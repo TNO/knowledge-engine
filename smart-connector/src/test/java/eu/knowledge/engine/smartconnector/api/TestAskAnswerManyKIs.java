@@ -66,6 +66,7 @@ public class TestAskAnswerManyKIs {
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
+		LOG.info("Everyone is ready!");
 
 		int count = 50;
 

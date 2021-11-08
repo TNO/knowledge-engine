@@ -79,6 +79,21 @@ public class BackwardTest {
 					}
 
 				}));
+
+		reasoner.addRule(new Rule(new HashSet<>(),
+				new HashSet<>(Arrays.asList(new TriplePattern("?i type Sensor"), new TriplePattern("?i inRoom ?j"))),
+				new DataBindingSetHandler(new Table(new String[] {
+				//@formatter:off
+						"?i", "?j"
+						//@formatter:on
+				}, new String[] {
+				//@formatter:off
+						"<sensor3>,<kitchen>",
+						"<sensor4>,<livingroom>",
+						"<sensor1>,<bathroom>",
+						"<sensor2>,<bedroom>",
+						//@formatter:on
+				}))));
 	}
 
 	@Test
@@ -91,7 +106,7 @@ public class BackwardTest {
 
 		// Start reasoning
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -130,7 +145,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -162,7 +177,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -195,7 +210,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -229,7 +244,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -262,7 +277,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -293,7 +308,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -321,7 +336,7 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
 		System.out.println(root);
 
 		// empty binding is necessary
@@ -338,6 +353,37 @@ public class BackwardTest {
 
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
+	}
+
+	@Test
+	public void testSendResultsFromOtherChildrenToNextChildren() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p inRoom ?r"));
+
+		TaskBoard taskboard = new TaskBoard();
+
+		// Start reasoning
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		System.out.println(root);
+
+		// bindings
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		binding2.put("?r", "<livingroom>");
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueBackward(bs)) == null) {
+			System.out.println(root);
+			taskboard.executeScheduledTasks();
+		}
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
 	}
 
 }

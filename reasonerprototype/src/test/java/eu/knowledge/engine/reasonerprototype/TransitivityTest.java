@@ -55,7 +55,7 @@ public class TransitivityTest {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x isVoorouderVan ?y"));
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		BindingSet result = null;
 		
 		System.out.println(rn);

@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -25,15 +26,19 @@ import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
@@ -46,11 +51,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private KeReasoner reasoner;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
+	private final Set<AskExchangeInfo> askExchangeInfos;
+	private final Set<PostExchangeInfo> postExchangeInfos;
+	private Instant previousSend = null;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter) {
 		super(knowledgeInteractions, messageRouter);
 
 		reasoner = new KeReasoner();
+		this.askExchangeInfos = new HashSet<>();
+		this.postExchangeInfos = new HashSet<>();
 
 		for (KnowledgeInteractionInfo kii : knowledgeInteractions) {
 			KnowledgeInteraction ki = kii.getKnowledgeInteraction();
@@ -74,8 +84,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 								CompletableFuture<AnswerMessage> sendAskMessage = new CompletableFuture<AnswerMessage>();
 								try {
 									sendAskMessage = ReasonerProcessor.this.messageRouter.sendAskMessage(askMessage);
+									ReasonerProcessor.this.previousSend = Instant.now();
 									AnswerMessage answerMessage = sendAskMessage.get();
-									return translateBindingSetTo(answerMessage.getBindings());
+
+									ReasonerProcessor.this.askExchangeInfos.add(
+											convertMessageToExchangeInfo(answerMessage.getBindings(), answerMessage));
+
+									eu.knowledge.engine.reasonerprototype.api.BindingSet translateBindingSetTo = translateBindingSetTo(
+											answerMessage.getBindings());
+
+									return translateBindingSetTo;
 								} catch (IOException | InterruptedException | ExecutionException e) {
 									LOG.error("No errors should occur while sending an AskMessage.", e);
 									sendAskMessage.completeExceptionally(e);
@@ -112,13 +130,21 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 								CompletableFuture<ReactMessage> sendPostMessage = new CompletableFuture<ReactMessage>();
 								try {
-
 									sendPostMessage = ReasonerProcessor.this.messageRouter.sendPostMessage(postMessage);
+									ReasonerProcessor.this.previousSend = Instant.now();
 									ReactMessage reactMessage = sendPostMessage.get();
 
-									return translateBindingSetTo(reactMessage.getResult());
+									BindingSet resultBindingSet = reactMessage.getResult();
+
+									if (resultBindingSet == null)
+										resultBindingSet = new BindingSet();
+
+									ReasonerProcessor.this.postExchangeInfos.add(convertMessageToExchangeInfo(newBS,
+											reactMessage.getResult(), reactMessage));
+
+									return translateBindingSetTo(resultBindingSet);
 								} catch (IOException | InterruptedException | ExecutionException e) {
-									LOG.error("No errors should occur while sending an AskMessage.", e);
+									LOG.error("No errors should occur while sending an PostMessage.", e);
 									sendPostMessage.completeExceptionally(e);
 								}
 								return new eu.knowledge.engine.reasonerprototype.api.BindingSet();
@@ -128,8 +154,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 
 		}
-
-		LOG.info("Rules: {}", this.reasoner.getRules());
 
 	}
 
@@ -147,8 +171,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			TaskBoard taskboard = new TaskBoard();
 
 			ReasoningNode node = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
-					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
-							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
+					taskboard);
 
 			while ((bs = node.continueBackward(translateBindingSetTo(someBindings))) == null) {
 //				System.out.println(node);
@@ -162,7 +186,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		CompletableFuture<AskResult> result = new CompletableFuture<AskResult>();
-		result.complete(new AskResult(translateBindingSetFrom(bs), new HashSet<>()));
+		result.complete(new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos));
 		return result;
 	}
 
@@ -267,7 +291,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			ReasoningNode node = this.reasoner.forwardPlan(translateGraphPatternTo(pki.getArgument()),
 					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
-							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
+					taskboard);
 
 			while (!node.continueForward(translateBindingSetTo(someBindings))) {
 
@@ -284,7 +309,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		CompletableFuture<PostResult> result = new CompletableFuture<>();
-		result.complete(new PostResult(resultBS, new HashSet<>()));
+		result.complete(new PostResult(resultBS, this.postExchangeInfos));
 		return result;
 	}
 
@@ -304,6 +329,21 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		public abstract eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
 				eu.knowledge.engine.reasonerprototype.api.BindingSet bs);
 
+	}
+
+	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage) {
+
+		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
+				Status.SUCCEEDED, null);
+	}
+
+	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
+			BindingSet someConvertedResultBindings, ReactMessage aMessage) {
+
+		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
+				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
+				this.previousSend, Instant.now(), Status.SUCCEEDED, null);
 	}
 
 }

@@ -124,7 +124,7 @@ public class ReasoningNode {
 	 * @param aMatchStrategy
 	 */
 	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
-			boolean aShouldPlanBackward) {
+			boolean aShouldPlanBackward, TaskBoard aTaskboard) {
 
 		this.matchStrategy = aMatchStrategy;
 		this.parent = aParent;
@@ -134,6 +134,7 @@ public class ReasoningNode {
 		this.forwardChildren = new HashMap<ReasoningNode, Set<Match>>();
 		this.loopChildren = new HashMap<ReasoningNode, Set<Match>>();
 		this.shouldPlanBackward = aShouldPlanBackward;
+		this.taskboard = aTaskboard;
 
 		if (shouldPlanBackward) {
 			// generate backwardChildren
@@ -151,7 +152,7 @@ public class ReasoningNode {
 					} else {
 						// create a new childnode
 						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
-								this.shouldPlanBackward);
+								this.shouldPlanBackward, this.taskboard);
 						this.backwardChildren.put(child, entry.getValue());
 					}
 				}
@@ -170,7 +171,7 @@ public class ReasoningNode {
 					} else {
 						// create a new childnode
 						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
-								this.shouldPlanBackward);
+								this.shouldPlanBackward, this.taskboard);
 						this.forwardChildren.put(child, entry.getValue());
 					}
 				}
@@ -282,6 +283,9 @@ public class ReasoningNode {
 				// bindingset. We do not want to send bindings with variables that do not exist
 				// for that child.
 
+				// TODO do we need the following two lines? Do we want to send bindings received
+				// from other children to this child? Or do we just send the bindings that we
+				// received as an argument of this method.
 				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
@@ -295,15 +299,21 @@ public class ReasoningNode {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-						childGraphBindingSet = generateAdditionalTripleVarBindings(childGraphBindingSet);
-
 					TripleVarBindingSet convertedChildGraphBindingSet = childGraphBindingSet
-							.translate(combinedBindings.getGraphPattern(), invert(childMatch));
+							.translate(this.rule.antecedent, invert(childMatch));
+
+					// we do this expensive operation only on the overlapping part to improve
+					// performance. If large graph patterns of our children only match with a single
+					// triple on us, then we only generate additional bindings for this single
+					// triple, which takes MUCH MUCH MUCH less time than generating them for the
+					// full graph pattern.
+					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
+						convertedChildGraphBindingSet = generateAdditionalTripleVarBindings(
+								convertedChildGraphBindingSet);
 
 					if (childMatch.size() > 1) {
 						// the child matches in multiple ways, so we need to merge the bindingset with
-						// itself to combine both matches.
+						// itself to combine all ways that it matches.
 						// TODO or do we want to translate per match and combine each translated
 						// bindingset per match with each other?
 						convertedChildGraphBindingSet = convertedChildGraphBindingSet
@@ -341,7 +351,7 @@ public class ReasoningNode {
 
 					}
 
-					if (false) {
+					if (true) {
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 							this.taskboard.addTask(this, consequentAntecedentBindings.toBindingSet());
@@ -419,19 +429,20 @@ public class ReasoningNode {
 					// bindingset. We do not want to send bindings with variables that do not exist
 					// for that child.
 
-					consequentPredefinedBindings = consequentPredefinedBindings.translate(child.rule.antecedent,
-							childMatch);
+					TripleVarBindingSet translatedConsequentPredefinedBindings = consequentPredefinedBindings
+							.translate(child.rule.antecedent, childMatch);
 
-					consequentPredefinedBindings = consequentPredefinedBindings.merge(consequentPredefinedBindings);
+					TripleVarBindingSet mergedConsequentPredefinedBindings = translatedConsequentPredefinedBindings
+							.merge(translatedConsequentPredefinedBindings);
 
 					// TODO we probably need to keep track of what child has already finished,
 					// because this child needs to be called again in the next call of this method.
 
-					consequentPredefinedBindings = keepOnlyFullGraphPatternBindings(
-							consequentPredefinedBindings.getGraphPattern(), consequentPredefinedBindings);
+					TripleVarBindingSet resultConsequentPredefinedBindings = keepOnlyFullGraphPatternBindings(
+							mergedConsequentPredefinedBindings.getGraphPattern(), mergedConsequentPredefinedBindings);
 
-					if (!consequentPredefinedBindings.isEmpty())
-						allFinished &= child.continueForward(consequentPredefinedBindings.toBindingSet());
+					if (!resultConsequentPredefinedBindings.isEmpty())
+						allFinished &= child.continueForward(resultConsequentPredefinedBindings.toBindingSet());
 				}
 
 				// process the loop backwardChildren
@@ -461,7 +472,7 @@ public class ReasoningNode {
 		} else {
 			// bindingset not yet available, we need to make sure it does.
 			allFinished = false;
-			if (false) {
+			if (true) {
 				this.taskboard.addTask(this, bindingSet);
 				this.fcState = FC_BINDINGSET_REQUESTED;
 			} else {
@@ -538,7 +549,7 @@ public class ReasoningNode {
 
 					if (!b2.isEmpty()) {
 
-						if (b.isOverlapping(b2) && !b.isConflicting(b2)) {
+						if (!b.isConflicting(b2)) {
 							newBS.add(b);
 						}
 					} else {

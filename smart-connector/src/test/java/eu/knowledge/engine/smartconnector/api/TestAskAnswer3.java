@@ -63,7 +63,8 @@ public class TestAskAnswer3 {
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
-
+		LOG.info("Everyone is ready!");
+		
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
@@ -109,8 +110,9 @@ public class TestAskAnswer3 {
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
-
+		LOG.info("Waiting until everyone is up-to-date!");
 		kn.waitForUpToDate();
+		LOG.info("Everyone is up-to-date!");
 
 		// start testing!
 		BindingSet bindings = null;

@@ -126,7 +126,7 @@ public class TripleVarBindingSet {
 						gbs.add(otherB);
 
 					// always add a merged version of the two bindings, except when they conflict.
-					if (tvb1.isOverlapping(otherB) && !tvb1.isConflicting(otherB)) {
+					if (!tvb1.isConflicting(otherB)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}

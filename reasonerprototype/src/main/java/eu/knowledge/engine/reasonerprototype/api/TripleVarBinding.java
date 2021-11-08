@@ -3,10 +3,8 @@ package eu.knowledge.engine.reasonerprototype.api;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
 import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
 
 /**
@@ -90,20 +88,6 @@ public class TripleVarBinding {
 	}
 
 	/**
-	 * True if two Bindings have at least one variable in common. Note that the
-	 * variables might occur in different triplevars.
-	 */
-	public boolean isOverlapping(TripleVarBinding tvb) {
-
-		for (Map.Entry<TripleVar, Literal> e : this.tripleVarMapping.entrySet()) {
-			if (tvb.containsVar(e.getKey().var)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * We assume all occurrences of a var have the same literal, we just return the
 	 * first one found.
 	 * 
@@ -117,16 +101,6 @@ public class TripleVarBinding {
 			}
 		}
 		return null;
-	}
-
-	private boolean containsVar(Variable var) {
-
-		for (TripleVar tripleVar : this.tripleVarMapping.keySet()) {
-			if (tripleVar.var.equals(var)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public Literal get(TripleVar key) {
@@ -183,6 +157,14 @@ public class TripleVarBinding {
 		return this.tripleVarMapping.keySet();
 	}
 
+	/**
+	 * We assume these two triplevarbindings do not conflict (responsibility of the
+	 * caller to check!) and return the merged triplevarbinding. Duplicates are
+	 * automatically removed because triple var bindings are sets.
+	 * 
+	 * @param otherB
+	 * @return
+	 */
 	public TripleVarBinding merge(TripleVarBinding otherB) {
 
 		assert !this.isConflicting(otherB);

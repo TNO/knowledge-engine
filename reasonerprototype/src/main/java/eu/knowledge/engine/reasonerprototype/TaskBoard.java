@@ -48,7 +48,6 @@ public class TaskBoard {
 			node.setBindingSet(resultingBindingSet);
 			iter.remove();
 		}
-
 	}
 
 	private static class Task {
@@ -85,6 +84,16 @@ public class TaskBoard {
 			return this.collectedBindingSets.keySet();
 		}
 
+		@Override
+		public String toString() {
+			return "Task [rule=" + rule + "]";
+		}
+
+	}
+
+	@Override
+	public String toString() {
+		return "TaskBoard [tasks=" + tasks + "]";
 	}
 
 }

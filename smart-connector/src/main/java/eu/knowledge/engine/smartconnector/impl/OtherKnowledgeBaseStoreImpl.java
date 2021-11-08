@@ -83,6 +83,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 
 	@Override
 	public void addKnowledgeBase(OtherKnowledgeBase kb) {
+		LOG.info("Added kb: {}", kb.getId());
 		if (this.otherKnowledgeBases.containsKey(kb.getId())) {
 			LOG.warn("Tried to add a knowledge base {}, but it is already in my store! Skipped it.", kb.getId());
 			return;
@@ -97,6 +98,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 
 	@Override
 	public void updateKnowledgeBase(OtherKnowledgeBase kb) {
+		LOG.info("Updated kb: {}", kb.getId());
 		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
 			LOG.warn("Tried to update knowledge base {}, but it is not in my store! Skipped it.", kb.getId());
 			return;

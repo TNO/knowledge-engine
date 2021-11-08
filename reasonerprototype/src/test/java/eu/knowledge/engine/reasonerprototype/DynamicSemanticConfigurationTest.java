@@ -116,7 +116,7 @@ public class DynamicSemanticConfigurationTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

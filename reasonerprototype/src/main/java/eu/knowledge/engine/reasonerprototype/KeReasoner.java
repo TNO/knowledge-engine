@@ -18,7 +18,7 @@ public class KeReasoner {
 		rules.add(rule);
 	}
 
-	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy) {
+	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
 		Rule goalRule = new Rule(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
@@ -30,11 +30,11 @@ public class KeReasoner {
 			}
 
 		});
-		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy, true);
+		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy, true, aTaskboard);
 		return root;
 	}
 
-	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy) {
+	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
 
 		Rule premiseRule = new Rule(new HashSet<>(), aPremise, new BindingSetHandler() {
 
@@ -47,7 +47,7 @@ public class KeReasoner {
 			}
 		});
 
-		ReasoningNode root = new ReasoningNode(rules, null, premiseRule, aMatchStrategy, false);
+		ReasoningNode root = new ReasoningNode(rules, null, premiseRule, aMatchStrategy, false, aTaskboard);
 
 		return root;
 	}
