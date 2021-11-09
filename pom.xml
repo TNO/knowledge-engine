@@ -17,7 +17,7 @@
 		<module>smart-connector-rest-server</module>
 		<module>smart-connector-api</module>
 		<module>smart-connector-rest-dist</module>
-		<module>reasonerprototype</module>
+		<module>reasoner</module>
 	</modules>
 
 	<build>

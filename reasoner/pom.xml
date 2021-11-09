@@ -9,8 +9,8 @@
 		<artifactId>ke-parent</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>reasonerprototype</artifactId>
-	<name>reasonerprototype</name>
+	<artifactId>reasoner</artifactId>
+	<name>Knowledge Engine - Reasoner</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
