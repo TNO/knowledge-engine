@@ -43,7 +43,12 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		super(act);
+		this(act, argument, result, false);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
+			boolean anIsFullMatch) {
+		super(act, false, anIsFullMatch);
 		this.argument = argument;
 		this.result = result;
 	}

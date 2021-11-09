@@ -57,7 +57,7 @@ public class TestRequestMetadata {
 		LOG.info("Everyone is ready!");
 
 		GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .", "?obs saref:hasTemp ?temp .");
-		PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
+		PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null, false);
 		kb1.register(ki);
 
 		gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
@@ -68,7 +68,7 @@ public class TestRequestMetadata {
 				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
 				"?gp kb:hasPattern ?pattern .");
 
-		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 		kb2.register(aKI);
 
 		kn.waitForUpToDate();

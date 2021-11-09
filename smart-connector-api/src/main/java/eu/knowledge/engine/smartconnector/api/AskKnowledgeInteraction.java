@@ -31,8 +31,7 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 *                that this {@link KnowledgeInteraction} asks for.
 	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		super(act);
-		this.pattern = pattern;
+		this(act, pattern, false);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
