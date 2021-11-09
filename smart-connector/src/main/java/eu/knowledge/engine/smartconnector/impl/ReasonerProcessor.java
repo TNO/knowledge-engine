@@ -148,8 +148,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 									if (resultBindingSet == null)
 										resultBindingSet = new BindingSet();
 
-									ReasonerProcessor.this.postExchangeInfos.add(convertMessageToExchangeInfo(newBS,
-											reactMessage.getResult(), reactMessage));
+									ReasonerProcessor.this.postExchangeInfos.add(
+											convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
 
 									return translateBindingSetTo(resultBindingSet);
 								} catch (IOException | InterruptedException | ExecutionException e) {
@@ -184,10 +184,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					taskboard);
 
 			while ((bs = node.continueBackward(translateBindingSetTo(someBindings))) == null) {
-//				System.out.println(node);
-
+				LOG.error("\n{}", node);
 				taskboard.executeScheduledTasks();
-
 			}
 
 		} else {
@@ -199,6 +197,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return result;
 	}
 
+	/**
+	 * Translate bindingset from the reasoner bindingsets to the ke bindingsets.
+	 * 
+	 * @param bs a reasoner bindingset
+	 * @return a ke bindingset
+	 */
 	private BindingSet translateBindingSetFrom(eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
 		BindingSet newBS = new BindingSet();
 		Binding newB;
@@ -218,6 +222,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return newBS;
 	}
 
+	/**
+	 * Translate bindingset from the ke bindingset to the reasoner bindingset.
+	 * 
+	 * @param bs a ke bindingset
+	 * @return a reasoner bindingset
+	 */
 	private eu.knowledge.engine.reasonerprototype.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
 
 		eu.knowledge.engine.reasonerprototype.api.BindingSet newBindingSet = new eu.knowledge.engine.reasonerprototype.api.BindingSet();

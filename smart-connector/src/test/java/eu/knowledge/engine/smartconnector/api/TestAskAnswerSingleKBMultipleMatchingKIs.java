@@ -62,7 +62,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -76,7 +76,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		gp = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AnswerKnowledgeInteraction aKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI2, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -105,7 +105,8 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 			List<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toList());
 
-			assertEquals(2, kbIds.size());
+			// with the reasoner there are more matching gp (i.e. the meta KIs)
+			assertEquals(3, kbIds.size());
 
 			for (Binding b : bindings) {
 				assertTrue(b.containsKey("p"));

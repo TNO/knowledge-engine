@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -16,17 +15,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostResult;
-import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 
 class VariableBindingNameTest {
 
@@ -74,28 +62,29 @@ class VariableBindingNameTest {
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
 			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
+				BindingSet bs = new BindingSet();
 				LOG.info("Reacting to sensor value.");
 				var argument = aReactExchangeInfo.getArgumentBindings();
 				Iterator<Binding> iterator = argument.iterator();
-				assertTrue(iterator.hasNext());
+				// with the reasoner we can also react to asks.
+				if (iterator.hasNext()) {
 
-				Binding b = iterator.next();
+					Binding b = iterator.next();
 
-				assertFalse(b.containsKey("temp1"));
-				assertTrue(b.containsKey("temp2"));
+					assertFalse(b.containsKey("temp1"));
+					assertTrue(b.containsKey("temp2"));
 
-				String temp = b.get("temp2");
+					String temp = b.get("temp2");
 
-				assertEquals("21.5", temp);
+					assertEquals("21.5", temp);
 
-				BindingSet bs = new BindingSet();
-				Binding binding = new Binding();
-				binding.put("s2", "<https://www.tno.nl/example/subject>");
-				binding.put("p2", "<https://www.tno.nl/example/predicate>");
-				binding.put("o2", "<https://www.tno.nl/example/object>");
+					Binding binding = new Binding();
+					binding.put("s2", "<https://www.tno.nl/example/subject>");
+					binding.put("p2", "<https://www.tno.nl/example/predicate>");
+					binding.put("o2", "<https://www.tno.nl/example/object>");
 
-				bs.add(binding);
-
+					bs.add(binding);
+				}
 				return bs;
 			}
 		});
