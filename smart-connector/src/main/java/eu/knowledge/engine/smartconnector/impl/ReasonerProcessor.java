@@ -16,15 +16,15 @@ import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
-import eu.knowledge.engine.reasonerprototype.KeReasoner;
-import eu.knowledge.engine.reasonerprototype.ReasoningNode;
-import eu.knowledge.engine.reasonerprototype.Rule;
-import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
-import eu.knowledge.engine.reasonerprototype.TaskBoard;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.KeReasoner;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -80,8 +80,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						new OtherKnowledgeBaseBindingSetHandler(kii.getKnowledgeBaseId().toString()) {
 
 							@Override
-							public eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
-									eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
+							public eu.knowledge.engine.reasoner.api.BindingSet handle(
+									eu.knowledge.engine.reasoner.api.BindingSet bs) {
 
 								BindingSet newBS = translateBindingSetFrom(bs);
 
@@ -99,7 +99,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 									ReasonerProcessor.this.askExchangeInfos.add(
 											convertMessageToExchangeInfo(answerMessage.getBindings(), answerMessage));
 
-									eu.knowledge.engine.reasonerprototype.api.BindingSet translateBindingSetTo = translateBindingSetTo(
+									eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo = translateBindingSetTo(
 											answerMessage.getBindings());
 
 									return translateBindingSetTo;
@@ -107,7 +107,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 									LOG.error("No errors should occur while sending an AskMessage.", e);
 									sendAskMessage.completeExceptionally(e);
 								}
-								return new eu.knowledge.engine.reasonerprototype.api.BindingSet();
+								return new eu.knowledge.engine.reasoner.api.BindingSet();
 							}
 
 						}));
@@ -127,8 +127,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						new OtherKnowledgeBaseBindingSetHandler(kii.getKnowledgeBaseId().toString()) {
 
 							@Override
-							public eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
-									eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
+							public eu.knowledge.engine.reasoner.api.BindingSet handle(
+									eu.knowledge.engine.reasoner.api.BindingSet bs) {
 
 								BindingSet newBS = translateBindingSetFrom(bs);
 
@@ -156,7 +156,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 									LOG.error("No errors should occur while sending an PostMessage.", e);
 									sendPostMessage.completeExceptionally(e);
 								}
-								return new eu.knowledge.engine.reasonerprototype.api.BindingSet();
+								return new eu.knowledge.engine.reasoner.api.BindingSet();
 							}
 
 						}));
@@ -173,7 +173,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.myKnowledgeInteraction = aAKI;
 
-		eu.knowledge.engine.reasonerprototype.api.BindingSet bs = null;
+		eu.knowledge.engine.reasoner.api.BindingSet bs = null;
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 
@@ -203,10 +203,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a reasoner bindingset
 	 * @return a ke bindingset
 	 */
-	private BindingSet translateBindingSetFrom(eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
+	private BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
 		BindingSet newBS = new BindingSet();
 		Binding newB;
-		for (eu.knowledge.engine.reasonerprototype.api.Binding b : bs) {
+		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
 			for (Map.Entry<Variable, Literal> entry : b.entrySet()) {
 
@@ -228,13 +228,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a ke bindingset
 	 * @return a reasoner bindingset
 	 */
-	private eu.knowledge.engine.reasonerprototype.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
+	private eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
 
-		eu.knowledge.engine.reasonerprototype.api.BindingSet newBindingSet = new eu.knowledge.engine.reasonerprototype.api.BindingSet();
-		eu.knowledge.engine.reasonerprototype.api.Binding newBinding;
+		eu.knowledge.engine.reasoner.api.BindingSet newBindingSet = new eu.knowledge.engine.reasoner.api.BindingSet();
+		eu.knowledge.engine.reasoner.api.Binding newBinding;
 		for (Binding b : someBindings) {
 
-			newBinding = new eu.knowledge.engine.reasonerprototype.api.Binding();
+			newBinding = new eu.knowledge.engine.reasoner.api.Binding();
 			for (String var : b.getVariables()) {
 				newBinding.put("?" + var, b.get(var));
 			}
@@ -269,18 +269,18 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public static class CaptureBindingSetHandler implements BindingSetHandler {
 
-		private eu.knowledge.engine.reasonerprototype.api.BindingSet bs;
+		private eu.knowledge.engine.reasoner.api.BindingSet bs;
 
 		@Override
-		public eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
-				eu.knowledge.engine.reasonerprototype.api.BindingSet bs) {
+		public eu.knowledge.engine.reasoner.api.BindingSet handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs) {
 
 			this.bs = bs;
 
-			return new eu.knowledge.engine.reasonerprototype.api.BindingSet();
+			return new eu.knowledge.engine.reasoner.api.BindingSet();
 		}
 
-		public eu.knowledge.engine.reasonerprototype.api.BindingSet getBindingSet() {
+		public eu.knowledge.engine.reasoner.api.BindingSet getBindingSet() {
 			return bs;
 		}
 
@@ -345,8 +345,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		@Override
-		public abstract eu.knowledge.engine.reasonerprototype.api.BindingSet handle(
-				eu.knowledge.engine.reasonerprototype.api.BindingSet bs);
+		public abstract eu.knowledge.engine.reasoner.api.BindingSet handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs);
 
 	}
 

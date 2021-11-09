@@ -1,10 +1,12 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Literal> {
 

@@ -1,9 +1,11 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TriplePattern {
 

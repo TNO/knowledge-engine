@@ -1,12 +1,12 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
 
 /**
  * Represents a single match between two graph patterns.

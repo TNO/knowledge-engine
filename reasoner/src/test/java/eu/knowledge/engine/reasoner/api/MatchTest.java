@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,10 +10,11 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.Match;
-import eu.knowledge.engine.reasonerprototype.Rule;
-import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
 
 public class MatchTest {
 

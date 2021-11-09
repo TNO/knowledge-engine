@@ -1,13 +1,17 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.Match;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class TripleVarBindingSet {
 

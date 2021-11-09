@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class Rule {
 

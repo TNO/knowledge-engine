@@ -1,6 +1,8 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class TripleVar {
 	public TriplePattern tp;

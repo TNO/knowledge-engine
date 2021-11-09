@@ -1,10 +1,11 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public final class DataBindingSetHandler implements BindingSetHandler {
 	private Table data;

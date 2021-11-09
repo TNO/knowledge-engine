@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -11,17 +11,17 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.BindingSetHandler;
-import eu.knowledge.engine.reasonerprototype.KeReasoner;
-import eu.knowledge.engine.reasonerprototype.ReasoningNode;
-import eu.knowledge.engine.reasonerprototype.Rule;
-import eu.knowledge.engine.reasonerprototype.TaskBoard;
-import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.Util;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.KeReasoner;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.Util;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class BackwardTest {
 

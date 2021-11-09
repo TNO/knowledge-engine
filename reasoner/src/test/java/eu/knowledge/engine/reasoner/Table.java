@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
 import java.util.HashSet;

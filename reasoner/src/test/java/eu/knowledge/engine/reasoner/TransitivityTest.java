@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -7,9 +7,13 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
+import eu.knowledge.engine.reasoner.KeReasoner;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TransitivityTest {
 

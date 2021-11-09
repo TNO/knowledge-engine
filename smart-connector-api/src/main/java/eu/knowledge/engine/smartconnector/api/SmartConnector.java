@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasonerprototype.Rule;
+import eu.knowledge.engine.reasoner.Rule;
 
 public interface SmartConnector {
 

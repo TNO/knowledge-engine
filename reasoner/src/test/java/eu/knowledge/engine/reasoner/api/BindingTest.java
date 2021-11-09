@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -11,14 +11,14 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.TripleVar;
-import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class BindingTest {
 

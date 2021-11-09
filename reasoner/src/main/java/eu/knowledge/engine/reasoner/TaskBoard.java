@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,7 +6,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public class TaskBoard {
 

@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype.api;
+package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.Assert.assertEquals;
 
@@ -7,8 +7,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Value;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class TripleTest {
 

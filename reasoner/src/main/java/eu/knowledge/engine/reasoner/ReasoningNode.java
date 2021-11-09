@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasonerprototype;
+package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,14 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasonerprototype.Rule.MatchStrategy;
-import eu.knowledge.engine.reasonerprototype.api.Binding;
-import eu.knowledge.engine.reasonerprototype.api.BindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern;
-import eu.knowledge.engine.reasonerprototype.api.TriplePattern.Variable;
-import eu.knowledge.engine.reasonerprototype.api.TripleVar;
-import eu.knowledge.engine.reasonerprototype.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 /**
  * Represents the application of a rule in the search tree. A rule can be

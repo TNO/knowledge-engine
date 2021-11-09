@@ -3,7 +3,7 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasonerprototype.Rule;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
