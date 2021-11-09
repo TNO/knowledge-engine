@@ -2,11 +2,13 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -177,6 +179,11 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 		LOG.info(this.knowledgeBaseId + ": Sending  " + message.getClass().getSimpleName() + " with ID "
 				+ message.getMessageId());
 		this.messageDispatcherEndpoint.send(message);
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		// do nothing
 	}
 
 }

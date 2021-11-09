@@ -25,6 +25,7 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
@@ -53,6 +54,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final Model ontology;
 	private final Reasoner reasoner;
 
+	/**
+	 * A set of rules that represent the domain knowledge this smart connector
+	 * should take into account while orchestrating data exchange.
+	 */
+	private Set<Rule> additionalDomainKnowledge = new HashSet<>();
+
 	private final LoggerProvider loggerProvider;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
@@ -60,7 +67,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
-		
+
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 
@@ -105,7 +112,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 //		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
 //				otherKnowledgeInteractions, this.messageRouter);
 
-		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter);
+		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter, this.additionalDomainKnowledge);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -236,7 +243,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 //		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
 //				otherKnowledgeInteractions, this.messageRouter);
 
-		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter);
+		SingleInteractionProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter, this.additionalDomainKnowledge);
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -246,7 +253,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// KnowledgeBase.
 		CompletableFuture<PostResult> future = processor.processPostInteraction(aPKI, someArguments);
 
-		
 		return future;
 	}
 
@@ -379,6 +385,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
 
 		return doTheyMatch;
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someRules) {
+		this.additionalDomainKnowledge = someRules;
 	}
 
 }

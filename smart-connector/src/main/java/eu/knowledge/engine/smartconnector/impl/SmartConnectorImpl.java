@@ -3,6 +3,8 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,7 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -51,16 +54,11 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
-
 	private boolean isStopped = false;
-
 	private final boolean knowledgeBaseIsThreadSafe;
 	private final ExecutorService knowledgeBaseExecutorService;
-
 	private final BindingValidator bindingValidator = new BindingValidator();
-
 	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
-
 	private Instant started;
 
 	/**
@@ -486,7 +484,8 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 				LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
 				Instant beforeConstructorFinished = Instant.now();
 				this.constructorFinished.thenRun(() -> {
-					LOG.info("Constructor finished took {} ms", Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
+					LOG.info("Constructor finished took {} ms",
+							Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is
 					// ready for action!
@@ -526,5 +525,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
 		return this.messageRouter;
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		this.interactionProcessor.setDomainKnowledge(someDomainKnowledge);
 	}
 }

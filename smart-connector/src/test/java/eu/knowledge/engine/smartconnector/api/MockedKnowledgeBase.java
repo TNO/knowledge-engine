@@ -21,6 +21,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasonerprototype.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -294,7 +295,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
 								resultPatternsEqual = true;
 							}
-			
+
 							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 
 						} else if (isOfType(ki, Vocab.REACT_KI) && someKi instanceof ReactKnowledgeInteraction) {
@@ -356,5 +357,10 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	public void start() {
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		this.sc.setDomainKnowledge(someDomainKnowledge);
 	}
 }

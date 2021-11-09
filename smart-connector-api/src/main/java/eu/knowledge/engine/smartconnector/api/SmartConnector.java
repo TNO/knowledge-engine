@@ -1,7 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
+import eu.knowledge.engine.reasonerprototype.Rule;
 
 public interface SmartConnector {
 
@@ -208,7 +211,8 @@ public interface SmartConnector {
 	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                      wildcard or something in between where potential
 	 *                      {@link KnowledgeBase} recipients are selected based on
-	 *                      criteria from the KnowledgeBase ontology. Cannot be null!
+	 *                      criteria from the KnowledgeBase ontology. Cannot be
+	 *                      null!
 	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
 	 *                      question to specific values for specific variables from
 	 *                      the {@link GraphPattern} in the
@@ -232,6 +236,16 @@ public interface SmartConnector {
 	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
 	 */
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument);
+
+	/**
+	 * Sets the domain knowledge of this smart connector. This domain knowledge will
+	 * be taken into account when the reasoner orchestrates the knowledge
+	 * interactions. Note that by default there is no domain knowledge and setting
+	 * it will overwrite the existing set of rules.
+	 * 
+	 * @param someRules The rules to take into account.
+	 */
+	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
 
 	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is

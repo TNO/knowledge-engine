@@ -54,11 +54,20 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Instant previousSend = null;
+	private Set<Rule> additionalDomainKnowledge;
 
-	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter) {
+	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
+			Set<Rule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
 
+		this.additionalDomainKnowledge = someDomainKnowledge;
+
 		reasoner = new KeReasoner();
+
+		for (Rule r : this.additionalDomainKnowledge) {
+			reasoner.addRule(r);
+		}
+
 		this.askExchangeInfos = new HashSet<>();
 		this.postExchangeInfos = new HashSet<>();
 
