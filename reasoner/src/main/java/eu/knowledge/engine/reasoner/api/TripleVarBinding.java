@@ -28,9 +28,9 @@ public class TripleVarBinding {
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
 		this();
 		for (TriplePattern tp : aGraphPattern) {
-			for (Variable var : tp.getVariables()) {
-				if (aBinding.containsKey(var))
-					tripleVarMapping.put(new TripleVar(tp, var), aBinding.get(var));
+			for (Variable variable : tp.getVariables()) {
+				if (aBinding.containsKey(variable))
+					tripleVarMapping.put(new TripleVar(tp, variable), aBinding.get(variable));
 			}
 		}
 	}
@@ -70,7 +70,7 @@ public class TripleVarBinding {
 
 		Binding b = new Binding();
 		for (Map.Entry<TripleVar, Literal> entry : this.tripleVarMapping.entrySet()) {
-			b.put(entry.getKey().var, entry.getValue());
+			b.put(entry.getKey().variable, entry.getValue());
 		}
 		return b;
 	}
@@ -82,7 +82,7 @@ public class TripleVarBinding {
 	public boolean isConflicting(TripleVarBinding tvb) {
 
 		for (Map.Entry<TripleVar, Literal> e : this.tripleVarMapping.entrySet()) {
-			Literal l = tvb.getVarValue(e.getKey().var);
+			Literal l = tvb.getVarValue(e.getKey().variable);
 
 			if (l != null && !e.getValue().equals(l)) {
 				return true;
@@ -100,7 +100,7 @@ public class TripleVarBinding {
 	 */
 	private Literal getVarValue(Variable var) {
 		for (TripleVar tripleVar : this.tripleVarMapping.keySet()) {
-			if (tripleVar.var.equals(var)) {
+			if (tripleVar.variable.equals(var)) {
 				return this.get(tripleVar);
 			}
 		}
@@ -149,7 +149,7 @@ public class TripleVarBinding {
 		String prefix = "";
 		sb.append("{");
 		for (Map.Entry<TripleVar, Literal> entry : this.tripleVarMapping.entrySet()) {
-			sb.append(prefix).append(entry.getKey().var).append("=").append(entry.getValue());
+			sb.append(prefix).append(entry.getKey().variable).append("=").append(entry.getValue());
 			prefix = ",";
 
 		}

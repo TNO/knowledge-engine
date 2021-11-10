@@ -16,29 +16,29 @@ public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Liter
 		super();
 	}
 
-	public Binding(TriplePattern.Variable var, TriplePattern.Literal lit) {
+	public Binding(TriplePattern.Variable variable, TriplePattern.Literal lit) {
 		super();
-		this.put(var, lit);
+		this.put(variable, lit);
 	}
 
-	public Binding(String var, String val) {
-		this(new TriplePattern.Variable(var), new TriplePattern.Literal(val));
+	public Binding(String variable, String val) {
+		this(new TriplePattern.Variable(variable), new TriplePattern.Literal(val));
 	}
 
 	public Binding(Binding b) {
 		super(b);
 	}
 
-	public boolean containsKey(String var) {
-		return this.containsKey(new Variable(var));
+	public boolean containsKey(String variable) {
+		return this.containsKey(new Variable(variable));
 	}
 
-	public Literal get(String var) {
-		return this.get(new Variable(var));
+	public Literal get(String variable) {
+		return this.get(new Variable(variable));
 	}
 
-	public Literal put(String var, String val) {
-		return this.put(new TriplePattern.Variable(var), new TriplePattern.Literal(val));
+	public Literal put(String variable, String val) {
+		return this.put(new TriplePattern.Variable(variable), new TriplePattern.Literal(val));
 	}
 
 	public Map<String, String> toMap() {
