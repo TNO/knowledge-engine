@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.graph.Node_Literal;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +23,6 @@ import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class BackwardTest {
 
@@ -67,8 +68,8 @@ public class BackwardTest {
 					public BindingSet handle(BindingSet bs) {
 						String bindings = "";
 						for (Binding b : bs) {
-							Float celcius = Float.valueOf(b.get(new Variable("?y")).getValue());
-							bindings += "?z:" + convert(celcius) + ",?x:" + b.get(new Variable("?x")).getValue() + "|";
+							Float celcius = (Float) ((Node_Literal) b.get("?y")).getLiteralValue();
+							bindings += "?z:" + convert(celcius) + ",?x:" + b.get("?x").toString() + "|";
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings);
 						return bindingSet;

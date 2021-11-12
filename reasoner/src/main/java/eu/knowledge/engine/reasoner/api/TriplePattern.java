@@ -5,104 +5,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.sse.SSE;
+
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TriplePattern {
+	private final Node subject;
+	private final Node predicate;
+	private final Node object;
 
-	public static abstract class Value {
-
-	}
-
-	public static class Variable extends Value {
-		private final String variableName;
-
-		public Variable(String variableName) {
-			this.variableName = variableName;
-		}
-
-		public String getVariableName() {
-			return variableName;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((variableName == null) ? 0 : variableName.hashCode());
-			return result;
-		}
-
-		@Override
-		public String toString() {
-			return variableName;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Variable other = (Variable) obj;
-			if (variableName == null) {
-				if (other.variableName != null)
-					return false;
-			} else if (!variableName.equals(other.variableName))
-				return false;
-			return true;
-		}
-	}
-
-	public static class Literal extends Value {
-		private final String value;
-
-		public Literal(String value) {
-			this.value = value;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		@Override
-		public String toString() {
-			return value;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((value == null) ? 0 : value.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Literal other = (Literal) obj;
-			if (value == null) {
-				if (other.value != null)
-					return false;
-			} else if (!value.equals(other.value))
-				return false;
-			return true;
-		}
-
-	}
-
-	private final Value subject;
-	private final Value predicate;
-	private final Value object;
-
-	public TriplePattern(Value subject, Value predicate, Value object) {
+	public TriplePattern(Node subject, Node predicate, Node object) {
 		// TODO I assume a variable name is used only once
 		this.subject = subject;
 		this.predicate = predicate;
@@ -110,37 +26,21 @@ public class TriplePattern {
 	}
 
 	public TriplePattern(String string) {
-		Value subject, predicate, object;
-		String[] split = string.split(" ");
-		if (split[0].startsWith("?")) {
-			subject = new TriplePattern.Variable(split[0]);
-		} else {
-			subject = new TriplePattern.Literal(split[0]);
-		}
-		if (split[1].startsWith("?")) {
-			predicate = new TriplePattern.Variable(split[1]);
-		} else {
-			predicate = new TriplePattern.Literal(split[1]);
-		}
-		if (split[2].startsWith("?")) {
-			object = new TriplePattern.Variable(split[2]);
-		} else {
-			object = new TriplePattern.Literal(split[2]);
-		}
-		this.subject = subject;
-		this.predicate = predicate;
-		this.object = object;
+		Triple t = SSE.parseTriple(string, new PrefixMappingZero());
+		this.subject = t.getSubject();
+		this.predicate = t.getPredicate();
+		this.object = t.getObject();
 	}
 
-	public Value getSubject() {
+	public Node getSubject() {
 		return subject;
 	}
 
-	public Value getPredicate() {
+	public Node getPredicate() {
 		return predicate;
 	}
 
-	public Value getObject() {
+	public Node getObject() {
 		return object;
 	}
 
@@ -156,33 +56,33 @@ public class TriplePattern {
 	 * @param other
 	 * @return
 	 */
-	public Map<TriplePattern.Value, TriplePattern.Value> findMatches(TriplePattern other) {
-		Map<TriplePattern.Value, TriplePattern.Value> substitutionMap = new HashMap<>();
-		if (this.getSubject() instanceof Literal && other.getSubject() instanceof Literal) {
+	public Map<Node, Node> findMatches(TriplePattern other) {
+		Map<Node, Node> substitutionMap = new HashMap<>();
+
+		if (this.getSubject() instanceof Node_Variable || other.getSubject() instanceof Node_Variable) {
+			substitutionMap.put(this.getSubject(), other.getSubject());
+		} else {
 			if (!this.getSubject().equals(other.getSubject())) {
 				return null;
 			}
-		} else {
-			// at least one of those is a variable
-
-			substitutionMap.put(this.getSubject(), other.getSubject());
 		}
-		if (this.getPredicate() instanceof Literal && other.getPredicate() instanceof Literal) {
+
+		if (this.getPredicate() instanceof Node_Variable || other.getPredicate() instanceof Node_Variable) {
+			substitutionMap.put(this.getPredicate(), other.getPredicate());
+		} else {
 			if (!this.getPredicate().equals(other.getPredicate())) {
 				return null;
 			}
-		} else {
-			// at least one of those is a variable
-			substitutionMap.put(this.getPredicate(), other.getPredicate());
 		}
-		if (this.getObject() instanceof Literal && other.getObject() instanceof Literal) {
+
+		if (this.getObject() instanceof Node_Variable || other.getObject() instanceof Node_Variable) {
+			substitutionMap.put(this.getObject(), other.getObject());
+		} else {
 			if (!this.getObject().equals(other.getObject())) {
 				return null;
 			}
-		} else {
-			// at least one of those is a variable
-			substitutionMap.put(this.getObject(), other.getObject());
 		}
+
 		return substitutionMap;
 	}
 
@@ -191,17 +91,17 @@ public class TriplePattern {
 		return subject + " " + predicate + " " + object;
 	}
 
-	public Set<Variable> getVariables() {
+	public Set<Node_Variable> getVariables() {
 
-		Set<Variable> vars = new HashSet<>();
-		if (this.getSubject() instanceof Variable) {
-			vars.add((Variable) this.getSubject());
+		Set<Node_Variable> vars = new HashSet<>();
+		if (this.getSubject() instanceof Node_Variable) {
+			vars.add((Node_Variable) this.getSubject());
 		}
-		if (this.getPredicate() instanceof Variable) {
-			vars.add((Variable) this.getPredicate());
+		if (this.getPredicate() instanceof Node_Variable) {
+			vars.add((Node_Variable) this.getPredicate());
 		}
-		if (this.getObject() instanceof Variable) {
-			vars.add((Variable) this.getObject());
+		if (this.getObject() instanceof Node_Variable) {
+			vars.add((Node_Variable) this.getObject());
 		}
 
 		return vars;

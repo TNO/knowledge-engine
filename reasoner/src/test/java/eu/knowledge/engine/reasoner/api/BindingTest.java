@@ -1,24 +1,14 @@
 package eu.knowledge.engine.reasoner.api;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVar;
-import eu.knowledge.engine.reasoner.api.TripleVarBinding;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class BindingTest {
 
@@ -27,7 +17,7 @@ public class BindingTest {
 		TriplePattern t1 = new TriplePattern("?a type Sensor");
 		TriplePattern t2 = new TriplePattern("?a hasVal ?b");
 		TripleVarBinding tb1 = new TripleVarBinding();
-		tb1.put(new TripleVar(t1, "?a"), new Literal("<sensor1>"));
+		tb1.put(new TripleVar(t1, "?a"), SSE.parseNode("<sensor1>"));
 
 		TripleVarBinding tb2 = new TripleVarBinding();
 		tb2.put(new TripleVar(t2, "?b"), "22");

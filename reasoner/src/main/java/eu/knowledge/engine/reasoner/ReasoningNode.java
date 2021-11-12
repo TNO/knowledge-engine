@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node_Variable;
+
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.TaskBoard;
@@ -19,7 +21,6 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVar;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 /**
  * Represents the application of a rule in the search tree. A rule can be
@@ -584,15 +585,15 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Variable var : tp.getVariables()) {
+			for (Node_Variable var : tp.getVariables()) {
 				allTVs.add(new TripleVar(tp, var));
 			}
 		}
 		return allTVs;
 	}
 
-	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
-		Set<Variable> vars = new HashSet<Variable>();
+	public Set<Node_Variable> getVars(Set<TriplePattern> aPattern) {
+		Set<Node_Variable> vars = new HashSet<Node_Variable>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}

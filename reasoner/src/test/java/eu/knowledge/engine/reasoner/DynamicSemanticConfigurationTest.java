@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.sse.SSE;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,7 +22,6 @@ import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
 
 public class DynamicSemanticConfigurationTest {
 
@@ -87,21 +88,21 @@ public class DynamicSemanticConfigurationTest {
 						for (Binding incomingB : bs) {
 							Binding resultBinding = new Binding();
 
-							Literal id;
+							Node id;
 							if (incomingB.containsKey("?id")
-									&& incomingB.get("?id").equals(new Literal("<https://www.tno.nl/target1>"))) {
+									&& incomingB.get("?id").equals(SSE.parseNode("<https://www.tno.nl/target1>"))) {
 
 								id = incomingB.get("?id");
-								resultBinding.put("?id", id.getValue());
+								resultBinding.put("?id", id.toString());
 								resultBinding.put("?c", "Russia");
 							} else if (incomingB.containsKey("?id")
-									&& incomingB.get("?id").equals(new Literal("<https://www.tno.nl/target0>"))) {
+									&& incomingB.get("?id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
 								id = incomingB.get("?id");
-								resultBinding.put("?id", id.getValue());
+								resultBinding.put("?id", id.toString());
 								resultBinding.put("?c", "Holland");
 							} else {
 								id = incomingB.get("?id");
-								resultBinding.put("id", id.getValue());
+								resultBinding.put("id", id.toString());
 								resultBinding.put("c", "Belgium");
 							}
 							newBS.add(resultBinding);

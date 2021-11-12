@@ -8,13 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
 
 public class MatchTest {
 
@@ -201,15 +202,15 @@ public class MatchTest {
 		TriplePattern tp2_2 = new TriplePattern("?s hasV ?val");
 		TriplePattern tp2_3 = new TriplePattern("?s type Device");
 
-		Map<Value, Value> mapping1 = new HashMap<Value, Value>();
-		mapping1.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
-		mapping1.put(new TriplePattern.Variable("?t"), new TriplePattern.Variable("Sensor"));
+		Map<Node, Node> mapping1 = new HashMap<Node, Node>();
+		mapping1.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
+		mapping1.put(SSE.parseNode("?t"), SSE.parseNode("Sensor"));
 
 		Match m1 = new Match(tp1_1, tp2_1, mapping1);
 
-		Map<Value, Value> mapping2 = new HashMap<Value, Value>();
-		mapping2.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
-		mapping2.put(new TriplePattern.Variable("?q"), new TriplePattern.Variable("?val"));
+		Map<Node, Node> mapping2 = new HashMap<Node, Node>();
+		mapping2.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
+		mapping2.put(SSE.parseNode("?q"), SSE.parseNode("?val"));
 
 		Match m2 = new Match(tp1_2, tp2_2, mapping2);
 
@@ -222,9 +223,9 @@ public class MatchTest {
 		Match m4 = m2.merge(m1);
 		System.out.println("Match: " + m4);
 
-		Map<Value, Value> mapping3 = new HashMap<Value, Value>();
-		mapping3.put(new TriplePattern.Variable("?p"), new TriplePattern.Variable("?s"));
-		mapping3.put(new TriplePattern.Variable("?t"), new TriplePattern.Variable("Device"));
+		Map<Node, Node> mapping3 = new HashMap<Node, Node>();
+		mapping3.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
+		mapping3.put(SSE.parseNode("?t"), SSE.parseNode("Device"));
 		Match m5 = new Match(tp1_1, tp2_3, mapping3);
 
 		// conflict, so should be null

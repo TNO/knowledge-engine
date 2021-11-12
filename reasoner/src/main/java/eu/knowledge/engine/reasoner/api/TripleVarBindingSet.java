@@ -4,14 +4,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Variable;
+
 import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVar;
-import eu.knowledge.engine.reasoner.api.TripleVarBinding;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class TripleVarBindingSet {
 
@@ -47,7 +43,7 @@ public class TripleVarBindingSet {
 	public Set<TripleVar> getTripleVars() {
 		Set<TripleVar> vars = new HashSet<>();
 		for (TriplePattern tp : graphPattern) {
-			for (Variable var : tp.getVariables()) {
+			for (Node_Variable var : tp.getVariables()) {
 				vars.add(new TripleVar(tp, var));
 			}
 		}
@@ -168,13 +164,13 @@ public class TripleVarBindingSet {
 			for (Match entry : match) {
 				newB = new TripleVarBinding();
 				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
-					Map<Value, Value> mapping = keyValue.getKey().findMatches(keyValue.getValue());
-					for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
-						if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
+					Map<Node, Node> mapping = keyValue.getKey().findMatches(keyValue.getValue());
+					for (Map.Entry<Node, Node> singleMap : mapping.entrySet()) {
+						if (singleMap.getValue() instanceof Node_Variable && singleMap.getKey() instanceof Node) {
 							// if the binding set is empty (and we are translating child results back to
 							// current node results, we actually do not want to add the static literal.
-							newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
-									(Literal) singleMap.getKey());
+							newB.put(new TripleVar(keyValue.getValue(), (Node_Variable) singleMap.getValue()),
+									(Node) singleMap.getKey());
 						}
 					}
 
@@ -190,29 +186,29 @@ public class TripleVarBindingSet {
 					newB = new TripleVarBinding();
 					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 						if (b.containsTriplePattern(keyValue.getKey())) {
-							Map<Value, Value> mapping = keyValue.getKey().findMatches(keyValue.getValue());
-							for (Map.Entry<Value, Value> singleMap : mapping.entrySet()) {
-								if (singleMap.getValue() instanceof Variable && singleMap.getKey() instanceof Literal) {
-									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
-											(Literal) singleMap.getKey());
-								} else if (singleMap.getValue() instanceof Variable && b
-										.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))) {
+							Map<Node, Node> mapping = keyValue.getKey().findMatches(keyValue.getValue());
+							for (Map.Entry<Node, Node> singleMap : mapping.entrySet()) {
+								if (singleMap.getValue() instanceof Node_Variable && singleMap.getKey() instanceof Node) {
+									newB.put(new TripleVar(keyValue.getValue(), (Node_Variable) singleMap.getValue()),
+											(Node) singleMap.getKey());
+								} else if (singleMap.getValue() instanceof Node_Variable && b
+										.containsKey(new TripleVar(keyValue.getKey(), (Node_Variable) singleMap.getKey()))) {
 									TripleVar aTripleVar2 = new TripleVar(keyValue.getKey(),
-											(Variable) singleMap.getKey());
-									newB.put(new TripleVar(keyValue.getValue(), (Variable) singleMap.getValue()),
+											(Node_Variable) singleMap.getKey());
+									newB.put(new TripleVar(keyValue.getValue(), (Node_Variable) singleMap.getValue()),
 											b.get(aTripleVar2));
-								} else if (singleMap.getValue() instanceof Literal && (!b
-										.containsKey(new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+								} else if (singleMap.getValue() instanceof Node && (!b
+										.containsKey(new TripleVar(keyValue.getKey(), (Node_Variable) singleMap.getKey()))
 										|| (b.containsKey(
-												new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+												new TripleVar(keyValue.getKey(), (Node_Variable) singleMap.getKey()))
 												&& b.get(
-														new TripleVar(keyValue.getKey(), (Variable) singleMap.getKey()))
+														new TripleVar(keyValue.getKey(), (Node_Variable) singleMap.getKey()))
 														.equals(singleMap.getValue())))) {
 									// we do not have to add it, if we translate it back.
 									skip = false;
 
-								} else if (singleMap.getValue() instanceof Variable
-										&& singleMap.getKey() instanceof Variable) {
+								} else if (singleMap.getValue() instanceof Node_Variable
+										&& singleMap.getKey() instanceof Node_Variable) {
 									skip = false;
 								} else {
 									skip = true;
