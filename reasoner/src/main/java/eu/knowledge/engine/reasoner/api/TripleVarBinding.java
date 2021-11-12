@@ -21,16 +21,25 @@ public class TripleVarBinding {
 
 	private Map<TripleVar, Literal> tripleVarMapping;
 
+	/**
+	 * Optimize the getVarValue method.
+	 */
+	private Map<Variable, TripleVar> variableTripleVarMapping;
+
 	public TripleVarBinding() {
 		tripleVarMapping = new HashMap<>();
+		variableTripleVarMapping = new HashMap<>();
 	}
 
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
 		this();
 		for (TriplePattern tp : aGraphPattern) {
 			for (Variable var : tp.getVariables()) {
-				if (aBinding.containsKey(var))
-					tripleVarMapping.put(new TripleVar(tp, var), aBinding.get(var));
+				if (aBinding.containsKey(var)) {
+					TripleVar tripleVar = new TripleVar(tp, var);
+					tripleVarMapping.put(tripleVar, aBinding.get(var));
+					variableTripleVarMapping.put(var, tripleVar);
+				}
 			}
 		}
 	}
@@ -39,6 +48,10 @@ public class TripleVarBinding {
 		this();
 		for (Map.Entry<TripleVar, Literal> entry : b.tripleVarMapping.entrySet()) {
 			this.put(entry.getKey(), entry.getValue());
+		}
+
+		for (Map.Entry<Variable, TripleVar> entry : b.variableTripleVarMapping.entrySet()) {
+			this.variableTripleVarMapping.put(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -52,10 +65,12 @@ public class TripleVarBinding {
 
 	public void put(TripleVar aTripleVar, Literal aLiteral) {
 		tripleVarMapping.put(aTripleVar, aLiteral);
+		variableTripleVarMapping.put(aTripleVar.var, aTripleVar);
 	}
 
 	public void put(TripleVar aTripleVar, String aLiteral) {
 		tripleVarMapping.put(aTripleVar, new Literal(aLiteral));
+		variableTripleVarMapping.put(aTripleVar.var, aTripleVar);
 	}
 
 	/**
@@ -99,12 +114,8 @@ public class TripleVarBinding {
 	 * @return
 	 */
 	private Literal getVarValue(Variable var) {
-		for (TripleVar tripleVar : this.tripleVarMapping.keySet()) {
-			if (tripleVar.var.equals(var)) {
-				return this.get(tripleVar);
-			}
-		}
-		return null;
+		TripleVar tripleVar = this.variableTripleVarMapping.get(var);
+		return this.get(tripleVar);
 	}
 
 	public Literal get(TripleVar key) {
@@ -179,6 +190,10 @@ public class TripleVarBinding {
 	}
 
 	private void putAll(Map<TripleVar, Literal> aTripleVarMapping) {
+
+		for (TripleVar tv : aTripleVarMapping.keySet()) {
+			this.variableTripleVarMapping.put(tv.var, tv);
+		}
 		this.tripleVarMapping.putAll(aTripleVarMapping);
 	}
 
