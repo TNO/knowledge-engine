@@ -40,6 +40,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
@@ -239,8 +240,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			}
 
 		} else {
-			// add to queue
-			this.toBeProcessedHandleRequests.add(handleRequest);
+			try {
+				// add to queue
+				this.toBeProcessedHandleRequests.add(handleRequest);
+			} catch (IllegalStateException e) {
+				HandleRequest oldest = this.toBeProcessedHandleRequests.remove();
+				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("Handle request queue is full. This oldest request has been cancelled.")));
+			}
 		}
 
 	}
