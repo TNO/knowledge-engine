@@ -102,7 +102,7 @@ class VariableBindingNameTest {
 		b.put("temp1", temp);
 		bs.add(b);
 		try {
-			PostResult postResult = this.sensor.post(sensorPostKI, bs).get();
+			PostResult postResult = sensor.post(sensorPostKI, bs).get();
 
 			Set<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
 

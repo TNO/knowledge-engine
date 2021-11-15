@@ -136,7 +136,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 										ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 										ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
 										kii.getId(), newBS);
-
+								
 								CompletableFuture<ReactMessage> sendPostMessage = new CompletableFuture<ReactMessage>();
 								try {
 									sendPostMessage = ReasonerProcessor.this.messageRouter.sendPostMessage(postMessage);
@@ -149,7 +149,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 										resultBindingSet = new BindingSet();
 
 									ReasonerProcessor.this.postExchangeInfos.add(
-											convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
+											convertMessageToExchangeInfo(GraphPatternMatcher.transformBindingSet(argGp, , newBS), reactMessage.getResult(), reactMessage));
 
 									return translateBindingSetTo(resultBindingSet);
 								} catch (IOException | InterruptedException | ExecutionException e) {
