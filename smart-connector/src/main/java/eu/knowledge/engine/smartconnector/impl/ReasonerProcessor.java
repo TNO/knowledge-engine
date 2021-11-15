@@ -149,7 +149,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 										resultBindingSet = new BindingSet();
 
 									ReasonerProcessor.this.postExchangeInfos.add(
-											convertMessageToExchangeInfo(GraphPatternMatcher.transformBindingSet(argGp, , newBS), reactMessage.getResult(), reactMessage));
+											convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
 
 									return translateBindingSetTo(resultBindingSet);
 								} catch (IOException | InterruptedException | ExecutionException e) {
