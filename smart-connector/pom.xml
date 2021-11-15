@@ -158,7 +158,7 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
-			<artifactId>reasonerprototype</artifactId>
+			<artifactId>reasoner</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

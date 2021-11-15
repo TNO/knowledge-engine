@@ -459,4 +459,32 @@ public class BackwardTest {
 		assertTrue(!bind.isEmpty());
 	}
 	*/
+
+	@Test
+	public void testAllTriples() {
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?s ?p ?o"));
+
+		TaskBoard taskboard = new TaskBoard();
+
+		// Start reasoning
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		System.out.println(root);
+
+		// empty binding is necessary
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueBackward(bs)) == null) {
+			System.out.println(root);
+			taskboard.executeScheduledTasks();
+		}
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
+	}
 }
