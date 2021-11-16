@@ -490,7 +490,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 					// can proceed to inform the knowledge base that this smart connector is
 					// ready for action!
 					this.knowledgeBaseExecutorService.execute(() -> {
-						LOG.info("Ready to exchange data.");
 						try {
 							this.myKnowledgeBase.smartConnectorReady(this);
 						} catch (Throwable t) {
