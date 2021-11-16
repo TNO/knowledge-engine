@@ -7,17 +7,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.KeReasoner;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -48,7 +44,7 @@ public class DynamicSemanticConfigurationTest {
 					});
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
 						BindingSet newBS = new BindingSet();
 						if (!bs.isEmpty()) {
@@ -66,7 +62,11 @@ public class DynamicSemanticConfigurationTest {
 						} else {
 							newBS.addAll(this.data.getData());
 						}
-						return newBS;
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.complete(newBS);
+
+						return future;
 					}
 
 				}));
@@ -82,7 +82,7 @@ public class DynamicSemanticConfigurationTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?id hasCountry ?c"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						assert bs.iterator().hasNext();
 						BindingSet newBS = new BindingSet();
 						for (Binding incomingB : bs) {
@@ -107,7 +107,9 @@ public class DynamicSemanticConfigurationTest {
 							}
 							newBS.add(resultBinding);
 						}
-						return newBS;
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(newBS);
+						return future;
 					}
 				}));
 	}

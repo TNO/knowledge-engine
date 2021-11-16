@@ -83,7 +83,6 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 
 	@Override
 	public void addKnowledgeBase(OtherKnowledgeBase kb) {
-		LOG.info("Added kb: {}", kb.getId());
 		if (this.otherKnowledgeBases.containsKey(kb.getId())) {
 			LOG.warn("Tried to add a knowledge base {}, but it is already in my store! Skipped it.", kb.getId());
 			return;
@@ -98,7 +97,6 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 
 	@Override
 	public void updateKnowledgeBase(OtherKnowledgeBase kb) {
-		LOG.info("Updated kb: {}", kb.getId());
 		if (!this.otherKnowledgeBases.containsKey(kb.getId())) {
 			LOG.warn("Tried to update knowledge base {}, but it is not in my store! Skipped it.", kb.getId());
 			return;
@@ -128,7 +126,9 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 	@Override
 	public void knowledgeBaseIdSetChanged() {
 		LOG.info("List of Smart Connectors changed, repopulating the the OtherKnowledgeBaseStore");
-		// it might be too brute force to start a complete repopulate when something changes. Can we refactor this to be more specific (i.e. which KnowledgeBaseIds were changed?).
+		// it might be too brute force to start a complete repopulate when something
+		// changes. Can we refactor this to be more specific (i.e. which
+		// KnowledgeBaseIds were changed?).
 		this.populate();
 	}
 }

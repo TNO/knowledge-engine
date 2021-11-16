@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.graph.Node_Literal;
@@ -65,14 +66,17 @@ public class BackwardTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						String bindings = "";
 						for (Binding b : bs) {
 							Float celcius = (Float) ((Node_Literal) b.get("?y")).getLiteralValue();
 							bindings += "?z:" + convert(celcius) + ",?x:" + b.get("?x").toString() + "|";
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings);
-						return bindingSet;
+
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
 					}
 
 					public float convert(float fahrenheit) {
