@@ -301,6 +301,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			for (Map.Entry<Variable, Literal> entry : b.entrySet()) {
 
 				String value = entry.getValue().getValue();
+				// TODO: This should be more generic
 				if (entry.getValue().getValue().startsWith("https:")) {
 					value = "<" + value + ">";
 				}
