@@ -107,7 +107,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 									this.allBindings.addAll(transformedAnswerBindingSet);
 
 									this.askExchangeInfos
-											.add(convertMessageToExchangeInfo(transformedAnswerBindingSet, aMessage));
+											.add(convertMessageToExchangeInfo(aMessage.getBindings(), aMessage));
 
 									this.checkOtherKnowledgeInteraction(bindingSet);
 								} catch (Throwable t) {
@@ -155,8 +155,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 										this.allBindings.addAll(transformedResultBindingSet);
 									}
 
-									this.postExchangeInfos.add(convertMessageToExchangeInfo(bindingSet,
-											transformedResultBindingSet, aMessage));
+									this.postExchangeInfos.add(convertMessageToExchangeInfo(transformedArgBindingSet,
+											aMessage.getResult(), aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
 									// throw an exception and it has nothing to do with receiving a message.
 									this.checkOtherKnowledgeInteraction(bindingSet);

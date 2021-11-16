@@ -6,13 +6,18 @@ import java.time.Instant;
 public class PostExchangeInfo extends ExchangeInfo {
 
 	/**
-	 * The bindings that were the arguments for this exchange.
+	 * The bindings that were the arguments for this exchange. Note that the
+	 * variable names used are those occuring in the graph pattern of the react
+	 * knowledge base (previously these were the names occurring in the graph
+	 * pattern of the posting knowledge base).
 	 */
 	private final BindingSet argument;
 
 	/**
 	 * The bindings that were the partial results of this exchange. Note that this
-	 * only contains the bindings that the given knowledgebase reacted.
+	 * only contains the bindings that the given knowledgebase reacted to and the
+	 * variable names used are those known to the reacting knowledge base
+	 * (previously it were the names of the posting knowledge base).
 	 */
 	private final BindingSet result;
 

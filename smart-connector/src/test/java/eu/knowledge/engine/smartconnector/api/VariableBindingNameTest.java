@@ -102,7 +102,7 @@ class VariableBindingNameTest {
 		b.put("temp1", temp);
 		bs.add(b);
 		try {
-			PostResult postResult = this.sensor.post(sensorPostKI, bs).get();
+			PostResult postResult = sensor.post(sensorPostKI, bs).get();
 
 			Set<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
 
@@ -116,33 +116,37 @@ class VariableBindingNameTest {
 			assertTrue(iter.hasNext());
 
 			Binding binding = iter.next();
-			// the exchange infos should use the variable names from the receiving end.
+			// the exchange infos should use the variable names from reacting and answering
+			// knowledge bases. Previously they used the variable names from the
+			// posting/asking knowledge base, but this was incompatible with the reasoner
+			// where the posting/asking knowledge base is possibly not directly sending
+			// messages.
 
-			assertTrue(binding.containsKey("id1"));
-			assertTrue(binding.containsKey("room1"));
-			assertTrue(binding.containsKey("obs1"));
-			assertTrue(binding.containsKey("temp1"));
+			assertTrue(binding.containsKey("id2"));
+			assertTrue(binding.containsKey("room2"));
+			assertTrue(binding.containsKey("obs2"));
+			assertTrue(binding.containsKey("temp2"));
 
-			assertFalse(binding.containsKey("id2"));
-			assertFalse(binding.containsKey("room2"));
-			assertFalse(binding.containsKey("obs2"));
-			assertFalse(binding.containsKey("temp2"));
+			assertFalse(binding.containsKey("id1"));
+			assertFalse(binding.containsKey("room1"));
+			assertFalse(binding.containsKey("obs1"));
+			assertFalse(binding.containsKey("temp1"));
 
 			BindingSet bindingSet2 = info.getResult();
 			var iter2 = bindingSet2.iterator();
 			assertTrue(iter2.hasNext());
 			Binding b2 = iter2.next();
 
-			assertTrue(b2.containsKey("s1"));
-			assertTrue(b2.containsKey("p1"));
-			assertTrue(b2.containsKey("o1"));
-			assertFalse(b2.containsKey("s2"));
-			assertFalse(b2.containsKey("p2"));
-			assertFalse(b2.containsKey("o2"));
+			assertTrue(b2.containsKey("s2"));
+			assertTrue(b2.containsKey("p2"));
+			assertTrue(b2.containsKey("o2"));
+			assertFalse(b2.containsKey("s1"));
+			assertFalse(b2.containsKey("p1"));
+			assertFalse(b2.containsKey("o1"));
 
-			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s1"));
-			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p1"));
-			assertEquals("<https://www.tno.nl/example/object>", b2.get("o1"));
+			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s2"));
+			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p2"));
+			assertEquals("<https://www.tno.nl/example/object>", b2.get("o2"));
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("{}", e);
 		}
