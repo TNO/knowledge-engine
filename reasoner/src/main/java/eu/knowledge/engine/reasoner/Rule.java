@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.Rule;
@@ -38,7 +39,7 @@ public class Rule {
 		this.consequent = aConsequent;
 		bindingSetHandler = new BindingSetHandler() {
 			@Override
-			public BindingSet handle(BindingSet bs) {
+			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
 				BindingSet newBS = new BindingSet();
 
@@ -58,7 +59,9 @@ public class Rule {
 					newBS.add(newB);
 				}
 
-				return newBS;
+				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+				future.complete(newBS);
+				return future;
 			}
 		};
 	}

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
@@ -368,9 +369,14 @@ public class ReasoningNode {
 						// call the handler directly, to make debugging easier.
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
-							this.resultingBackwardBindingSet = this.rule.getBindingSetHandler()
-									.handle(consequentAntecedentBindings.toBindingSet());
-							this.bcState = BC_BINDINGSET_AVAILABLE;
+							try {
+								this.resultingBackwardBindingSet = this.rule.getBindingSetHandler()
+										.handle(consequentAntecedentBindings.toBindingSet()).get();
+								this.bcState = BC_BINDINGSET_AVAILABLE;
+							} catch (InterruptedException | ExecutionException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						} else {
 							this.resultingBackwardBindingSet = new BindingSet();
 							this.bcState = BC_BINDINGSET_AVAILABLE;
@@ -478,8 +484,13 @@ public class ReasoningNode {
 				this.taskboard.addTask(this, bindingSet);
 				this.fcState = FC_BINDINGSET_REQUESTED;
 			} else {
-				this.resultingForwardBindingSet = this.rule.getBindingSetHandler().handle(bindingSet);
-				this.fcState = FC_BINDINGSET_AVAILABLE;
+				try {
+					this.resultingForwardBindingSet = this.rule.getBindingSetHandler().handle(bindingSet).get();
+					this.fcState = FC_BINDINGSET_AVAILABLE;
+				} catch (InterruptedException | ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -637,6 +648,7 @@ public class ReasoningNode {
 		return this.toString(0);
 	}
 
+	// TODO also print forward chaining state correctly.
 	public String toString(int tabIndex) {
 		StringBuilder sb = new StringBuilder();
 		String stateText = getStateText(this.bcState);

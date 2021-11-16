@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -64,14 +65,17 @@ public class BackwardTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						String bindings = "";
 						for (Binding b : bs) {
 							Float celcius = Float.valueOf(b.get(new Variable("?y")).getValue());
 							bindings += "?z:" + convert(celcius) + ",?x:" + b.get(new Variable("?x")).getValue() + "|";
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings);
-						return bindingSet;
+
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
 					}
 
 					public float convert(float fahrenheit) {

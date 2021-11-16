@@ -97,7 +97,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 
 	@Override
 	public Logger getLogger(Class<?> class1) {
-		return LoggerFactory.getLogger(class1.getSimpleName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
+		return LoggerFactory.getLogger(class1.getCanonicalName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
 	}
 
 	@Override

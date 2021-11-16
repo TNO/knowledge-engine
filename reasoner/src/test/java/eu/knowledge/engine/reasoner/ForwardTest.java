@@ -7,15 +7,11 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.KeReasoner;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -27,11 +23,13 @@ public class ForwardTest {
 		private BindingSet bs;
 
 		@Override
-		public BindingSet handle(BindingSet bs) {
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
 			this.bs = bs;
 
-			return new BindingSet();
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			future.complete(bs);
+			return future;
 		}
 
 		public BindingSet getBindingSet() {
@@ -124,10 +122,13 @@ public class ForwardTest {
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), new BindingSetHandler() {
 
 			@Override
-			public BindingSet handle(BindingSet bs) {
+			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 				assertTrue("The binding set should be empty.", bs.isEmpty());
 				fail("An empty bindingset should not be handled.");
-				return new BindingSet();
+
+				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+				future.complete(new BindingSet());
+				return future;
 			}
 
 		}));
