@@ -77,12 +77,14 @@ public class BackwardTest {
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						String bindings = "";
+						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float celcius = Float.valueOf(b.get(new Variable("?y")).getValue());
-							bindings += "?z:" + convert(celcius) + ",?x:" + b.get(new Variable("?x")).getValue() + "|";
+							bindings.append("?z:").append(convert(celcius)).append(",?x:").
+								append(b.get(new Variable("?x")).getValue()).append("|");
 						}
-						BindingSet bindingSet = Util.toBindingSet(bindings);
+						
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 						return bindingSet;
 					}
 
@@ -98,13 +100,14 @@ public class BackwardTest {
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						StringBuilder sb = new StringBuilder("");
+						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float kelvin = Float.valueOf(b.get(new Variable("?i")).getValue());
-							sb.append("?z:").append(convert(kelvin)).append(",?x").append(b.get(new Variable("?u")).getValue()).
+							bindings.append("?z:").append(convert(kelvin)).append(",?x:")
+							.append(b.get(new Variable("?u")).getValue()).
 								append("|");
 						}
-						BindingSet bindingSet = Util.toBindingSet(sb.toString());
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 						return bindingSet;
 					}
 
@@ -121,24 +124,17 @@ public class BackwardTest {
 
 					@Override
 					public BindingSet handle(BindingSet bs) {
-						/** 
-						StringBuilder sb = new StringBuilder("");
+						
+						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float kelvin = Float.valueOf(b.get(new Variable("?i")).getValue());
-							sb.append("?z:").append(convert(kelvin)).append(",?x").
+							bindings.append("?z:").append(convertK(kelvin)).append(",?u:").
 								append(b.get(new Variable("?u")).getValue()).append("|");
 						}
-						BindingSet bindingSet = Util.toBindingSet(sb.toString());
+						
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 						return bindingSet;
-					}
-						*/
-						String bindings = "";
-                       	for (Binding b : bs) {
-                        	Float kelvin = Float.valueOf(b.get(new Variable("?i")).getValue());
-                        	bindings += "?z:" + convertK(kelvin) + ",?u:" + b.get(new Variable("?u")).getValue() + "|";
-                        }
-                       	BindingSet bindingSet = Util.toBindingSet(bindings);
-                       	return bindingSet;
+
                     }
 
 
@@ -233,7 +229,7 @@ public class BackwardTest {
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
-
+             
 	}
 
 	@Test
