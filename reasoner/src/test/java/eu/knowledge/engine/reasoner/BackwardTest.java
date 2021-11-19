@@ -34,7 +34,7 @@ public class BackwardTest {
 		// Initialize
 		reasoner = new KeReasoner();
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a type Sensor"), new TriplePattern("?a hasValInC ?b"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"?a", "?b"
@@ -47,7 +47,7 @@ public class BackwardTest {
 				}))));
 
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?e type Sensor"), new TriplePattern("?e hasValInF ?f"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?e <type> <Sensor>"), new TriplePattern("?e <hasValInF> ?f"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"?e", "?f"
@@ -59,11 +59,11 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?s type Device")))));
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInF ?y"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -86,7 +86,7 @@ public class BackwardTest {
 				}));
 
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?i type Sensor"), new TriplePattern("?i inRoom ?j"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"?i", "?j"
@@ -106,8 +106,8 @@ public class BackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Device"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
 		// Start reasoning
 		TaskBoard taskboard = new TaskBoard();
@@ -144,8 +144,8 @@ public class BackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Sensor"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -174,8 +174,8 @@ public class BackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Device"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
 		// not work
 
@@ -210,7 +210,7 @@ public class BackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -242,9 +242,9 @@ public class BackwardTest {
 	public void testTwoPropsToAndFromTheSameVars() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Device"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
-		objective.add(new TriplePattern("?p nonExistentProp ?q"));
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		objective.add(new TriplePattern("?p <nonExistentProp> ?q"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -276,8 +276,8 @@ public class BackwardTest {
 	public void testVariableMatchesLiteralInGraphPattern() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type ?t"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <type> ?t"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -306,7 +306,7 @@ public class BackwardTest {
 	public void testVariableAsPredicate() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
 		objective.add(new TriplePattern("?p ?pred 21.666666"));
 //		objective.add(new TriplePattern("?p ?pred 22"));
 
@@ -335,7 +335,7 @@ public class BackwardTest {
 	public void testVariableAsPredicate2() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Sensor"));
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
 		objective.add(new TriplePattern("?p ?pred 22"));
 
 		TaskBoard taskboard = new TaskBoard();
@@ -364,9 +364,9 @@ public class BackwardTest {
 	public void testSendResultsFromOtherChildrenToNextChildren() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Sensor"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
-		objective.add(new TriplePattern("?p inRoom ?r"));
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		objective.add(new TriplePattern("?p <inRoom> ?r"));
 
 		TaskBoard taskboard = new TaskBoard();
 

@@ -26,7 +26,7 @@ public class TriplePattern {
 	}
 
 	public TriplePattern(String string) {
-		Triple t = SSE.parseTriple(string, new PrefixMappingZero());
+		Triple t = SSE.parseTriple("(" + string + ")", new PrefixMappingZero());
 		this.subject = t.getSubject();
 		this.predicate = t.getPredicate();
 		this.object = t.getObject();

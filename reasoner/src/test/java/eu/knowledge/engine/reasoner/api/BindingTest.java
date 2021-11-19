@@ -14,8 +14,8 @@ public class BindingTest {
 
 	@Test
 	public void testGraphPatternBindingSets() {
-		TriplePattern t1 = new TriplePattern("?a type Sensor");
-		TriplePattern t2 = new TriplePattern("?a hasVal ?b");
+		TriplePattern t1 = new TriplePattern("?a <type> <Sensor>");
+		TriplePattern t2 = new TriplePattern("?a <hasVal> ?b");
 		TripleVarBinding tb1 = new TripleVarBinding();
 		tb1.put(new TripleVar(t1, "?a"), SSE.parseNode("<sensor1>"));
 
@@ -41,8 +41,8 @@ public class BindingTest {
 
 	@Test
 	public void testTripleVarBinding() {
-		TriplePattern tp1 = new TriplePattern("?s type Sensor");
-		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+		TriplePattern tp1 = new TriplePattern("?s <type> <Sensor>");
+		TriplePattern tp2 = new TriplePattern("?s <hasVal> ?v");
 
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
@@ -56,13 +56,13 @@ public class BindingTest {
 
 	@Test
 	public void testTripleVarBindingComplication() {
-		TriplePattern tp1 = new TriplePattern("?s type ?t");
-		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+		TriplePattern tp1 = new TriplePattern("?s <type> ?t");
+		TriplePattern tp2 = new TriplePattern("?s <hasVal> ?v");
 
 		TripleVarBindingSet gbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
-		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
+		tvb1.put(new TripleVar(tp1, "?t"), "<Sensor>");
 		tvb1.put(new TripleVar(tp2, "?s"), "<sensor1>");
 		tvb1.put(new TripleVar(tp2, "?v"), "22");
 		gbs1.add(tvb1);
@@ -70,7 +70,7 @@ public class BindingTest {
 		TripleVarBindingSet gbs2 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb2 = new TripleVarBinding();
 		tvb2.put(new TripleVar(tp1, "?s"), "<sensor1>");
-		tvb2.put(new TripleVar(tp1, "?t"), "Device");
+		tvb2.put(new TripleVar(tp1, "?t"), "<Device>");
 		gbs2.add(tvb2);
 
 		TripleVarBindingSet merge = gbs1.merge(gbs2);
@@ -86,13 +86,13 @@ public class BindingTest {
 
 	@Test
 	public void testTripleVarBindingComplication2() {
-		TriplePattern tp1 = new TriplePattern("?s type ?t");
-		TriplePattern tp2 = new TriplePattern("?s hasVal ?v");
+		TriplePattern tp1 = new TriplePattern("?s <type> ?t");
+		TriplePattern tp2 = new TriplePattern("?s <hasVal> ?v");
 
 		TripleVarBindingSet gbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(tp1, tp2)));
 		TripleVarBinding tvb1 = new TripleVarBinding();
 		tvb1.put(new TripleVar(tp1, "?s"), "<sensor1>");
-		tvb1.put(new TripleVar(tp1, "?t"), "Sensor");
+		tvb1.put(new TripleVar(tp1, "?t"), "<Sensor>");
 		tvb1.put(new TripleVar(tp2, "?s"), "<sensor1>");
 		tvb1.put(new TripleVar(tp2, "?v"), "22");
 		gbs1.add(tvb1);
