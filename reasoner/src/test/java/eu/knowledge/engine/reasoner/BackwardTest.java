@@ -94,7 +94,7 @@ public class BackwardTest {
 
 				}));
 		 
-		/** 
+		 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u hasValInF ?i"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?u hasValInC ?z"))), new BindingSetHandler() {
 
@@ -116,7 +116,7 @@ public class BackwardTest {
 					}
 				}
 		));
-		*/
+		
 		
 		 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u hasValInF ?i"))),
@@ -145,7 +145,7 @@ public class BackwardTest {
 		));
 		
 		
-		/** 
+		 
 		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?i type Sensor"), new TriplePattern("?i inRoom ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -160,7 +160,7 @@ public class BackwardTest {
 						"<sensor2>,<bedroom>",
 						//@formatter:on
 				}))));
-		*/
+		
 	}
 
 
