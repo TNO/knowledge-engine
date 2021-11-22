@@ -177,6 +177,23 @@ The knowledge directory is aware of all smart connectors and their knowledge Int
 
 An if-then statement that tells the reasoner how to derive inferred facts from asserted facts. There are many forms of reasoning, but backward reasoning and forward reasoning are the typical ones. Backward reasoning means reasoning to prove a certain statement (i.e. question). This is also called goal-based reasoning, because you reason towards a particular goal (or actually, from a goal backwards to the actual data). Forward reasoning is also called data-driven reasoning, because it starts from the data and tries to infer all possible facts from this data using the available rules.
 
+## Security
+
+*__General direction Knowledge Engine security__*
+
+Within the KE we distinguish between several parts of the security question and explain below how we expect to deal with those:
+
+1) **connection between Knowledge Base (KB) and Smart Connector (SC)**: When using _Java_ Developer API this is secure by default, however, when using the REST Developer API we need to be more careful. The Generic Adapter and Service Store already provide some solution for this.
+2) **connection between SC and SC** (when in different Java Virtual Machines): By using a configurable Advertise URL (see [issue](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/281)) the KE remains flexible with respect to the setup it is used in. This Advertise URL can point directly to the SC or to a proxy that is configured for HTTPS with certificates.
+3) **connection between SC and Knowledge Directory (KD)**: The Knowledge Directory itself exposes a REST API that we recommend to be put behind a HTTPS proxy. SCs have a configuration option to point to the URL of the Knowledge Directory. This can be both HTTP and HTTPS.
+4) **identification/authentication**: Still unclear, but we are thinking about *not* introducing the concept of a user within the KE. The reason is that the only way other KBs can really trust a user, is by having a centralized Identity Provider that all KBs can access which constrasts the distributed nature of the KE. But again, not sure about whether we can maintain this position. Sharing login credentials and JWT tokens through the KE by including them in the domain knowledge is of course possible and this indeed requires the ontologies to contain classes and properties related to login and token information.
+5) **authorization**: In the future we want to support roles and access control policies that are agreed upon by all KBs and it should make up the domain knowledge together with the ontology. We will definitely work on this in the future, but probably not in the scope of InterConnect.
+
+
+*__Sharing credentials__*
+
+As I mentioned in my previous comment there is no _right_ way to deal with sharing credentials. More discussion and experience is definitely necessary to find the sweet spot for security related issues like these. In your use cases, the easiest and safest way is probably to share the credentials outside of the Knowledge Engine and just use some token (or home id) in the graph pattern, but it might be interesting to see how actually sending the credentials through the KE works out using a login graph pattern. Keep in mind, though, that the KE does not encrypt anything by itself and that the credentials might be visible to others. 
+
 ## Mathematical framework
 
 The aim is to make a mathematical description of this framework, but for that we first need to stabilize our vision.
