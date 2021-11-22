@@ -37,6 +37,8 @@ public class TestAskAnswer {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
+	// TODO This admin ui does no longer work. Not sure why. The test still
+	// succeeds, but the admin ui does not show all available knowledge bases.
 	private static AdminUI admin;
 
 	@BeforeAll
@@ -64,7 +66,10 @@ public class TestAskAnswer {
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -133,7 +138,7 @@ public class TestAskAnswer {
 		} else {
 			fail("KB2 should not be null!");
 		}
-	
+
 		if (admin != null) {
 			admin.close();
 		}

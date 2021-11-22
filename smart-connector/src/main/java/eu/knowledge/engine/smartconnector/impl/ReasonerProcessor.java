@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -20,8 +19,8 @@ import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.KeReasoner;
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
 import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
@@ -31,14 +30,14 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
-import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
@@ -55,10 +54,15 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Instant previousSend = null;
 	private Set<Rule> additionalDomainKnowledge;
+	private ReasoningNode node;
+	private TaskBoard taskBoard;
+
+	private CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> finalBindingSetFuture;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
 			Set<Rule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
+		taskBoard = new TaskBoard();
 
 		this.additionalDomainKnowledge = someDomainKnowledge;
 
@@ -76,13 +80,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
-						new OtherKnowledgeBaseBindingSetHandler(kii.getKnowledgeBaseId().toString()) {
+				reasoner.addRule(
+						new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)), new BindingSetHandler() {
 
 							@Override
-							public eu.knowledge.engine.reasoner.api.BindingSet handle(
+							public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
 									eu.knowledge.engine.reasoner.api.BindingSet bs) {
-
+								CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
 								BindingSet newBS = translateBindingSetFrom(bs);
 
 								AskMessage askMessage = new AskMessage(
@@ -90,24 +94,34 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 										ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
 										kii.getId(), newBS);
 
-								CompletableFuture<AnswerMessage> sendAskMessage = new CompletableFuture<AnswerMessage>();
 								try {
-									sendAskMessage = ReasonerProcessor.this.messageRouter.sendAskMessage(askMessage);
+									CompletableFuture<AnswerMessage> sendAskMessage = ReasonerProcessor.this.messageRouter
+											.sendAskMessage(askMessage);
 									ReasonerProcessor.this.previousSend = Instant.now();
-									AnswerMessage answerMessage = sendAskMessage.get();
 
-									ReasonerProcessor.this.askExchangeInfos.add(
-											convertMessageToExchangeInfo(answerMessage.getBindings(), answerMessage));
+									bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
+										LOG.error("A problem occurred while handling a bindingset.", t);
+										return null; // TODO when some error happens, what do we return?
+									}).thenApply((answerMessage) -> {
+										BindingSet resultBindingSet = null;
+										if (answerMessage != null)
+											resultBindingSet = answerMessage.getBindings();
 
-									eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo = translateBindingSetTo(
-											answerMessage.getBindings());
+										if (resultBindingSet == null)
+											resultBindingSet = new BindingSet();
 
-									return translateBindingSetTo;
-								} catch (IOException | InterruptedException | ExecutionException e) {
+										ReasonerProcessor.this.askExchangeInfos
+												.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage));
+
+										return translateBindingSetTo(resultBindingSet);
+									});
+
+								} catch (IOException e) {
 									LOG.error("No errors should occur while sending an AskMessage.", e);
-									sendAskMessage.completeExceptionally(e);
+									bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+									bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 								}
-								return new eu.knowledge.engine.reasoner.api.BindingSet();
+								return bsFuture;
 							}
 
 						}));
@@ -123,43 +137,51 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					resPattern = new HashSet<>(translateGraphPatternTo(resGp));
 				}
 
-				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern,
-						new OtherKnowledgeBaseBindingSetHandler(kii.getKnowledgeBaseId().toString()) {
+				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern, new BindingSetHandler() {
 
-							@Override
-							public eu.knowledge.engine.reasoner.api.BindingSet handle(
-									eu.knowledge.engine.reasoner.api.BindingSet bs) {
+					@Override
+					public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+							eu.knowledge.engine.reasoner.api.BindingSet bs) {
 
-								BindingSet newBS = translateBindingSetFrom(bs);
+						CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
 
-								PostMessage postMessage = new PostMessage(
-										ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
-										ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
-										kii.getId(), newBS);
+						BindingSet newBS = translateBindingSetFrom(bs);
 
-								CompletableFuture<ReactMessage> sendPostMessage = new CompletableFuture<ReactMessage>();
-								try {
-									sendPostMessage = ReasonerProcessor.this.messageRouter.sendPostMessage(postMessage);
-									ReasonerProcessor.this.previousSend = Instant.now();
-									ReactMessage reactMessage = sendPostMessage.get();
+						PostMessage postMessage = new PostMessage(
+								ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+								ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
+								kii.getId(), newBS);
 
-									BindingSet resultBindingSet = reactMessage.getResult();
+						try {
+							CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
+									.sendPostMessage(postMessage);
+							ReasonerProcessor.this.previousSend = Instant.now();
+							bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
+								LOG.error("A problem occurred while handling a bindingset.", t);
+								return null; // TODO when some error happens, what do we return?
+							}).thenApply((reactMessage) -> {
+								BindingSet resultBindingSet = null;
+								if (reactMessage != null)
+									resultBindingSet = reactMessage.getResult();
 
-									if (resultBindingSet == null)
-										resultBindingSet = new BindingSet();
+								if (resultBindingSet == null)
+									resultBindingSet = new BindingSet();
 
-									ReasonerProcessor.this.postExchangeInfos.add(
-											convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
+								ReasonerProcessor.this.postExchangeInfos.add(
+										convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
 
-									return translateBindingSetTo(resultBindingSet);
-								} catch (IOException | InterruptedException | ExecutionException e) {
-									LOG.error("No errors should occur while sending an PostMessage.", e);
-									sendPostMessage.completeExceptionally(e);
-								}
-								return new eu.knowledge.engine.reasoner.api.BindingSet();
-							}
+								return translateBindingSetTo(resultBindingSet);
+							});
 
-						}));
+						} catch (IOException e) {
+							LOG.error("No errors should occur while sending an PostMessage.", e);
+							bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+							bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+						}
+						return bsFuture;
+					}
+
+				}));
 			}
 
 		}
@@ -173,28 +195,96 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.myKnowledgeInteraction = aAKI;
 
-		eu.knowledge.engine.reasoner.api.BindingSet bs = null;
+		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
-
-			TaskBoard taskboard = new TaskBoard();
-
-			ReasoningNode node = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
+			this.node = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
 					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
-					taskboard);
+					this.taskBoard);
 
-			while ((bs = node.continueBackward(translateBindingSetTo(someBindings))) == null) {
-				LOG.error("\n{}", node);
-				taskboard.executeScheduledTasks();
-			}
+			continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		} else {
-			LOG.info("Type should be Ask, not {}", aAKI.getType());
+			LOG.warn("Type should be Ask, not {}", aAKI.getType());
+			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 		}
 
-		CompletableFuture<AskResult> result = new CompletableFuture<AskResult>();
-		result.complete(new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos));
-		return result;
+		return this.finalBindingSetFuture.thenApply((bs) -> {
+			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos);
+		});
+	}
+
+	private void continueReasoningBackward(eu.knowledge.engine.reasoner.api.BindingSet incomingBS) {
+
+		eu.knowledge.engine.reasoner.api.BindingSet bs = null;
+		// TODO think about incorporating the futures into the continueBackward method,
+		// i.e. returning a Future<BindingSet> (with child future<bindingsets>).
+		if ((bs = this.node.continueBackward(incomingBS)) == null) {
+
+			LOG.debug("ask:\n{}", this.node);
+			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+				continueReasoningBackward(incomingBS);
+			});
+		} else {
+			this.finalBindingSetFuture.complete(bs);
+		}
+	}
+
+	@Override
+	public CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI,
+			BindingSet someBindings) {
+		KnowledgeInteraction ki = aPKI.getKnowledgeInteraction();
+
+		this.myKnowledgeInteraction = aPKI;
+
+		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+		if (aPKI.getType().equals(Type.POST)) {
+
+			PostKnowledgeInteraction pki = (PostKnowledgeInteraction) ki;
+
+			CaptureBindingSetHandler aBindingSetHandler = null;
+			if (pki.getResult() != null) {
+				aBindingSetHandler = new CaptureBindingSetHandler();
+				reasoner.addRule(
+						new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(), aBindingSetHandler));
+			}
+
+			this.node = this.reasoner.forwardPlan(translateGraphPatternTo(pki.getArgument()),
+					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
+							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
+					this.taskBoard);
+
+			continueReasoningForward(translateBindingSetTo(someBindings), aBindingSetHandler);
+
+		} else {
+			LOG.warn("Type should be Post, not {}", aPKI.getType());
+			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+		}
+
+		return this.finalBindingSetFuture.thenApply((bs) -> {
+			return new PostResult(translateBindingSetFrom(bs), this.postExchangeInfos);
+		});
+	}
+
+	private void continueReasoningForward(eu.knowledge.engine.reasoner.api.BindingSet incomingBS,
+			CaptureBindingSetHandler aBindingSetHandler) {
+
+		// TODO think about incorporating the futures into the continueBackward method,
+		// i.e. returning a Future<BindingSet> (with child future<bindingsets>).
+		if (!this.node.continueForward(incomingBS)) {
+
+			LOG.debug("post:\n{}", this.node);
+			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+				continueReasoningForward(incomingBS, aBindingSetHandler);
+			});
+		} else {
+			eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
+			if (aBindingSetHandler != null) {
+				resultBS = aBindingSetHandler.getBindingSet();
+			}
+			this.finalBindingSetFuture.complete(resultBS);
+		}
 	}
 
 	/**
@@ -273,81 +363,18 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		private eu.knowledge.engine.reasoner.api.BindingSet bs;
 
 		@Override
-		public eu.knowledge.engine.reasoner.api.BindingSet handle(
+		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
 				eu.knowledge.engine.reasoner.api.BindingSet bs) {
 
 			this.bs = bs;
-
-			return new eu.knowledge.engine.reasoner.api.BindingSet();
+			var future = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+			future.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+			return future;
 		}
 
 		public eu.knowledge.engine.reasoner.api.BindingSet getBindingSet() {
 			return bs;
 		}
-
-	}
-
-	@Override
-	public CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI,
-			BindingSet someBindings) {
-		KnowledgeInteraction ki = aPKI.getKnowledgeInteraction();
-
-		this.myKnowledgeInteraction = aPKI;
-
-		BindingSet resultBS = new BindingSet();
-
-		if (aPKI.getType().equals(Type.POST)) {
-
-			PostKnowledgeInteraction pki = (PostKnowledgeInteraction) ki;
-
-			CaptureBindingSetHandler aBindingSetHandler = null;
-			if (pki.getResult() != null) {
-				aBindingSetHandler = new CaptureBindingSetHandler();
-				reasoner.addRule(
-						new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(), aBindingSetHandler));
-			}
-
-			TaskBoard taskboard = new TaskBoard();
-
-			ReasoningNode node = this.reasoner.forwardPlan(translateGraphPatternTo(pki.getArgument()),
-					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
-							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
-					taskboard);
-
-			while (!node.continueForward(translateBindingSetTo(someBindings))) {
-
-				LOG.error("\n{}", node);
-				taskboard.executeScheduledTasks();
-			}
-
-			if (aBindingSetHandler != null) {
-				resultBS = translateBindingSetFrom(aBindingSetHandler.getBindingSet());
-			}
-
-		} else {
-			LOG.info("Type should be Post, not {}", aPKI.getType());
-		}
-
-		CompletableFuture<PostResult> result = new CompletableFuture<>();
-		result.complete(new PostResult(resultBS, this.postExchangeInfos));
-		return result;
-	}
-
-	public static abstract class OtherKnowledgeBaseBindingSetHandler implements BindingSetHandler {
-
-		private String kbName;
-
-		public OtherKnowledgeBaseBindingSetHandler(String aName) {
-			this.kbName = aName;
-		}
-
-		public String getKnowledgeBaseName() {
-			return this.kbName;
-		}
-
-		@Override
-		public abstract eu.knowledge.engine.reasoner.api.BindingSet handle(
-				eu.knowledge.engine.reasoner.api.BindingSet bs);
 
 	}
 

@@ -56,7 +56,7 @@ public class TestRequestMetadata {
 				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
 				"?gp kb:hasPattern ?pattern .");
 
-		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, false);
+		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 		kb2.register(aKI);
 
 		kn.waitForUpToDate();

@@ -6,7 +6,10 @@ import java.time.Instant;
 public class AskExchangeInfo extends ExchangeInfo {
 
 	/**
-	 * The bindings that were the results of this exchange.
+	 * The bindings that were the results of this exchange. The variables names used
+	 * are the ones that occur in the graph pattern of the answering knowledge base
+	 * (previously the variable names were the once used by the asking knowledge
+	 * base).
 	 */
 	private final BindingSet bindings;
 

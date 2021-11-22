@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -76,16 +77,18 @@ public class BackwardTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?x hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float celcius = Float.valueOf(b.get(new Variable("?y")).getValue());
 							bindings.append("?z:").append(convert(celcius)).append(",?x:").
 								append(b.get(new Variable("?x")).getValue()).append("|");
 						}
-						
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
-						return bindingSet;
+
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
 					}
 
 					public float convert(float fahrenheit) {
@@ -99,7 +102,7 @@ public class BackwardTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?u hasValInC ?z"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float kelvin = Float.valueOf(b.get(new Variable("?i")).getValue());
@@ -108,7 +111,10 @@ public class BackwardTest {
 								append("|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
-						return bindingSet;
+						
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
 					}
 
 					public float convert(float kelvin) {
@@ -123,7 +129,7 @@ public class BackwardTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?u hasValInF ?z"))), new BindingSetHandler() {
 
 					@Override
-					public BindingSet handle(BindingSet bs) {
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
@@ -133,7 +139,10 @@ public class BackwardTest {
 						}
 						
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
-						return bindingSet;
+						
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
 
                     }
 

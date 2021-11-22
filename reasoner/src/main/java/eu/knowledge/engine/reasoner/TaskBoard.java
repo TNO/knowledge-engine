@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
@@ -31,25 +32,31 @@ public class TaskBoard {
 		tasks.add(new Task(aNode, aBindingSet));
 	}
 
-	public void executeScheduledTasks() {
+	public CompletableFuture<Void> executeScheduledTasks() {
 
-		BindingSet resultingBindingSet;
-		ReasoningNode node;
+		CompletableFuture<BindingSet> resultingBindingSetFuture;
 		Rule rule;
 
 		Iterator<Task> iter = tasks.iterator();
-
+		Set<CompletableFuture<?>> futures = new HashSet<>();
 		while (iter.hasNext()) {
 			Task task = iter.next();
-			node = task.getNodes().iterator().next();
+			final ReasoningNode node = task.getNodes().iterator().next();
 			assert node != null;
 			rule = node.getRule();
 			assert rule != null;
 			assert task.getBindingSet(node) != null;
-			resultingBindingSet = rule.getBindingSetHandler().handle(task.getBindingSet(node));
-			node.setBindingSet(resultingBindingSet);
+			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
+			resultingBindingSetFuture.thenAccept((bs) -> {
+				// TODO this assumes every node only occurs once in all tasks.
+				node.setBindingSet(bs);
+			});
+
+			futures.add(resultingBindingSetFuture);
+
 			iter.remove();
 		}
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
 	}
 
 	private static class Task {

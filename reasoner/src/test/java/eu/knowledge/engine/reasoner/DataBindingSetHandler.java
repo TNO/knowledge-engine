@@ -2,8 +2,8 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
@@ -15,7 +15,7 @@ public final class DataBindingSetHandler implements BindingSetHandler {
 	}
 
 	@Override
-	public BindingSet handle(BindingSet bs) {
+	public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
 		BindingSet newBS = new BindingSet();
 		if (!bs.isEmpty()) {
@@ -33,6 +33,9 @@ public final class DataBindingSetHandler implements BindingSetHandler {
 		} else {
 			newBS.addAll(this.data.getData());
 		}
-		return newBS;
+
+		var future = new CompletableFuture<BindingSet>();
+		future.complete(newBS);
+		return future;
 	}
 }

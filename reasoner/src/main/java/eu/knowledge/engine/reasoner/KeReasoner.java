@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -29,8 +26,11 @@ public class KeReasoner {
 			 * The root node should just return the bindingset as is.
 			 */
 			@Override
-			public BindingSet handle(BindingSet bs) {
-				return bs;
+			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+
+				CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+				future.complete(bs);
+				return future;
 			}
 
 		});
@@ -46,8 +46,10 @@ public class KeReasoner {
 			 * The root node should just return the bindingset as is.
 			 */
 			@Override
-			public BindingSet handle(BindingSet bs) {
-				return bs;
+			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+				CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+				future.complete(bs);
+				return future;
 			}
 		});
 
