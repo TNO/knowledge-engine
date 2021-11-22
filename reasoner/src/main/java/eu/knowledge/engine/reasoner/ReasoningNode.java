@@ -595,8 +595,8 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Variable var : tp.getVariables()) {
-				allTVs.add(new TripleVar(tp, var));
+			for (Variable variable : tp.getVariables()) {
+				allTVs.add(new TripleVar(tp, variable));
 			}
 		}
 		return allTVs;
