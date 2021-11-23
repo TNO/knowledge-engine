@@ -5,10 +5,14 @@ import java.util.Map;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 
+// TODO: This should be HashMap<Var, Node_Concrete>
 public class Binding extends HashMap<Node_Variable, Node> {
 
 	private static final long serialVersionUID = 2381462612239850018L;
@@ -23,7 +27,7 @@ public class Binding extends HashMap<Node_Variable, Node> {
 	}
 
 	public Binding(String variable, String val) {
-		this(new Node_Variable(variable), SSE.parseNode(val));
+		this(Var.alloc(variable), SSE.parseNode(val));
 	}
 
 	public Binding(Binding b) {
@@ -31,22 +35,23 @@ public class Binding extends HashMap<Node_Variable, Node> {
 	}
 
 	public boolean containsKey(String variable) {
-		return this.containsKey(SSE.parseNode(variable));
+		return this.containsKey(Var.alloc(variable));
 	}
 
 	public Node get(String variable) {
-		return this.get((Node_Variable) SSE.parseNode(variable));
+		return this.get(Var.alloc(variable));
 	}
 
 	public Node put(String variable, String val) {
-		return this.put(new Node_Variable(variable), SSE.parseNode(val));
+		return this.put(Var.alloc(variable), SSE.parseNode(val));
 	}
 
 	public Map<String, String> toMap() {
 
 		Map<String, String> result = new HashMap<String, String>();
 		for (Map.Entry<Node_Variable, Node> entry : this.entrySet()) {
-			result.put(entry.getKey().toString(), entry.getValue().toString());
+			// TODO: Util function that does the stringForNode without prefixes
+			result.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), new PrefixMappingZero()));
 		}
 
 		return result;

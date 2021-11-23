@@ -7,10 +7,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import eu.knowledge.engine.reasoner.KeReasoner;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -25,18 +21,18 @@ public class TransitivityTest {
 
 		// transitivity rule
 		Set<TriplePattern> antecedent = new HashSet<>();
-		antecedent.add(new TriplePattern("?x isVoorouderVan ?y"));
-		antecedent.add(new TriplePattern("?y isVoorouderVan ?z"));
+		antecedent.add(new TriplePattern("?x <isVoorouderVan> ?y"));
+		antecedent.add(new TriplePattern("?y <isVoorouderVan> ?z"));
 
 		Set<TriplePattern> consequent = new HashSet<>();
-		consequent.add(new TriplePattern("?x isVoorouderVan ?z"));
+		consequent.add(new TriplePattern("?x <isVoorouderVan> ?z"));
 		Rule transitivity = new Rule(antecedent, consequent);
 		reasoner.addRule(transitivity);
 
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
-				"?a", "?b"
+				"a", "b"
 				//@formatter:on
 		}, new String[] {
 				//@formatter:off
@@ -48,7 +44,7 @@ public class TransitivityTest {
 				//@formatter:on
 		}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a isVoorouderVan ?b"))),
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))),
 				aBindingSetHandler);
 
 		reasoner.addRule(rule);
@@ -57,7 +53,7 @@ public class TransitivityTest {
 	@Test
 	public void test() {
 		Set<TriplePattern> aGoal = new HashSet<>();
-		aGoal.add(new TriplePattern("?x isVoorouderVan ?y"));
+		aGoal.add(new TriplePattern("?x <isVoorouderVan> ?y"));
 		TaskBoard taskboard = new TaskBoard();
 		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		BindingSet result = null;

@@ -10,7 +10,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,17 +31,17 @@ public class DynamicSemanticConfigurationTest {
 		reasoner = new KeReasoner();
 		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id type Target"), new TriplePattern("?id hasName ?name"))),
+						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new BindingSetHandler() {
 
 					private Table data = new Table(new String[] {
 				//@formatter:off
-							"?id", "?name"
+							"id", "name"
 							//@formatter:on
 					}, new String[] {
 				//@formatter:off
-							"<https://www.tno.nl/target0>,Eek",
-							"<https://www.tno.nl/target1>,Bla",
+							"<https://www.tno.nl/target0>,\"Eek\"",
+							"<https://www.tno.nl/target1>,\"Bla\"",
 							//@formatter:on
 					});
 
@@ -72,14 +74,14 @@ public class DynamicSemanticConfigurationTest {
 				}));
 
 		reasoner.addRule(new Rule(
-				new HashSet<>(Arrays.asList(new TriplePattern("?id type Target"),
-						new TriplePattern("?id hasCountry Russia"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id type HighValueTarget")))));
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
+						new TriplePattern("?id <hasCountry> \"Russia\""))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
 		reasoner.addRule(new Rule(
 				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id type Target"), new TriplePattern("?id hasName ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id hasCountry ?c"))), new BindingSetHandler() {
+						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -89,21 +91,21 @@ public class DynamicSemanticConfigurationTest {
 							Binding resultBinding = new Binding();
 
 							Node id;
-							if (incomingB.containsKey("?id")
-									&& incomingB.get("?id").equals(SSE.parseNode("<https://www.tno.nl/target1>"))) {
+							if (incomingB.containsKey("id")
+									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target1>"))) {
 
-								id = incomingB.get("?id");
-								resultBinding.put("?id", id.toString());
-								resultBinding.put("?c", "Russia");
-							} else if (incomingB.containsKey("?id")
-									&& incomingB.get("?id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
-								id = incomingB.get("?id");
-								resultBinding.put("?id", id.toString());
-								resultBinding.put("?c", "Holland");
+								id = incomingB.get("id");
+								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
+								resultBinding.put("c", "\"Russia\"");
+							} else if (incomingB.containsKey("id")
+									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
+								id = incomingB.get("id");
+								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
+								resultBinding.put("c", "\"Holland\"");
 							} else {
-								id = incomingB.get("?id");
-								resultBinding.put("id", id.toString());
-								resultBinding.put("c", "Belgium");
+								id = incomingB.get("id");
+								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
+								resultBinding.put("c", "\"Belgium\"");
 							}
 							newBS.add(resultBinding);
 						}
@@ -118,8 +120,8 @@ public class DynamicSemanticConfigurationTest {
 	public void test() {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?id type HighValueTarget"));
-		objective.add(new TriplePattern("?id hasName ?name"));
+		objective.add(new TriplePattern("?id <type> <HighValueTarget>"));
+		objective.add(new TriplePattern("?id <hasName> ?name"));
 
 		TaskBoard taskboard = new TaskBoard();
 

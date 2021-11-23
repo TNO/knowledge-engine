@@ -184,7 +184,7 @@ public class ForwardTest {
 
 		bs.addAll(new Table(new String[] {
 				//@formatter:off
-				"?x", "?y"
+				"x", "y"
 				//@formatter:on
 		}, new String[] {
 				//@formatter:off

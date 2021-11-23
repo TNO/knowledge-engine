@@ -1,12 +1,16 @@
 package eu.knowledge.engine.reasoner.api;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Test;
 
 
@@ -115,4 +119,10 @@ public class BindingTest {
 		// between IRIs and Literals?
 	}
 
+	@Test
+	public void testParseAndFormatBinding() {
+		var b = new Binding("a", "<sensor2>");
+		Node node = b.get("a");
+		assertEquals("<sensor2>", FmtUtils.stringForNode(node, new PrefixMappingZero()));
+	}
 }

@@ -6,11 +6,10 @@ import java.util.Set;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
 
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVar;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 
 /**
@@ -162,7 +161,7 @@ public class TripleVarBinding {
 		String prefix = "";
 		sb.append("{");
 		for (Map.Entry<TripleVar, Node> entry : this.tripleVarMapping.entrySet()) {
-			sb.append(prefix).append(entry.getKey().variable).append("=").append(entry.getValue());
+			sb.append(prefix).append(entry.getKey().variable).append("=").append(FmtUtils.stringForNode(entry.getValue(), new PrefixMappingZero()));
 			prefix = ",";
 
 		}
