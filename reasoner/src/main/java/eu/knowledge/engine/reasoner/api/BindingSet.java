@@ -44,9 +44,9 @@ public class BindingSet extends HashSet<Binding> {
 		for (Binding b : this) {
 			tvb = new TripleVarBinding();
 			for (TriplePattern triplePattern : aGraphPattern) {
-				for (Node_Variable var : triplePattern.getVariables()) {
-					if (b.containsKey(var)) {
-						tvb.put(new TripleVar(triplePattern, var), b.get(var));
+				for (Node_Variable variable : triplePattern.getVariables()) {
+					if (b.containsKey(variable)) {
+						tvb.put(new TripleVar(triplePattern, variable), b.get(variable));
 					}
 				}
 			}

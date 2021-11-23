@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,8 +12,6 @@ import java.util.concurrent.ExecutionException;
 import org.apache.jena.graph.Node_Variable;
 
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -596,8 +593,8 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Node_Variable var : tp.getVariables()) {
-				allTVs.add(new TripleVar(tp, var));
+			for (Node_Variable variable : tp.getVariables()) {
+				allTVs.add(new TripleVar(tp, variable));
 			}
 		}
 		return allTVs;

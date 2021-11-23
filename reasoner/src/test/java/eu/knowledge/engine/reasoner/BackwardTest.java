@@ -59,6 +59,17 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
+		reasoner.addRule(new Rule(new HashSet<>(),
+				new HashSet<>(Arrays.asList(new TriplePattern("?k <type> <Sensor>"), new TriplePattern("?k <hasValInK> ?w"))),
+				new DataBindingSetHandler(new Table(new String[]{
+					"?k", "?y"
+				}, new String[] {
+						"<sensor5>,295",
+						"<sensor6>,294"
+				}))
+		));
+		
+
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 
@@ -67,12 +78,12 @@ public class BackwardTest {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
-						String bindings = "";
+						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
-							Float celcius = (Float) ((Node_Literal) b.get("?y")).getLiteralValue();
-							bindings += "?z:" + convert(celcius) + ",?x:" + b.get("?x").toString() + "|";
+							Float celcius = (Float) b.get("?y").getLiteralValue();
+							bindings.append("?z:" + convert(celcius) + ",?x:" + b.get("?x").toString() + "|");
 						}
-						BindingSet bindingSet = Util.toBindingSet(bindings);
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 						future.complete(bindingSet);
@@ -84,7 +95,65 @@ public class BackwardTest {
 					}
 
 				}));
+		 
+		 
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?i"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInC> ?z"))), new BindingSetHandler() {
 
+					@Override
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
+						StringBuilder bindings = new StringBuilder();
+						for (Binding b : bs) {
+							Float kelvin = (Float) (b.get("?i").getLiteralValue());
+							bindings.append("?z:").append(convert(kelvin)).append(",?x:")
+							.append(b.get("?u").toString()).
+								append("|");
+						}
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
+						
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
+					}
+
+					public float convert(float kelvin) {
+						return kelvin - 273;
+					}
+				}
+		));
+		
+		
+		 
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?i"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?z"))), new BindingSetHandler() {
+
+					@Override
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
+						
+						StringBuilder bindings = new StringBuilder();
+						for (Binding b : bs) {
+							Float kelvin = (Float) b.get("?i").getLiteralValue();
+							bindings.append("?z:").append(convertK(kelvin)).append(",?u:").
+								append(b.get("?u").toString()).append("|");
+						}
+						
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
+						
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
+
+                    }
+
+
+					public float convertK(float kelvin) {
+						return ((kelvin * 9) / 5) - 459;
+					}
+				}
+		));
+		
+		
+		 
 		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -99,7 +168,9 @@ public class BackwardTest {
 						"<sensor2>,<bedroom>",
 						//@formatter:on
 				}))));
+		
 	}
+
 
 	@Test
 	public void testRequestNonExistingData() {
@@ -166,7 +237,7 @@ public class BackwardTest {
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
-
+             
 	}
 
 	@Test
@@ -360,6 +431,7 @@ public class BackwardTest {
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
 	}
 
+	/** 
 	@Test
 	public void testSendResultsFromOtherChildrenToNextChildren() {
 		// Formulate objective
@@ -390,6 +462,7 @@ public class BackwardTest {
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty());
 	}
+	*/
 
 	@Test
 	public void testAllTriples() {

@@ -8,7 +8,6 @@ import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.sparql.sse.SSE;
 
 import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class Binding extends HashMap<Node_Variable, Node> {
 
@@ -18,29 +17,29 @@ public class Binding extends HashMap<Node_Variable, Node> {
 		super();
 	}
 
-	public Binding(Node_Variable var, Node lit) {
+	public Binding(Node_Variable variable, Node lit) {
 		super();
-		this.put(var, lit);
+		this.put(variable, lit);
 	}
 
-	public Binding(String var, String val) {
-		this(new Node_Variable(var), SSE.parseNode(val));
+	public Binding(String variable, String val) {
+		this(new Node_Variable(variable), SSE.parseNode(val));
 	}
 
 	public Binding(Binding b) {
 		super(b);
 	}
 
-	public boolean containsKey(String var) {
-		return this.containsKey(SSE.parseNode(var));
+	public boolean containsKey(String variable) {
+		return this.containsKey(SSE.parseNode(variable));
 	}
 
-	public Node get(String var) {
-		return this.get((Node_Variable) SSE.parseNode(var));
+	public Node get(String variable) {
+		return this.get((Node_Variable) SSE.parseNode(variable));
 	}
 
-	public Node put(String var, String val) {
-		return this.put(new Node_Variable(var), SSE.parseNode(val));
+	public Node put(String variable, String val) {
+		return this.put(new Node_Variable(variable), SSE.parseNode(val));
 	}
 
 	public Map<String, String> toMap() {

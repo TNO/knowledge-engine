@@ -7,11 +7,11 @@ import eu.knowledge.engine.reasoner.api.TripleVar;
 
 public class TripleVar {
 	public TriplePattern tp;
-	public Node_Variable var;
+	public Node_Variable variable;
 
 	public TripleVar(TriplePattern aTriplePattern, Node_Variable aVariable) {
 		this.tp = aTriplePattern;
-		this.var = aVariable;
+		this.variable = aVariable;
 	}
 
 	public TripleVar(TriplePattern aTriplePattern, String aVariable) {
@@ -23,7 +23,7 @@ public class TripleVar {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((tp == null) ? 0 : tp.hashCode());
-		result = prime * result + ((var == null) ? 0 : var.hashCode());
+		result = prime * result + ((variable == null) ? 0 : variable.hashCode());
 		return result;
 	}
 
@@ -43,11 +43,11 @@ public class TripleVar {
 		} else if (!tp.equals(other.tp)) {
 			return false;
 		}
-		if (var == null) {
-			if (other.var != null) {
+		if (variable == null) {
+			if (other.variable != null) {
 				return false;
 			}
-		} else if (!var.equals(other.var)) {
+		} else if (!variable.equals(other.variable)) {
 			return false;
 		}
 		return true;
@@ -55,6 +55,6 @@ public class TripleVar {
 
 	@Override
 	public String toString() {
-		return "TripleVar [tp=" + tp + ", var=" + var + "]";
+		return "TripleVar [tp=" + tp + ", var=" + variable + "]";
 	}
 }
