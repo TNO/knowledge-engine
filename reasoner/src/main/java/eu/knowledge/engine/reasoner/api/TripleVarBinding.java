@@ -4,12 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVar;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
+
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
+
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 /**
  * A binding where the keys are triple/variable pairs.
@@ -19,12 +22,12 @@ import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
  */
 public class TripleVarBinding {
 
-	private Map<TripleVar, Literal> tripleVarMapping;
+	private Map<TripleVar, Node_Concrete> tripleVarMapping;
 
 	/**
 	 * Optimize the getVarValue method.
 	 */
-	private Map<Variable, TripleVar> variableTripleVarMapping;
+	private Map<Var, TripleVar> variableTripleVarMapping;
 
 	public TripleVarBinding() {
 		tripleVarMapping = new HashMap<>();
@@ -34,7 +37,7 @@ public class TripleVarBinding {
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
 		this();
 		for (TriplePattern tp : aGraphPattern) {
-			for (Variable variable : tp.getVariables()) {
+			for (Var variable : tp.getVariables()) {
 				if (aBinding.containsKey(variable)) {
 					TripleVar tripleVar = new TripleVar(tp, variable);
 					tripleVarMapping.put(tripleVar, aBinding.get(variable));
@@ -46,16 +49,16 @@ public class TripleVarBinding {
 
 	public TripleVarBinding(TripleVarBinding b) {
 		this();
-		for (Map.Entry<TripleVar, Literal> entry : b.tripleVarMapping.entrySet()) {
+		for (Map.Entry<TripleVar, Node_Concrete> entry : b.tripleVarMapping.entrySet()) {
 			this.put(entry.getKey(), entry.getValue());
 		}
 
-		for (Map.Entry<Variable, TripleVar> entry : b.variableTripleVarMapping.entrySet()) {
+		for (Map.Entry<Var, TripleVar> entry : b.variableTripleVarMapping.entrySet()) {
 			this.variableTripleVarMapping.put(entry.getKey(), entry.getValue());
 		}
 	}
 
-	public Set<Map.Entry<TripleVar, Literal>> entrySet() {
+	public Set<Map.Entry<TripleVar, Node_Concrete>> entrySet() {
 		return tripleVarMapping.entrySet();
 	}
 
@@ -63,13 +66,13 @@ public class TripleVarBinding {
 		return tripleVarMapping.keySet();
 	}
 
-	public void put(TripleVar aTripleVar, Literal aLiteral) {
+	public void put(TripleVar aTripleVar, Node_Concrete aLiteral) {
 		tripleVarMapping.put(aTripleVar, aLiteral);
 		variableTripleVarMapping.put(aTripleVar.variable, aTripleVar);
 	}
 
 	public void put(TripleVar aTripleVar, String aLiteral) {
-		tripleVarMapping.put(aTripleVar, new Literal(aLiteral));
+		tripleVarMapping.put(aTripleVar, (Node_Concrete) SSE.parseNode(aLiteral));
 		variableTripleVarMapping.put(aTripleVar.variable, aTripleVar);
 	}
 
@@ -84,7 +87,7 @@ public class TripleVarBinding {
 	public Binding toBinding() {
 
 		Binding b = new Binding();
-		for (Map.Entry<TripleVar, Literal> entry : this.tripleVarMapping.entrySet()) {
+		for (Map.Entry<TripleVar, Node_Concrete> entry : this.tripleVarMapping.entrySet()) {
 			b.put(entry.getKey().variable, entry.getValue());
 		}
 		return b;
@@ -96,8 +99,8 @@ public class TripleVarBinding {
 	 */
 	public boolean isConflicting(TripleVarBinding tvb) {
 
-		for (Map.Entry<TripleVar, Literal> e : this.tripleVarMapping.entrySet()) {
-			Literal l = tvb.getVarValue(e.getKey().variable);
+		for (Map.Entry<TripleVar, Node_Concrete> e : this.tripleVarMapping.entrySet()) {
+			Node l = tvb.getVarValue(e.getKey().variable);
 
 			if (l != null && !e.getValue().equals(l)) {
 				return true;
@@ -113,12 +116,12 @@ public class TripleVarBinding {
 	 * @param var
 	 * @return
 	 */
-	private Literal getVarValue(Variable variable) {
+	private Node_Concrete getVarValue(Var variable) {
 		TripleVar tripleVar = this.variableTripleVarMapping.get(variable);
 		return this.get(tripleVar);
 	}
 
-	public Literal get(TripleVar key) {
+	public Node_Concrete get(TripleVar key) {
 		return this.tripleVarMapping.get(key);
 	}
 
@@ -159,8 +162,8 @@ public class TripleVarBinding {
 		StringBuilder sb = new StringBuilder();
 		String prefix = "";
 		sb.append("{");
-		for (Map.Entry<TripleVar, Literal> entry : this.tripleVarMapping.entrySet()) {
-			sb.append(prefix).append(entry.getKey().variable).append("=").append(entry.getValue());
+		for (Map.Entry<TripleVar, Node_Concrete> entry : this.tripleVarMapping.entrySet()) {
+			sb.append(prefix).append(entry.getKey().variable).append("=").append(FmtUtils.stringForNode(entry.getValue(), new PrefixMappingZero()));
 			prefix = ",";
 
 		}
@@ -189,7 +192,7 @@ public class TripleVarBinding {
 		return b;
 	}
 
-	private void putAll(Map<TripleVar, Literal> aTripleVarMapping) {
+	private void putAll(Map<TripleVar, Node_Concrete> aTripleVarMapping) {
 
 		for (TripleVar tv : aTripleVarMapping.keySet()) {
 			this.variableTripleVarMapping.put(tv.variable, tv);

@@ -3,12 +3,17 @@ package eu.knowledge.engine.reasoner.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
 
-public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Literal> {
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.FmtUtils;
+
+import eu.knowledge.engine.reasoner.api.Binding;
+
+public class Binding extends HashMap<Var, Node_Concrete> {
 
 	private static final long serialVersionUID = 2381462612239850018L;
 
@@ -16,13 +21,13 @@ public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Liter
 		super();
 	}
 
-	public Binding(TriplePattern.Variable variable, TriplePattern.Literal lit) {
+	public Binding(Var variable, Node_Concrete lit) {
 		super();
 		this.put(variable, lit);
 	}
 
 	public Binding(String variable, String val) {
-		this(new TriplePattern.Variable(variable), new TriplePattern.Literal(val));
+		this(Var.alloc(variable), (Node_Concrete) SSE.parseNode(val));
 	}
 
 	public Binding(Binding b) {
@@ -30,22 +35,23 @@ public class Binding extends HashMap<TriplePattern.Variable, TriplePattern.Liter
 	}
 
 	public boolean containsKey(String variable) {
-		return this.containsKey(new Variable(variable));
+		return this.containsKey(Var.alloc(variable));
 	}
 
-	public Literal get(String variable) {
-		return this.get(new Variable(variable));
+	public Node get(String variable) {
+		return this.get(Var.alloc(variable));
 	}
 
-	public Literal put(String variable, String val) {
-		return this.put(new TriplePattern.Variable(variable), new TriplePattern.Literal(val));
+	public Node put(String variable, String val) {
+		return this.put(Var.alloc(variable), (Node_Concrete) SSE.parseNode(val));
 	}
 
 	public Map<String, String> toMap() {
 
 		Map<String, String> result = new HashMap<String, String>();
-		for (Map.Entry<Variable, Literal> entry : this.entrySet()) {
-			result.put(entry.getKey().toString(), entry.getValue().toString());
+		for (Map.Entry<Var, Node_Concrete> entry : this.entrySet()) {
+			// TODO: Util function that does the stringForNode without prefixes
+			result.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), new PrefixMappingZero()));
 		}
 
 		return result;
