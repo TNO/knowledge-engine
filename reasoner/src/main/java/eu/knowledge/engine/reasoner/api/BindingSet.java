@@ -5,7 +5,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.graph.Node_Variable;
+
+import org.apache.jena.sparql.core.Var;
 
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
@@ -44,7 +45,7 @@ public class BindingSet extends HashSet<Binding> {
 		for (Binding b : this) {
 			tvb = new TripleVarBinding();
 			for (TriplePattern triplePattern : aGraphPattern) {
-				for (Node_Variable variable : triplePattern.getVariables()) {
+				for (Var variable : triplePattern.getVariables()) {
 					if (b.containsKey(variable)) {
 						tvb.put(new TripleVar(triplePattern, variable), b.get(variable));
 					}

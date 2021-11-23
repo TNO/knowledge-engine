@@ -6,8 +6,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Variable;
+
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 
@@ -59,7 +60,7 @@ public class TriplePattern {
 	public Map<Node, Node> findMatches(TriplePattern other) {
 		Map<Node, Node> substitutionMap = new HashMap<>();
 
-		if (this.getSubject() instanceof Node_Variable || other.getSubject() instanceof Node_Variable) {
+		if (this.getSubject() instanceof Var || other.getSubject() instanceof Var) {
 			substitutionMap.put(this.getSubject(), other.getSubject());
 		} else {
 			if (!this.getSubject().equals(other.getSubject())) {
@@ -67,7 +68,7 @@ public class TriplePattern {
 			}
 		}
 
-		if (this.getPredicate() instanceof Node_Variable || other.getPredicate() instanceof Node_Variable) {
+		if (this.getPredicate() instanceof Var || other.getPredicate() instanceof Var) {
 			substitutionMap.put(this.getPredicate(), other.getPredicate());
 		} else {
 			if (!this.getPredicate().equals(other.getPredicate())) {
@@ -75,7 +76,7 @@ public class TriplePattern {
 			}
 		}
 
-		if (this.getObject() instanceof Node_Variable || other.getObject() instanceof Node_Variable) {
+		if (this.getObject() instanceof Var || other.getObject() instanceof Var) {
 			substitutionMap.put(this.getObject(), other.getObject());
 		} else {
 			if (!this.getObject().equals(other.getObject())) {
@@ -91,17 +92,17 @@ public class TriplePattern {
 		return subject + " " + predicate + " " + object;
 	}
 
-	public Set<Node_Variable> getVariables() {
+	public Set<Var> getVariables() {
 
-		Set<Node_Variable> vars = new HashSet<>();
-		if (this.getSubject() instanceof Node_Variable) {
-			vars.add((Node_Variable) this.getSubject());
+		Set<Var> vars = new HashSet<>();
+		if (this.getSubject() instanceof Var) {
+			vars.add((Var) this.getSubject());
 		}
-		if (this.getPredicate() instanceof Node_Variable) {
-			vars.add((Node_Variable) this.getPredicate());
+		if (this.getPredicate() instanceof Var) {
+			vars.add((Var) this.getPredicate());
 		}
-		if (this.getObject() instanceof Node_Variable) {
-			vars.add((Node_Variable) this.getObject());
+		if (this.getObject() instanceof Var) {
+			vars.add((Var) this.getObject());
 		}
 
 		return vars;

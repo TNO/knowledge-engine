@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node_Variable;
+
+import org.apache.jena.sparql.core.Var;
 
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
@@ -593,15 +594,15 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Node_Variable variable : tp.getVariables()) {
+			for (Var variable : tp.getVariables()) {
 				allTVs.add(new TripleVar(tp, variable));
 			}
 		}
 		return allTVs;
 	}
 
-	public Set<Node_Variable> getVars(Set<TriplePattern> aPattern) {
-		Set<Node_Variable> vars = new HashSet<Node_Variable>();
+	public Set<Var> getVars(Set<TriplePattern> aPattern) {
+		Set<Var> vars = new HashSet<Var>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}

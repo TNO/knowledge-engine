@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
@@ -21,7 +22,7 @@ public class BindingTest {
 		TriplePattern t1 = new TriplePattern("?a <type> <Sensor>");
 		TriplePattern t2 = new TriplePattern("?a <hasVal> ?b");
 		TripleVarBinding tb1 = new TripleVarBinding();
-		tb1.put(new TripleVar(t1, "?a"), SSE.parseNode("<sensor1>"));
+		tb1.put(new TripleVar(t1, "?a"), (Node_Concrete) SSE.parseNode("<sensor1>"));
 
 		TripleVarBinding tb2 = new TripleVarBinding();
 		tb2.put(new TripleVar(t2, "?b"), "22");

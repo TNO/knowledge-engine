@@ -10,7 +10,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Variable;
+
+import org.apache.jena.sparql.core.Var;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.Rule;
@@ -46,10 +47,10 @@ public class Rule {
 
 				Binding newB;
 
-				Set<Node_Variable> vars = Rule.this.getVars(Rule.this.consequent);
+				Set<Var> vars = Rule.this.getVars(Rule.this.consequent);
 				for (Binding b : bs) {
 					newB = new Binding();
-					for (Node_Variable v : vars) {
+					for (Var v : vars) {
 						if (b.containsKey(v)) {
 							newB.put(v, b.get(v));
 						} else {
@@ -67,8 +68,8 @@ public class Rule {
 		};
 	}
 
-	public Set<Node_Variable> getVars(Set<TriplePattern> aPattern) {
-		Set<Node_Variable> vars = new HashSet<Node_Variable>();
+	public Set<Var> getVars(Set<TriplePattern> aPattern) {
+		Set<Var> vars = new HashSet<Var>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}
@@ -207,9 +208,9 @@ public class Rule {
 		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
 	}
 
-	public Set<Node_Variable> getVars() {
+	public Set<Var> getVars() {
 
-		Set<Node_Variable> vars = new HashSet<>();
+		Set<Var> vars = new HashSet<>();
 		;
 		if (this.antecedent != null)
 			vars.addAll(this.getVars(this.antecedent));

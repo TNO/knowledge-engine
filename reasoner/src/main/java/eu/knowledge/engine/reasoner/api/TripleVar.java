@@ -1,21 +1,21 @@
 package eu.knowledge.engine.reasoner.api;
 
-import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.sse.SSE;
 
 import eu.knowledge.engine.reasoner.api.TripleVar;
 
 public class TripleVar {
 	public TriplePattern tp;
-	public Node_Variable variable;
+	public Var variable;
 
-	public TripleVar(TriplePattern aTriplePattern, Node_Variable aVariable) {
+	public TripleVar(TriplePattern aTriplePattern, Var aVariable) {
 		this.tp = aTriplePattern;
 		this.variable = aVariable;
 	}
 
 	public TripleVar(TriplePattern aTriplePattern, String aVariable) {
-		this(aTriplePattern, (Node_Variable) SSE.parseNode(aVariable));
+		this(aTriplePattern, (Var) SSE.parseNode(aVariable));
 	}
 
 	@Override

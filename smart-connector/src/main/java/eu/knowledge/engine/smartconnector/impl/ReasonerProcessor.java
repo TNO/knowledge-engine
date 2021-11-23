@@ -9,8 +9,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.sparql.core.TriplePath;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
@@ -298,7 +300,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		Binding newB;
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
-			for (Map.Entry<Node_Variable, Node> entry : b.entrySet()) {
+			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
 				newB.put(entry.getKey().getName(), entry.getValue().toString());
 			}
 			newBS.add(newB);
