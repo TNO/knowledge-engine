@@ -407,7 +407,7 @@ paths:
             text/plain; charset=UTF-8:
               schema:
                 type: string
-        '400':
+        '409':
           description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
           content:
             text/plain; charset=UTF-8:
