@@ -67,8 +67,10 @@ public class TestDynamicSemanticComposition {
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
 
-		// a pattern for Target observations
-		GraphPattern gp1 = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
+		// Patterns for the TargetObserver
+		// an Answer pattern for Target observations
+		//GraphPattern gp1 = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?id rdf:type v1905:Target .");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kbTargetObserver.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
@@ -77,33 +79,52 @@ public class TestDynamicSemanticComposition {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
 			binding1.put("id", "<https://www.tno.nl/target0>");
-			binding1.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
+			//binding1.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding1);
 			Binding binding2 = new Binding();
 			binding2.put("id", "<https://www.tno.nl/target1>");
-			binding2.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
+			//binding2.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding2);
 
 			return bindingSet;
 		});
+		// and a post pattern to publish newly observed Targets 
+		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
+		kbTargetObserver.register(postKI);
 
-		// a pattern for High Value Target searches
-		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		//GraphPattern gp2 = new GraphPattern(prefixes, "?idHVT rdf:type v1905:Target . ?idHVT v1905:hasName ?nameHVT .");
+		
+		// Patterns for the HVTSearcher		
+		// a pattern to ask for High Value Target searches
+		//GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget .");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kbHVTSearcher.register(askKI);
+		// a pattern to react to incoming new High Value Targets
+		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
+		kbHVTSearcher.register(reactKIsearcher, (anRKI, aReactExchangeInfo) -> {
 
-		// a post pattern and a react pattern to get from targets to countries
-		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
-		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
-		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out);
-		kbHVTSearcher.register(postKI);
+			LOG.info("HVT Searcher reacting to incoming HVTs...");
+			var argument = aReactExchangeInfo.getArgumentBindings();
+			Iterator<Binding> iter = argument.iterator();
+			while (iter.hasNext()) {
+				Binding b = iter.next();
+				LOG.info("Incoming HVT is {}",b);			
+			}
+			return null;
+		});
+
+		
+		// Patterns for the TargetAttributeSupplier		
+		// a react pattern to get from targets to countries
+		//GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
+		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target .");
+		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");		
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out);
 		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("TargetAttributeSupplier Reacting...");
 			var argument = aReactExchangeInfo.getArgumentBindings();
-			LOG.info("Arguments bindings are: {}", argument);
+			LOG.info("Argument bindings are: {}", argument);
 			Iterator<Binding> iter = argument.iterator();
 
 			BindingSet resultBindings = new BindingSet();
@@ -129,21 +150,26 @@ public class TestDynamicSemanticComposition {
 			return resultBindings;
 		});
 		
+		
 		// add extra domain knowledge in the form of a rule to kbHVTSearcher. 
         HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
         consequent.add(new TriplePattern("?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+        //consequent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasName> ?name"));
         HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
         antecedent.add(new TriplePattern("?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
         antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+        //antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasName> ?name"));
         Rule r = new Rule(antecedent, consequent);
         Set<Rule> ruleSet = new HashSet<>();
         ruleSet.add(r);
         kbHVTSearcher.setDomainKnowledge(ruleSet);
+        kbTargetObserver.setDomainKnowledge(ruleSet);
+        kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
 				
 		kn.waitForUpToDate();
 
 		// start testing ask for targets!
-		BindingSet bindings = null;
+		/*BindingSet bindings = null;
 		try {
 			LOG.trace("Before ask.");
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
@@ -163,26 +189,29 @@ public class TestDynamicSemanticComposition {
 		assertEquals("\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>", b.get("name"), "Binding of 'name' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
+		*/
 		
-		// start testing post of target and react with country!
+		// start testing post of targets!
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/target0>");
-		binding.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
+		binding.put("id", "<https://www.tno.nl/target1>");
+		//binding.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 		bindingSet.add(binding);
 
 		try {
-			PostResult result = kbHVTSearcher.post(postKI, bindingSet).get();
-			bindings = result.getBindings();
-			iter = bindings.iterator();
+			LOG.info("Before post!");
+			PostResult result = kbTargetObserver.post(postKI, bindingSet).get();
+			
+			//bindings = result.getBindings();
+			//iter = bindings.iterator();
 
-			assertTrue(iter.hasNext(), "there should be at least 1 binding");
-			b = iter.next();
+			//assertTrue(iter.hasNext(), "there should be at least 1 binding");
+			//b = iter.next();
 
-			assertEquals("<https://www.tno.nl/target0>", b.get("id"), "Binding of 'id' is incorrect.");
-			assertEquals("\"Holland\"", b.get("country"), "Binding of 'country' is incorrect.");
+			//assertEquals("<https://www.tno.nl/target0>", b.get("id"), "Binding of 'id' is incorrect.");
+			//assertEquals("\"Holland\"", b.get("country"), "Binding of 'country' is incorrect.");
 
-			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
+			//assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 			
 			LOG.info("After post!");
 		} catch (Exception e) {
