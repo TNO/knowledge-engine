@@ -406,15 +406,15 @@ paths:
           content:
             text/plain; charset=UTF-8:
               schema:
-                type: string
-        '409':
-          description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
+                type: string       
+        '404':
+          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
             text/plain; charset=UTF-8:
               schema:
                 type: string
-        '404':
-          description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
+        '409':
+          description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
           content:
             text/plain; charset=UTF-8:
               schema:
