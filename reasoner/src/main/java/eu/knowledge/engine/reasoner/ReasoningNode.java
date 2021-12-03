@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,9 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+
+import org.apache.jena.sparql.core.Var;
+
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -20,7 +20,6 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVar;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 /**
  * Represents the application of a rule in the search tree. A rule can be
@@ -595,15 +594,15 @@ public class ReasoningNode {
 	public Set<TripleVar> getTripleVars(Set<TriplePattern> aPattern) {
 		Set<TripleVar> allTVs = new HashSet<>();
 		for (TriplePattern tp : aPattern) {
-			for (Variable var : tp.getVariables()) {
-				allTVs.add(new TripleVar(tp, var));
+			for (Var variable : tp.getVariables()) {
+				allTVs.add(new TripleVar(tp, variable));
 			}
 		}
 		return allTVs;
 	}
 
-	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
-		Set<Variable> vars = new HashSet<Variable>();
+	public Set<Var> getVars(Set<TriplePattern> aPattern) {
+		Set<Var> vars = new HashSet<Var>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}

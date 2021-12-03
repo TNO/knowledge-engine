@@ -9,13 +9,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.jena.graph.Node;
+
+import org.apache.jena.sparql.core.Var;
+
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class Rule {
 
@@ -45,10 +47,10 @@ public class Rule {
 
 				Binding newB;
 
-				Set<Variable> vars = Rule.this.getVars(Rule.this.consequent);
+				Set<Var> vars = Rule.this.getVars(Rule.this.consequent);
 				for (Binding b : bs) {
 					newB = new Binding();
-					for (Variable v : vars) {
+					for (Var v : vars) {
 						if (b.containsKey(v)) {
 							newB.put(v, b.get(v));
 						} else {
@@ -66,8 +68,8 @@ public class Rule {
 		};
 	}
 
-	public Set<Variable> getVars(Set<TriplePattern> aPattern) {
-		Set<Variable> vars = new HashSet<Variable>();
+	public Set<Var> getVars(Set<TriplePattern> aPattern) {
+		Set<Var> vars = new HashSet<Var>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}
@@ -189,7 +191,7 @@ public class Rule {
 		assert !consequent.isEmpty();
 
 		Set<Match> matchingTriplePatterns = new HashSet<>();
-		Map<Value, Value> map;
+		Map<Node, Node> map;
 		for (TriplePattern tp : consequent) {
 			map = antecedent.findMatches(tp);
 			if (map != null) {
@@ -206,9 +208,9 @@ public class Rule {
 		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
 	}
 
-	public Set<Variable> getVars() {
+	public Set<Var> getVars() {
 
-		Set<Variable> vars = new HashSet<>();
+		Set<Var> vars = new HashSet<>();
 		;
 		if (this.antecedent != null)
 			vars.addAll(this.getVars(this.antecedent));
