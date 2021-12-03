@@ -242,12 +242,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			}
 
 		} else {
-			try {
-				// add to queue
-				this.toBeProcessedHandleRequests.add(handleRequest);
-			} catch (IllegalStateException e) {
+			// Offer a new item to the queue
+			var success = this.toBeProcessedHandleRequests.offer(handleRequest);
+			if (!success) {
+				// If unsuccessfull, remove the oldest item and complete it exceptionally.
 				HandleRequest oldest = this.toBeProcessedHandleRequests.remove();
 				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("Handle request queue is full. This oldest request has been cancelled.")));
+
+				// And then try again forcibly this time.
+				try {
+					this.toBeProcessedHandleRequests.add(handleRequest);
+				} catch (IllegalStateException e) {
+					// If this ALSO failed, we will cancel this new item as well and log.
+					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("It was not possible to add this request to the knowledge base's queue.")));
+					LOG.warn("Could not add handle request {} to queue of knowledge base {}, even after removing an item.", handleRequest, this.knowledgeBaseId);
+				}
 			}
 		}
 
