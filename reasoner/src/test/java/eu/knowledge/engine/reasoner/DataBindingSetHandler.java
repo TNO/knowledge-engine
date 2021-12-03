@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
-public final class DataBindingSetHandler implements BindingSetHandler {
+public class DataBindingSetHandler implements BindingSetHandler {
 	private Table data;
 
 	public DataBindingSetHandler(Table someData) {
