@@ -11,6 +11,7 @@ public abstract class KnowledgeMessage {
 	protected URI toKnowledgeBase;
 	protected URI toKnowledgeInteraction;
 
+	// TODO: Remove this once we use {@link ErrorMessage}.
 	private final String failedMessage;
 
 	protected KnowledgeMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
@@ -73,6 +74,7 @@ public abstract class KnowledgeMessage {
 		return toKnowledgeInteraction;
 	}
 
+	// TODO: Remove this once we use {@link ErrorMessage}.
 	public String getFailedMessage() {
 		return this.failedMessage;
 	}
