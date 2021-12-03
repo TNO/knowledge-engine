@@ -5,8 +5,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.jena.graph.Node;
+
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Value;
 
 /**
  * Represents a single match between two graph patterns.
@@ -35,20 +36,20 @@ public class Match {
 	 * Note that the semantics of this mapping is that it contains all mappings that
 	 * involve variables. Literal to literal mappings are left out.
 	 */
-	private Map<Value, Value> mapping;
+	private Map<Node, Node> mapping;
 
-	public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<Value, Value> someMapping) {
+	public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<Node, Node> someMapping) {
 		Map<TriplePattern, TriplePattern> someMatchingPatterns = new HashMap<>();
 		someMatchingPatterns.put(matchTriple, uponTriple);
 		this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 
-		Map<Value, Value> newMapping = new HashMap<>();
+		Map<Node, Node> newMapping = new HashMap<>();
 		newMapping.putAll(someMapping);
 		this.mapping = Collections.unmodifiableMap(someMapping);
 
 	}
 
-	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<Value, Value> someMapping) {
+	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<Node, Node> someMapping) {
 		this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 		this.mapping = Collections.unmodifiableMap(someMapping);
 	}
@@ -75,13 +76,13 @@ public class Match {
 		if (!doKeysIntersect && !doValuesIntersect) {
 
 			// and if the mappings do not conflict
-			Map<Value, Value> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
+			Map<Node, Node> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
 			if (mergedMapping != null) {
 				// if both patterns and mappings do not conflict.
 				Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
 				newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
 
-				Map<Value, Value> newMapping = new HashMap<>(this.getMappings());
+				Map<Node, Node> newMapping = new HashMap<>(this.getMappings());
 				newMapping.putAll(otherMatch.getMappings());
 				m = new Match(newMatchingPatterns, newMapping);
 			}
@@ -101,7 +102,7 @@ public class Match {
 		return false;
 	}
 
-	public Map<Value, Value> getMappings() {
+	public Map<Node, Node> getMappings() {
 		return this.mapping;
 	}
 
@@ -116,10 +117,10 @@ public class Match {
 	 * @param newContext
 	 * @return
 	 */
-	private Map<Value, Value> mergeContexts(Map<Value, Value> existingContext, Map<Value, Value> newContext) {
+	private Map<Node, Node> mergeContexts(Map<Node, Node> existingContext, Map<Node, Node> newContext) {
 
-		Map<Value, Value> mergedContext = new HashMap<Value, Value>(existingContext);
-		for (Map.Entry<Value, Value> newEntry : newContext.entrySet()) {
+		Map<Node, Node> mergedContext = new HashMap<Node, Node>(existingContext);
+		for (Map.Entry<Node, Node> newEntry : newContext.entrySet()) {
 			if (existingContext.containsKey(newEntry.getKey())) {
 				if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
 					return null;
@@ -180,14 +181,14 @@ public class Match {
 	 * @return
 	 */
 	public Match inverse() {
-		Map<Value, Value> invertedMap = new HashMap<Value, Value>();
+		Map<Node, Node> invertedMap = new HashMap<Node, Node>();
 		Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<TriplePattern, TriplePattern>();
 
 		for (Map.Entry<TriplePattern, TriplePattern> someMatchingPatterns : this.matchingPatterns.entrySet()) {
 			newMatchingPatterns.put(someMatchingPatterns.getValue(), someMatchingPatterns.getKey());
 		}
 
-		for (Map.Entry<Value, Value> entry : this.getMappings().entrySet()) {
+		for (Map.Entry<Node, Node> entry : this.getMappings().entrySet()) {
 			invertedMap.put(entry.getValue(), entry.getKey());
 		}
 		return new Match(newMatchingPatterns, invertedMap);

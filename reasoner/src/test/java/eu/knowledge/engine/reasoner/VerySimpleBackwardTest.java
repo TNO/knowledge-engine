@@ -63,7 +63,7 @@ public class VerySimpleBackwardTest {
 		reasoner = new KeReasoner();
 		bindingSetHandler = new ProxyDataBindingSetHandler(new Table(new String[] {
 		//@formatter:off
-				"?a", "?b"
+				"a", "b"
 				//@formatter:on
 		}, new String[] {
 		//@formatter:off
@@ -72,11 +72,11 @@ public class VerySimpleBackwardTest {
 				//@formatter:on
 		}));
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a type Sensor"), new TriplePattern("?a hasValInC ?b"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s type Sensor"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?s type Device")))));
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 	}
 
 	@Test
@@ -109,8 +109,8 @@ public class VerySimpleBackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p type Device"));
-		objective.add(new TriplePattern("?p hasValInC ?q"));
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskBoard);
@@ -118,8 +118,8 @@ public class VerySimpleBackwardTest {
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
-		binding2.put("?p", "<sensor1>");
-		binding2.put("?q", "22");
+		binding2.put("p", "<sensor1>");
+		binding2.put("q", "22");
 		bs.add(binding2);
 
 		BindingSet bind;

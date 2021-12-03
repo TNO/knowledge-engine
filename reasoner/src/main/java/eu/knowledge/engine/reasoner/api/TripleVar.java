@@ -1,20 +1,21 @@
 package eu.knowledge.engine.reasoner.api;
 
-import eu.knowledge.engine.reasoner.api.TriplePattern;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.sse.SSE;
+
 import eu.knowledge.engine.reasoner.api.TripleVar;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 public class TripleVar {
 	public TriplePattern tp;
-	public Variable var;
+	public Var variable;
 
-	public TripleVar(TriplePattern aTriplePattern, Variable aVariable) {
+	public TripleVar(TriplePattern aTriplePattern, Var aVariable) {
 		this.tp = aTriplePattern;
-		this.var = aVariable;
+		this.variable = aVariable;
 	}
 
 	public TripleVar(TriplePattern aTriplePattern, String aVariable) {
-		this(aTriplePattern, new Variable(aVariable));
+		this(aTriplePattern, (Var) SSE.parseNode(aVariable));
 	}
 
 	@Override
@@ -22,7 +23,7 @@ public class TripleVar {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((tp == null) ? 0 : tp.hashCode());
-		result = prime * result + ((var == null) ? 0 : var.hashCode());
+		result = prime * result + ((variable == null) ? 0 : variable.hashCode());
 		return result;
 	}
 
@@ -42,11 +43,11 @@ public class TripleVar {
 		} else if (!tp.equals(other.tp)) {
 			return false;
 		}
-		if (var == null) {
-			if (other.var != null) {
+		if (variable == null) {
+			if (other.variable != null) {
 				return false;
 			}
-		} else if (!var.equals(other.var)) {
+		} else if (!variable.equals(other.variable)) {
 			return false;
 		}
 		return true;
@@ -54,6 +55,6 @@ public class TripleVar {
 
 	@Override
 	public String toString() {
-		return "TripleVar [tp=" + tp + ", var=" + var + "]";
+		return "TripleVar [tp=" + tp + ", var=" + variable + "]";
 	}
 }

@@ -8,7 +8,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
+import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.sparql.core.TriplePath;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
@@ -22,8 +26,6 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Literal;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -298,15 +300,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		Binding newB;
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
-			for (Map.Entry<Variable, Literal> entry : b.entrySet()) {
-
-				String value = entry.getValue().getValue();
-				// TODO: This should be more generic
-				if (entry.getValue().getValue().startsWith("https:")) {
-					value = "<" + value + ">";
-				}
-
-				newB.put(entry.getKey().getVariableName().substring(1), value);
+			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
+				newB.put(entry.getKey().getName(), entry.getValue().toString());
 			}
 			newBS.add(newB);
 		}

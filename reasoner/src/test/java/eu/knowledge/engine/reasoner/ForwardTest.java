@@ -46,11 +46,11 @@ public class ForwardTest {
 
 		// grandparent rule
 		Set<TriplePattern> antecedent = new HashSet<>();
-		antecedent.add(new TriplePattern("?x isParentOf ?y"));
-		antecedent.add(new TriplePattern("?y isParentOf ?z"));
+		antecedent.add(new TriplePattern("?x <isParentOf> ?y"));
+		antecedent.add(new TriplePattern("?y <isParentOf> ?z"));
 
 		Set<TriplePattern> consequent = new HashSet<>();
-		consequent.add(new TriplePattern("?x isGrandParentOf ?z"));
+		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
 		Rule grandParent = new Rule(antecedent, consequent);
 		reasoner.addRule(grandParent);
 
@@ -68,7 +68,7 @@ public class ForwardTest {
 				//@formatter:on
 		}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a isParentOf ?b"))),
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isParentOf> ?b"))),
 				aBindingSetHandler);
 
 //		reasoner.addRule(rule);
@@ -77,13 +77,13 @@ public class ForwardTest {
 	@Test
 	public void test() {
 
-		TriplePattern tp = new TriplePattern("?x isGrandParentOf ?z");
+		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
 
 		Set<TriplePattern> aGoal = new HashSet<>();
-		aGoal.add(new TriplePattern("?x isParentOf ?y"));
+		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -117,7 +117,7 @@ public class ForwardTest {
 	@Test
 	public void testDoNotHandleEmptyBindingSets() {
 
-		TriplePattern tp = new TriplePattern("<barry> isGrandParentOf ?z");
+		TriplePattern tp = new TriplePattern("<barry> <isGrandParentOf> ?z");
 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), new BindingSetHandler() {
 
@@ -134,7 +134,7 @@ public class ForwardTest {
 		}));
 
 		Set<TriplePattern> aGoal = new HashSet<>();
-		aGoal.add(new TriplePattern("?x isParentOf ?y"));
+		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 		TaskBoard taskboard = new TaskBoard();
 		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 
@@ -165,16 +165,16 @@ public class ForwardTest {
 
 	public void testMultipleLeafs() {
 
-		TriplePattern tp = new TriplePattern("?x isGrandParentOf ?z");
+		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
 
-		TriplePattern tp2 = new TriplePattern("?a isGrandParentOf ?b");
+		TriplePattern tp2 = new TriplePattern("?a <isGrandParentOf> ?b");
 		MyBindingSetHandler aBindingSetHandler2 = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp2)), new HashSet<>(), aBindingSetHandler2));
 
 		Set<TriplePattern> aGoal = new HashSet<>();
-		aGoal.add(new TriplePattern("?x isParentOf ?y"));
+		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
 		TaskBoard taskboard = new TaskBoard();
 
@@ -184,7 +184,7 @@ public class ForwardTest {
 
 		bs.addAll(new Table(new String[] {
 				//@formatter:off
-				"?x", "?y"
+				"x", "y"
 				//@formatter:on
 		}, new String[] {
 				//@formatter:off
