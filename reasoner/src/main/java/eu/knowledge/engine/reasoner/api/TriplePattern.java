@@ -146,7 +146,7 @@ public class TriplePattern {
 
 	/**
 	 * Checks if two Triples match, and when they do, return a map of how values map
-	 * between the two triples. This map is used to translatae a binding with the
+	 * between the two triples. This map is used to translate a binding with the
 	 * variable names from one triple the variable names of the other.
 	 *
 	 * The mapping is null if the triple patterns conflict, empty if nothing needs

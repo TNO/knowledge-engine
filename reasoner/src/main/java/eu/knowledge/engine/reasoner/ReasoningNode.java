@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,17 +9,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 import eu.knowledge.engine.reasoner.api.TripleVar;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
 
 /**
  * Represents the application of a rule in the search tree. A rule can be
@@ -32,6 +31,11 @@ import eu.knowledge.engine.reasoner.api.TriplePattern.Variable;
  *
  */
 public class ReasoningNode {
+
+	/**
+	 * The log facility of this class.
+	 */
+	private static final Logger LOG = LoggerFactory.getLogger(ReasoningNode.class);
 
 	/**
 	 * All non-loop backwardChildren.
@@ -109,7 +113,21 @@ public class ReasoningNode {
 
 	private Map<ReasoningNode, Set<Match>> forwardChildren;
 
-	private TaskBoard taskboard;
+	/**
+	 * The TaskBoard used to place new tasks on. Tasks are applications of rules to
+	 * a particular bindingset. These applications can involve procedural
+	 * programming code which (in case of the TKE) contact other Knowledge Bases
+	 * possibly over the network. Therefore we might need to aggregate some of the
+	 * calls, before actually sending data over the network to reduce the network
+	 * traffic and increase the performance. If the TaskBoard is @{code null}, the
+	 * rules are immediately applied.
+	 */
+	private TaskBoard taskboard = null;
+
+	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
+			boolean aShouldPlanBackward) {
+		this(someRules, aParent, aRule, aMatchStrategy, aShouldPlanBackward, null);
+	}
 
 	/**
 	 * Construct a reasoning node and all backwardChildren.
@@ -265,20 +283,17 @@ public class ReasoningNode {
 				antecedentPredefinedBindings.add(aTripleVarBinding);
 			}
 
-			// include the allBindingSetsAvailable into the while condition, to process a
-			// single node of the tree a time. This makes sure that the results from the
-			// first child are send to the second child to check. Otherwise, they get
-			// combined and end up in the result without anyone ever checking them.
+			// store the results of the children separately and afterwards combine them.
+			Set<TripleVarBindingSet> childResults = new HashSet<>();
 
 			// TODO the order in which we iterate the backwardChildren is important. A
-			// strategy like
-			// first processing the backwardChildren that have the incoming variables in
-			// their
-			// consequent might be smart.
+			// strategy like first processing the backwardChildren that have the incoming
+			// variables in
+			// their consequent might be smart.
 			TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 
 			Iterator<ReasoningNode> someIter = someChildren.iterator();
-			while (/* allBindingSetsAvailable && */someIter.hasNext()) {
+			while (someIter.hasNext()) {
 				ReasoningNode child = someIter.next();
 				Set<Match> childMatch = this.backwardChildren.get(child);
 
@@ -289,11 +304,11 @@ public class ReasoningNode {
 				// TODO do we need the following two lines? Do we want to send bindings received
 				// from other children to this child? Or do we just send the bindings that we
 				// received as an argument of this method.
-				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
-				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
+//				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
+//				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
 				BindingSet childBindings = child.continueBackward(
-						preparedBindings2.translate(child.rule.consequent, childMatch).toBindingSet());
+						antecedentPredefinedBindings.translate(child.rule.consequent, childMatch).toBindingSet());
 				if (childBindings == null) {
 					allChildBindingSetsAvailable = false;
 				} else {
@@ -302,7 +317,7 @@ public class ReasoningNode {
 					// create powerset of graph pattern triples and use those to create additional
 					// triplevarbindings.
 
-					TripleVarBindingSet convertedChildGraphBindingSet = childGraphBindingSet
+					TripleVarBindingSet convertedChildTripleVarBindingSet = childGraphBindingSet
 							.translate(this.rule.antecedent, invert(childMatch));
 
 					// we do this expensive operation only on the overlapping part to improve
@@ -311,23 +326,30 @@ public class ReasoningNode {
 					// triple, which takes MUCH MUCH MUCH less time than generating them for the
 					// full graph pattern.
 					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-						convertedChildGraphBindingSet = generateAdditionalTripleVarBindings(
-								convertedChildGraphBindingSet);
+						convertedChildTripleVarBindingSet = generateAdditionalTripleVarBindings(
+								convertedChildTripleVarBindingSet);
 
 					if (childMatch.size() > 1) {
 						// the child matches in multiple ways, so we need to merge the bindingset with
 						// itself to combine all ways that it matches.
 						// TODO or do we want to translate per match and combine each translated
 						// bindingset per match with each other?
-						convertedChildGraphBindingSet = convertedChildGraphBindingSet
-								.merge(convertedChildGraphBindingSet);
+						convertedChildTripleVarBindingSet = convertedChildTripleVarBindingSet
+								.merge(convertedChildTripleVarBindingSet);
 					}
 
-					combinedBindings = combinedBindings.merge(convertedChildGraphBindingSet);
+					childResults.add(convertedChildTripleVarBindingSet);
+
+//					combinedBindings = combinedBindings.merge(convertedChildTripleVarBindingSet);
 				}
 			}
 
 			if (allChildBindingSetsAvailable) {
+
+				// combine the results from all the children.
+				for (TripleVarBindingSet childBS : childResults) {
+					combinedBindings = combinedBindings.merge(childBS);
+				}
 
 				boolean finished = true;
 				// process the loop backwardChildren
@@ -354,7 +376,7 @@ public class ReasoningNode {
 
 					}
 
-					if (true) {
+					if (this.taskboard != null) {
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 							this.taskboard.addTask(this, consequentAntecedentBindings.toBindingSet());
@@ -366,7 +388,8 @@ public class ReasoningNode {
 						}
 					} else {
 
-						// call the handler directly, to make debugging easier.
+						// call the handler directly because taskboard is null. This makes debugging
+						// easier.
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 							try {
@@ -374,8 +397,7 @@ public class ReasoningNode {
 										.handle(consequentAntecedentBindings.toBindingSet()).get();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
 							} catch (InterruptedException | ExecutionException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								LOG.error("Handling a bindingset should not fail.", e);
 							}
 						} else {
 							this.resultingBackwardBindingSet = new BindingSet();
@@ -480,17 +502,16 @@ public class ReasoningNode {
 		} else {
 			// bindingset not yet available, we need to make sure it does.
 			allFinished = false;
-			if (true) {
+			if (this.taskboard != null) {
 				this.taskboard.addTask(this, bindingSet);
 				this.fcState = FC_BINDINGSET_REQUESTED;
 			} else {
 				try {
 					this.resultingForwardBindingSet = this.rule.getBindingSetHandler().handle(bindingSet).get();
-					this.fcState = FC_BINDINGSET_AVAILABLE;
 				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOG.error("Handling a bindingset should not fail.", e);
 				}
+				this.fcState = FC_BINDINGSET_AVAILABLE;
 			}
 		}
 
@@ -535,7 +556,8 @@ public class ReasoningNode {
 						}
 					}
 				}
-				permutated.add(newTVB);
+				if (!newTVB.isEmpty())
+					permutated.add(newTVB);
 			}
 		}
 
