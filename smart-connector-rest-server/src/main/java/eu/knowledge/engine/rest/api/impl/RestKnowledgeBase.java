@@ -40,6 +40,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
@@ -96,6 +97,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private Map<Integer, HandleRequest> beingProcessedHandleRequests;
 	private SmartConnector sc;
 	private Map<URI, KnowledgeInteraction> knowledgeInteractions;
+
+	private static int QUEUE_SIZE = 50;
 
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
@@ -183,7 +186,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
 		this.knowledgeInteractions = new HashMap<>();
-		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(50);
+		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(QUEUE_SIZE);
 		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
 		this.handleRequestId = new AtomicInteger(0);
 		this.onReady = onReady;
@@ -239,8 +242,22 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			}
 
 		} else {
-			// add to queue
-			this.toBeProcessedHandleRequests.add(handleRequest);
+			// Offer a new item to the queue
+			var success = this.toBeProcessedHandleRequests.offer(handleRequest);
+			if (!success) {
+				// If unsuccessfull, remove the oldest item and complete it exceptionally.
+				HandleRequest oldest = this.toBeProcessedHandleRequests.remove();
+				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("Handle request queue is full. This oldest request has been cancelled.")));
+
+				// And then try again forcibly this time.
+				try {
+					this.toBeProcessedHandleRequests.add(handleRequest);
+				} catch (IllegalStateException e) {
+					// If this ALSO failed, we will cancel this new item as well and log.
+					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("It was not possible to add this request to the knowledge base's queue.")));
+					LOG.warn("Could not add handle request {} to queue of knowledge base {}, even after removing an item.", handleRequest, this.knowledgeBaseId);
+				}
+			}
 		}
 
 	}
