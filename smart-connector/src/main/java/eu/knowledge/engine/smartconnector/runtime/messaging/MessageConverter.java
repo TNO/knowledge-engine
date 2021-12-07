@@ -43,6 +43,7 @@ public class MessageConverter {
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setBindingSet(toJson(msg.getBindings()));
 		result.setMessageNumber(0); // TODO Change when message numbers are implemented
+		result.setFailedMessage(msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 		return result;
 	}
 
@@ -52,7 +53,7 @@ public class MessageConverter {
 		return new AnswerMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), UUID.fromString(msg.getReplyToAskMessage()),
-				fromJson(msg.getBindingSet()));
+				fromJson(msg.getBindingSet()), msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 	}
 
 	public static eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage toJson(
@@ -66,6 +67,7 @@ public class MessageConverter {
 		result.setReplyToAskMessage(msg.getReplyToAskMessage().toString());
 		result.setBindingSet(toJson(msg.getBindings()));
 		result.setMessageNumber(0); // TODO Change when message numbers are implemented
+		result.setFailedMessage(msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 		return result;
 	}
 
@@ -87,6 +89,7 @@ public class MessageConverter {
 		result.setToKnowledgeInteraction(msg.getToKnowledgeInteraction().toString());
 		result.setArgument(toJson(msg.getArgument()));
 		result.setMessageNumber(0); // TODO Change when message numbers are implemented
+		result.setFailedMessage(msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 		return result;
 	}
 
@@ -96,7 +99,7 @@ public class MessageConverter {
 		return new ReactMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), UUID.fromString(msg.getReplyToPostMessage()),
-				fromJson(msg.getResult()));
+				fromJson(msg.getResult()), msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 	}
 
 	public static eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage toJson(
@@ -110,6 +113,7 @@ public class MessageConverter {
 		result.setReplyToPostMessage(msg.getReplyToPostMessage().toString());
 		result.setResult(toJson(msg.getResult()));
 		result.setMessageNumber(0); // TODO Change when message numbers are implemented
+		result.setFailedMessage(msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
 		return result;
 	}
 

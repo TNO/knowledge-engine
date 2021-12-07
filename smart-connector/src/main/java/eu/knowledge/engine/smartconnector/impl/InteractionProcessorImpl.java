@@ -199,15 +199,22 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
-		return future.exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {}", anAskMsg);
-			return new BindingSet();
-		}).thenApply((b) -> {
-			AnswerMessage result = new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
-					b);
-			return result;
-		});
+		return future
+			.thenApply((b) -> {
+				return new AnswerMessage(
+					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+					anAskMsg.getMessageId(), b
+				);
+			})
+			.exceptionally((e) -> {
+				LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
+				return new AnswerMessage(
+					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+					anAskMsg.getMessageId(), e.getMessage()
+				);
+			});
 	}
 
 	@Override
@@ -275,16 +282,21 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
-		return future.exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {}", aPostMsg);
-			return new BindingSet();
-		}).thenApply(b -> {
-			ReactMessage result = new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
-					b);
-			return result;
-		});
-
+		return future
+			.thenApply(b -> {
+				return new ReactMessage(
+					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
+					aPostMsg.getMessageId(), b
+				);
+			})
+			.exceptionally((e) -> {
+				LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
+				return new ReactMessage(
+					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
+					aPostMsg.getMessageId(), e.getMessage());
+			});
 	}
 
 	@Override

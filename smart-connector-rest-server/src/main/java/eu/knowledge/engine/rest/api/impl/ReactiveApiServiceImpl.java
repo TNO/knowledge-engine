@@ -18,6 +18,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 
@@ -86,7 +87,7 @@ public class ReactiveApiServiceImpl {
 				if (!kb.hasAsyncResponse()) {
 					kb.waitForHandleRequest(asyncResponse);
 				} else {
-					asyncResponse.resume(Response.status(400)
+					asyncResponse.resume(Response.status(Status.CONFLICT)
 							.entity("Only one connection per Knowledge-Base-Id is allowed and we already have one.")
 							.build());
 				}

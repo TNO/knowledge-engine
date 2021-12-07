@@ -2,12 +2,19 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.sse.SSEParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BindingValidator {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BindingValidator.class);
+
+	private static Pattern UNPREFIXED_URI_PATTERN = Pattern.compile("^<[^>]+>$");
 
 	/**
 	 * Throws an {@link InvalidArgumentException} if one of the bindings uses a
@@ -70,13 +77,23 @@ public class BindingValidator {
 	 * @param value
 	 */
 	public void validateValidBindingValue(String value) {
+		LOG.debug("validating {}", value);
 		try {
 			var node = SSE.parseNode(value, new PrefixMappingMem());
 			if (!(node.isLiteral() || node.isURI())) {
+				LOG.debug("{} is not valid because Jena said it is not a literal or URI", value);
 				throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
+			} else if (node.isURI()) {
+				var matcher = UNPREFIXED_URI_PATTERN.matcher(value.strip());
+				if (!matcher.matches()) {
+					LOG.debug("{} is not valid because matcher said no (even though Jena accepted it as an URI)", value);
+					throw new IllegalArgumentException(String.format("'%s' is not a valid unprefixed URI.", value));
+				}
 			}
 		} catch (SSEParseException spe) {
+			LOG.debug("{} is not valid because Jena could not parse it", value);
 			throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
 		}
+		LOG.debug("{} is valid", value);
 	}
 }

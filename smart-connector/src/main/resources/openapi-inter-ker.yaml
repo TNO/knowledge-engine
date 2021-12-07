@@ -188,6 +188,9 @@ components:
           type: string
         messageNumber:
           type: integer
+        # TODO: Remove failedMessage when using ErrorMessage
+        failedMessage:
+          type: string
       required:
         - fromKnowledgeBase
         - fromKnowledgeInteraction
