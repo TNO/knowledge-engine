@@ -416,6 +416,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						argumentGraphPatternString = model
 								.listObjectsOfProperty(argumentGraphPattern, Vocab.HAS_PATTERN).next().asLiteral()
 								.getString();
+					} else {
+						throw new IllegalArgumentException(
+								"Every Post or React Knowledge Interaction should have a argument graph pattern.");
 					}
 
 					// result

@@ -182,8 +182,8 @@ public class TripleVarBindingSet {
 		} else {
 
 			for (TripleVarBinding b : this.bindings) {
-				boolean skip = false;
 				for (Match entry : match) {
+					boolean skip = false;
 					newB = new TripleVarBinding();
 					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 						if (b.containsTriplePattern(keyValue.getKey())) {

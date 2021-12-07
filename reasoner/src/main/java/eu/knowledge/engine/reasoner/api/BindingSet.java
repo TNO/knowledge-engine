@@ -5,10 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
 import org.apache.jena.sparql.core.Var;
-
-import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 8263643495419009027L;
@@ -66,6 +63,17 @@ public class BindingSet extends HashSet<Binding> {
 			bs.add(b);
 		}
 		this.addAll(bs);
+	}
+
+	/**
+	 * Write this BindingSet to the standard output.
+	 * This is convenient for debugging.
+	 */
+	public void write() {
+		for (Binding b : this) {
+			System.out.println(b);
+		}
+
 	}
 
 }
