@@ -89,7 +89,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				"?gp kb:hasPattern ?pattern .");
 
 		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(), true);
+		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(),
+				true);
 
 		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);
@@ -117,7 +118,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.addKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
@@ -126,8 +128,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore
-					.updateKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.updateKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
@@ -136,8 +138,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore
-					.removeKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.removeKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 	}
@@ -245,6 +247,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		qe.close();
 
 		LOG.trace("BindingSet: {}", bindings);
+
+		String val = bindings.iterator().next().get("isMeta");
 
 		return bindings;
 	}
@@ -466,7 +470,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	@Override
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
-		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings());
+		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(),
+				this.fillMetaBindings());
 	}
 
 	@Override
@@ -487,7 +492,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		if (!ki.isMeta()) {
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
+				this.interactionProcessor
+						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occurre while notifying others of an unregistered knowledge interaction.");
 			}
@@ -504,8 +510,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
 					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
 			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
-			this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get(timeout,
-					TimeUnit.MILLISECONDS);
+			this.interactionProcessor
+					.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings())
+					.get(timeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOG.error("An error occured while informing other KBs about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);

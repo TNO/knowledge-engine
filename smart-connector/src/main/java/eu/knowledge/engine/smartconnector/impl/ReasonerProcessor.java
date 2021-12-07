@@ -322,7 +322,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			newBinding = new eu.knowledge.engine.reasoner.api.Binding();
 			for (String var : b.getVariables()) {
-				newBinding.put("?" + var, b.get(var));
+				newBinding.put(var, b.get(var));
 			}
 			newBindingSet.add(newBinding);
 		}
