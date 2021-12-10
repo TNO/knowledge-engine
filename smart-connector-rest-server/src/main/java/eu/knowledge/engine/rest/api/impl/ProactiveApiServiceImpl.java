@@ -44,7 +44,7 @@ public class ProactiveApiServiceImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProactiveApiServiceImpl.class);
 
-	private RestKnowledgeBaseManager store = RestKnowledgeBaseManager.newInstance();
+	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@POST
 	@Path("/ask")
@@ -75,30 +75,38 @@ public class ProactiveApiServiceImpl {
 			return;
 		}
 
-		var kb = this.store.getKB(knowledgeBaseId);
+		var kb = this.manager.getKB(knowledgeBaseId);
 		if (kb == null) {
-			asyncResponse.resume(
-					Response.status(404).entity("Smart connector not found, because its ID is unknown.").build());
-			return;
+			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
+				this.manager.removeSuspendedKB(knowledgeBaseId);
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+					.build());
+				return;
+			} else {
+				asyncResponse.resume(
+						Response.status(Status.NOT_FOUND).entity("Smart connector not found, because its ID is unknown.").build());
+				return;
+			}
 		}
 
 		try {
 			new URI(knowledgeInteractionId);
 		} catch (URISyntaxException e) {
-			asyncResponse.resume(Response.status(400)
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
 			return;
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 			asyncResponse.resume(
-					Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build());
+					Response.status(Status.NOT_FOUND).entity("Knowledge Interaction not found, because its ID is unknown.").build());
 			return;
 		}
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
-			asyncResponse.resume(Response.status(400)
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build());
@@ -126,16 +134,16 @@ public class ProactiveApiServiceImpl {
 				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
 						.exchangeInfo(infos);
 
-				asyncResponse.resume(Response.status(200).entity(ar).build());
+				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
 			});
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			LOG.trace("", e);
-			asyncResponse.resume(Response.status(500)
+			asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
 		} catch (IllegalArgumentException e) {
 			LOG.trace("", e);
-			asyncResponse.resume(Response.status(400).entity(e.getMessage()).build());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
 		}
 	}
 
@@ -192,18 +200,26 @@ public class ProactiveApiServiceImpl {
 			return;
 		}
 
-		var kb = this.store.getKB(knowledgeBaseId);
+		var kb = this.manager.getKB(knowledgeBaseId);
 		if (kb == null) {
-			asyncResponse.resume(
-					Response.status(404).entity("Smart connector not found, because its ID is unknown.").build());
-			return;
+			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
+				manager.removeSuspendedKB(knowledgeBaseId);
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+					.build());
+				return;
+			} else {
+				asyncResponse.resume(
+					Response.status(Status.NOT_FOUND).entity("Smart connector not found, because its ID is unknown.").build());
+				return;
+			}
 		}
 
 		try {
 			new URI(knowledgeInteractionId);
 		} catch (URISyntaxException e) {
 			LOG.trace("", e);
-			asyncResponse.resume(Response.status(400)
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
 			return;
 		}
@@ -216,7 +232,7 @@ public class ProactiveApiServiceImpl {
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
-			asyncResponse.resume(Response.status(400)
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
 					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
 							+ ki.getKnowledgeInteractionType() + ".")
 					.build());
@@ -252,11 +268,11 @@ public class ProactiveApiServiceImpl {
 
 			} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 				LOG.trace("", e);
-				asyncResponse.resume(Response.status(500)
+				asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
 						.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
 			} catch (IllegalArgumentException e) {
 				LOG.trace("", e);
-				asyncResponse.resume(Response.status(400).entity(e.getMessage()).build());
+				asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
 			}
 		}
 	}

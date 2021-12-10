@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +55,8 @@ import eu.knowledge.engine.smartconnector.api.SmartConnectorSPI;
 
 public class RestKnowledgeBase implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBase.class);
+
+	public static int INACTIVITY_TIMEOUT_SECONDS = 60;
 
 	/**
 	 * A way to allow the RestServer to use different versions of the Smart
@@ -180,6 +184,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 */
 	private final Integer leaseRenewalTime;
 
+	private Timer inactivityTimer;
+
+	private boolean suspended = false;
+
 	public RestKnowledgeBase(eu.knowledge.engine.rest.model.SmartConnector scModel,
 			final Runnable onReady) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
@@ -191,6 +199,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.handleRequestId = new AtomicInteger(0);
 		this.onReady = onReady;
 		this.leaseRenewalTime = scModel.getLeaseRenewalTime();
+
+		assert RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS > ReactiveApiServiceImpl.LONGPOLL_TIMEOUT;
 
 		if (this.leaseRenewalTime != null) {
 			// Issue the initial lease.
@@ -238,7 +248,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				}
 
 				this.asyncResponse.resume(Response.status(200).entity(object).build());
-				this.asyncResponse = null;
+				this.resetAsyncResponse();
 			}
 
 		} else {
@@ -268,6 +278,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public void resetAsyncResponse() {
 		this.asyncResponse = null;
+		this.resetInactivityTimeout();
 	}
 
 	public void waitForHandleRequest(AsyncResponse asyncResponse) {
@@ -402,6 +413,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					"Unexpected value for knowledgeInteractionType: %s. Must be one of: AskKnowledgeInteraction, AnswerKnowledgeInteraction, PostKnowledgeInteraction, ReactKnowledgeInteraction",
 					type));
 		}
+
+		// If this is a reactive knowledge interaction we set the inactivity timout
+		// timer at the moment of registration. Note that this will not overwrite
+		// any existing timers (it may not be the first reactive KI of this KB).
+		if (type.equals("AnswerKnowledgeInteraction") || type.equals("ReactKnowledgeInteraction"))
+			this.setInactivityTimeout(false);
 
 		return kiId.toString();
 	}
@@ -541,6 +558,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	public CompletableFuture<eu.knowledge.engine.smartconnector.api.PostResult> post(String kiId,
 			RecipientSelector recipientSelector, List<Map<String, String>> bindings)
 			throws URISyntaxException, InterruptedException, ExecutionException {
+
 		KnowledgeInteraction ki;
 		try {
 			ki = this.knowledgeInteractions.get(new URI(kiId));
@@ -680,5 +698,44 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 */
 	public SmartConnectorLease getLease() {
 		return this.lease;
+	}
+
+	public void resetInactivityTimeout() {
+		cancelInactivityTimeout();
+		setInactivityTimeout(true);
+	}
+
+	private void setInactivityTimeout(boolean overwrite) {
+		if (!overwrite && this.inactivityTimer != null) {
+			return;
+		}
+
+		this.inactivityTimer = new Timer();
+
+		this.inactivityTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				LOG.warn("Suspending KB {} because of inactivity.", knowledgeBaseId);
+				suspend();
+			}
+		}, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS * 1000);
+		LOG.info("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.", this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
+	}
+
+	private void cancelInactivityTimeout() {
+		if (this.inactivityTimer != null) {
+			LOG.info("inactivity timer is being reset for {}.", this.knowledgeBaseId);
+			this.inactivityTimer.cancel();
+			this.inactivityTimer = null;
+		}
+	}
+
+	private void suspend() {
+		this.stop();
+		this.suspended = true;
+	}
+
+	public boolean isSuspended() {
+		return this.suspended;
 	}
 }
