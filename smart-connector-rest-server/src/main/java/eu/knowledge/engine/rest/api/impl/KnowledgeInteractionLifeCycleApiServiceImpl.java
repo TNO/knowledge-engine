@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.lang.arq.TokenMgrError;
@@ -39,7 +40,14 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Could not add knowledge interaction, because the given knowledge base ID is unknown.").build();
+			if (manager.hasSuspendedKB(knowledgeBaseId)) {
+				manager.removeSuspendedKB(knowledgeBaseId);
+				return Response.status(Status.NOT_FOUND).entity(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+					.build();
+			} else {
+				return Response.status(Status.NOT_FOUND).entity("Could not add knowledge interaction, because the given knowledge base ID is unknown.").build();
+			}
 		}
 
 		String kiId;
@@ -73,7 +81,14 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
+			if (manager.hasSuspendedKB(knowledgeBaseId)) {
+				manager.removeSuspendedKB(knowledgeBaseId);
+				return Response.status(Status.NOT_FOUND).entity(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+					.build();
+			} else {
+				return Response.status(Status.NOT_FOUND).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
+			}
 		}
 
 		if (knowledgeInteractionId == null) {
@@ -81,7 +96,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		}
 		
 		if (!restKb.hasKnowledgeInteraction(knowledgeInteractionId)) {
-			return Response.status(404)
+			return Response.status(Status.NOT_FOUND)
 					.entity("Knowledge base found, but the given knowledge interaction knowledge base ID is unknown.").build();
 		}
 
@@ -97,7 +112,14 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			return Response.status(404).entity("Smart connector not found, because its KB ID is unknown.").build();
+			if (manager.hasSuspendedKB(knowledgeBaseId)) {
+				manager.removeSuspendedKB(knowledgeBaseId);
+				return Response.status(Status.NOT_FOUND).entity(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+					.build();
+			} else {
+				return Response.status(Status.NOT_FOUND).entity("Knowledge base not found, because its knowledge base ID is unknown.").build();
+			}
 		}
 
 		Set<KnowledgeInteractionWithId> kis = restKb.getKnowledgeInteractions();
