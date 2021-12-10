@@ -159,11 +159,11 @@
 	</dependencies>
 
 	<properties>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 		<jetty-version>9.2.9.v20150224</jetty-version>
 		<swagger-core-version>1.5.18</swagger-core-version>
-		<jersey2-version>2.30.1</jersey2-version>
+		<jersey2-version>2.35</jersey2-version>
 		<servlet-api-version>4.0.1</servlet-api-version>
 		<jackson-version>2.9.9</jackson-version>
 	</properties>
