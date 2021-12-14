@@ -6,7 +6,7 @@
 	<groupId>eu.knowledge.engine</groupId>
 	<artifactId>ke-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>${tke.version}</version>
+	<version>${revision}</version>
 	<description>This artifact is a suite of tools for orchestrating semantic data exchange through a knowledge network.</description>
 
 	<modules>
@@ -48,7 +48,7 @@
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<tke.version>1.0.1</tke.version>
+		<revision>1.0.1</revision>
 	</properties>
 
 	<dependencyManagement>
