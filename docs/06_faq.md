@@ -423,3 +423,25 @@ I guess my question is more specifically: “Will the compliance checker look at
 	Which is not correct and is caused by the fixed  property. So, there are two solutions here. The practical one, which I think happens quite a lot, is for the ontology to provide an individual per property. So, you would have a `interconnect:motionIndividual`, `interconnect:energyIndividual` and `interconnect:smokeIndividual`. These can be used instead of the greek:property and will make sure that it remains semantically correct. A less practical (and philosophically debatable) one is to have a unique property individual for every property a device measures. So, you would get something like `<sensor1/individual/motion>`, `<sensor1/individual/smoke>` and `<sensor2/individual/energy>` and even more for all other devices.
 
 	And last but not least, a short reaction to Georg’s remark: “I think it makes sense to think about the GP as the body of a query”. It certainly does, although within the context of the Knowledge Engine graph patterns are also used for non-query like interactions.
+
+*Question*: Which are the technical requirements needed to host the KE at pilot level for the next 22 months? Do you have an estimation about hosting/processing needs? And from the technical support, any idea about the effort that might require? 
+- *Answer*: From a technical perspective what needs to be done is:
+	1. Have a machine or virtual machine ready (spec discussion separately);
+	1.1. Ideally configure the machine/virtual machine to be in a DMZ network, separate from other critical/sensitive resources (for the sake of prevention)
+	2. Deploy the KE and Knowledge Directory in the machine i.e., deploy two java servers. 
+	3. Configure firewall to allow external communication to that machine/virtual machine
+	3.1 Depending on the local infrastructure, configure a proxy (if it exists) to forward the requests to that machine/virtual machine.
+	4. Communicate me the public IP address where the KE is now available (so that we can use the project domain to identify that IP). 
+	5. If the proxy used uses a wildcard TLS certificate it can protect the KE instance (that is what we are doing in the cloud instance). If the wildcard certificate is not available, we need to acquire one and deploy it together with the KE.
+
+	These are essentially the steps. These steps are standard, so any technical colleague should be able to do it. 
+
+	As for the technical requirements of the machine, we will collect that info and provide it to you. But a medium range machine/virtual machine should do it. 
+	Requirements:
+	- (ideally) Linux based OS , e.g., latest ubuntu
+	- Latest Java SE installed
+	- Outside world (inbound) internet access
+	- Low/medium CPU (2 core at least) 
+	- 16 GB RAM (nowadays a good minimum for a server. if if has more, better).
+
+	Finally someone should be able to access that machine to collect any logs and trouble shoot whenever necessary.
