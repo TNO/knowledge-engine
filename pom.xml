@@ -48,7 +48,7 @@
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<revision>1.0.2</revision>
+		<revision>1.0.3-SNAPSHOT</revision>
 	</properties>
 
 	<dependencyManagement>
