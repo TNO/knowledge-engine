@@ -46,7 +46,8 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
 					.build();
 			} else {
-				return Response.status(Status.NOT_FOUND).entity("Could not add knowledge interaction, because the given knowledge base ID is unknown.").build();
+				LOG.info("Someone tried to add a KI to KB {}, but it does not exist.", knowledgeBaseId);
+				return Response.status(Status.NOT_FOUND).entity(String.format("Could not add knowledge interaction, because the given knowledge base ID (%s) is unknown.", knowledgeBaseId)).build();
 			}
 		}
 

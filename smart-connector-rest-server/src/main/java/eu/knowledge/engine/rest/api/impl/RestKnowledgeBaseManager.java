@@ -74,6 +74,7 @@ public class RestKnowledgeBaseManager {
 		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel, () -> {
 			f.complete(null);
 		}));
+		LOG.info("Added KB {}", scModel.getKnowledgeBaseId());
 		return f;
 	}
 
@@ -103,6 +104,7 @@ public class RestKnowledgeBaseManager {
 			success = false;
 		}
 		this.restKnowledgeBases.remove(knowledgeBaseId);
+		LOG.info("Removed KB {}", knowledgeBaseId);
 		return success;
 	}
 
@@ -122,6 +124,7 @@ public class RestKnowledgeBaseManager {
 			.filter(entry -> entry.getValue().isSuspended())
 			.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
 			.forEach(entry -> {
+				LOG.info("Moving suspended KB {} to the suspended list.", entry.getKey());
 				this.restKnowledgeBases.remove(entry.getKey());
 				this.suspendedRestKnowledgeBases.put(entry.getKey(), entry.getValue());
 			});

@@ -644,7 +644,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	@Override
 	public void smartConnectorStopped(SmartConnector aSC) {
-		// Do nothing. The REST API doesn't provide these signals (yet).
+		if (this.inactivityTimer != null) {
+			this.inactivityTimer.cancel();
+			LOG.info("canceled inactivity timer for {} because its smart connector stopped.", this.getKnowledgeBaseId());
+		}
 	}
 
 	public void stop() {
@@ -724,7 +727,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private void cancelInactivityTimeout() {
 		if (this.inactivityTimer != null) {
-			LOG.info("inactivity timer is being reset for {}.", this.knowledgeBaseId);
+			LOG.info("inactivity timer is being canceled for {}.", this.knowledgeBaseId);
 			this.inactivityTimer.cancel();
 			this.inactivityTimer = null;
 		}
