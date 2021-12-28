@@ -46,7 +46,7 @@ public class AdminUI implements KnowledgeBase {
 	private ScheduledFuture<?> future;
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private AskKnowledgeInteraction aKI;
-
+	private static AdminUI instance;
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
@@ -63,6 +63,13 @@ public class AdminUI implements KnowledgeBase {
 
 		// we wait for the Smart Connector to be ready, before registering our Knowledge
 		// Interactions and starting the Ask job.
+	}
+
+	public static AdminUI newInstance() {
+		if (instance == null) {
+			instance = new AdminUI();
+		}
+		return instance;
 	}
 
 	@Override
