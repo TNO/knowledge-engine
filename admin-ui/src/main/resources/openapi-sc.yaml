@@ -1,0 +1,256 @@
+openapi: "3.0.0"
+info:
+  title: Knowledge Engine Admin UI REST API
+  
+  description:
+    This API provides information on Knowledge Engine Runtimes, Smart Connectors, Knowledge Bases, and Knowledge
+    Interactions in an Knowledge Engine Network.
+  version: 1.0.1-SNAPSHOT
+  
+paths:
+  /admin/kb/overview:
+    get:
+      summary: Either get all available Get knowledge bases and their knowledge interactions in the network, or a specific set if the Knowledge-Engine-Id is provided.
+      tags:
+        - admin UI API
+      parameters:
+        - name: Knowledge-Engine-Id
+          in: header
+          required: false
+          description: The knowledge Engine id who's Smart Connector information you would like to have.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of Smart Connectors.
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SmartConnector'
+        '404':
+          description: If there are no Smart Connector for the given Knowledge-Engine-Id.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+        '500':
+          description: If a problem occurred.
+          content:
+            text/plain; charset=UTF-8:
+              schema:
+                type: string
+
+components:
+  schemas:
+    SmartConnector:
+      type: object
+      required: [knowledgeBaseId, knowledgeBaseName, knowledgeBaseDescription]
+      properties:
+        knowledgeBaseId:
+          type: string
+        knowledgeBaseName:
+          type: string
+        knowledgeBaseDescription:
+          type: string
+        leaseRenewalTime:
+          type: integer
+          minimum: 30
+          maximum: 3600
+          description: Include this property if you want to have your knowledge
+            base automatically unregistered when you don't renew your lease. Expiry
+            is checked periodically, so your knowledge base may actually be
+            valid for longer than the given time.
+    BindingSet:
+      type: array
+      items:
+        nullable: false # Enforced manually, but kept here nonetheles.
+        type: object
+        additionalProperties:
+          type: string
+    RecipientAndBindingSet:
+      type: object
+      required: [recipientSelector, bindingSet]
+      properties:
+        recipientSelector:
+          $ref: '#/components/schemas/RecipientSelector'
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    RecipientSelector:
+      type: object
+      properties:
+        "singleKnowledgeBase": 
+          type: string
+    KnowledgeInteractionBase:
+      type: object
+      required: [knowledgeInteractionType]
+      discriminator:
+        propertyName: knowledgeInteractionType
+        mapping:
+          AskKnowledgeInteraction: '#/components/schemas/AskKnowledgeInteraction'
+          AnswerKnowledgeInteraction: '#/components/schemas/AnswerKnowledgeInteraction'
+          PostKnowledgeInteraction: '#/components/schemas/PostKnowledgeInteraction'
+          ReactKnowledgeInteraction: '#/components/schemas/ReactKnowledgeInteraction'
+      properties:
+        knowledgeInteractionType:
+          type: string
+        communicativeAct:
+          $ref: '#/components/schemas/CommunicativeAct'
+        prefixes:
+          $ref: '#/components/schemas/Prefixes'
+    KnowledgeInteractionWithId:
+      allOf:
+        - anyOf:
+          - $ref: '#/components/schemas/AskKnowledgeInteraction'
+          - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
+          - $ref: '#/components/schemas/PostKnowledgeInteraction'
+          - $ref: '#/components/schemas/ReactKnowledgeInteraction'
+        - type: object
+          properties:
+            knowledgeInteractionId:
+              type: string
+    AskKnowledgeInteraction:
+      required: [graphPattern]
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
+        - type: object
+          properties:
+            graphPattern:
+              type: string
+    AnswerKnowledgeInteraction:
+      required: [graphPattern]
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
+        - type: object
+          properties:
+            graphPattern:
+              type: string
+    PostKnowledgeInteraction:
+      required: [argumentGraphPattern]
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
+        - type: object
+          properties:
+            argumentGraphPattern:
+              type: string
+            resultGraphPattern:
+              type: string
+    ReactKnowledgeInteraction:
+      required: [argumentGraphPattern]
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeInteractionBase'
+        - type: object
+          properties:
+            argumentGraphPattern:
+              type: string
+            resultGraphPattern:
+              type: string
+    CommunicativeAct:
+      type: object
+      required: [requiredPurposes, satisfiedPurposes]
+      properties:
+        requiredPurposes:
+          type: array
+          items:
+            type: string
+        satisfiedPurposes:
+          type: array
+          items:
+            type: string
+    AskResult:
+      type: object
+      required: [bindingSet, exchangeInfo]
+      properties:
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        exchangeInfo:
+          type: array
+          items:
+            $ref: '#/components/schemas/AskExchangeInfo'
+    PostResult:
+      type: object
+      required: [resultBindingSet, exchangeInfo]
+      properties:
+        resultBindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        exchangeInfo:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostExchangeInfo'
+    ExchangeInfo:
+      type: object
+      required: [initiator, knowledgeBaseId, knowledgeInteractionId, exchangeStart, exchangeEnd, status]
+      properties:
+        initiator:
+          type: string
+          enum:
+            - knowledgeBase
+            - reasoner
+        knowledgeBaseId:
+          type: string
+        knowledgeInteractionId:
+          type: string
+        exchangeStart:
+          type: string
+          format: date-time
+        exchangeEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+        failedMessage:
+          type: string
+    AskExchangeInfo:
+      allOf:
+        - $ref: '#/components/schemas/ExchangeInfo'
+        - type: object
+          properties:
+            bindingSet: 
+              $ref: '#/components/schemas/BindingSet'
+    PostExchangeInfo:
+      allOf:
+        - $ref: '#/components/schemas/ExchangeInfo'
+        - type: object
+          properties:
+            argumentBindingSet:
+              $ref: '#/components/schemas/BindingSet'
+            resultBindingSet:
+              $ref: '#/components/schemas/BindingSet'
+    HandleRequest:
+      type: object
+      properties:
+        knowledgeInteractionId:
+          type: string
+        handleRequestId:
+          type: integer
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        requestingKnowledgeBaseId:
+          type: string
+    HandleResponse:
+      type: object
+      required: [handleRequestId, bindingSet]
+      properties:
+        handleRequestId:
+          type: integer
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+    SmartConnectorLease:
+      type: object
+      properties:
+        knowledgeBaseId:
+          type: string
+        expires:
+          type: string
+          format: date-time
+    Prefixes:
+      type: object
+      additionalProperties:
+        type: string
+        pattern: url
+      description:
+        If you include a Prefixes object when registering a knowledge interaction,
+        you are allowed to use those prefixes in the graph pattern(s) that the 
+        knowledge interaction contains. Keep in mind that the prefixes can only
+        be used in your graph pattern during registration, and not within bindings.

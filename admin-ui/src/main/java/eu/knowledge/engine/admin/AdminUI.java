@@ -39,7 +39,7 @@ public class AdminUI implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
-	private static final int SLEEPTIME = 2;
+	private static final int SLEEPTIME = 5;
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
 	private volatile boolean connected = false;
@@ -47,6 +47,8 @@ public class AdminUI implements KnowledgeBase {
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private AskKnowledgeInteraction aKI;
 	private static AdminUI instance;
+
+	private Model model;
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
@@ -169,6 +171,7 @@ public class AdminUI implements KnowledgeBase {
 			// pattern and the bindings for its variables into a valid RDF Model.
 			Model model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
 			model.setNsPrefixes(AdminUI.this.prefixes);
+			setModel(model);
 
 //			LOG.info("{}", this.getRDF(model));
 
@@ -243,4 +246,11 @@ public class AdminUI implements KnowledgeBase {
 		this.future.cancel(true);
 	}
 
+	public Model getModel() {
+		return model;
+	}
+
+	public void setModel(Model model) {
+		this.model = model;
+	}
 }
