@@ -722,12 +722,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				suspend();
 			}
 		}, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS * 1000);
-		LOG.info("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.", this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
+		LOG.debug("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.", this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
 	}
 
 	private void cancelInactivityTimeout() {
 		if (this.inactivityTimer != null) {
-			LOG.info("inactivity timer is being canceled for {}.", this.knowledgeBaseId);
+			LOG.debug("inactivity timer is being canceled for {}.", this.knowledgeBaseId);
 			this.inactivityTimer.cancel();
 			this.inactivityTimer = null;
 		}
