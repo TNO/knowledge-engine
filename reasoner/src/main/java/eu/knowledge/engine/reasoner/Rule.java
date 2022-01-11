@@ -55,7 +55,7 @@ public class Rule {
 							newB.put(v, b.get(v));
 						} else {
 							throw new IllegalArgumentException(
-									"Not all variable in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
+									"Not all variables in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
 						}
 					}
 					newBS.add(newB);

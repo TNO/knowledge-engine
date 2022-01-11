@@ -30,7 +30,8 @@ public class BackwardTest {
 		// Initialize
 		reasoner = new KeReasoner();
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"a", "b"
@@ -43,7 +44,8 @@ public class BackwardTest {
 				}))));
 
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?e <type> <Sensor>"), new TriplePattern("?e <hasValInF> ?f"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?e <type> <Sensor>"), new TriplePattern("?e <hasValInF> ?f"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"e", "f"
@@ -56,15 +58,11 @@ public class BackwardTest {
 				}))));
 
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?k <type> <Sensor>"), new TriplePattern("?k <hasValInK> ?w"))),
-				new DataBindingSetHandler(new Table(new String[]{
-					"k", "y"
-				}, new String[] {
-						"<sensor5>,\"295.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
-						"<sensor6>,\"294.0\"^^<http://www.w3.org/2001/XMLSchema#float>"
-				}))
-		));
-		
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?k <type> <Sensor>"), new TriplePattern("?k <hasValInK> ?w"))),
+				new DataBindingSetHandler(new Table(new String[] { "k", "y" },
+						new String[] { "<sensor5>,\"295.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+								"<sensor6>,\"294.0\"^^<http://www.w3.org/2001/XMLSchema#float>" }))));
 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
@@ -77,7 +75,8 @@ public class BackwardTest {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float celcius = (Float) ((Node_Literal) b.get("y")).getLiteralValue();
-							bindings.append("z:" + convert(celcius) + ",x:" + FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
+							bindings.append("z:" + convert(celcius) + ",x:"
+									+ FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
@@ -91,8 +90,7 @@ public class BackwardTest {
 					}
 
 				}));
-		 
-		 
+
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInC> ?z"))), new BindingSetHandler() {
 
@@ -102,11 +100,10 @@ public class BackwardTest {
 						for (Binding b : bs) {
 							Float kelvin = (Float) (((Node_Literal) b.get("i")).getLiteralValue());
 							bindings.append("z:").append(convert(kelvin)).append(",x:")
-							.append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).
-								append("|");
+									.append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).append("|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
-						
+
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 						future.complete(bindingSet);
 						return future;
@@ -115,43 +112,37 @@ public class BackwardTest {
 					public float convert(float kelvin) {
 						return kelvin - 273;
 					}
-				}
-		));
-		
-		
-		 
+				}));
+
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?z"))), new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
-						
+
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float kelvin = (Float) b.get("i").getLiteralValue();
-							bindings.append("z:").append(convertK(kelvin)).append(",u:").
-								append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).append("|");
+							bindings.append("z:").append(convertK(kelvin)).append(",u:")
+									.append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).append("|");
 						}
-						
+
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
-						
+
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 						future.complete(bindingSet);
 						return future;
 
-                    }
-
+					}
 
 					public float convertK(float kelvin) {
 						return ((kelvin * 9) / 5) - 459;
 					}
-				}
-		));
-		
-		
-		 
+				}));
+
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"i", "j"
@@ -164,9 +155,8 @@ public class BackwardTest {
 						"<sensor2>,<bedroom>",
 						//@formatter:on
 				}))));
-		
-	}
 
+	}
 
 	@Test
 	public void testRequestNonExistingData() {
@@ -233,7 +223,7 @@ public class BackwardTest {
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
-             
+
 	}
 
 	@Test
@@ -427,38 +417,28 @@ public class BackwardTest {
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
 	}
 
-	/** 
-	@Test
-	public void testSendResultsFromOtherChildrenToNextChildren() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Sensor>"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-		objective.add(new TriplePattern("?p <inRoom> ?r"));
-
-		TaskBoard taskboard = new TaskBoard();
-
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
-		System.out.println(root);
-
-		// bindings
-		BindingSet bs = new BindingSet();
-		Binding binding2 = new Binding();
-		binding2.put("?r", "<livingroom>");
-		bs.add(binding2);
-
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
-		System.out.println(root);
-
-		System.out.println("bindings: " + bind);
-		assertTrue(!bind.isEmpty());
-	}
-	*/
+	/**
+	 * @Test public void testSendResultsFromOtherChildrenToNextChildren() { //
+	 *       Formulate objective Set<TriplePattern> objective = new HashSet<>();
+	 *       objective.add(new TriplePattern("?p <type> <Sensor>"));
+	 *       objective.add(new TriplePattern("?p <hasValInC> ?q"));
+	 *       objective.add(new TriplePattern("?p <inRoom> ?r"));
+	 * 
+	 *       TaskBoard taskboard = new TaskBoard();
+	 * 
+	 *       // Start reasoning ReasoningNode root =
+	 *       reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES,
+	 *       taskboard); System.out.println(root);
+	 * 
+	 *       // bindings BindingSet bs = new BindingSet(); Binding binding2 = new
+	 *       Binding(); binding2.put("?r", "<livingroom>"); bs.add(binding2);
+	 * 
+	 *       BindingSet bind; while ((bind = root.continueBackward(bs)) == null) {
+	 *       System.out.println(root); taskboard.executeScheduledTasks(); }
+	 *       System.out.println(root);
+	 * 
+	 *       System.out.println("bindings: " + bind); assertTrue(!bind.isEmpty()); }
+	 */
 
 	@Test
 	public void testAllTriples() {
