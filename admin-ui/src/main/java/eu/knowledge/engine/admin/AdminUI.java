@@ -149,11 +149,15 @@ public class AdminUI implements KnowledgeBase {
 					// execute actual *ask* and use previously defined Knowledge Interaction
 					CompletableFuture<AskResult> askFuture = AdminUI.this.sc.ask(AdminUI.this.aKI, new BindingSet());
 
-					LOG.info("test");
 					// when result available, we print the knowledge bases to the console.
 					askFuture.thenAccept(askResult -> {
 						try {
-							this.printKnowledgeBases(askResult);
+							// using the BindingSet#generateModel() helper method, we can combine the graph
+							// pattern and the bindings for its variables into a valid RDF Model.
+							AdminUI.this.model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
+							model.setNsPrefixes(AdminUI.this.prefixes);
+
+							this.printKnowledgeBases(model);
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}
@@ -165,15 +169,9 @@ public class AdminUI implements KnowledgeBase {
 
 		}
 
-		private void printKnowledgeBases(AskResult askResult) throws ParseException {
+		private void printKnowledgeBases(Model model) throws ParseException {
 
-			// using the BindingSet#generateModel() helper method, we can combine the graph
-			// pattern and the bindings for its variables into a valid RDF Model.
-			Model model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
-			model.setNsPrefixes(AdminUI.this.prefixes);
-			setModel(model);
-
-//			LOG.info("{}", this.getRDF(model));
+			//LOG.info("{}", AdminUI.this.getRDF(model));
 
 			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 			LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
