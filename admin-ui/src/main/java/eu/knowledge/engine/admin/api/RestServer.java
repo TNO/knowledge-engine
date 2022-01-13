@@ -1,6 +1,5 @@
 package eu.knowledge.engine.admin.api;
 
-import com.fasterxml.jackson.core.util.JacksonFeature;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -39,7 +38,7 @@ public class RestServer {
 		rc.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 		rc.property(ServerProperties.WADL_FEATURE_DISABLE, true);
 		rc.register(new CORSFilter());
-		rc.register(JacksonFeature.class);
+
 		rc.packages("eu.knowledge.engine.admin.api");
 		ServletContainer sc = new ServletContainer(rc);
 		ServletHolder jerseyServlet = new ServletHolder(sc);

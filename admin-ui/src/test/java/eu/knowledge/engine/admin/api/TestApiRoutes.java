@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.knowledge.engine.admin.AdminUI;
 import eu.knowledge.engine.smartconnector.api.*;
-import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
@@ -57,6 +56,8 @@ public class TestApiRoutes {
 		this.thread.start();
 		Thread.sleep(5000);
 	}
+
+	//todo: test with Knowledge directory
 
 	@Test
 	public void testMethodNotAllowed() throws IOException {
@@ -135,9 +136,9 @@ public class TestApiRoutes {
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-			KnowledgeEngineRuntimeConnectionDetails[] result = objectMapper.readValue(response.body(),
-					KnowledgeEngineRuntimeConnectionDetails[].class);
-			ArrayList<KnowledgeEngineRuntimeConnectionDetails> list = new ArrayList<KnowledgeEngineRuntimeConnectionDetails>();
+			eu.knowledge.engine.rest.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.rest.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.rest.model.SmartConnector> list = new ArrayList<eu.knowledge.engine.rest.model.SmartConnector>();
 			Collections.addAll(list, result);
 			assertNotNull(list);
 		} catch (IOException | InterruptedException | URISyntaxException e) {

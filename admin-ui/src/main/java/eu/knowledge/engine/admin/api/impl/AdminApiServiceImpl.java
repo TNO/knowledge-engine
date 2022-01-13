@@ -15,7 +15,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Set;
-import eu.knowledge.engine.rest.model.SmartConnector;
+import eu.knowledge.engine.admin.model.SmartConnector;
 
 @Path("/admin")
 public class AdminApiServiceImpl {
@@ -33,13 +33,11 @@ public class AdminApiServiceImpl {
 	//todo: Select smart connector or knowledge interactions based on Knowledge-Base-Id (re-use get route in SmartConnectorLifeCycleApiServiceImpl.java)
 	//todo: make route which only gets updated info since <timestamp> (for longpolling)
 	//todo: test if suitable for long polling
-	//@io.swagger.annotations.ApiOperation(value = "Get all available Knowledge Engine Runtimes and Smart Connectors in the network.", notes = "", response = KnowledgeEngineRuntimeConnectionDetails.class, responseContainer = "List", tags = {"smart connector life cycle",})
-	//@Path("{TKE_ID}/kbs/overview")
-	//TODO: create response = model.class return type of routes
+	//TODO: remove async response? See e.g., scKiGet(String knowledgeBaseId, SecurityContext
 
 	@GET
 	@Path("/sc/overview")
-	@Produces({"application/json; charset=UTF-8"})
+	@Produces({"application/json; charset=UTF-8",  "text/plain; charset=UTF-8"})
 	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {"admin UI API",})
 	@io.swagger.annotations.ApiResponses(value = {
 			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of smart connectors.", response = SmartConnector.class, responseContainer = "List"),
@@ -53,11 +51,13 @@ public class AdminApiServiceImpl {
 	) throws NotFoundException {
 		admin = AdminUI.newInstance(); //or start when init/start API route is called?
 		if (knowledgeBaseId == null) {
-			model = this.admin.getModel();
+			model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
 			if (model != null && !model.isEmpty()) {
 				Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
 
-				asyncResponse.resume(Response.ok().entity(convertToModel(kbs, model)).build());
+				SmartConnector[] responses = convertToModel(kbs, model);
+
+				asyncResponse.resume(Response.ok().entity(responses).build());
 
 				int i = 0;
 				for (Resource kbRes : kbs) {
@@ -76,18 +76,16 @@ public class AdminApiServiceImpl {
 				throw new NotFoundException();
 			}
 		}
-		//get smart connector belonging to KB with id knowledgeBaseId
 	}
 
 	//ADAPT THIS
-	private eu.knowledge.engine.rest.model.SmartConnector[] convertToModel(
+	private eu.knowledge.engine.admin.model.SmartConnector[] convertToModel(
 			Set<Resource> kbs, Model model) {
 		return kbs.stream().map((kbRes) -> {
-			return new eu.knowledge.engine.rest.model.SmartConnector()
+			return new eu.knowledge.engine.admin.model.SmartConnector()
 					.knowledgeBaseId(kbRes.toString())
 					.knowledgeBaseName(Util.getName(model, kbRes))
 					.knowledgeBaseDescription(Util.getDescription(model, kbRes));
-		}).toArray(eu.knowledge.engine.rest.model.SmartConnector[]::new);
+		}).toArray(eu.knowledge.engine.admin.model.SmartConnector[]::new);
 	}
-	//.leaseRenewalTime(1337)
 }

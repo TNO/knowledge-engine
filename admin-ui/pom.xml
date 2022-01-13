@@ -144,18 +144,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.12.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.12.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector-rest-server</artifactId>
 			<version>1.0.1-SNAPSHOT</version>
@@ -176,9 +164,9 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<packageName>eu.knowledge.engine.rest</packageName>
-							<apiPackage>eu.knowledge.engine.rest.api</apiPackage>
-							<modelPackage>eu.knowledge.engine.rest.model</modelPackage>
+							<packageName>eu.knowledge.engine.admin</packageName>
+							<apiPackage>eu.knowledge.engine.admin.api</apiPackage>
+							<modelPackage>eu.knowledge.engine.admin.model</modelPackage>
 							<inputSpec>${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
