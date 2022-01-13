@@ -15,6 +15,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Set;
+import eu.knowledge.engine.rest.model.SmartConnector;
 
 @Path("/admin")
 public class AdminApiServiceImpl {
@@ -38,10 +39,10 @@ public class AdminApiServiceImpl {
 
 	@GET
 	@Path("/sc/overview")
-	@Produces({"application/json; charset=UTF-8", "text/plain; charset=UTF-8"})
-	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = String.class, responseContainer = "List", tags = {"admin UI API",})
+	@Produces({"application/json; charset=UTF-8"})
+	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {"admin UI API",})
 	@io.swagger.annotations.ApiResponses(value = {
-			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of smart connectors.", response = String.class, responseContainer = "List"),
+			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of smart connectors.", response = SmartConnector.class, responseContainer = "List"),
 			@io.swagger.annotations.ApiResponse(code = 404, message = "If there are no smart connectors (at all, or given the knowledgeBaseId) .", response = String.class),
 			@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class)
 	})
