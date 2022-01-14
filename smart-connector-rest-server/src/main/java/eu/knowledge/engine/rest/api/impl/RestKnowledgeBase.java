@@ -703,12 +703,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return this.lease;
 	}
 
-	public void resetInactivityTimeout() {
+	public synchronized void resetInactivityTimeout() {
 		cancelInactivityTimeout();
 		setInactivityTimeout(true);
 	}
 
-	private void setInactivityTimeout(boolean overwrite) {
+	private synchronized void setInactivityTimeout(boolean overwrite) {
 		if (!overwrite && this.inactivityTimer != null) {
 			return;
 		}
@@ -725,7 +725,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		LOG.debug("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.", this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
 	}
 
-	private void cancelInactivityTimeout() {
+	private synchronized void cancelInactivityTimeout() {
 		if (this.inactivityTimer != null) {
 			LOG.debug("inactivity timer is being canceled for {}.", this.knowledgeBaseId);
 			this.inactivityTimer.cancel();
