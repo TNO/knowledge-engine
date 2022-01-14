@@ -49,6 +49,13 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 		this.result = result;
 	}
 
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
+			boolean anIsFullMatch) {
+		super(act, anIsMeta, anIsFullMatch);
+		this.argument = argument;
+		this.result = result;
+	}
+
 	/**
 	 * @return This {@link KnowledgeInteraction}'s argument {@link GraphPattern}. It
 	 *         can be seen as the argument of a function call.

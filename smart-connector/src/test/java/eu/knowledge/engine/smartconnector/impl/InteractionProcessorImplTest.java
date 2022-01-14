@@ -94,7 +94,7 @@ public class InteractionProcessorImplTest {
 
 		CompletableFuture<AskResult> future = this.interactionProcessor
 				.processAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
-						new URI("http://www.tno.nl/"), askInteraction, null, null, false), new RecipientSelector(), new BindingSet());
+						new URI("http://www.tno.nl/"), askInteraction, null, null), new RecipientSelector(), new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
 
@@ -133,7 +133,7 @@ public class InteractionProcessorImplTest {
 
 				KnowledgeInteractionInfo knowledgeInteractionInfo;
 				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/2"),
-						InteractionProcessorImplTest.this.knowledgeBaseId2, answerKnowledgeInteraction, false);
+						InteractionProcessorImplTest.this.knowledgeBaseId2, answerKnowledgeInteraction);
 
 				someKIs2.add(knowledgeInteractionInfo);
 				OtherKnowledgeBase other2 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId2,
@@ -146,7 +146,7 @@ public class InteractionProcessorImplTest {
 						new GraphPattern(InteractionProcessorImplTest.this.graphPattern3));
 
 				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/3"),
-						InteractionProcessorImplTest.this.knowledgeBaseId3, answerKnowledgeInteraction, false);
+						InteractionProcessorImplTest.this.knowledgeBaseId3, answerKnowledgeInteraction);
 
 				someKIs3.add(knowledgeInteractionInfo);
 				OtherKnowledgeBase other3 = new OtherKnowledgeBase(InteractionProcessorImplTest.this.knowledgeBaseId3,

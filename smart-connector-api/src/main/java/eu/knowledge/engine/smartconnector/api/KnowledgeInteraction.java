@@ -21,6 +21,10 @@ public abstract class KnowledgeInteraction {
 
 	private final boolean fullMatchOnly;
 
+	/**
+	 * {@code true} if this Knowledge Interaction is used for internal knowledge
+	 * engine communication.
+	 */
 	private final boolean isMeta;
 
 	/**

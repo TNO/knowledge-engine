@@ -213,9 +213,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 			LOG.trace("after ask metadata");
 			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
-//			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
-//			m.write(System.out, "turtle");
-//			System.out.println("-----------------------");
+			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
+			m.write(System.out, "turtle");
+			System.out.println("-----------------------");
 
 			for (MockedKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
