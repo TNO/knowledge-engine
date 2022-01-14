@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -321,7 +322,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		// model.write(sw, "turtle");
 		// this.LOG.trace("Incoming RDF: {}", sw.toString());
 
-		Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
+		
+		ResIterator listSubjectsWithProperty = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE);
+		Resource kb = listSubjectsWithProperty.next();
+		assert !listSubjectsWithProperty.hasNext();
 
 		String name = model.listObjectsOfProperty(kb, Vocab.HAS_NAME).next().asLiteral().getString();
 		String description = model.listObjectsOfProperty(kb, Vocab.HAS_DESCR).next().asLiteral().getString();
