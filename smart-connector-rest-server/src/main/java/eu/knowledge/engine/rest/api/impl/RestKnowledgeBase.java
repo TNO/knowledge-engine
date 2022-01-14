@@ -703,7 +703,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return this.lease;
 	}
 
-	public void resetInactivityTimeout() {
+	public synchronized void resetInactivityTimeout() {
 		cancelInactivityTimeout();
 		setInactivityTimeout(true);
 	}
