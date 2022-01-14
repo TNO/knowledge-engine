@@ -136,11 +136,12 @@ public class TestApiRoutes {
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-			eu.knowledge.engine.rest.model.SmartConnector[] result = objectMapper.readValue(response.body(),
-					eu.knowledge.engine.rest.model.SmartConnector[].class);
-			ArrayList<eu.knowledge.engine.rest.model.SmartConnector> list = new ArrayList<eu.knowledge.engine.rest.model.SmartConnector>();
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
 			Collections.addAll(list, result);
 			assertNotNull(list);
+			assertEquals(list.size(), 2);
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
 			//return Collections.emptyList();
