@@ -43,7 +43,7 @@ public class TestApiRoutes {
 
 	@BeforeAll
 	public void setUpServer() throws InterruptedException {
-		admin = AdminUI.newInstance();
+		admin = AdminUI.newInstance(false);
 		httpClient = HttpClient.newBuilder().build();
 
 		var r = new Runnable(){
@@ -79,6 +79,25 @@ public class TestApiRoutes {
 
 		int responseCode = conn.getResponseCode();
 		assertEquals(405, responseCode);
+	}
+
+	@Test
+	public void testEmptyResult() throws IOException {
+		try {
+			stopKBs();
+			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
+			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			assertEquals(200, response.statusCode());
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertEquals(list, new ArrayList<>());
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+		}
 	}
 
 	@Test
@@ -142,18 +161,25 @@ public class TestApiRoutes {
 			Collections.addAll(list, result);
 			assertNotNull(list);
 			assertEquals(list.size(), 2);
+			assertEquals(200, response.statusCode());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
-			//return Collections.emptyList();
-			assertNotNull(Collections.emptyList());
 		}
-
-		//assertEquals(200, responseCode);
 	}
 
 	@AfterAll
 	public void cleanup() {
 		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
+
+		stopKBs();
+
+		if (admin != null) {
+			admin.close();
+		}
+		thread.interrupt();
+	}
+
+	public void stopKBs() {
 		if (kb1 != null) {
 			kb1.stop();
 		} else {
@@ -161,16 +187,11 @@ public class TestApiRoutes {
 		}
 
 		if (kb2 != null) {
-
 			kb2.stop();
 		} else {
 			fail("KB2 should not be null!");
 		}
 
-		if (admin != null) {
-			admin.close();
-		}
-		thread.interrupt();
 	}
 
 }

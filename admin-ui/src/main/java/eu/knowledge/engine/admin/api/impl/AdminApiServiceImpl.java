@@ -14,6 +14,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.ArrayList;
 import java.util.Set;
 import eu.knowledge.engine.admin.model.SmartConnector;
 
@@ -41,40 +42,21 @@ public class AdminApiServiceImpl {
 	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {"admin UI API",})
 	@io.swagger.annotations.ApiResponses(value = {
 			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of smart connectors.", response = SmartConnector.class, responseContainer = "List"),
-			@io.swagger.annotations.ApiResponse(code = 404, message = "If there are no smart connectors (at all, or given the knowledgeBaseId) .", response = String.class),
 			@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class)
 	})
 	public void getSCOverview(
-			@ApiParam(value = "The knowledgebase for which you want to retrieve the smart connector information.") @HeaderParam("Knowledge-base-Id") String knowledgeBaseId,
 			@Suspended final AsyncResponse asyncResponse,
 			@Context SecurityContext securityContext
 	) throws NotFoundException {
-		admin = AdminUI.newInstance(); //or start when init/start API route is called?
-		if (knowledgeBaseId == null) {
-			model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
-			if (model != null && !model.isEmpty()) {
-				Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
-
-				SmartConnector[] responses = convertToModel(kbs, model);
-
-				asyncResponse.resume(Response.ok().entity(responses).build());
-
-				int i = 0;
-				for (Resource kbRes : kbs) {
-					i++;
-
-					if (i > 1) {
-						LOG.info("");
-					}
-					LOG.info("Knowledge Base <{}>", kbRes);
-
-					LOG.info("\t* Name: {}", Util.getName(model, kbRes));
-					LOG.info("\t* Description: {}", Util.getDescription(model, kbRes));
-				}
-				return;
-			} else {
-				throw new NotFoundException();
-			}
+		admin = AdminUI.newInstance(false); //or start when init/start API route is called?
+		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
+		if (model != null && !model.isEmpty()) {
+			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
+			SmartConnector[] responses = convertToModel(kbs, model);
+			asyncResponse.resume(Response.ok().entity(responses).build());
+		} else {
+			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
+			throw new NotFoundException();
 		}
 	}
 
