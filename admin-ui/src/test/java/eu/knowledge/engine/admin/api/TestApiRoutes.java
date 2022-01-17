@@ -57,7 +57,8 @@ public class TestApiRoutes {
 		Thread.sleep(5000);
 	}
 
-	//todo: test with Knowledge directory
+	//todo: test with Knowledge directory -> needs second server (TKE runtime) in new thread?
+	// see KnowledgeDirectoryConnectionManagerTest.java.testSuccess for
 
 	@Test
 	public void testMethodNotAllowed() throws IOException {
@@ -84,7 +85,7 @@ public class TestApiRoutes {
 	@Test
 	public void testEmptyResult() throws IOException {
 		try {
-			stopKBs();
+			stopKbs();
 			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
 			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
@@ -102,6 +103,40 @@ public class TestApiRoutes {
 
 	@Test
 	public void testSmartConnectorOverviewRoute() throws IOException, InterruptedException {
+		startKbs();
+
+		try {
+			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertNotNull(list);
+			assertEquals(list.size(), 2);
+			assertEquals(list.get(0).getKnowledgeInteractions().size(), 9);
+			assertEquals(200, response.statusCode());
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+		}
+	}
+
+	@AfterAll
+	public void cleanup() {
+		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
+
+		stopKbs();
+
+		if (admin != null) {
+			admin.close();
+		}
+		thread.interrupt();
+	}
+
+	public void startKbs() throws IOException, InterruptedException{
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -148,38 +183,9 @@ public class TestApiRoutes {
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
 		Thread.sleep(10000);
-
-		try {
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
-			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
-
-			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
-					eu.knowledge.engine.admin.model.SmartConnector[].class);
-			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
-			Collections.addAll(list, result);
-			assertNotNull(list);
-			assertEquals(list.size(), 2);
-			assertEquals(200, response.statusCode());
-		} catch (IOException | InterruptedException | URISyntaxException e) {
-			LOG.warn("Was not able to retrieve smart connectors", e);
-		}
 	}
 
-	@AfterAll
-	public void cleanup() {
-		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
-
-		stopKBs();
-
-		if (admin != null) {
-			admin.close();
-		}
-		thread.interrupt();
-	}
-
-	public void stopKBs() {
+	public void stopKbs() {
 		if (kb1 != null) {
 			kb1.stop();
 		} else {

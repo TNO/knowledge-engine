@@ -91,6 +91,8 @@ public class AdminApiServiceImpl {
 					rki.setResultGraphPattern(Util.getResult(model, kiRes));
 					ki = rki;
 				}
+				ki.knowledgeInteractionId(kiRes.getURI());
+				ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
 				knowledgeInteractions.add(ki);
 				//LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
 				//+ add name

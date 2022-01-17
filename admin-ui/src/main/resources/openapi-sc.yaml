@@ -84,12 +84,16 @@ components:
           PostKnowledgeInteraction: '#/components/schemas/PostKnowledgeInteraction'
           ReactKnowledgeInteraction: '#/components/schemas/ReactKnowledgeInteraction'
       properties:
+        knowledgeInteractionId:
+          type: string
         knowledgeInteractionType:
           type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
           $ref: '#/components/schemas/Prefixes'
+        isMeta:
+          type: string
     KnowledgeInteractionWithId:
       allOf:
         - anyOf:
