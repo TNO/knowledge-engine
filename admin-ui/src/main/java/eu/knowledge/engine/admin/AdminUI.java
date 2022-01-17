@@ -47,6 +47,7 @@ public class AdminUI implements KnowledgeBase {
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private AskKnowledgeInteraction aKI;
 	private static AdminUI instance;
+	private static boolean continuousLog = true;
 
 	private Model model;
 	/**
@@ -67,7 +68,8 @@ public class AdminUI implements KnowledgeBase {
 		// Interactions and starting the Ask job.
 	}
 
-	public static AdminUI newInstance() {
+	public static AdminUI newInstance(boolean useLog) {
+		continuousLog = useLog;
 		if (instance == null) {
 			instance = new AdminUI();
 		}
@@ -157,7 +159,7 @@ public class AdminUI implements KnowledgeBase {
 							AdminUI.this.model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
 							model.setNsPrefixes(AdminUI.this.prefixes);
 
-							this.printKnowledgeBases(model);
+							if (continuousLog) this.printKnowledgeBases(model);
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}

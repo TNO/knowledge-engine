@@ -3,38 +3,25 @@ info:
   title: Knowledge Engine Admin UI REST API
   
   description:
-    This API provides information on Knowledge Engine Runtimes, Smart Connectors, Knowledge Bases, and Knowledge
-    Interactions in an Knowledge Engine Network.
+    This API provides information on Knowledge Engine Runtimes (todo), Smart Connectors, Knowledge Bases, and Knowledge
+    Interactions in a Knowledge Engine Network.
   version: 1.0.1-SNAPSHOT
   
 paths:
   /admin/kb/overview:
     get:
-      summary: Either get all available Smart Connectors or a specific one if the Knowledge-Base-Id is provided
+      summary: Get the Smart Connectors, Knowledge Bases, and Knowledge Interactions in a Knowledge Engine Network.
       tags:
         - admin API
-      parameters:
-        - name: Knowledge-Engine-Id
-          in: header
-          required: false
-          description: The knowledge base id who's Smart Connector information you would like to have.
-          schema:
-            type: string
       responses:
         '200':
-          description: A list of Smart Connectors. It will have only a single element if the Knowledge-Base-Id was provided.
+          description: A list of Smart Connectors and their knowledge interactions.
           content:
             application/json; charset=UTF-8:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/SmartConnector'
-        '404':
-          description: If there are no Smart Connector for the given Knowledge-Engine-Id.
-          content:
-            text/plain; charset=UTF-8:
-              schema:
-                type: string
         '500':
           description: If a problem occurred.
           content:
@@ -62,6 +49,10 @@ components:
             base automatically unregistered when you don't renew your lease. Expiry
             is checked periodically, so your knowledge base may actually be
             valid for longer than the given time.
+        knowledgeInteractions:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeInteractionBase'
     BindingSet:
       type: array
       items:

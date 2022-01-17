@@ -2,6 +2,7 @@ package eu.knowledge.engine.admin.api.impl;
 
 import eu.knowledge.engine.admin.AdminUI;
 import eu.knowledge.engine.admin.Util;
+import eu.knowledge.engine.admin.model.*;
 import io.swagger.annotations.ApiParam;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -14,9 +15,12 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import eu.knowledge.engine.admin.model.SmartConnector;
+import java.util.stream.Collectors;
 
 @Path("/admin")
 public class AdminApiServiceImpl {
@@ -60,14 +64,42 @@ public class AdminApiServiceImpl {
 		}
 	}
 
-	//ADAPT THIS
 	private eu.knowledge.engine.admin.model.SmartConnector[] convertToModel(
 			Set<Resource> kbs, Model model) {
 		return kbs.stream().map((kbRes) -> {
+			Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
+			List<KnowledgeInteractionBase> knowledgeInteractions = new ArrayList<>();
+			for (Resource kiRes : kiResources) {
+				String type = Util.getKnowledgeInteractionType(model, kiRes);
+				KnowledgeInteractionBase ki = null;
+				if (type.equals("AskKnowledgeInteraction")) {
+					var aki = (AskKnowledgeInteraction) new AskKnowledgeInteraction().knowledgeInteractionType(type);
+					aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
+					ki = aki;
+				} else if (type.equals("AnswerKnowledgeInteraction")) {
+					var aki = (AnswerKnowledgeInteraction) new AnswerKnowledgeInteraction().knowledgeInteractionType(type);
+					aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
+					ki = aki;
+				} else if (type.equals("PostKnowledgeInteraction")) {
+					var pki = (PostKnowledgeInteraction) new PostKnowledgeInteraction().knowledgeInteractionType(type);
+					pki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
+					pki.setResultGraphPattern(Util.getResult(model, kiRes));
+					ki = pki;
+				} else if (type.equals("ReactKnowledgeInteraction")) {
+					var rki = (ReactKnowledgeInteraction) new ReactKnowledgeInteraction().knowledgeInteractionType(type);
+					rki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
+					rki.setResultGraphPattern(Util.getResult(model, kiRes));
+					ki = rki;
+				}
+				knowledgeInteractions.add(ki);
+				//LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
+				//+ add name
+			}
 			return new eu.knowledge.engine.admin.model.SmartConnector()
 					.knowledgeBaseId(kbRes.toString())
 					.knowledgeBaseName(Util.getName(model, kbRes))
-					.knowledgeBaseDescription(Util.getDescription(model, kbRes));
+					.knowledgeBaseDescription(Util.getDescription(model, kbRes))
+					.knowledgeInteractions(knowledgeInteractions);
 		}).toArray(eu.knowledge.engine.admin.model.SmartConnector[]::new);
 	}
 }
