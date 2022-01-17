@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -43,7 +44,7 @@ public class ForwardTest {
 	private KeReasoner reasoner;
 
 	private Rule optionalRule;
-	
+
 	@Before
 	public void init() {
 		reasoner = new KeReasoner();
@@ -76,7 +77,6 @@ public class ForwardTest {
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <isParentOf> ?b"), new TriplePattern("?a <hasName> ?n"))),
 				aBindingSetHandler);
-		
 
 	}
 
@@ -87,9 +87,7 @@ public class ForwardTest {
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
-		reasoner.addRule(this.optionalRule);
-		
-		
+
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
@@ -124,7 +122,6 @@ public class ForwardTest {
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
 	}
 
-	
 	@Test
 	public void testDoNotHandleEmptyBindingSets() {
 
@@ -171,7 +168,6 @@ public class ForwardTest {
 		System.out.println("Result: none (expected)");
 	}
 
-//	@Ignore
 	@Test
 	public void testMultipleLeafs() {
 
@@ -224,7 +220,7 @@ public class ForwardTest {
 
 	@Test
 	public void testBackwardChainingDuringForwardChaining() {
-		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
+		TriplePattern tp = new TriplePattern("?x <isParentOf> ?z");
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
@@ -235,7 +231,7 @@ public class ForwardTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard /*null*/);
+		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard /* null */);
 
 		System.out.println(rn);
 
@@ -264,5 +260,117 @@ public class ForwardTest {
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
+	}
+
+	@Test
+	public void testNoBackwardChainingDuringForwardChainingIfFullMatch() {
+
+		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
+		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
+		reasoner.addRule(
+				new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+
+		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
+		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
+		Set<TriplePattern> premise = new HashSet<>();
+		premise.add(tp21);
+		premise.add(tp22);
+
+		TriplePattern tp31 = new TriplePattern("?s <hasMeasuredValue> ?v");
+		TriplePattern tp32 = new TriplePattern("?s <type> <Sensor>");
+		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
+				new DataBindingSetHandler(new Table(new String[] {
+				// @formatter:off
+						"s", "v"
+						// @formatter:on
+				}, new String[] {
+				// @formatter:off
+						"<sens1>,4", 
+						"<sens2>,5", 
+						"<sens3>,6"
+						// @formatter:on
+				}))));
+
+		TaskBoard taskboard = new TaskBoard();
+		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		System.out.println(rn);
+		BindingSet bs = new BindingSet();
+		bs.addAll(new Table(new String[] {
+				// @formatter:off
+				"sensor", "value"
+				// @formatter:on
+		}, new String[] {
+				// @formatter:off
+				"<sens1>,1"
+				// @formatter:on
+		}).getData());
+
+		while (!rn.continueForward(bs)) {
+			System.out.println(rn);
+			System.out.println(taskboard);
+			System.out.println();
+			taskboard.executeScheduledTasks();
+		}
+
+		System.out.println(aBindingSetHandler1.getBindingSet());
+		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
+		
+		assertEquals(1, aBindingSetHandler1.getBindingSet().size());
+	}
+	
+	@Test
+	public void testBackwardChainingDuringForwardChainingIfPartialMatch() {
+
+		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
+		TriplePattern tp13 = new TriplePattern("?sens <isInRoom> ?room");
+		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
+		reasoner.addRule(
+				new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), new HashSet<>(), aBindingSetHandler1));
+
+		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
+		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
+		Set<TriplePattern> premise = new HashSet<>();
+		premise.add(tp21);
+		premise.add(tp22);
+
+		TriplePattern tp31 = new TriplePattern("?s <isInRoom> ?r");
+		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
+				new DataBindingSetHandler(new Table(new String[] {
+				// @formatter:off
+						"s", "r"
+						// @formatter:on
+				}, new String[] {
+				// @formatter:off
+						"<sens1>,<room1>", 
+						"<sens2>,<room2>", 
+						"<sens3>,<room3>"
+						// @formatter:on
+				}))));
+
+		TaskBoard taskboard = new TaskBoard();
+		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		System.out.println(rn);
+		BindingSet bs = new BindingSet();
+		bs.addAll(new Table(new String[] {
+				// @formatter:off
+				"sensor", "value"
+				// @formatter:on
+		}, new String[] {
+				// @formatter:off
+				"<sens1>,1"
+				// @formatter:on
+		}).getData());
+
+		while (!rn.continueForward(bs)) {
+			System.out.println(rn);
+			System.out.println(taskboard);
+			System.out.println();
+			taskboard.executeScheduledTasks();
+		}
+
+		System.out.println(aBindingSetHandler1.getBindingSet());
+		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 	}
 }
