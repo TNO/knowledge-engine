@@ -3,6 +3,7 @@ package eu.knowledge.engine.admin;
 import java.util.HashSet;
 import java.util.Set;
 
+import eu.knowledge.engine.admin.model.CommunicativeAct;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -66,10 +67,28 @@ public class Util {
 	}
 
 	public static boolean isMeta(Model model, Resource kiRes) {
-
 		return kiRes.getProperty(model.createProperty(prefixes.expandPrefix("kb:isMeta"))).getObject().asLiteral()
 				.getBoolean();
+	}
 
+	public static CommunicativeAct getCommunicativeAct(Model model, Resource kiRes) {
+				Resource gpRes = kiRes
+						.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasCommunicativeAct")));
+		CommunicativeAct ca = new CommunicativeAct();
+		if (gpRes != null) {
+			StmtIterator reqIter = model.listStatements(gpRes, model.getProperty(prefixes.expandPrefix("kb:hasRequirement")),
+					(RDFNode) null);
+			while (reqIter.hasNext()) {
+				ca.addRequiredPurposesItem(reqIter.next().getObject().toString());
+			}
+			StmtIterator satIter = model.listStatements(gpRes, model.getProperty(prefixes.expandPrefix("kb:hasSatisfaction")),
+					(RDFNode) null);
+			while (satIter.hasNext()) {
+				ca.addRequiredPurposesItem(satIter.next().getObject().toString());
+			}
+
+		}
+		return ca;
 	}
 
 	public static String getGraphPattern(Model model, Resource kiRes) {
@@ -89,7 +108,6 @@ public class Util {
 	}
 
 	public static String getResult(Model model, Resource kiRes) {
-
 		Resource gpRes = kiRes
 				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasResultGraphPattern")));
 		if (gpRes != null) {

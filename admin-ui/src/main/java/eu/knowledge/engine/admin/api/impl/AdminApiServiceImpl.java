@@ -95,6 +95,8 @@ public class AdminApiServiceImpl {
 					}
 					ki.knowledgeInteractionId(kiRes.getURI());
 					ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
+					ki.setCommunicativeAct(Util.getCommunicativeAct(model, kiRes));
+
 					knowledgeInteractions.add(ki);
 				}
 			}
