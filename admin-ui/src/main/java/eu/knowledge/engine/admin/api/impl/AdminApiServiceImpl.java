@@ -15,12 +15,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Path("/admin")
 public class AdminApiServiceImpl {
@@ -33,12 +30,9 @@ public class AdminApiServiceImpl {
 
 	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response
 	//todo: add active=true|false (show historical SCs, even after lease is expired. Missing or lost SCs can also be valuable information.)
-	//todo: add registered knowledge interactions
 	//todo: add log with timestamps of all instances of knowledge interaction (in client/GUI we can show time since last interaction)
-	//todo: Select smart connector or knowledge interactions based on Knowledge-Base-Id (re-use get route in SmartConnectorLifeCycleApiServiceImpl.java)
 	//todo: make route which only gets updated info since <timestamp> (for longpolling)
-	//todo: test if suitable for long polling
-	//TODO: remove async response? See e.g., scKiGet(String knowledgeBaseId, SecurityContext
+	//TODO: remove async response. See e.g., scKiGet(String knowledgeBaseId, SecurityContext
 
 	@GET
 	@Path("/sc/all/{include-meta}")
@@ -61,7 +55,6 @@ public class AdminApiServiceImpl {
 			asyncResponse.resume(Response.ok().entity(responses).build());
 		} else {
 			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
-			throw new NotFoundException();
 		}
 	}
 
@@ -73,7 +66,7 @@ public class AdminApiServiceImpl {
 			for (Resource kiRes : kiResources) {
 				if (includeMeta || !Util.isMeta(model, kiRes)) {
 					String type = Util.getKnowledgeInteractionType(model, kiRes);
-					KnowledgeInteractionBase ki = null;
+					KnowledgeInteractionBase ki = new KnowledgeInteractionBase();
 					if (type.equals("AskKnowledgeInteraction")) {
 						var aki = (AskKnowledgeInteraction) new AskKnowledgeInteraction().knowledgeInteractionType(type);
 						aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
@@ -93,10 +86,9 @@ public class AdminApiServiceImpl {
 						rki.setResultGraphPattern(Util.getResult(model, kiRes));
 						ki = rki;
 					}
-					ki.knowledgeInteractionId(kiRes.getURI());
+					ki.setKnowledgeInteractionId(kiRes.getURI());
 					ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
 					ki.setCommunicativeAct(Util.getCommunicativeAct(model, kiRes));
-
 					knowledgeInteractions.add(ki);
 				}
 			}
