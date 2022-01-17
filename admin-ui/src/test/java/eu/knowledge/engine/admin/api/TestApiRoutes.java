@@ -62,7 +62,7 @@ public class TestApiRoutes {
 
 	@Test
 	public void testMethodNotAllowed() throws IOException {
-		URL url = new URL("http://localhost:8280/rest/admin/sc/overview");
+		URL url = new URL("http://localhost:8280/rest/admin/sc/all/false");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Content-Type", "application/json");
@@ -87,7 +87,7 @@ public class TestApiRoutes {
 		try {
 			stopKbs();
 			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
+			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			assertEquals(200, response.statusCode());
@@ -102,11 +102,11 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testSmartConnectorOverviewRoute() throws IOException, InterruptedException {
+	public void testSmartConnectorAllRoute() throws IOException, InterruptedException {
 		startKbs();
 
 		try {
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/overview");
+			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -116,8 +116,31 @@ public class TestApiRoutes {
 			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
 			Collections.addAll(list, result);
 			assertNotNull(list);
-			assertEquals(list.size(), 2);
-			assertEquals(list.get(0).getKnowledgeInteractions().size(), 9);
+			assertEquals(2, list.size());
+			assertEquals(9, list.get(0).getKnowledgeInteractions().size());
+			assertEquals(200, response.statusCode());
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+		}
+	}
+
+	@Test
+	public void testSmartConnectorAllRouteWithoutMetaData() throws IOException, InterruptedException {
+		startKbs();
+
+		try {
+			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/false");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertNotNull(list);
+			assertEquals(2, list.size());
+			assertEquals(1, list.get(0).getKnowledgeInteractions().size());
 			assertEquals(200, response.statusCode());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
@@ -137,11 +160,10 @@ public class TestApiRoutes {
 	}
 
 	public void startKbs() throws IOException, InterruptedException{
-
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
-
+		kb1 = null;
 		int wait = 2;
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
 
@@ -167,7 +189,7 @@ public class TestApiRoutes {
 		});
 
 		Thread.sleep(5000);
-
+		kb2 = null;
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
@@ -188,16 +210,10 @@ public class TestApiRoutes {
 	public void stopKbs() {
 		if (kb1 != null) {
 			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
 			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
 		}
-
 	}
-
 }

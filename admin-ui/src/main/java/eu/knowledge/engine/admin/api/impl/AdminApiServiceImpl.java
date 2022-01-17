@@ -41,7 +41,7 @@ public class AdminApiServiceImpl {
 	//TODO: remove async response? See e.g., scKiGet(String knowledgeBaseId, SecurityContext
 
 	@GET
-	@Path("/sc/overview")
+	@Path("/sc/all/{include-meta}")
 	@Produces({"application/json; charset=UTF-8",  "text/plain; charset=UTF-8"})
 	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {"admin UI API",})
 	@io.swagger.annotations.ApiResponses(value = {
@@ -49,6 +49,7 @@ public class AdminApiServiceImpl {
 			@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class)
 	})
 	public void getSCOverview(
+			@ApiParam(value = "Include Meta-Knowledge-Interactions.", defaultValue = "true") @PathParam("include-meta") boolean includeMeta,
 			@Suspended final AsyncResponse asyncResponse,
 			@Context SecurityContext securityContext
 	) throws NotFoundException {
@@ -56,7 +57,7 @@ public class AdminApiServiceImpl {
 		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
-			SmartConnector[] responses = convertToModel(kbs, model);
+			SmartConnector[] responses = convertToModel(kbs, model, includeMeta);
 			asyncResponse.resume(Response.ok().entity(responses).build());
 		} else {
 			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
@@ -65,37 +66,37 @@ public class AdminApiServiceImpl {
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] convertToModel(
-			Set<Resource> kbs, Model model) {
+			Set<Resource> kbs, Model model, boolean includeMeta) {
 		return kbs.stream().map((kbRes) -> {
 			Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
 			List<KnowledgeInteractionBase> knowledgeInteractions = new ArrayList<>();
 			for (Resource kiRes : kiResources) {
-				String type = Util.getKnowledgeInteractionType(model, kiRes);
-				KnowledgeInteractionBase ki = null;
-				if (type.equals("AskKnowledgeInteraction")) {
-					var aki = (AskKnowledgeInteraction) new AskKnowledgeInteraction().knowledgeInteractionType(type);
-					aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
-					ki = aki;
-				} else if (type.equals("AnswerKnowledgeInteraction")) {
-					var aki = (AnswerKnowledgeInteraction) new AnswerKnowledgeInteraction().knowledgeInteractionType(type);
-					aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
-					ki = aki;
-				} else if (type.equals("PostKnowledgeInteraction")) {
-					var pki = (PostKnowledgeInteraction) new PostKnowledgeInteraction().knowledgeInteractionType(type);
-					pki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
-					pki.setResultGraphPattern(Util.getResult(model, kiRes));
-					ki = pki;
-				} else if (type.equals("ReactKnowledgeInteraction")) {
-					var rki = (ReactKnowledgeInteraction) new ReactKnowledgeInteraction().knowledgeInteractionType(type);
-					rki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
-					rki.setResultGraphPattern(Util.getResult(model, kiRes));
-					ki = rki;
+				if (includeMeta || !Util.isMeta(model, kiRes)) {
+					String type = Util.getKnowledgeInteractionType(model, kiRes);
+					KnowledgeInteractionBase ki = null;
+					if (type.equals("AskKnowledgeInteraction")) {
+						var aki = (AskKnowledgeInteraction) new AskKnowledgeInteraction().knowledgeInteractionType(type);
+						aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
+						ki = aki;
+					} else if (type.equals("AnswerKnowledgeInteraction")) {
+						var aki = (AnswerKnowledgeInteraction) new AnswerKnowledgeInteraction().knowledgeInteractionType(type);
+						aki.setGraphPattern(Util.getGraphPattern(model, kiRes));
+						ki = aki;
+					} else if (type.equals("PostKnowledgeInteraction")) {
+						var pki = (PostKnowledgeInteraction) new PostKnowledgeInteraction().knowledgeInteractionType(type);
+						pki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
+						pki.setResultGraphPattern(Util.getResult(model, kiRes));
+						ki = pki;
+					} else if (type.equals("ReactKnowledgeInteraction")) {
+						var rki = (ReactKnowledgeInteraction) new ReactKnowledgeInteraction().knowledgeInteractionType(type);
+						rki.setArgumentGraphPattern(Util.getArgument(model, kiRes));
+						rki.setResultGraphPattern(Util.getResult(model, kiRes));
+						ki = rki;
+					}
+					ki.knowledgeInteractionId(kiRes.getURI());
+					ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
+					knowledgeInteractions.add(ki);
 				}
-				ki.knowledgeInteractionId(kiRes.getURI());
-				ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
-				knowledgeInteractions.add(ki);
-				//LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
-				//+ add name
 			}
 			return new eu.knowledge.engine.admin.model.SmartConnector()
 					.knowledgeBaseId(kbRes.toString())

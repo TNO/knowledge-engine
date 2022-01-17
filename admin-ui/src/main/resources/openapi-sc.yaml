@@ -13,6 +13,13 @@ paths:
       summary: Get the Smart Connectors, Knowledge Bases, and Knowledge Interactions in a Knowledge Engine Network.
       tags:
         - admin API
+      parameters:
+        - name: include-meta
+          in: header
+          required: false
+          description: Include Meta-Knowledge-Interactions.
+          schema:
+            type: boolean
       responses:
         '200':
           description: A list of Smart Connectors and their knowledge interactions.
