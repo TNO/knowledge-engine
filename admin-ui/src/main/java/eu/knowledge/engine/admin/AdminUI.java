@@ -120,6 +120,9 @@ public class AdminUI implements KnowledgeBase {
 			"?gp rdf:type kb:GraphPattern .",
 			"?gp kb:hasPattern ?pattern ."
 		);
+		//todo: possibly add:
+		//"?s kb:hasEndpoint ?endpoint .",
+		//"?t kb:hasData ?data .",
 
 		// create the correct Knowledge Interaction
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
