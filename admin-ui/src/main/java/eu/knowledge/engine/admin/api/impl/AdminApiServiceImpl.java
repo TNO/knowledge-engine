@@ -28,11 +28,12 @@ public class AdminApiServiceImpl {
 
 	private Model model;
 
-	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response
+	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response - get from knowledge directory?!
 	//todo: add active=true|false (show historical SCs, even after lease is expired. Missing or lost SCs can also be valuable information.)
-	//todo: add log with timestamps of all instances of knowledge interaction (in client/GUI we can show time since last interaction)
-	//todo: make route which only gets updated info since <timestamp> (for longpolling)
-	//TODO: remove async response. See e.g., scKiGet(String knowledgeBaseId, SecurityContext
+	//todo: add actual knowledge interaction instances -> make "shadow copies" of KI's? (with meta flag for filtering out in front-end admin UI's)
+	//todo: add log with timestamps of all instances of knowledge interactions (in client/GUI we can show time since last interaction)
+	//todo: make route which only provides updated information since <timestamp> (for longpolling)
+	//todo: remove async response. See e.g., scKiGet(String knowledgeBaseId, SecurityContext
 
 	@GET
 	@Path("/sc/all/{include-meta}")
