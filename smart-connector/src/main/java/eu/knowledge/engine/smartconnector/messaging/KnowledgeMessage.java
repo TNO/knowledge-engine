@@ -11,13 +11,26 @@ public abstract class KnowledgeMessage {
 	protected URI toKnowledgeBase;
 	protected URI toKnowledgeInteraction;
 
+	// TODO: Remove this once we use {@link ErrorMessage}.
+	private final String failedMessage;
+
 	protected KnowledgeMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction) {
 		this(UUID.randomUUID(), fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
 	}
 
+	protected KnowledgeMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, String aFailedMessage) {
+		this(UUID.randomUUID(), fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, aFailedMessage);
+	}
+
 	protected KnowledgeMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction) {
+		this(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, null);
+	}
+
+	protected KnowledgeMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, String aFailedMessage) {
 		this.messageId = messageId;
 		this.fromKnowledgeBase = fromKnowledgeBase;
 		this.fromKnowledgeInteraction = fromKnowledgeInteraction;
@@ -37,6 +50,8 @@ public abstract class KnowledgeMessage {
 		if (toKnowledgeInteraction == null) {
 			throw new IllegalArgumentException("toKnowledgeInteraction cannot be null");
 		}
+
+		this.failedMessage = aFailedMessage;
 	}
 
 	public UUID getMessageId() {
@@ -57,6 +72,11 @@ public abstract class KnowledgeMessage {
 
 	public URI getToKnowledgeInteraction() {
 		return toKnowledgeInteraction;
+	}
+
+	// TODO: Remove this once we use {@link ErrorMessage}.
+	public String getFailedMessage() {
+		return this.failedMessage;
 	}
 
 }

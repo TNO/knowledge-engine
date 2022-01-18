@@ -15,17 +15,32 @@ public class AnswerMessage extends KnowledgeMessage {
 	private final BindingSet bindingSet;
 
 	public AnswerMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, UUID replyToAskMessage, BindingSet bindings, String aFailedMessage) {
+		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, aFailedMessage);
+		this.replyToAskMessage = replyToAskMessage;
+		this.bindingSet = bindings;
+	}
+
+	public AnswerMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, UUID replyToAskMessage, BindingSet bindings) {
-		super(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
+		this(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, replyToAskMessage, bindings, null);
+	}
+
+	public AnswerMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, UUID replyToAskMessage, BindingSet bindings, String aFailedMessage) {
+		super(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, aFailedMessage);
 		this.replyToAskMessage = replyToAskMessage;
 		this.bindingSet = bindings;
 	}
 
 	public AnswerMessage(UUID messageId, URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
 			URI toKnowledgeInteraction, UUID replyToAskMessage, BindingSet bindings) {
-		super(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction);
-		this.replyToAskMessage = replyToAskMessage;
-		this.bindingSet = bindings;
+		this(messageId, fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, replyToAskMessage, bindings, null);
+	}
+
+	public AnswerMessage(URI fromKnowledgeBase, URI fromKnowledgeInteraction, URI toKnowledgeBase,
+			URI toKnowledgeInteraction, UUID replyToAskMessage, String aFailedMessage) {
+		this(fromKnowledgeBase, fromKnowledgeInteraction, toKnowledgeBase, toKnowledgeInteraction, replyToAskMessage, new BindingSet(), aFailedMessage);
 	}
 
 	public UUID getReplyToAskMessage() {

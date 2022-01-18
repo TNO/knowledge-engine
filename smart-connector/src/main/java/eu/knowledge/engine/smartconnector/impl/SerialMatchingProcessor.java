@@ -189,18 +189,30 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	}
 
 	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage) {
+		Status status = Status.SUCCEEDED;
+		String failedMessage = aMessage.getFailedMessage();
+
+		if (failedMessage != null) {
+			status = Status.FAILED;
+		}
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
-				Status.SUCCEEDED, null);
+				status, failedMessage);
 	}
 
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
 			BindingSet someConvertedResultBindings, ReactMessage aMessage) {
+		Status status = Status.SUCCEEDED;
+		String failedMessage = aMessage.getFailedMessage();
 
+		if (failedMessage != null) {
+			status = Status.FAILED;
+		}
+	
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
-				this.previousSend, Instant.now(), Status.SUCCEEDED, null);
+				this.previousSend, Instant.now(), status, failedMessage);
 	}
 
 	private boolean matches(GraphPattern gp1, GraphPattern gp2) {
