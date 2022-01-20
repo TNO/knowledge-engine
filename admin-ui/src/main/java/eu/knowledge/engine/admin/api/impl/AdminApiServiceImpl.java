@@ -48,7 +48,7 @@ public class AdminApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse,
 			@Context SecurityContext securityContext
 	) throws NotFoundException {
-		admin = AdminUI.newInstance(false); //or start when init/start API route is called?
+		admin = AdminUI.newInstance(false);
 		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);

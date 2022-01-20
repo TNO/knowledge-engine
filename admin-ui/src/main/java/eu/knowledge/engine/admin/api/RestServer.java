@@ -48,7 +48,7 @@ public class RestServer {
 
 		try {
 			server.start();
-			AdminUI.newInstance(true);
+			AdminUI.newInstance(false);
 			server.join();
 		} catch (Exception ex) {
 			LOG.error("{}", ex);
