@@ -1,5 +1,8 @@
 package eu.knowledge.engine.reasoner.api;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -132,9 +135,13 @@ public class MatchTest {
 
 	@Test
 	public void testGPMatcher7() {
+		TriplePattern t1 = new TriplePattern("?ki <type> ?kiType");
 		TriplePattern t2 = new TriplePattern("?act <type> <CommunicativeAct>");
 		TriplePattern t3 = new TriplePattern("?act <hasSatisfaction> ?sat");
+		TriplePattern t4 = new TriplePattern("?sat <type> ?satType");
+		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
 		TriplePattern t6 = new TriplePattern("?kb <hasDescription> ?description");
+		TriplePattern t7 = new TriplePattern("?req <type> ?reqType");
 		TriplePattern t8 = new TriplePattern("?ki <hasCommunicativeAct> ?act");
 		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
 		TriplePattern t10 = new TriplePattern("?act <hasRequirement> ?req");
@@ -144,16 +151,19 @@ public class MatchTest {
 		TriplePattern t14 = new TriplePattern("?kb <hasKnowledgeInteraction> ?ki");
 		TriplePattern t15 = new TriplePattern("?ki <hasGraphPattern> ?gp");
 		TriplePattern t16 = new TriplePattern("?kb <type> <KnowledgeBase>");
-		Set<TriplePattern> obj = new HashSet<>(
-				Arrays.asList(t2, t3, t6, t8, t9, t10, t11, t12, t13, t14, t15, t16 /* , t17, t18 */));
 
-		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(t13, t16));
+		Set<TriplePattern> obj = new HashSet<>(
+				Arrays.asList(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
 
 		Rule r = new Rule(null, obj);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 		System.out.println("Size: " + findMatchesWithConsequent.size());
-//		System.out.println(findMatchesWithConsequent);
+
+		for (Match m : findMatchesWithConsequent) {
+			System.out.println(m.getMappings());
+		}
+
 	}
 
 	@Test
@@ -232,4 +242,157 @@ public class MatchTest {
 		System.out.println("Match: " + m6);
 	}
 
+	@Test
+	public void testGPMatcher10OrderingWithinGraphPatternsShouldNotMatter() {
+		TriplePattern t1 = new TriplePattern("?ki <type> ?kiType");
+		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
+
+		TriplePattern t23 = new TriplePattern("?ki <type> ?kiType");
+		TriplePattern t24 = new TriplePattern("?gp <hasPattern> ?pattern");
+		TriplePattern t211 = new TriplePattern("?ki ?patternType ?gp");
+
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t5, t9));
+
+		Set<TriplePattern> obj2 = new HashSet<>(Arrays.asList(t23, t24, t211));
+
+		Rule r = new Rule(null, obj);
+		Rule r2 = new Rule(null, obj2);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+
+		System.out.println("Size 1: " + findMatchesWithConsequent.size());
+		System.out.println(findMatchesWithConsequent);
+		System.out.println("Size 2: " + findMatchesWithConsequent2.size());
+		System.out.println(findMatchesWithConsequent2);
+
+		assertTrue(findMatchesWithConsequent.size() == findMatchesWithConsequent2.size());
+
+		for (Match m : findMatchesWithConsequent) {
+			System.out.println(m.getMappings());
+		}
+
+	}
+
+	@Test
+	public void testGPMatcher11VariableNamesMatter() {
+		TriplePattern t1 = new TriplePattern("?ki <type> ?kiType");
+		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
+
+		TriplePattern t23 = new TriplePattern("?ki <type> ?kiType");
+		TriplePattern t24 = new TriplePattern("?gp <hasPattern> ?pattern");
+		TriplePattern t211 = new TriplePattern("?ki ?patternType ?gp");
+
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t5, t9));
+
+		Set<TriplePattern> obj2 = new HashSet<>(Arrays.asList(t23, t24, t211));
+
+		Rule r = new Rule(null, obj);
+		Rule r2 = new Rule(null, obj2);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+
+		System.out.println("Size 1: " + findMatchesWithConsequent.size());
+		System.out.println(findMatchesWithConsequent);
+		System.out.println("Size 2: " + findMatchesWithConsequent2.size());
+		System.out.println(findMatchesWithConsequent2);
+
+		assertTrue(findMatchesWithConsequent.size() == findMatchesWithConsequent2.size());
+
+		for (Match m : findMatchesWithConsequent) {
+			System.out.println(m.getMappings());
+		}
+
+	}
+
+	@Test
+	public void testGPMatcher12() {
+		TriplePattern t1 = new TriplePattern("?a ?b ?c");
+		TriplePattern t5 = new TriplePattern("?d ?e ?f");
+		TriplePattern t9 = new TriplePattern("?g ?h ?i");
+		TriplePattern t8 = new TriplePattern("?x ?y ?z");
+		TriplePattern t7 = new TriplePattern("?u ?w ?v");
+		TriplePattern t6 = new TriplePattern("?j ?k ?l");
+		TriplePattern t4 = new TriplePattern("?m ?n ?o");
+		TriplePattern t3 = new TriplePattern("?p ?q ?r");
+
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/* */t1, t5, t9,t8, t7, t6, t4, t3));
+
+		Rule r = new Rule(null, obj);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(/* */t1,t5, t9, t8, t7, t6, t4, t3)),
+				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+
+		System.out.println("Size: " + findMatchesWithConsequent.size());
+//		System.out.println(findMatchesWithConsequent);
+
+		int count = 0;
+		for (Match m : findMatchesWithConsequent) {
+//			System.out.println(m.getMatchingPatterns());
+
+			if (m.getMatchingPatterns().size() == 3) {
+				count++;
+			}
+		}
+//		System.out.println("Number of 3 size matches: " + count);
+
+	}
+
+	@Test
+	public void testEqualityOfMatches1() {
+		TriplePattern tp1 = new TriplePattern("?s <type> <Sensor>");
+		TriplePattern tp2 = new TriplePattern("?p <type> ?t");
+		Map<Node, Node> mapping1 = new HashMap<>();
+		mapping1.put(tp1.getSubject(), tp2.getSubject());
+		mapping1.put(tp1.getObject(), tp2.getObject());
+
+		Match m1 = new Match(tp1, tp2, mapping1);
+
+		Map<Node, Node> mapping2 = new HashMap<>();
+		mapping2.put(tp2.getSubject(), tp1.getSubject());
+		mapping2.put(tp2.getObject(), tp1.getObject());
+
+		Match m2 = new Match(tp2, tp1, mapping2);
+
+		assertTrue(m1.equals(m1));
+		assertTrue(m2.equals(m2));
+		assertFalse(m1.equals(m2));
+		assertFalse(m2.equals(m1));
+	}
+
+	@Test
+	public void testEqualityOfMatches2() {
+		TriplePattern tp11 = new TriplePattern("?s <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?s <hasVal> ?v");
+
+		TriplePattern tp21 = new TriplePattern("?p <type> ?t");
+		TriplePattern tp22 = new TriplePattern("?p <hasVal> ?val");
+
+		Map<Node, Node> mapping1 = new HashMap<>();
+		mapping1.put(tp11.getSubject(), tp21.getSubject());
+		mapping1.put(tp11.getObject(), tp21.getObject());
+		Match m1 = new Match(tp11, tp21, mapping1);
+
+		Map<Node, Node> mapping2 = new HashMap<>();
+		mapping2.put(tp12.getSubject(), tp22.getSubject());
+		mapping2.put(tp12.getObject(), tp22.getObject());
+		Match m2 = new Match(tp12, tp22, mapping2);
+
+		assertTrue(m1.equals(m1));
+		assertTrue(m2.equals(m2));
+		assertFalse(m1.equals(m1.inverse()));
+		assertFalse(m2.equals(m2.inverse()));
+
+		assertFalse(m1.equals(m2));
+		assertFalse(m2.equals(m1));
+
+		assertTrue(m1.merge(m2).equals(m2.merge(m1)));
+		assertTrue(m1.merge(m2).inverse().equals(m2.merge(m1).inverse()));
+		assertFalse(m1.merge(m2).equals(m2.merge(m1).inverse()));
+		assertFalse(m1.merge(m2).inverse().equals(m2.merge(m1)));
+
+	}
 }

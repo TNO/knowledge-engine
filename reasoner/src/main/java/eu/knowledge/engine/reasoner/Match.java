@@ -46,7 +46,6 @@ public class Match {
 		Map<Node, Node> newMapping = new HashMap<>();
 		newMapping.putAll(someMapping);
 		this.mapping = Collections.unmodifiableMap(someMapping);
-
 	}
 
 	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<Node, Node> someMapping) {
@@ -57,7 +56,9 @@ public class Match {
 	/**
 	 * Only merges if they are not conflicting. Conflicts arise if the mapping
 	 * conflicts or the matching patterns conflict (i.e. matching multiple times to
-	 * or from the same triple)
+	 * or from the same triple).
+	 * 
+	 * Note that merge is symmetric: {@code m1.merge(m2).equals(m2.merge(m1))}
 	 * 
 	 * @param otherMatch
 	 * @return a new consistently merged match, otherwise {@code null}.

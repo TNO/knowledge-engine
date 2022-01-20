@@ -1,5 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,11 +12,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
-
 import org.apache.jena.sparql.core.Var;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -110,10 +109,10 @@ public class Rule {
 
 		long start = System.currentTimeMillis();
 
-		// first find all triples in the consequent that match each triple in the
-		// antecedent
 		List<Match> allMatches = new LinkedList<>();
 
+		// first find all triples in the consequent that match each triple in the
+		// antecedent
 		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
 		Set<Match> findMatches;
 		for (TriplePattern anteTriple : aFirstPattern) {
@@ -127,59 +126,104 @@ public class Rule {
 		// a full match.
 		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
 				&& matchesPerTriple.keySet().size() < aFirstPattern.size())
-			return new HashSet<>(allMatches);
+			return new HashSet<>();
 
 		// next, correctly combine all found matches
+		List<Match> biggestMatches = new ArrayList<>();
+		List<Match> smallerMatches = new ArrayList<>();
 		Match mergedMatch = null;
 		Set<Match> matches = null;
-		List<Match> newMatches = null, removeMatches = null;
+		List<Match> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
+		Set<Integer> toBeDemotedMatchIndices = null;
 
 		Iterator<Map.Entry<TriplePattern, Set<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
 
 		// always add first matches
 		if (matchIter.hasNext()) {
-			allMatches.addAll(matchIter.next().getValue());
+			biggestMatches.addAll(matchIter.next().getValue());
 		}
 
 		while (matchIter.hasNext()) {
+
+			long innerStart = System.currentTimeMillis();
+
 			Map.Entry<TriplePattern, Set<Match>> entry = matchIter.next();
 
-			// keep a set of new matches, so we can add them at the end of this loop
-			newMatches = new LinkedList<>();
-			removeMatches = new LinkedList<>();
+			// keep a set of new/remove matches, so we can add/remove them at the end of
+			// this loop
+			toBeAddedToBiggestMatches = new ArrayList<>();
+			toBeAddedToSmallerMatches = new ArrayList<>();
+			toBeDemotedMatchIndices = new HashSet<>();
 
 			matches = entry.getValue();
 			assert matches != null;
 
 			for (Match m1 : matches) {
 				// check if we need to merge with existing matches
-
-				for (Match m2 : allMatches) {
+				boolean hasMerged = false;
+				// first check if m1 can be merged with any of the existing biggest matches.
+				for (int i = 0; i < biggestMatches.size(); i++) {
+					Match m2 = biggestMatches.get(i);
 					mergedMatch = m2.merge(m1);
 					if (mergedMatch != null) {
-						newMatches.add(mergedMatch);
-						removeMatches.add(m2);
+						hasMerged = true;
+						toBeAddedToBiggestMatches.add(mergedMatch);
+						toBeDemotedMatchIndices.add(i);
+					} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
+					{
+						toBeDemotedMatchIndices.add(i);
 					}
+				}
+
+				// then check if m1 can be merged with any of the existing smaller matches
+				if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+					for (Match m2 : smallerMatches) {
+						mergedMatch = m2.merge(m1);
+						if (mergedMatch != null) {
+							hasMerged = true;
+							toBeAddedToBiggestMatches.add(mergedMatch);
+						}
+					}
+				}
+
+				if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+					toBeAddedToBiggestMatches.add(m1);
+				} else {
+					toBeAddedToSmallerMatches.add(m1);
 				}
 			}
 
-			if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)
-					|| (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES) && newMatches.isEmpty())) {
-				newMatches.addAll(matches);
+			// remove all toBeDemotedMatches from the biggestMatches and add them to the
+			// smallerMatches.
+
+			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
+			Collections.sort(sortedList, Collections.reverseOrder());
+			for (int i : sortedList) {
+				smallerMatches.add(biggestMatches.get(i));
+				biggestMatches.remove(i);
 			}
 
-			if (!aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES))
-				allMatches.removeAll(removeMatches);
+			// add all toBeAddedMatches
+			biggestMatches.addAll(toBeAddedToBiggestMatches);
+			smallerMatches.addAll(toBeAddedToSmallerMatches);
 
-			allMatches.addAll(newMatches);
-
-			long end = System.currentTimeMillis();
-			newMatches = null;
-
+			long innerEnd = System.currentTimeMillis();
+			toBeAddedToBiggestMatches = null;
+			toBeDemotedMatchIndices = null;
+			toBeAddedToSmallerMatches = null;
 		}
-		assert allMatches != null;
+
+		assert biggestMatches != null;
 
 		long finalEnd = System.currentTimeMillis();
+
+		if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
+			allMatches.addAll(biggestMatches);
+			allMatches.addAll(smallerMatches);
+		} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)
+				|| aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+			allMatches.addAll(biggestMatches);
+		}
 
 		return new HashSet<>(allMatches);
 	}
