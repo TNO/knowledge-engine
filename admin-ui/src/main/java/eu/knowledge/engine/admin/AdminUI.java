@@ -54,7 +54,7 @@ public class AdminUI implements KnowledgeBase {
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
 	 */
-	public AdminUI() {
+	private AdminUI() {
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);

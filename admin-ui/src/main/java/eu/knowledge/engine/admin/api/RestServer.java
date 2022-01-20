@@ -1,5 +1,6 @@
 package eu.knowledge.engine.admin.api;
 
+import eu.knowledge.engine.admin.AdminUI;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -47,6 +48,7 @@ public class RestServer {
 
 		try {
 			server.start();
+			AdminUI.newInstance(true);
 			server.join();
 		} catch (Exception ex) {
 			LOG.error("{}", ex);
