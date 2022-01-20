@@ -83,8 +83,8 @@ public class Util {
 			}
 			StmtIterator satIter = model.listStatements(gpRes, model.getProperty(prefixes.expandPrefix("kb:hasSatisfaction")),
 					(RDFNode) null);
-			while (satIter.hasNext()) {
-				ca.addRequiredPurposesItem(satIter.next().getObject().toString());
+			while (satIter.hasNext()) {	
+				ca.addSatisfiedPurposesItem(satIter.next().getObject().toString());
 			}
 
 		}
