@@ -267,7 +267,7 @@ paths:
             type: string
       requestBody:
         required: true
-        description: Either a RecipientSelector and BindingSet or a BindingSet only. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys (i.e. variables) in the BindingSet are allowed to be incomplete, but they must correspond to the keys that were defined in the graph pattern of the knowledge interaction.
+        description: Either a BindingSet only or a RecipientSelector and BindingSet. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys (i.e. variables) in the BindingSet are allowed to be incomplete, but they must correspond to the keys that were defined in the graph pattern of the knowledge interaction.
         content:
           application/json; charset=UTF-8:
             schema:
@@ -336,7 +336,7 @@ paths:
             type: string
       requestBody:
         required: true
-        description: Either a RecipientSelector and BindingSet or a BindingSet only. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
+        description: Either a BindingSet only or a RecipientSelector and BindingSet. The recipient selector currently only supports a single Knowledge-Base-Id, but might be extended in the future. The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json; charset=UTF-8:
             schema:
