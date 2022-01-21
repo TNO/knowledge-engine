@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 
@@ -12,14 +13,14 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
-import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
 
 public class DistributedMessageDispatcherTest {
 
 	@Test
 	void testLocalMessageExchange() throws Exception {
+		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		MessageDispatcher md = new MessageDispatcher("localhost", 8081, "localhost", 8080);
+		MessageDispatcher md = new MessageDispatcher(8081, new URI("http://localhost:8081"), "localhost", 8080);
 
 		kd.start();
 
@@ -63,13 +64,15 @@ public class DistributedMessageDispatcherTest {
 
 		md.stop();
 		kd.stop();
+		assertTrue(NetUtils.portAvailable(8080));
 	}
 
 	@Test
 	void testRemoteMessageExchange() throws Exception {
+		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		MessageDispatcher md1 = new MessageDispatcher("localhost", 8081, "localhost", 8080);
-		MessageDispatcher md2 = new MessageDispatcher("localhost", 8082, "localhost", 8080);
+		MessageDispatcher md1 = new MessageDispatcher(8081, new URI("http://localhost:8081"), "localhost", 8080);
+		MessageDispatcher md2 = new MessageDispatcher(8082, new URI("http://localhost:8082"), "localhost", 8080);
 
 		kd.start();
 
@@ -116,5 +119,6 @@ public class DistributedMessageDispatcherTest {
 		md2.stop();
 
 		kd.stop();
+		assertTrue(NetUtils.portAvailable(8080));
 	}
 }
