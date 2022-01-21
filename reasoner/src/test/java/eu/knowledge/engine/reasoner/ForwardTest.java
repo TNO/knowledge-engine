@@ -127,7 +127,7 @@ public class ForwardTest {
 
 		TriplePattern tp = new TriplePattern("<barry> <isGrandParentOf> ?z");
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), new BindingSetHandler() {
+		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler() {
 
 			@Override
 			public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -138,7 +138,8 @@ public class ForwardTest {
 				return future;
 			}
 
-		}));
+		};
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
 
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
@@ -165,7 +166,8 @@ public class ForwardTest {
 			taskboard.executeScheduledTasks();
 		}
 
-		System.out.println("Result: none (expected)");
+		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
+		assertEquals(aBindingSetHandler.getBindingSet(), null);
 	}
 
 	@Test
@@ -268,8 +270,7 @@ public class ForwardTest {
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(
-				new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
 
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
@@ -315,10 +316,10 @@ public class ForwardTest {
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
-		
+
 		assertEquals(1, aBindingSetHandler1.getBindingSet().size());
 	}
-	
+
 	@Test
 	public void testBackwardChainingDuringForwardChainingIfPartialMatch() {
 
@@ -372,5 +373,7 @@ public class ForwardTest {
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
+		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
 	}
+
 }

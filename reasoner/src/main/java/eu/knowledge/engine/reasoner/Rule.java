@@ -169,8 +169,7 @@ public class Rule {
 						hasMerged = true;
 						toBeAddedToBiggestMatches.add(mergedMatch);
 						toBeDemotedMatchIndices.add(i);
-					} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES))
-					{
+					} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
 						toBeDemotedMatchIndices.add(i);
 					}
 				}
@@ -263,6 +262,43 @@ public class Rule {
 			vars.addAll(this.getVars(this.consequent));
 
 		return vars;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
+		result = prime * result + ((bindingSetHandler == null) ? 0 : bindingSetHandler.hashCode());
+		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Rule other = (Rule) obj;
+		if (antecedent == null) {
+			if (other.antecedent != null)
+				return false;
+		} else if (!antecedent.equals(other.antecedent))
+			return false;
+		if (bindingSetHandler == null) {
+			if (other.bindingSetHandler != null)
+				return false;
+		} else if (!bindingSetHandler.equals(other.bindingSetHandler))
+			return false;
+		if (consequent == null) {
+			if (other.consequent != null)
+				return false;
+		} else if (!consequent.equals(other.consequent))
+			return false;
+		return true;
 	}
 
 }

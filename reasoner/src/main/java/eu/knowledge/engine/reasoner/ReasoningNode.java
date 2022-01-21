@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,12 +168,12 @@ public class ReasoningNode {
 		this.taskboard = aTaskboard;
 
 		// determine whether our parent matches us partially
-		boolean ourAntecedentFullMatchesParentConsequent = false;
+		boolean ourAntecedentFullyMatchesParentConsequent = false;
 		if (!shouldPlanBackward && parent != null) {
-			ourAntecedentFullMatchesParentConsequent = antecedentFullyMatchesConsequent(this.rule.antecedent,
+			ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(this.rule.antecedent,
 					this.parent.getRule().consequent, aMatchStrategy);
 		}
-
+		
 		if (!shouldPlanBackward) {
 			// generate consequent neighbors
 			if (!this.rule.consequent.isEmpty()) {
@@ -210,14 +210,12 @@ public class ReasoningNode {
 				} else if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
 					// loop detected: reuse the reasoning node.
 					this.loopAntecdentNeighbors.put(someNode, entry.getValue());
-				} else {
+				} else if (shouldPlanBackward || !ourAntecedentFullyMatchesParentConsequent) {
+					// create a new neihgbor node
+					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy, true,
+							this.taskboard);
+					this.antecedentNeighbors.put(child, entry.getValue());
 
-					if (shouldPlanBackward || !ourAntecedentFullMatchesParentConsequent) {
-						// create a new neihgbor node
-						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy, true,
-								this.taskboard);
-						this.antecedentNeighbors.put(child, entry.getValue());
-					}
 				}
 			}
 		}
@@ -512,8 +510,7 @@ public class ReasoningNode {
 				}
 
 				// antecedent bindingset not yet available, we need to make sure it does.
-
-				// TODO process antecedent neighbors as well, since we might need them to get a
+				// process antecedent neighbors as well, since we might need them to get a
 				// full bindingset.
 
 				Set<ReasoningNode> someAntecedentNeighbors = this.antecedentNeighbors.keySet();
@@ -546,9 +543,8 @@ public class ReasoningNode {
 
 						if (neighborMatches.size() > 1) {
 							// the child matches in multiple ways, so we need to merge the bindingset with
-							// itself to combine all ways that it matches.
-							// TODO or do we want to translate per match and combine each translated
-							// bindingset per match with each other?
+							// itself to combine all ways that it matches or do we want to translate per
+							// match and combine each translated bindingset per match with each other?
 							convertedNeighborTripleVarBindingSet = convertedNeighborTripleVarBindingSet
 									.merge(convertedNeighborTripleVarBindingSet);
 						}
@@ -570,9 +566,8 @@ public class ReasoningNode {
 					// we moved the removal of incomplete bindings to just before adding them to the
 					// taskboard.
 					// previously it already happened in the parent node.
-
-					resultAntecedentBindings = keepOnlyFullGraphPatternBindings(
-							mergedTripleVarBindings.getGraphPattern(), mergedTripleVarBindings).toBindingSet();
+					resultAntecedentBindings = keepOnlyFullAndCompatibleGraphPatternBindings(
+							mergedTripleVarBindings.getGraphPattern(), mergedTripleVarBindings, antecedentPredefinedBindings).toBindingSet();
 				} else {
 					allFinished = false;
 				}
@@ -753,6 +748,46 @@ public class ReasoningNode {
 			}
 		}
 		return bs;
+	}
+
+	/**
+	 * This method not only removes any partial bindings, but also removes full
+	 * bindings that are incompatible with (i.e. do not incorporate) the incoming
+	 * bindingsSet of the forwardChaining method. This prevents the reasoner from
+	 * including all kind of data not coming from the rule that triggered the
+	 * reasoning action to be included in the bindingset.
+	 * 
+	 * @param graphPattern
+	 * @param someBindings
+	 * @return
+	 */
+	private TripleVarBindingSet keepOnlyFullAndCompatibleGraphPatternBindings(Set<TriplePattern> graphPattern,
+			TripleVarBindingSet someBindings, TripleVarBindingSet someIncomingBindings) {
+
+		TripleVarBindingSet bs = new TripleVarBindingSet(someBindings.getGraphPattern());
+		for (TripleVarBinding b : someBindings.getBindings()) {
+			if (isFullBinding(graphPattern, b) && isCompatible(b, someIncomingBindings)) {
+				bs.add(new TripleVarBinding(b));
+			}
+		}
+		return bs;
+	}
+
+	private boolean isCompatible(TripleVarBinding b, TripleVarBindingSet someIncomingBindings) {
+
+		Node_Concrete value;
+		for (TripleVarBinding tripleVarB : someIncomingBindings.getBindings()) {
+
+			boolean allAreAvailable = true;
+
+			for (TripleVar tv : tripleVarB.getTripleVars()) {
+				allAreAvailable &= ((value = b.get(tv)) != null && value.equals(tripleVarB.get(tv)));
+			}
+
+			if (allAreAvailable)
+				return true;
+		}
+		return false;
 	}
 
 	private boolean isFullBinding(Set<TriplePattern> graphPattern, TripleVarBinding b) {
