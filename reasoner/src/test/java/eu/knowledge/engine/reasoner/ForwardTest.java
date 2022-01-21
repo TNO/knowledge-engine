@@ -343,7 +343,7 @@ public class ForwardTest {
 						// @formatter:on
 				}, new String[] {
 				// @formatter:off
-						"<sens1>,<room1>", 
+						"<sens1>,<room1>",
 						"<sens2>,<room2>", 
 						"<sens3>,<room3>"
 						// @formatter:on

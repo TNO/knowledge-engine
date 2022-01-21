@@ -99,7 +99,7 @@ public class Rule {
 	 * @param aMatchStrategy
 	 * @return
 	 */
-	private Set<Match> matches(Set<TriplePattern> aFirstPattern, Set<TriplePattern> aSecondPattern,
+	public static Set<Match> matches(Set<TriplePattern> aFirstPattern, Set<TriplePattern> aSecondPattern,
 			MatchStrategy aMatchStrategy) {
 
 		assert aFirstPattern != null;
@@ -228,7 +228,7 @@ public class Rule {
 		return new HashSet<>(allMatches);
 	}
 
-	private Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
+	private static Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
 
 		assert consequent != null;
 		assert antecedent != null;

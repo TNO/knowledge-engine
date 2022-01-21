@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -167,37 +168,10 @@ public class ReasoningNode {
 		this.taskboard = aTaskboard;
 
 		// determine whether our parent matches us partially
-		boolean parentConsequentMatchesOurAntecedentPartially = false;
+		boolean ourAntecedentFullMatchesParentConsequent = false;
 		if (!shouldPlanBackward && parent != null) {
-			parentConsequentMatchesOurAntecedentPartially = !antecedentFullyMatchesConsequent(this.rule.antecedent,
-					this.parent.getRule().consequent);
-		}
-
-		// generate antecedent neighbors
-		// note that antecedent neighbors are also necessary in a forward scenario
-		if (!this.rule.antecedent.isEmpty()) {
-			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
-					this.matchStrategy);
-			ReasoningNode child;
-			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
-
-				// some infinite loop detection (see transitivity test)
-				ReasoningNode someNode;
-				if (this.parent != null && this.parent.getRule().equals(entry.getKey())) {
-					// skip our antecedent neighbor that triggered this node.
-				} else if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
-					// loop detected: reuse the reasoning node.
-					this.loopAntecdentNeighbors.put(someNode, entry.getValue());
-				} else {
-
-					if (shouldPlanBackward || parentConsequentMatchesOurAntecedentPartially) {
-						// create a new neihgbor node
-						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy, true,
-								this.taskboard);
-						this.antecedentNeighbors.put(child, entry.getValue());
-					}
-				}
-			}
+			ourAntecedentFullMatchesParentConsequent = antecedentFullyMatchesConsequent(this.rule.antecedent,
+					this.parent.getRule().consequent, aMatchStrategy);
 		}
 
 		if (!shouldPlanBackward) {
@@ -218,12 +192,39 @@ public class ReasoningNode {
 					}
 				}
 			}
+		}
 
+		// generate antecedent neighbors
+		// note that in some scenario's antecedent neighbors are also necessary in a
+		// forward scenario
+		if (!this.rule.antecedent.isEmpty()) {
+			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
+					this.matchStrategy);
+			ReasoningNode child;
+			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
+
+				// some infinite loop detection (see transitivity test)
+				ReasoningNode someNode;
+				if (this.parent != null && this.parent.getRule().equals(entry.getKey())) {
+					// skip our antecedent neighbor that triggered this node.
+				} else if ((someNode = this.ruleAlreadyOccurs(entry.getKey())) != null) {
+					// loop detected: reuse the reasoning node.
+					this.loopAntecdentNeighbors.put(someNode, entry.getValue());
+				} else {
+
+					if (shouldPlanBackward || !ourAntecedentFullMatchesParentConsequent) {
+						// create a new neihgbor node
+						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy, true,
+								this.taskboard);
+						this.antecedentNeighbors.put(child, entry.getValue());
+					}
+				}
+			}
 		}
 	}
 
 	/**
-	 * Checks whether the given consequent fully matches the given antecedent. Note
+	 * Checks whether the given antecedent fully matches the given consequent. Note
 	 * that if the antecedent is a subset of the consequent this method also return
 	 * true.
 	 * 
@@ -231,45 +232,35 @@ public class ReasoningNode {
 	 * @param antecedent
 	 * @return
 	 */
-	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent) {
+	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
+			MatchStrategy aMatchStrategy) {
+
+		assert !antecedent.isEmpty();
+		assert !consequent.isEmpty();
 
 		if (antecedent.size() > consequent.size())
 			return false;
 
-		boolean found;
-		Map<Node, Node> map;
-		for (TriplePattern anteTriple : antecedent) {
-			found = false;
-			for (TriplePattern conseTriple : consequent) {
-				map = anteTriple.findMatches(conseTriple);
-				if (map != null) {
-					found = true;
+		Set<Match> matches = Rule.matches(antecedent, consequent, aMatchStrategy);
+
+		for (Match m : matches) {
+			// check if there is a match that is full
+			boolean allFound = true;
+			for (TriplePattern tp : antecedent) {
+				boolean foundOne = false;
+				for (Map.Entry<TriplePattern, TriplePattern> entry : m.getMatchingPatterns().entrySet()) {
+					if (entry.getValue().findMatches(tp) != null) {
+						foundOne = true;
+					}
 				}
+				allFound &= foundOne;
 			}
 
-			if (!found)
-				return false;
-		}
-		return true;
-	}
-
-	private Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
-
-		assert consequent != null;
-		assert antecedent != null;
-		assert !consequent.isEmpty();
-
-		Set<Match> matchingTriplePatterns = new HashSet<>();
-		Map<Node, Node> map;
-		for (TriplePattern tp : consequent) {
-			map = antecedent.findMatches(tp);
-			if (map != null) {
-				matchingTriplePatterns.add(new Match(antecedent, tp, map));
-			}
+			if (allFound)
+				return true;
 		}
 
-		assert matchingTriplePatterns != null;
-		return matchingTriplePatterns;
+		return false;
 	}
 
 	/**

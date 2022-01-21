@@ -319,12 +319,12 @@ public class MatchTest {
 		TriplePattern t4 = new TriplePattern("?m ?n ?o");
 		TriplePattern t3 = new TriplePattern("?p ?q ?r");
 
-		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/* */t1, t5, t9,t8, t7, t6, t4, t3));
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/*t1,*/ t5, t9,t8, t7, t6, t4, t3));
 
 		Rule r = new Rule(null, obj);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(/* */t1,t5, t9, t8, t7, t6, t4, t3)),
-				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(/*t1,*/ t5, t9, t8, t7, t6, t4, t3)),
+				MatchStrategy.FIND_ALL_MATCHES);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 //		System.out.println(findMatchesWithConsequent);
