@@ -48,6 +48,7 @@ public class AdminUI implements KnowledgeBase {
 	private AskKnowledgeInteraction aKI;
 	private static AdminUI instance;
 	private static boolean continuousLog = true;
+	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
 
 	private Model model;
 	/**
@@ -79,7 +80,7 @@ public class AdminUI implements KnowledgeBase {
 	@Override
 	public URI getKnowledgeBaseId() {
 		try {
-			return new URI("https://www.tno.nl/energie/interconnect/adminui");
+			return new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
 			LOG.error("{}", e);
 			return null;
