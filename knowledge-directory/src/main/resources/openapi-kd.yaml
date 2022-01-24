@@ -135,16 +135,14 @@ components:
       properties:
         id:
           type: string
-        hostname:
+        exposedUrl:
           type: string
-        port:
-          type: integer
+          format: uri
         protocolVersion:
           type: string
         lastRenew:
           type: string
           format: date-time
       required:
-        - hostname
-        - port
+        - exposedUrl
         - protocolVersion

@@ -1,7 +1,10 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -18,16 +21,17 @@ public class KnowledgeDirectoryConnectionManagerTest {
 
 	@Test
 	public void testSuccess() throws Exception {
-
+		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		kd.start();
-
-		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
-
+		
+		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, new URI("http://localhost:8081"));
+		
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
-
+		
 		Thread.sleep(5000);
-
+		
+		assertFalse(NetUtils.portAvailable(8080));
 		cm.start();
 
 		Thread.sleep(1000);
@@ -36,8 +40,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = cm
 				.getKnowledgeEngineRuntimeConnectionDetails();
 		assertEquals(1, kerConnectionDetails.size());
-		assertEquals("localhost", kerConnectionDetails.get(0).getHostname());
-		assertEquals(8081, kerConnectionDetails.get(0).getPort());
+		assertEquals("http://localhost:8081", kerConnectionDetails.get(0).getExposedUrl().toString());
 		assertEquals(cm.getMyKnowledgeDirectoryId(), kerConnectionDetails.get(0).getId());
 
 		cm.stop();
@@ -47,12 +50,13 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		assertEquals(KnowledgeDirectoryConnection.State.STOPPED, cm.getState());
 
 		kd.stop();
+		assertTrue(NetUtils.portAvailable(8080));
 	}
 
 	@Test
 	public void testNoKd() throws Exception {
 
-		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
+		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection("localhost", 8080, new URI("http://localhost:8081"));
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
@@ -71,13 +75,13 @@ public class KnowledgeDirectoryConnectionManagerTest {
 
 	@Test
 	public void testInterrupted() throws Exception {
-
+		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectoryConnection cm = null;
 		KnowledgeDirectory kd = null;
 		kd = new KnowledgeDirectory(8080);
 		kd.start();
 
-		cm = new KnowledgeDirectoryConnection("localhost", 8080, "localhost", 8081);
+		cm = new KnowledgeDirectoryConnection("localhost", 8080, new URI("http://localhost:8081"));
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
@@ -103,6 +107,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		// Restart the KD (as far as we know now, it will retain the list of
 		// runtimes with their expirations, because it is restarted in the same JVM,
 		// and a static object is used...)
+		assertTrue(NetUtils.portAvailable(8080));
 		kd = new KnowledgeDirectory(8080);
 		kd.start();
 
@@ -123,6 +128,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 
 		assertEquals(KnowledgeDirectoryConnection.State.STOPPED, cm.getState());
 		kd.stop();
+		assertTrue(NetUtils.portAvailable(8080));
 	}
 
 }

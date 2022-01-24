@@ -3,11 +3,13 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +38,7 @@ public class KnowledgeDirectoryConnection {
 	private final static Logger LOG = org.slf4j.LoggerFactory.getLogger(KnowledgeDirectoryConnection.class);
 
 	private static final String PROTOCOL = "http";
-	private static final String PROTOCOL_VERSION = "0.1.1-SNAPSHOT";
+	private static final String PROTOCOL_VERSION = "1.0.0-SNAPSHOT";
 
 	public static enum State {
 		UNREGISTERED, REGISTERED, INTERRUPTED, STOPPING, STOPPED
@@ -48,17 +50,15 @@ public class KnowledgeDirectoryConnection {
 	private State currentState;
 	private final String kdHostname;
 	private final int kdPort;
-	private final String myHostname;
-	private final int myPort;
+	private final URI myExposedUrl;
 	private final Object lock = new Object();
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnection(String kdHostname, int kdPort, String myHostname, int myPort) {
+	public KnowledgeDirectoryConnection(String kdHostname, int kdPort, URI myExposedUrl) {
 		this.kdHostname = kdHostname;
 		this.kdPort = kdPort;
-		this.myHostname = myHostname;
-		this.myPort = myPort;
+		this.myExposedUrl = myExposedUrl;
 		this.currentState = State.UNREGISTERED;
 	}
 
@@ -168,8 +168,7 @@ public class KnowledgeDirectoryConnection {
 			throw new IllegalStateException("Can only register when NEW or INTERRUPTED");
 		}
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
-		ker.setHostname(myHostname);
-		ker.setPort(myPort);
+		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
 
 		try {
@@ -207,11 +206,16 @@ public class KnowledgeDirectoryConnection {
 	private void tryUnregister() {
 		if (this.currentState != State.STOPPING) {
 			throw new IllegalStateException("Can only unregister when STOPPING");
+		} else if (this.myId == null) {
+			// We haven't even been properly registered yet, so we can consider
+			// ourselves successfully stopped.
+			this.currentState = State.STOPPED;
+			return;
 		}
 
 		try {
 			HttpRequest registerRequest = HttpRequest
-					.newBuilder(new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/" + myId))
+					.newBuilder(new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/" + urlEncode(myId)))
 					.header("Content-Type", "application/json").DELETE().build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
@@ -222,7 +226,7 @@ public class KnowledgeDirectoryConnection {
 			} else if (statusCode == 404) {
 				// Not found, so we're not registered anymore, also fine
 				this.currentState = State.STOPPED;
-				LOG.info("Could not register at Knowledge Directory " + kdHostname + ":" + kdPort + ", response was: "
+				LOG.info("Could not unregister at Knowledge Directory " + kdHostname + ":" + kdPort + ", response was: "
 						+ response.body());
 			} else {
 				LOG.warn("Unknown status code {} while unregistering the KER", statusCode);
@@ -242,7 +246,7 @@ public class KnowledgeDirectoryConnection {
 		LOG.debug("Attempting a renew of the lease at Knowledge Directory " + kdHostname + ":" + kdPort);
 		try {
 			HttpRequest registerRequest = HttpRequest
-					.newBuilder(new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/" + myId + "/renew"))
+					.newBuilder(new URI(PROTOCOL + "://" + kdHostname + ":" + kdPort + "/ker/" + urlEncode(myId) + "/renew"))
 					.header("Content-Type", "application/json").POST(BodyPublishers.noBody()).build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
@@ -267,4 +271,7 @@ public class KnowledgeDirectoryConnection {
 
 	}
 
+	private String urlEncode(String urlParameter) {
+		return URLEncoder.encode(urlParameter, StandardCharsets.UTF_8);
+	}
 }
