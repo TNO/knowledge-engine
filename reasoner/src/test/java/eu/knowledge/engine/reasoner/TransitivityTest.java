@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
@@ -50,6 +51,7 @@ public class TransitivityTest {
 		reasoner.addRule(rule);
 	}
 
+	@Ignore
 	@Test
 	public void test() {
 		Set<TriplePattern> aGoal = new HashSet<>();
@@ -57,7 +59,7 @@ public class TransitivityTest {
 		TaskBoard taskboard = new TaskBoard();
 		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		BindingSet result = null;
-		
+
 		System.out.println(rn);
 		while ((result = rn.continueBackward(new BindingSet())) == null) {
 			System.out.println(rn);

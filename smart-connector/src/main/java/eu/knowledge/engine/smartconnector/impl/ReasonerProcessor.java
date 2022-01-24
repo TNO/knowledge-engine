@@ -2,6 +2,7 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -9,7 +10,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node_Concrete;
-import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -232,6 +232,23 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 	}
 
+	static class StoreBindingSetHandler implements BindingSetHandler {
+
+		private eu.knowledge.engine.reasoner.api.BindingSet b = null;
+
+		public StoreBindingSetHandler(eu.knowledge.engine.reasoner.api.BindingSet aB) {
+			this.b = aB;
+		}
+
+		@Override
+		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs) {
+			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> future = new CompletableFuture<>();
+			future.complete(this.b);
+			return future;
+		}
+	}
+
 	@Override
 	public CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI,
 			BindingSet someBindings) {
@@ -251,12 +268,19 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(), aBindingSetHandler));
 			}
 
-			this.node = this.reasoner.forwardPlan(translateGraphPatternTo(pki.getArgument()),
+			Set<TriplePattern> translatedGraphPattern = translateGraphPatternTo(pki.getArgument());
+
+			eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
+
+			reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
+					new StoreBindingSetHandler(translatedBindingSet)));
+
+			this.node = this.reasoner.forwardPlan(translatedGraphPattern,
 					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
 							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
 					this.taskBoard);
 
-			continueReasoningForward(translateBindingSetTo(someBindings), aBindingSetHandler);
+			continueReasoningForward(translatedBindingSet, aBindingSetHandler);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", aPKI.getType());
