@@ -28,7 +28,7 @@ public class RestServer {
 			}
 		}
 
-		LOG.info("Starting admin UI REST API on port {}.", port);
+		LOG.info("Starting admin UI RESTfull API on port {}.", port);
 		Server server = new Server(port);
 		System.setProperty("org.jboss.logging.provider", "slf4j");
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
