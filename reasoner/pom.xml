@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>reasoner</artifactId>
 	<name>Knowledge Engine - Reasoner</name>
