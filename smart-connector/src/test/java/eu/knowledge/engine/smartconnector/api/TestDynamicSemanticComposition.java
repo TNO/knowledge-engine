@@ -213,7 +213,7 @@ public class TestDynamicSemanticComposition {
 
 			//assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 			
-			LOG.info("After post!");
+			LOG.info("After post: " + result);
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}
