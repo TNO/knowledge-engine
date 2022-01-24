@@ -1,8 +1,10 @@
 package eu.knowledge.engine.reasoner.api;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -319,12 +321,12 @@ public class MatchTest {
 		TriplePattern t4 = new TriplePattern("?m ?n ?o");
 		TriplePattern t3 = new TriplePattern("?p ?q ?r");
 
-		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/*t1,*/ t5, t9,t8, t7, t6, t4, t3));
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3));
 
 		Rule r = new Rule(null, obj);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(/*t1,*/ t5, t9, t8, t7, t6, t4, t3)),
-				MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(
+				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.FIND_ALL_MATCHES);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -394,5 +396,61 @@ public class MatchTest {
 		assertFalse(m1.merge(m2).equals(m2.merge(m1).inverse()));
 		assertFalse(m1.merge(m2).inverse().equals(m2.merge(m1)));
 
+	}
+
+	@Test
+	public void testGPMatcherCardinalityTest() {
+
+		for (int gpSize = 1; gpSize < 9; gpSize++) {
+
+			TriplePattern[] graphPattern = new TriplePattern[gpSize];
+
+			for (int i = 0; i < gpSize; i++) {
+				graphPattern[i] = new TriplePattern("?a" + (i + 1) + " ?b" + (i + 1) + " ?c" + (i + 1));
+			}
+
+			Set<TriplePattern> obj = new HashSet<>(Arrays.asList(graphPattern));
+
+			Rule r = new Rule(null, obj);
+
+			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
+					MatchStrategy.FIND_ALL_MATCHES);
+
+			System.out.println("graph pattern size " + gpSize + " gives matches size "
+					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
+			assertEquals(findMatchesWithConsequent.size(), getNumberOfMatches(gpSize));
+		}
+	}
+
+	private long getNumberOfMatches(int graphPatternSize) {
+
+		int sum = 0;
+		for (int k = 1; k <= graphPatternSize; k++) {
+
+			sum += binomial(graphPatternSize, k).longValue()
+					* (factorial(BigInteger.valueOf(graphPatternSize)).longValue()
+							/ factorial(BigInteger.valueOf(graphPatternSize - k)).longValue());
+
+		}
+
+		return sum;
+	}
+
+	public static BigInteger factorial(BigInteger number) {
+		BigInteger result = BigInteger.valueOf(1);
+
+		for (long factor = 2; factor <= number.longValue(); factor++) {
+			result = result.multiply(BigInteger.valueOf(factor));
+		}
+
+		return result;
+	}
+
+	static BigInteger binomial(final int N, final int K) {
+		BigInteger ret = BigInteger.ONE;
+		for (int k = 0; k < K; k++) {
+			ret = ret.multiply(BigInteger.valueOf(N - k)).divide(BigInteger.valueOf(k + 1));
+		}
+		return ret;
 	}
 }

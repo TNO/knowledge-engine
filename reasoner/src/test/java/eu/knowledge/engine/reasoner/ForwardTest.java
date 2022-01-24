@@ -11,13 +11,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.jena.graph.Node_Literal;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.Util;
 
 public class ForwardTest {
 
@@ -45,6 +49,10 @@ public class ForwardTest {
 
 	private Rule optionalRule;
 
+	private Rule grandParentRule;
+
+	private Rule converterRule;
+
 	@Before
 	public void init() {
 		reasoner = new KeReasoner();
@@ -56,8 +64,7 @@ public class ForwardTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
-		Rule grandParent = new Rule(antecedent, consequent);
-		reasoner.addRule(grandParent);
+		grandParentRule = new Rule(antecedent, consequent);
 
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
@@ -78,6 +85,30 @@ public class ForwardTest {
 						Arrays.asList(new TriplePattern("?a <isParentOf> ?b"), new TriplePattern("?a <hasName> ?n"))),
 				aBindingSetHandler);
 
+		converterRule = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new BindingSetHandler() {
+
+					@Override
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
+						StringBuilder bindings = new StringBuilder();
+						for (Binding b : bs) {
+							Float celcius = (Float) ((Node_Literal) b.get("y")).getLiteralValue();
+							bindings.append("z:" + convert(celcius) + ",x:"
+									+ FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
+						}
+						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
+
+						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+						future.complete(bindingSet);
+						return future;
+					}
+
+					public float convert(float fahrenheit) {
+						return ((fahrenheit - 32) * 5) / 9;
+					}
+
+				});
+
 	}
 
 	@Test
@@ -87,7 +118,7 @@ public class ForwardTest {
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
-
+		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
@@ -140,7 +171,7 @@ public class ForwardTest {
 
 		};
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
-
+		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 		TaskBoard taskboard = new TaskBoard();
@@ -181,6 +212,7 @@ public class ForwardTest {
 		MyBindingSetHandler aBindingSetHandler2 = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp2)), new HashSet<>(), aBindingSetHandler2));
 		reasoner.addRule(this.optionalRule);
+		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aPremise = new HashSet<>();
 		aPremise.add(new TriplePattern("?x <isParentOf> ?y"));
 
@@ -228,6 +260,7 @@ public class ForwardTest {
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp, tp2)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(this.optionalRule);
+		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
@@ -271,7 +304,7 @@ public class ForwardTest {
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
-
+		reasoner.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
@@ -329,7 +362,7 @@ public class ForwardTest {
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		reasoner.addRule(
 				new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), new HashSet<>(), aBindingSetHandler1));
-
+		reasoner.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
@@ -374,6 +407,68 @@ public class ForwardTest {
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
+	}
+
+	@Test
+	public void testPublishedValuesShouldRemainAccessible() {
+
+		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?sens <hasValInC> ?value");
+		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+
+		reasoner.addRule(this.converterRule);
+
+		TriplePattern tp31 = new TriplePattern("?sensor <type> <Sensor>");
+		TriplePattern tp32 = new TriplePattern("?sensor <hasValInF> ?value");
+		Set<TriplePattern> premise = new HashSet<>();
+		premise.add(tp31);
+		premise.add(tp32);
+
+		class StoreBindingSetHandler implements BindingSetHandler {
+
+			private BindingSet b = null;
+
+			public StoreBindingSetHandler(BindingSet aB) {
+				this.b = aB;
+			}
+
+			@Override
+			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+				future.complete(this.b);
+				return future;
+			}
+		}
+
+		BindingSet bs = new BindingSet();
+		bs.addAll(new Table(new String[] {
+				// @formatter:off
+				"sensor", "value"
+				// @formatter:on
+		}, new String[] {
+				// @formatter:off
+				"<sens1>,\"69.0\"^^<http://www.w3.org/2001/XMLSchema#float>"
+				// @formatter:on
+		}).getData());
+		
+		reasoner.addRule(
+				new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)), new StoreBindingSetHandler(bs)));
+
+		TaskBoard aTaskboard = new TaskBoard();
+		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskboard);
+
+		System.out.println(rn);
+		while (!rn.continueForward(bs)) {
+			System.out.println(rn);
+			System.out.println(aTaskboard);
+			System.out.println();
+			aTaskboard.executeScheduledTasks();
+		}
+
+		System.out.println(aBindingSetHandler1.getBindingSet());
+
+		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
 	}
 
 }
