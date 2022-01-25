@@ -22,8 +22,10 @@ public class TaskBoard {
 	/**
 	 * Add the task to the list. TODO Currently, there is no aggregation of tasks
 	 * which we do typically want to happen here. We should find a structure in
-	 * which new tasks are merged with existing ones. The endresult of a task need
-	 * to split again before sending it back to the correct node.
+	 * which new tasks are merged with existing ones. The end result of a task need
+	 * to split again before sending it back to the correct node. Note that this
+	 * only seems to work for backward chaining and not for forward chaining (double
+	 * check).
 	 * 
 	 * @param aNode
 	 * @param aBindingSet
@@ -32,6 +34,13 @@ public class TaskBoard {
 		tasks.add(new Task(aNode, aBindingSet));
 	}
 
+	/**
+	 * Executes all tasks that are on the taskboard and returns a future that is
+	 * completed when all the tasks have been completed (i.e. a bindingset has been
+	 * returned by the bindingsethandlers).
+	 * 
+	 * @return
+	 */
 	public CompletableFuture<Void> executeScheduledTasks() {
 
 		CompletableFuture<BindingSet> resultingBindingSetFuture;
