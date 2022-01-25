@@ -8,16 +8,17 @@ info:
   version: 1.0.1-SNAPSHOT
   
 paths:
-  /admin/kb/overview:
+  /rest/admin/sc/all/{include-meta}:
     get:
       summary: Get the Smart Connectors, Knowledge Bases, and Knowledge Interactions in a Knowledge Engine Network.
       tags:
         - admin API
+      operationId: getAllSmartConnectors
       parameters:
         - name: include-meta
-          in: header
+          in: path
           required: false
-          description: Include Meta-Knowledge-Interactions.
+          description: Whether to include meta knowledge interactions.
           schema:
             type: boolean
       responses:
