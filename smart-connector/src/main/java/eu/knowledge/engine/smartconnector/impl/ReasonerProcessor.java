@@ -2,7 +2,6 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,11 +52,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
-	private Instant previousSend = null;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasoningNode node;
 	private TaskBoard taskBoard;
 
+	/**
+	 * The future returned to the caller of this class which keeps track of when all
+	 * the futures of outstanding messages are completed.
+	 */
 	private CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> finalBindingSetFuture;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
@@ -81,51 +83,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(
-						new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)), new BindingSetHandler() {
-
-							@Override
-							public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
-									eu.knowledge.engine.reasoner.api.BindingSet bs) {
-								CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
-								BindingSet newBS = translateBindingSetFrom(bs);
-
-								AskMessage askMessage = new AskMessage(
-										ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
-										ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
-										kii.getId(), newBS);
-
-								try {
-									CompletableFuture<AnswerMessage> sendAskMessage = ReasonerProcessor.this.messageRouter
-											.sendAskMessage(askMessage);
-									ReasonerProcessor.this.previousSend = Instant.now();
-
-									bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
-										LOG.error("A problem occurred while handling a bindingset.", t);
-										return null; // TODO when some error happens, what do we return?
-									}).thenApply((answerMessage) -> {
-										BindingSet resultBindingSet = null;
-										if (answerMessage != null)
-											resultBindingSet = answerMessage.getBindings();
-
-										if (resultBindingSet == null)
-											resultBindingSet = new BindingSet();
-
-										ReasonerProcessor.this.askExchangeInfos
-												.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage));
-
-										return translateBindingSetTo(resultBindingSet);
-									});
-
-								} catch (IOException e) {
-									LOG.error("No errors should occur while sending an AskMessage.", e);
-									bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-									bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
-								}
-								return bsFuture;
-							}
-
-						}));
+				reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
+						new AnswerBindingSetHandler(kii)));
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
 				GraphPattern argGp = rki.getArgument();
@@ -138,51 +97,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					resPattern = new HashSet<>(translateGraphPatternTo(resGp));
 				}
 
-				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern, new BindingSetHandler() {
-
-					@Override
-					public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
-							eu.knowledge.engine.reasoner.api.BindingSet bs) {
-
-						CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
-
-						BindingSet newBS = translateBindingSetFrom(bs);
-
-						PostMessage postMessage = new PostMessage(
-								ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
-								ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(),
-								kii.getId(), newBS);
-
-						try {
-							CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
-									.sendPostMessage(postMessage);
-							ReasonerProcessor.this.previousSend = Instant.now();
-							bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-								LOG.error("A problem occurred while handling a bindingset.", t);
-								return null; // TODO when some error happens, what do we return?
-							}).thenApply((reactMessage) -> {
-								BindingSet resultBindingSet = null;
-								if (reactMessage != null)
-									resultBindingSet = reactMessage.getResult();
-
-								if (resultBindingSet == null)
-									resultBindingSet = new BindingSet();
-
-								ReasonerProcessor.this.postExchangeInfos.add(
-										convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage));
-
-								return translateBindingSetTo(resultBindingSet);
-							});
-
-						} catch (IOException e) {
-							LOG.error("No errors should occur while sending an PostMessage.", e);
-							bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-							bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
-						}
-						return bsFuture;
-					}
-
-				}));
+				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
 			}
 
 		}
@@ -229,23 +144,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			});
 		} else {
 			this.finalBindingSetFuture.complete(bs);
-		}
-	}
-
-	static class StoreBindingSetHandler implements BindingSetHandler {
-
-		private eu.knowledge.engine.reasoner.api.BindingSet b = null;
-
-		public StoreBindingSetHandler(eu.knowledge.engine.reasoner.api.BindingSet aB) {
-			this.b = aB;
-		}
-
-		@Override
-		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
-				eu.knowledge.engine.reasoner.api.BindingSet bs) {
-			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> future = new CompletableFuture<>();
-			future.complete(this.b);
-			return future;
 		}
 	}
 
@@ -396,19 +294,149 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	}
 
-	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage) {
+	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage,
+			Instant aPreviousSend) {
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, aPreviousSend, Instant.now(),
 				Status.SUCCEEDED, null);
 	}
 
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
-			BindingSet someConvertedResultBindings, ReactMessage aMessage) {
+			BindingSet someConvertedResultBindings, ReactMessage aMessage, Instant aPreviousSend) {
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
-				this.previousSend, Instant.now(), Status.SUCCEEDED, null);
+				aPreviousSend, Instant.now(), Status.SUCCEEDED, null);
 	}
 
+	/**
+	 * A binding set handler to send an ask message to a particular knowledge base.
+	 * 
+	 * @author nouwtb
+	 *
+	 */
+	private class AnswerBindingSetHandler implements BindingSetHandler {
+
+		private KnowledgeInteractionInfo kii;
+
+		public AnswerBindingSetHandler(KnowledgeInteractionInfo aKii) {
+			this.kii = aKii;
+		}
+
+		@Override
+		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs) {
+			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
+			BindingSet newBS = translateBindingSetFrom(bs);
+
+			AskMessage askMessage = new AskMessage(ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+					ReasonerProcessor.this.myKnowledgeInteraction.getId(), this.kii.getKnowledgeBaseId(),
+					this.kii.getId(), newBS);
+
+			try {
+				CompletableFuture<AnswerMessage> sendAskMessage = ReasonerProcessor.this.messageRouter
+						.sendAskMessage(askMessage);
+				Instant aPreviousSend = Instant.now();
+
+				bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
+					LOG.error("A problem occurred while handling a bindingset.", t);
+					return null; // TODO when some error happens, what do we return?
+				}).thenApply((answerMessage) -> {
+					BindingSet resultBindingSet = null;
+					if (answerMessage != null)
+						resultBindingSet = answerMessage.getBindings();
+
+					if (resultBindingSet == null)
+						resultBindingSet = new BindingSet();
+
+					ReasonerProcessor.this.askExchangeInfos
+							.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage, aPreviousSend));
+
+					return translateBindingSetTo(resultBindingSet);
+				});
+
+			} catch (IOException e) {
+				LOG.error("No errors should occur while sending an AskMessage.", e);
+				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+			}
+			return bsFuture;
+		}
+	}
+
+	/**
+	 * A bindingsethandler to send a post message to a particular knowledge base.
+	 * 
+	 * @author nouwtb
+	 *
+	 */
+	private class ReactBindingSetHandler implements BindingSetHandler {
+
+		private KnowledgeInteractionInfo kii;
+
+		public ReactBindingSetHandler(KnowledgeInteractionInfo aKii) {
+			this.kii = aKii;
+		}
+
+		@Override
+		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs) {
+
+			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
+
+			BindingSet newBS = translateBindingSetFrom(bs);
+
+			PostMessage postMessage = new PostMessage(
+					ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(),
+					newBS);
+
+			try {
+				CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
+						.sendPostMessage(postMessage);
+				Instant aPreviousSend = Instant.now();
+				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
+					LOG.error("A problem occurred while handling a bindingset.", t);
+					return null; // TODO when some error happens, what do we return?
+				}).thenApply((reactMessage) -> {
+					BindingSet resultBindingSet = null;
+					if (reactMessage != null)
+						resultBindingSet = reactMessage.getResult();
+
+					if (resultBindingSet == null)
+						resultBindingSet = new BindingSet();
+
+					ReasonerProcessor.this.postExchangeInfos.add(
+							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
+
+					return translateBindingSetTo(resultBindingSet);
+				});
+
+			} catch (IOException e) {
+				LOG.error("No errors should occur while sending an PostMessage.", e);
+				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+			}
+			return bsFuture;
+		}
+
+	}
+
+	static class StoreBindingSetHandler implements BindingSetHandler {
+
+		private eu.knowledge.engine.reasoner.api.BindingSet b = null;
+
+		public StoreBindingSetHandler(eu.knowledge.engine.reasoner.api.BindingSet aB) {
+			this.b = aB;
+		}
+
+		@Override
+		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+				eu.knowledge.engine.reasoner.api.BindingSet bs) {
+			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> future = new CompletableFuture<>();
+			future.complete(this.b);
+			return future;
+		}
+	}
 }
