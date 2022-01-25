@@ -62,7 +62,7 @@ public class TestApiRoutes {
 
 	@Test
 	public void testMethodNotAllowed() throws IOException {
-		URL url = new URL("http://localhost:8280/rest/admin/sc/all/false");
+		URL url = new URL("http://localhost:8283/rest/admin/sc/all/false");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Content-Type", "application/json");
@@ -87,7 +87,7 @@ public class TestApiRoutes {
 		try {
 			stopKbs();
 			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			assertEquals(200, response.statusCode());
@@ -106,7 +106,7 @@ public class TestApiRoutes {
 		startKbs();
 
 		try {
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -129,7 +129,7 @@ public class TestApiRoutes {
 		startKbs();
 
 		try {
-			URI uri = new URI("http://localhost:8280/rest/admin/sc/all/false");
+			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/false");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
