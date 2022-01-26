@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.rest.api.KnowledgeInteractionLifeCycleApiService;
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionBase;
+import eu.knowledge.engine.rest.model.KnowledgeInteractionId;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", date = "2021-03-16T16:55:43.224496100+01:00[Europe/Amsterdam]")
@@ -73,7 +74,9 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		}
 
 		LOG.info("Knowledge interaction created in KB {}: {} (issued id: {})", knowledgeBaseId, knowledgeInteraction, kiId);
-		return Response.ok().entity(kiId).build();
+		KnowledgeInteractionId kii = new KnowledgeInteractionId();
+		kii.setKnowledgeInteractionId(kiId);
+		return Response.ok().entity(kii).build();
 	}
 
 	@Override

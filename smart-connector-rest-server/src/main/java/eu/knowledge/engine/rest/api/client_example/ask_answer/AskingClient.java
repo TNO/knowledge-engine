@@ -30,7 +30,7 @@ public class AskingClient {
 		// Post an ASK KI.
 		String ki = client.registerAsk(
 			"?a <https://www.example.org/isRelatedTo> ?b."
-		);
+		).getKnowledgeInteractionId();
 		LOG.info("Made new KI with ID {}", ki);
 		
 		// ASK something from the proactive side.

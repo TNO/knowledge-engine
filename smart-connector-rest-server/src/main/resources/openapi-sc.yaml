@@ -195,12 +195,14 @@ paths:
             
       responses:
         '200':
-          description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
+          description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
-                example: https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
+                $ref: '#/components/schemas/KnowledgeInteractionId'
+              example:
+                knowledgeInteractionId:
+                  https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
         '400':
           description: If the Knowledge Interaction is not successfully registered.
           content:
@@ -528,6 +530,13 @@ components:
       properties:
         "singleKnowledgeBase": 
           type: string
+    ResponseMessage:
+      type: object
+      properties:
+        messageType:
+          type: string
+        message: 
+          type: string
     KnowledgeInteractionBase:
       type: object
       required: [knowledgeInteractionType]
@@ -545,6 +554,11 @@ components:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
           $ref: '#/components/schemas/Prefixes'
+    KnowledgeInteractionId:
+      type: object
+      properties:
+        knowledgeInteractionId:
+          type: string
     KnowledgeInteractionWithId:
       allOf:
         - anyOf:
