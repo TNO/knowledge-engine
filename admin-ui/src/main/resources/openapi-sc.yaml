@@ -61,26 +61,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/KnowledgeInteractionBase'
-    BindingSet:
-      type: array
-      items:
-        nullable: false # Enforced manually, but kept here nonetheles.
-        type: object
-        additionalProperties:
-          type: string
-    RecipientAndBindingSet:
-      type: object
-      required: [recipientSelector, bindingSet]
-      properties:
-        recipientSelector:
-          $ref: '#/components/schemas/RecipientSelector'
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
-    RecipientSelector:
-      type: object
-      properties:
-        "singleKnowledgeBase": 
-          type: string
     KnowledgeInteractionBase:
       type: object
       required: [knowledgeInteractionType]
@@ -102,17 +82,6 @@ components:
           $ref: '#/components/schemas/Prefixes'
         isMeta:
           type: string
-    KnowledgeInteractionWithId:
-      allOf:
-        - anyOf:
-          - $ref: '#/components/schemas/AskKnowledgeInteraction'
-          - $ref: '#/components/schemas/AnswerKnowledgeInteraction'
-          - $ref: '#/components/schemas/PostKnowledgeInteraction'
-          - $ref: '#/components/schemas/ReactKnowledgeInteraction'
-        - type: object
-          properties:
-            knowledgeInteractionId:
-              type: string
     AskKnowledgeInteraction:
       required: [graphPattern]
       allOf:
@@ -161,92 +130,6 @@ components:
           type: array
           items:
             type: string
-    AskResult:
-      type: object
-      required: [bindingSet, exchangeInfo]
-      properties:
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
-        exchangeInfo:
-          type: array
-          items:
-            $ref: '#/components/schemas/AskExchangeInfo'
-    PostResult:
-      type: object
-      required: [resultBindingSet, exchangeInfo]
-      properties:
-        resultBindingSet:
-          $ref: '#/components/schemas/BindingSet'
-        exchangeInfo:
-          type: array
-          items:
-            $ref: '#/components/schemas/PostExchangeInfo'
-    ExchangeInfo:
-      type: object
-      required: [initiator, knowledgeBaseId, knowledgeInteractionId, exchangeStart, exchangeEnd, status]
-      properties:
-        initiator:
-          type: string
-          enum:
-            - knowledgeBase
-            - reasoner
-        knowledgeBaseId:
-          type: string
-        knowledgeInteractionId:
-          type: string
-        exchangeStart:
-          type: string
-          format: date-time
-        exchangeEnd:
-          type: string
-          format: date-time
-        status:
-          type: string
-        failedMessage:
-          type: string
-    AskExchangeInfo:
-      allOf:
-        - $ref: '#/components/schemas/ExchangeInfo'
-        - type: object
-          properties:
-            bindingSet: 
-              $ref: '#/components/schemas/BindingSet'
-    PostExchangeInfo:
-      allOf:
-        - $ref: '#/components/schemas/ExchangeInfo'
-        - type: object
-          properties:
-            argumentBindingSet:
-              $ref: '#/components/schemas/BindingSet'
-            resultBindingSet:
-              $ref: '#/components/schemas/BindingSet'
-    HandleRequest:
-      type: object
-      properties:
-        knowledgeInteractionId:
-          type: string
-        handleRequestId:
-          type: integer
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
-        requestingKnowledgeBaseId:
-          type: string
-    HandleResponse:
-      type: object
-      required: [handleRequestId, bindingSet]
-      properties:
-        handleRequestId:
-          type: integer
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
-    SmartConnectorLease:
-      type: object
-      properties:
-        knowledgeBaseId:
-          type: string
-        expires:
-          type: string
-          format: date-time
     Prefixes:
       type: object
       additionalProperties:
