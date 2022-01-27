@@ -50,6 +50,11 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
 
+	/**
+	 * Enable the reasoner. Off by default (for now).
+	 */
+	private boolean reasonerEnabled = false;
+
 	public MockedKnowledgeBase(String aName) {
 		this.kis = new HashSet<>();
 		this.name = aName;
@@ -357,10 +362,17 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	public void start() {
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+		this.sc.setReasonerEnabled(this.reasonerEnabled);
 	}
 
 	@Override
 	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
 		this.sc.setDomainKnowledge(someDomainKnowledge);
+	}
+
+	@Override
+	public void setReasonerEnabled(boolean aReasonerEnabled) {
+		this.reasonerEnabled = aReasonerEnabled;
+
 	}
 }

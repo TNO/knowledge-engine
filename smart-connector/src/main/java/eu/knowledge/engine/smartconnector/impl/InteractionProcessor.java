@@ -129,4 +129,14 @@ public interface InteractionProcessor {
 	 * @param someRules The rules to take into account.
 	 */
 	void setDomainKnowledge(Set<Rule> someRules);
+
+	/**
+	 * Whether the InteractionProcessor should use reasoning to orchestrate the data
+	 * exchange, or should use a matcher instead. Enabling the reasoner increases
+	 * the flexibility of the data exchange, but decreases the performance.
+	 * 
+	 * @param aReasonerEnabled {@code true} if this interaction processor should use
+	 *                         reasoning, {@code false} otherwise.
+	 */
+	void setReasonerEnabled(boolean aReasonerEnabled);
 }
