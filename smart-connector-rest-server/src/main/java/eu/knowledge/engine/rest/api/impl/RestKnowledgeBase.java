@@ -107,11 +107,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private AnswerHandler answerHandler = new AnswerHandler() {
 
 		/**
-		 * Creates a future for the response of this knowledge base, and passes it
-		 * to the knowledge base to be processed.
+		 * Creates a future for the response of this knowledge base, and passes it to
+		 * the knowledge base to be processed.
 		 */
 		@Override
-		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
+		public CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI,
+				AnswerExchangeInfo anAnswerExchangeInfo) {
 			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aBindingSet);
@@ -141,11 +142,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private ReactHandler reactHandler = new ReactHandler() {
 
 		/**
-		 * Creates a future for the response of this knowledge base, and passes it
-		 * to the knowledge base to be processed.
+		 * Creates a future for the response of this knowledge base, and passes it to
+		 * the knowledge base to be processed.
 		 */
 		@Override
-		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
+		public CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction aRKI,
+				ReactExchangeInfo aReactExchangeInfo) {
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
 			List<Map<String, String>> bindings = bindingSetToList(aReactExchangeInfo.getArgumentBindings());
@@ -158,9 +160,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 
 		/**
-		 * By overriding the {@link ReactHandler#reactAsync} method, this method
-		 * should no longer be called. But we still have to implement it, which is
-		 * unfortunate.
+		 * By overriding the {@link ReactHandler#reactAsync} method, this method should
+		 * no longer be called. But we still have to implement it, which is unfortunate.
 		 */
 		public BindingSet react(ReactKnowledgeInteraction aRKI, ReactExchangeInfo aReactExchangeInfo) {
 			throw new IllegalArgumentException("Should not be called.");
@@ -188,8 +189,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private boolean suspended = false;
 
-	public RestKnowledgeBase(eu.knowledge.engine.rest.model.SmartConnector scModel,
-			final Runnable onReady) {
+	public RestKnowledgeBase(eu.knowledge.engine.rest.model.SmartConnector scModel, final Runnable onReady) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
@@ -220,6 +220,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
 		}
 		this.sc = smartConnectorProvider.create(this);
+		
+		if (scModel.getReasonerEnabled() != null)
+			this.sc.setReasonerEnabled(scModel.getReasonerEnabled());
 	}
 
 	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {
@@ -243,8 +246,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 						.knowledgeInteractionId(knowledgeInteractionId);
 
 				if (handleRequest.getRequestingKnowledgeBaseId() != null) {
-					object
-						.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
+					object.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
 				}
 
 				this.asyncResponse.resume(Response.status(200).entity(object).build());
@@ -257,15 +259,19 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (!success) {
 				// If unsuccessfull, remove the oldest item and complete it exceptionally.
 				HandleRequest oldest = this.toBeProcessedHandleRequests.remove();
-				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("Handle request queue is full. This oldest request has been cancelled.")));
+				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(
+						new Exception("Handle request queue is full. This oldest request has been cancelled.")));
 
 				// And then try again forcibly this time.
 				try {
 					this.toBeProcessedHandleRequests.add(handleRequest);
 				} catch (IllegalStateException e) {
 					// If this ALSO failed, we will cancel this new item as well and log.
-					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(new Exception("It was not possible to add this request to the knowledge base's queue.")));
-					LOG.warn("Could not add handle request {} to queue of knowledge base {}, even after removing an item.", handleRequest, this.knowledgeBaseId);
+					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(
+							new Exception("It was not possible to add this request to the knowledge base's queue.")));
+					LOG.warn(
+							"Could not add handle request {} to queue of knowledge base {}, even after removing an item.",
+							handleRequest, this.knowledgeBaseId);
 				}
 			}
 		}
@@ -456,8 +462,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
-				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct()
-						.requiredPurposes(requirements).satisfiedPurposes(satisfactions));
+				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
+						.satisfiedPurposes(satisfactions));
 
 		if (ki instanceof AskKnowledgeInteraction) {
 			kiwid.setKnowledgeInteractionType("AskKnowledgeInteraction");
@@ -646,7 +652,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	public void smartConnectorStopped(SmartConnector aSC) {
 		if (this.inactivityTimer != null) {
 			this.inactivityTimer.cancel();
-			LOG.info("canceled inactivity timer for {} because its smart connector stopped.", this.getKnowledgeBaseId());
+			LOG.info("canceled inactivity timer for {} because its smart connector stopped.",
+					this.getKnowledgeBaseId());
 		}
 	}
 
@@ -731,7 +738,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				}
 			}
 		}, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS * 1000);
-		LOG.debug("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.", this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
+		LOG.debug("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.",
+				this.knowledgeBaseId, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
 	}
 
 	private synchronized void cancelInactivityTimeout() {
@@ -749,5 +757,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public boolean isSuspended() {
 		return this.suspended;
+	}
+
+	public Boolean getReasonerEnabled() {
+		return this.sc.isReasonerEnabled();
 	}
 }

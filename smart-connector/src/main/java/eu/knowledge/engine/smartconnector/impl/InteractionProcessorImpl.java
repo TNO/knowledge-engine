@@ -25,6 +25,7 @@ import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
@@ -53,13 +54,27 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final Model ontology;
 	private final Reasoner reasoner;
 
+	/**
+	 * A set of rules that represent the domain knowledge this smart connector
+	 * should take into account while orchestrating data exchange. Only available if
+	 * reasoning is enabled.
+	 */
+	private Set<Rule> additionalDomainKnowledge = new HashSet<>();
+
 	private final LoggerProvider loggerProvider;
+
+	/**
+	 * Whether this interaction processor should use reasoning to orchestrate the
+	 * data exchange.
+	 */
+	private boolean reasonerEnabled = false;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
 			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
+
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 
@@ -101,8 +116,14 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
+		SingleInteractionProcessor processor;
+		if (this.reasonerEnabled) {
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
+					this.additionalDomainKnowledge);
+		} else {
+			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
+					this.messageRouter);
+		}
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -184,28 +205,21 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-		var aei = new AnswerExchangeInfo(
-			anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction()
-		);
+		var aei = new AnswerExchangeInfo(anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(),
+				anAskMsg.getFromKnowledgeInteraction());
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
-		return future
-			.thenApply((b) -> {
-				return new AnswerMessage(
-					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-					anAskMsg.getMessageId(), b
-				);
-			})
-			.exceptionally((e) -> {
-				LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
-				return new AnswerMessage(
-					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-					anAskMsg.getMessageId(), e.getMessage()
-				);
-			});
+		return future.thenApply((b) -> {
+			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					b);
+		}).exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
+			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					e.getMessage());
+		});
 	}
 
 	@Override
@@ -238,9 +252,14 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
-
+		SingleInteractionProcessor processor;
+		if (this.reasonerEnabled) {
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
+					this.additionalDomainKnowledge);
+		} else {
+			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
+					this.messageRouter);
+		}
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
 		// outstanding message replies. Then it returns the future. Threads from the
@@ -263,28 +282,24 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		CompletableFuture<BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 
-		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
+		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(),
+				aPostMsg.getFromKnowledgeInteraction());
 
 		// TODO This should happen in the single thread for the knowledge base
 		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
 
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
-		return future
-			.thenApply(b -> {
-				return new ReactMessage(
-					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-					aPostMsg.getMessageId(), b
-				);
-			})
-			.exceptionally((e) -> {
-				LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
-				return new ReactMessage(
-					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-					aPostMsg.getMessageId(), e.getMessage());
-			});
+		return future.thenApply(b -> {
+			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					b);
+		}).exceptionally((e) -> {
+			LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
+			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					e.getMessage());
+		});
 	}
 
 	@Override
@@ -385,6 +400,21 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
 
 		return doTheyMatch;
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someRules) {
+		this.additionalDomainKnowledge = someRules;
+	}
+
+	@Override
+	public void setReasonerEnabled(boolean aReasonerEnabled) {
+		this.reasonerEnabled = aReasonerEnabled;
+	}
+
+	@Override
+	public boolean isReasonerEnabled() {
+		return this.reasonerEnabled;
 	}
 
 }

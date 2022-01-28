@@ -134,7 +134,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	public URI register(AskKnowledgeInteraction anAskKI, boolean isMeta) {
 		URI id = this.generateId(anAskKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAskKI, null,
-				null, isMeta);
+				null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -153,7 +153,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler, boolean isMeta) {
 		URI id = this.generateId(anAnswerKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAnswerKI,
-				anAnswerHandler, null, isMeta);
+				anAnswerHandler, null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -172,7 +172,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	public URI register(PostKnowledgeInteraction aPostKI, boolean isMeta) {
 		URI id = this.generateId(aPostKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), aPostKI, null,
-				null, isMeta);
+				null);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
@@ -191,7 +191,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler, boolean isMeta) {
 		URI id = this.generateId(anReactKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anReactKI, null,
-				aReactHandler, isMeta);
+				aReactHandler);
 		this.kiis.put(id, kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;

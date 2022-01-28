@@ -1,7 +1,6 @@
 package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
@@ -88,56 +88,58 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
 				"?gp kb:hasPattern ?pattern .");
 
-		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
-		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(), true);
+		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true, true);
+		this.knowledgeBaseStore.register(this.metaAnswerKI, (anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(),
+				true);
 
-		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern);
+		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true, true);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);
 
 		this.metaPostNewKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaPostNewKI, true);
 
 		this.metaPostChangedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaPostChangedKI, true);
 
 		this.metaPostRemovedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaPostRemovedKI, true);
 
 		this.metaReactNewKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.addKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
 		this.metaReactChangedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore
-					.updateKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.updateKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 
 		this.metaReactRemovedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null);
+				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore
-					.removeKnowledgeBase(this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			this.otherKnowledgeBaseStore.removeKnowledgeBase(
+					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
 			return new BindingSet();
 		}, true);
 	}
@@ -246,6 +248,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 		LOG.trace("BindingSet: {}", bindings);
 
+		String val = bindings.iterator().next().get("isMeta");
+
 		return bindings;
 	}
 
@@ -318,7 +322,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		// model.write(sw, "turtle");
 		// this.LOG.trace("Incoming RDF: {}", sw.toString());
 
-		Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
+		
+		ResIterator listSubjectsWithProperty = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE);
+		Resource kb = listSubjectsWithProperty.next();
+		assert !listSubjectsWithProperty.hasNext();
 
 		String name = model.listObjectsOfProperty(kb, Vocab.HAS_NAME).next().asLiteral().getString();
 		String description = model.listObjectsOfProperty(kb, Vocab.HAS_DESCR).next().asLiteral().getString();
@@ -386,18 +393,18 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 							.asLiteral().getString();
 					if (kiType.equals(Vocab.ASK_KI)) {
 						AskKnowledgeInteraction askKnowledgeInteraction = new AskKnowledgeInteraction(actObject,
-								new GraphPattern(graphPatternString));
+								new GraphPattern(graphPatternString), isMeta, isMeta);
 
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-								new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction, isMeta);
+								new URI(ki.toString()), new URI(kb.toString()), askKnowledgeInteraction);
 
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					} else if (kiType.equals(Vocab.ANSWER_KI)) {
 						AnswerKnowledgeInteraction answerKnowledgeInteraction = new AnswerKnowledgeInteraction(
-								actObject, new GraphPattern(graphPatternString));
+								actObject, new GraphPattern(graphPatternString), isMeta, isMeta);
 
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-								new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction, isMeta);
+								new URI(ki.toString()), new URI(kb.toString()), answerKnowledgeInteraction);
 
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					}
@@ -412,6 +419,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						argumentGraphPatternString = model
 								.listObjectsOfProperty(argumentGraphPattern, Vocab.HAS_PATTERN).next().asLiteral()
 								.getString();
+					} else {
+						throw new IllegalArgumentException(
+								"Every Post or React Knowledge Interaction should have a argument graph pattern.");
 					}
 
 					// result
@@ -431,17 +441,19 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(actObject,
 								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
 										: null),
-								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));
+								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null),
+								isMeta, isMeta);
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-								new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction, isMeta);
+								new URI(ki.toString()), new URI(kb.toString()), postKnowledgeInteraction);
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					} else if (kiType.equals(Vocab.REACT_KI)) {
 						ReactKnowledgeInteraction reactKnowledgeInteraction = new ReactKnowledgeInteraction(actObject,
 								(argumentGraphPatternString != null ? new GraphPattern(argumentGraphPatternString)
 										: null),
-								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null));
+								(resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null),
+								isMeta, isMeta);
 						KnowledgeInteractionInfo knowledgeInteractionInfo = new KnowledgeInteractionInfo(
-								new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction, isMeta);
+								new URI(ki.toString()), new URI(kb.toString()), reactKnowledgeInteraction);
 						knowledgeInteractions.add(knowledgeInteractionInfo);
 					}
 				} else {
@@ -466,7 +478,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	@Override
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
-		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings());
+		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(),
+				this.fillMetaBindings());
 	}
 
 	@Override
@@ -487,7 +500,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		if (!ki.isMeta()) {
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
+				this.interactionProcessor
+						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occurre while notifying others of an unregistered knowledge interaction.");
 			}
@@ -504,8 +518,9 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
 					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
 			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
-			this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get(timeout,
-					TimeUnit.MILLISECONDS);
+			this.interactionProcessor
+					.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings())
+					.get(timeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOG.error("An error occured while informing other KBs about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);

@@ -39,7 +39,19 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		super(act);
+		this(act, argument, result, false);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
+			boolean anIsFullMatch) {
+		super(act, false, anIsFullMatch);
+		this.argument = argument;
+		this.result = result;
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
+			boolean anIsFullMatch) {
+		super(act, anIsMeta, anIsFullMatch);
 		this.argument = argument;
 		this.result = result;
 	}

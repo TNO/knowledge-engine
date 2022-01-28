@@ -126,7 +126,7 @@ public class AdminUI implements KnowledgeBase {
 		//"?t kb:hasData ?data .",
 
 		// create the correct Knowledge Interaction
-		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 
 		// register the knowledge interaction with the smart connector.
 		this.sc.register(this.aKI);

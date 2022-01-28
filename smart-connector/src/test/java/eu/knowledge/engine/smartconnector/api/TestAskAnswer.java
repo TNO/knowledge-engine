@@ -72,7 +72,7 @@ public class TestAskAnswer {
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(act1, gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();

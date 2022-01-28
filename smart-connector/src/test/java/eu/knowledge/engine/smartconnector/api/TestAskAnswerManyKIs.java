@@ -66,6 +66,7 @@ public class TestAskAnswerManyKIs {
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
+		LOG.info("Everyone is ready!");
 
 		int count = 50;
 
@@ -79,7 +80,10 @@ public class TestAskAnswerManyKIs {
 			GraphPattern gp1 = new GraphPattern(prefixes, this.format("a" + i, "b" + i, "c" + i));
 			aKIarray[i] = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 			kb1.register(aKIarray[i], (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-				assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+				assertTrue(
+						anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+								|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+						"Should not have bindings in this binding set.");
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
@@ -93,7 +97,10 @@ public class TestAskAnswerManyKIs {
 			GraphPattern gp3 = new GraphPattern(prefixes, this.format("d" + i, "b" + i, "e" + i));
 			aKI3array[i] = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 			kb3.register(aKI3array[i], (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-				assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+				assertTrue(
+						anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+								|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+						"Should not have bindings in this binding set.");
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
@@ -107,7 +114,10 @@ public class TestAskAnswerManyKIs {
 			GraphPattern gp4 = new GraphPattern(prefixes, this.format("f" + i, "b" + i, "g" + i));
 			aKI4array[i] = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
 			kb4.register(aKI4array[i], (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-				assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+				assertTrue(
+						anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+								|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+						"Should not have bindings in this binding set.");
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
