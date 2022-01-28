@@ -91,4 +91,15 @@ public class BindingSet extends HashSet<Binding> {
 		}
 		return m;
 	}
+
+	/**
+	 * Write this BindingSet to the standard output.
+	 * This is convenient for debugging.
+	 */
+	public void write() {
+		for (Binding b : this) {
+			System.out.println(b);
+		}
+
+	}
 }

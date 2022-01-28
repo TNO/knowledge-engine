@@ -17,14 +17,9 @@ public class KnowledgeInteractionInfo {
 	protected final URI knowledgeBaseId;
 	protected final MyKnowledgeInteractionInfo.Type type;
 	protected final KnowledgeInteraction knowledgeInteraction;
-	/**
-	 * Whether or not this knowledge interaction contains metadata about the
-	 * knowledge base itself.
-	 */
-	private final boolean isMeta;
 
-	public KnowledgeInteractionInfo(URI id, URI knowledgeBaseId, KnowledgeInteraction knowledgeInteraction,
-			boolean isMeta) {
+
+	public KnowledgeInteractionInfo(URI id, URI knowledgeBaseId, KnowledgeInteraction knowledgeInteraction) {
 		this.id = id;
 		if (knowledgeInteraction instanceof AskKnowledgeInteraction) {
 			this.type = Type.ASK;
@@ -37,7 +32,6 @@ public class KnowledgeInteractionInfo {
 		}
 		this.knowledgeBaseId = knowledgeBaseId;
 		this.knowledgeInteraction = knowledgeInteraction;
-		this.isMeta = isMeta;
 	}
 
 	public URI getId() {
@@ -62,11 +56,11 @@ public class KnowledgeInteractionInfo {
 				+ (this.knowledgeBaseId != null ? "knowledgeBaseId=" + this.knowledgeBaseId + ", " : "")
 				+ (this.type != null ? "type=" + this.type + ", " : "")
 				+ (this.knowledgeInteraction != null ? "knowledgeInteraction=" + this.knowledgeInteraction + ", " : "")
-				+ "isMeta=" + this.isMeta + "]";
+				+ "isMeta=" + this.isMeta() + "]";
 	}
 
 	public boolean isMeta() {
-		return this.isMeta;
+		return this.knowledgeInteraction.isMeta();
 	}
 
 }

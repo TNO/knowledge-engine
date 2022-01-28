@@ -12,8 +12,7 @@ services:
     environment: 
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
-      KD_HOSTNAME: knowledge-directory
-      KD_PORT: 8282
+      KD_URL: http://knowledge-directory:8282
     ports:
       - 8280:8280
   runtime-2:
@@ -21,8 +20,7 @@ services:
     environment: 
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
-      KD_HOSTNAME: knowledge-directory
-      KD_PORT: 8282
+      KD_URL: http://knowledge-directory:8282
     ports:
       - 8281:8280
   

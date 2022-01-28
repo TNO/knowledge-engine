@@ -1,7 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
+import eu.knowledge.engine.reasoner.Rule;
 
 public interface SmartConnector {
 
@@ -208,7 +211,8 @@ public interface SmartConnector {
 	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                      wildcard or something in between where potential
 	 *                      {@link KnowledgeBase} recipients are selected based on
-	 *                      criteria from the KnowledgeBase ontology. Cannot be null!
+	 *                      criteria from the KnowledgeBase ontology. Cannot be
+	 *                      null!
 	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
 	 *                      question to specific values for specific variables from
 	 *                      the {@link GraphPattern} in the
@@ -234,6 +238,34 @@ public interface SmartConnector {
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument);
 
 	/**
+	 * Sets the domain knowledge of this smart connector. This domain knowledge will
+	 * be taken into account when the reasoner orchestrates the knowledge
+	 * interactions. Note that by default there is no domain knowledge and setting
+	 * it will overwrite the existing set of rules. The domain knowledge is only
+	 * used when the reasoner is enabled. See
+	 * {@link SmartConnector#setReasonerEnabled(boolean)}.
+	 * 
+	 * @param someRules The rules to take into account.
+	 */
+	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
+
+	/**
+	 * Sets the reasoner enabled property of this Smart Connector to true or false.
+	 * Enabling the reasoner causes the data exchange to become more flexible, but
+	 * also causes the data exchange to be slower.
+	 * 
+	 * @param aReasonerEnabled {@code true} if the reasoner should be enabled,
+	 *                         {@code false} otherwise.
+	 */
+	void setReasonerEnabled(boolean aReasonerEnabled);
+
+	/**
+	 * @return {@code true} if this smart connector uses the reasoner for data
+	 *         exchange, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
+
+	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is
 	 * asynchronous and will call
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} when this
@@ -251,7 +283,6 @@ public interface SmartConnector {
 	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
-
 	void stop();
 
 }

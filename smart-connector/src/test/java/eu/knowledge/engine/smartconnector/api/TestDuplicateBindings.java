@@ -77,7 +77,7 @@ public class TestDuplicateBindings {
 		GraphPattern gp1_2 = new GraphPattern(prefixes, "?b <https://www.tno.nl/example/c> ?d.");
 		answerKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1_1);
 		kb1.register(answerKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -105,7 +105,7 @@ public class TestDuplicateBindings {
 
 		answerKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3_1);
 		kb3.register(answerKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
