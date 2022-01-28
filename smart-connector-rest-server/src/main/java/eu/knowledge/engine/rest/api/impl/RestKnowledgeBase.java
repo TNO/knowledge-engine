@@ -658,17 +658,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public void stop() {
+		this.cancelInactivityTimeout();
 		this.sc.stop();
-		this.cancelAllHandleRequests();
+		this.cancelAndClearAllHandleRequests();
 	}
 
-	private void cancelAllHandleRequests() {
+	private void cancelAndClearAllHandleRequests() {
 		this.toBeProcessedHandleRequests.forEach(hr -> {
 			hr.getFuture().cancel(false);
 		});
 		this.beingProcessedHandleRequests.forEach((id, hr) -> {
 			hr.getFuture().cancel(false);
 		});
+
+		this.toBeProcessedHandleRequests.clear();
+		this.beingProcessedHandleRequests.clear();
 	}
 
 	/**
@@ -725,8 +729,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.inactivityTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				LOG.warn("Suspending KB {} because of inactivity.", knowledgeBaseId);
-				suspend();
+				// It could happen that the inactivity timer has been cancelled in the
+				// mean time, and this task still happily runs in another thread, so we
+				// check if the intactivity timer is still non-null here.
+				if (inactivityTimer != null) {
+					LOG.warn("Suspending KB {} because of inactivity.", knowledgeBaseId);
+					suspend();
+				}
 			}
 		}, RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS * 1000);
 		LOG.debug("(re)scheduled inactivity timer. KB {} will be suspended if it does not repoll within {} seconds.",
