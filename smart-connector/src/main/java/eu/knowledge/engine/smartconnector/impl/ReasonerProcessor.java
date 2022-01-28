@@ -2,11 +2,13 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.TriplePath;
@@ -75,8 +77,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			reasoner.addRule(r);
 		}
 
-		this.askExchangeInfos = new HashSet<>();
-		this.postExchangeInfos = new HashSet<>();
+		this.askExchangeInfos = Collections.newSetFromMap(new ConcurrentHashMap<AskExchangeInfo, Boolean>());
+		this.postExchangeInfos = Collections.newSetFromMap(new ConcurrentHashMap<PostExchangeInfo, Boolean>());
 
 		for (KnowledgeInteractionInfo kii : knowledgeInteractions) {
 			KnowledgeInteraction ki = kii.getKnowledgeInteraction();
