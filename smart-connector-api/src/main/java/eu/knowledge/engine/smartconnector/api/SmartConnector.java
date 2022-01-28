@@ -241,11 +241,29 @@ public interface SmartConnector {
 	 * Sets the domain knowledge of this smart connector. This domain knowledge will
 	 * be taken into account when the reasoner orchestrates the knowledge
 	 * interactions. Note that by default there is no domain knowledge and setting
-	 * it will overwrite the existing set of rules.
+	 * it will overwrite the existing set of rules. The domain knowledge is only
+	 * used when the reasoner is enabled. See
+	 * {@link SmartConnector#setReasonerEnabled(boolean)}.
 	 * 
 	 * @param someRules The rules to take into account.
 	 */
 	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
+
+	/**
+	 * Sets the reasoner enabled property of this Smart Connector to true or false.
+	 * Enabling the reasoner causes the data exchange to become more flexible, but
+	 * also causes the data exchange to be slower.
+	 * 
+	 * @param aReasonerEnabled {@code true} if the reasoner should be enabled,
+	 *                         {@code false} otherwise.
+	 */
+	void setReasonerEnabled(boolean aReasonerEnabled);
+
+	/**
+	 * @return {@code true} if this smart connector uses the reasoner for data
+	 *         exchange, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
 
 	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is
@@ -265,7 +283,6 @@ public interface SmartConnector {
 	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
-
 	void stop();
 
 }

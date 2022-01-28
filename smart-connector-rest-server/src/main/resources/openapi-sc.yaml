@@ -70,6 +70,22 @@ paths:
                   after about 60 seconds. To postpone the cleanup, your
                   knowledge base has to call /sc/lease/renew to extend the lease
                   by 60 seconds.
+              with reasoner enabled:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+                  reasonerEnabled: true
+                description:
+                  The reasoner is disabled by default. If enabled, the created smart 
+                  connector will use a reasoner to orchestrate the data exchange. 
+                  This increases the flexibility, but can decrease the performance 
+                  and cause unexpected behaviour, for now. This flexibility means the 
+                  smart connector will automatically try to combine data coming 
+                  from different knowledge bases or try to convert units of measures. 
+                  If the reasoner is disabled, the smart connector will only exchange 
+                  data with other smart connectors if their graph patterns match 
+                  entirely (apart from ordering and variable names).
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
@@ -508,6 +524,13 @@ components:
             base automatically unregistered when you don't renew your lease. Expiry
             is checked periodically, so your knowledge base may actually be
             valid for longer than the given time.
+        reasonerEnabled:
+          type: boolean
+          description: Include this optional property if you want to specify whether 
+            the smart connector should use a reasoner or a matcher to orchestrate data 
+            exchange. In general the reasoner increases the flexibility, but decreases 
+            the performance. The matcher decreases the flexibility, but increases 
+            the performance.
     BindingSet:
       type: array
       items:

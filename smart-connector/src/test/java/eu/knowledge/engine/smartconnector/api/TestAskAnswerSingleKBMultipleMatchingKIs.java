@@ -52,8 +52,10 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 		var kn = new KnowledgeNetwork();
 		kb1 = new MockedKnowledgeBase("kb1");
+		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new MockedKnowledgeBase("kb2");
+		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
 		LOG.info("Waiting for ready...");

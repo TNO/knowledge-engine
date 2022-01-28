@@ -50,10 +50,13 @@ public class TestAskPartialMetadata {
 
 		var kn = new KnowledgeNetwork();
 		kb1 = new MockedKnowledgeBase("kb1");
+		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new MockedKnowledgeBase("kb2");
+		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 		kb3 = new MockedKnowledgeBase("kb3");
+		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 
 		LOG.info("Waiting for ready...");
@@ -102,7 +105,7 @@ public class TestAskPartialMetadata {
 		} else {
 			fail("KB2 should not be null!");
 		}
-		
+
 		if (kb3 != null) {
 
 			kb3.stop();
