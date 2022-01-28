@@ -35,6 +35,7 @@ import eu.knowledge.engine.rest.model.AskResult;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.PostExchangeInfo;
 import eu.knowledge.engine.rest.model.PostResult;
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import io.swagger.annotations.ApiParam;
@@ -65,13 +66,19 @@ public class ProactiveApiServiceImpl {
 			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
 		} catch (IllegalArgumentException e) {
 			LOG.debug("", e);
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build());
+					.entity(response).build());
 			return;
 		}
 
@@ -79,13 +86,19 @@ public class ProactiveApiServiceImpl {
 		if (kb == null) {
 			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
 				this.manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
 				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+						response)
 					.build());
 				return;
 			} else {
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Smart connector not found, because its ID is unknown.");
 				asyncResponse.resume(
-						Response.status(Status.NOT_FOUND).entity("Smart connector not found, because its ID is unknown.").build());
+						Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		}
@@ -93,22 +106,31 @@ public class ProactiveApiServiceImpl {
 		try {
 			new URI(knowledgeInteractionId);
 		} catch (URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge interaction not found, because its ID must be a valid URI.");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
+					.entity(response).build());
 			return;
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge Interaction not found, because its ID is unknown.");
 			asyncResponse.resume(
-					Response.status(Status.NOT_FOUND).entity("Knowledge Interaction not found, because its ID is unknown.").build());
+					Response.status(Status.NOT_FOUND).entity(response).build());
 			return;
 		}
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
+				+ ki.getKnowledgeInteractionType() + ".");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
-							+ ki.getKnowledgeInteractionType() + ".")
+					.entity(response)
 					.build());
 			return;
 		}
@@ -139,11 +161,17 @@ public class ProactiveApiServiceImpl {
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			LOG.trace("", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Something went wrong while sending a POST or while waiting on the REACT.");
 			asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
+					.entity(response).build());
 		} catch (IllegalArgumentException e) {
 			LOG.trace("", e);
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 		}
 	}
 
@@ -190,13 +218,19 @@ public class ProactiveApiServiceImpl {
 			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
 		} catch (IllegalArgumentException e) {
 			LOG.trace("", e);
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
 		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.").build());
+					.entity(response).build());
 			return;
 		}
 
@@ -204,13 +238,19 @@ public class ProactiveApiServiceImpl {
 		if (kb == null) {
 			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
 				manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
 				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+						response)
 					.build());
 				return;
 			} else {
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Smart connector not found, because its ID is unknown.");
 				asyncResponse.resume(
-					Response.status(Status.NOT_FOUND).entity("Smart connector not found, because its ID is unknown.").build());
+					Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		}
@@ -219,22 +259,31 @@ public class ProactiveApiServiceImpl {
 			new URI(knowledgeInteractionId);
 		} catch (URISyntaxException e) {
 			LOG.trace("", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge interaction not found, because its ID must be a valid URI.");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Knowledge interaction not found, because its ID must be a valid URI.").build());
+					.entity(response).build());
 			return;
 		}
 
 		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge Interaction not found, because its ID is unknown.");
 			asyncResponse.resume(
-					Response.status(404).entity("Knowledge Interaction not found, because its ID is unknown.").build());
+					Response.status(404).entity(response).build());
 			return;
 		}
 
 		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
 		if (!ki.getKnowledgeInteractionType().equals("PostKnowledgeInteraction")) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
+				+ ki.getKnowledgeInteractionType() + ".");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
-							+ ki.getKnowledgeInteractionType() + ".")
+					.entity(response)
 					.build());
 			return;
 		} else {
@@ -268,11 +317,17 @@ public class ProactiveApiServiceImpl {
 
 			} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 				LOG.trace("", e);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Something went wrong while sending a POST or while waiting on the REACT.");
 				asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
-						.entity("Something went wrong while sending a POST or while waiting on the REACT.").build());
+						.entity(response).build());
 			} catch (IllegalArgumentException e) {
 				LOG.trace("", e);
-				asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage(e.getMessage());
+				asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			}
 		}
 	}

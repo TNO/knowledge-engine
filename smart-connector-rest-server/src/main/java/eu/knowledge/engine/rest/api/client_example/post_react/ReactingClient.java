@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.model.HandleRequest;
 import eu.knowledge.engine.rest.model.HandleResponse;
+import eu.knowledge.engine.rest.model.KnowledgeInteractionId;
 import eu.knowledge.engine.rest.api.client_example.KnowledgeEngineRestApiClient;
 import eu.knowledge.engine.rest.api.client_example.KnowledgeHandler;
 
@@ -30,7 +31,7 @@ public class ReactingClient {
 		);
 
 		// Post a REACT KI.
-		String ki = client.registerReact(
+		KnowledgeInteractionId ki = client.registerReact(
 			"?a <https://www.example.org/measuredTemperatureInCelsius> ?b.",
 			"?c <https://www.example.org/measuredTemperatureInKelvin> ?d.",
 			new KnowledgeHandler() {
