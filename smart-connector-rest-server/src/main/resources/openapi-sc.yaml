@@ -77,14 +77,15 @@ paths:
                   knowledgeBaseDescription: This is a detailed description
                   reasonerEnabled: true
                 description:
-                  The reasoner is disabled by default. The created smart connector will 
-                  use a reasoner to orchestrate the data exchange. This increases the 
-                  flexibility, but can decrease the performance and cause unexpected 
-                  behavior. This flexibility means the smart connector will automatically 
-                  try to combine data coming from different knowledge bases or try to 
-                  convert units of measures. If the reasoner is disabled, the smart 
-                  connector will only exchange data with other smart connectors if their 
-                  graph patterns match entirely (apart from ordering and variable names).
+                  The reasoner is disabled by default. If enabled, the created smart 
+                  connector will use a reasoner to orchestrate the data exchange. 
+                  This increases the flexibility, but can decrease the performance 
+                  and cause unexpected behaviour, for now. This flexibility means the 
+                  smart connector will automatically try to combine data coming 
+                  from different knowledge bases or try to convert units of measures. 
+                  If the reasoner is disabled, the smart connector will only exchange 
+                  data with other smart connectors if their graph patterns match 
+                  entirely (apart from ordering and variable names).
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
