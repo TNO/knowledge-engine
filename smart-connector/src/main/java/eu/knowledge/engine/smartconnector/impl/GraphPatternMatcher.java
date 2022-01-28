@@ -30,8 +30,8 @@ public class GraphPatternMatcher {
 	 * Transform all the variable names in a bindingset from one knowledge
 	 * interaction to another knowledge interaction.
 	 * 
-	 * @param fromVarNameKI
-	 * @param toVarNameKI
+	 * @param fromVarNameGP
+	 * @param toVarNameGP
 	 * @param fromBindingSet
 	 * @return A bindingset that uses the variable names of toVarNameKI instead of
 	 *         fromVarNameKI.

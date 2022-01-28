@@ -19,6 +19,14 @@ public abstract class KnowledgeInteraction {
 	 */
 	private final CommunicativeAct act;
 
+	private final boolean fullMatchOnly;
+
+	/**
+	 * {@code true} if this Knowledge Interaction is used for internal knowledge
+	 * engine communication.
+	 */
+	private final boolean isMeta;
+
 	/**
 	 * Create a {@link KnowledgeInteraction}.
 	 *
@@ -27,7 +35,13 @@ public abstract class KnowledgeInteraction {
 	 *            whether it has side-effects or not.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act) {
+		this(act, false, false);
+	}
+
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean aFullMatchOnly) {
 		super();
+		this.fullMatchOnly = aFullMatchOnly;
+		this.isMeta = isMeta;
 		this.act = act;
 	}
 
@@ -42,8 +56,7 @@ public abstract class KnowledgeInteraction {
 	 *               about the knowledge base itself.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
-		super();
-		this.act = act;
+		this(act, isMeta, isMeta);
 	}
 
 	/**
@@ -51,5 +64,13 @@ public abstract class KnowledgeInteraction {
 	 */
 	public CommunicativeAct getAct() {
 		return this.act;
+	}
+
+	public boolean isMeta() {
+		return this.isMeta;
+	}
+
+	public boolean fullMatchOnly() {
+		return this.fullMatchOnly;
 	}
 }

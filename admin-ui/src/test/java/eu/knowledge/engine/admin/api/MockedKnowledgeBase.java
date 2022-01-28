@@ -1,4 +1,4 @@
-package eu.knowledge.engine.admin;
+package eu.knowledge.engine.admin.api;
 
 import java.net.URI;
 import java.net.URISyntaxException;

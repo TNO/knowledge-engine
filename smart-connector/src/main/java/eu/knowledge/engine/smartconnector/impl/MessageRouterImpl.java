@@ -26,6 +26,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	private final Map<UUID, CompletableFuture<ReactMessage>> openPostMessages = new ConcurrentHashMap<>();
 
 	private MessageDispatcherEndpoint messageDispatcherEndpoint = null;
+	
+	//TODO remove metaknowledgebase if it is no longer needed (since the interaction processor is now fully responsible for message handling).
 	private MetaKnowledgeBase metaKnowledgeBase;
 	private InteractionProcessor interactionProcessor;
 

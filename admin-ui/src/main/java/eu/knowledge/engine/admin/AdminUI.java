@@ -39,19 +39,23 @@ public class AdminUI implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
-	private static final int SLEEPTIME = 2;
+	private static final int SLEEPTIME = 5;
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
 	private volatile boolean connected = false;
 	private ScheduledFuture<?> future;
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private AskKnowledgeInteraction aKI;
+	private static AdminUI instance;
+	private static boolean continuousLog = true;
+	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
 
+	private Model model;
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
 	 */
-	public AdminUI() {
+	private AdminUI() {
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
 		this.prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -65,10 +69,18 @@ public class AdminUI implements KnowledgeBase {
 		// Interactions and starting the Ask job.
 	}
 
+	public static AdminUI newInstance(boolean useLog) {
+		continuousLog = useLog;
+		if (instance == null) {
+			instance = new AdminUI();
+		}
+		return instance;
+	}
+
 	@Override
 	public URI getKnowledgeBaseId() {
 		try {
-			return new URI("https://www.tno.nl/energie/interconnect/adminui");
+			return new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
 			LOG.error("{}", e);
 			return null;
@@ -109,9 +121,12 @@ public class AdminUI implements KnowledgeBase {
 			"?gp rdf:type kb:GraphPattern .",
 			"?gp kb:hasPattern ?pattern ."
 		);
+		//todo: possibly add:
+		//"?s kb:hasEndpoint ?endpoint .",
+		//"?t kb:hasData ?data .",
 
 		// create the correct Knowledge Interaction
-		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 
 		// register the knowledge interaction with the smart connector.
 		this.sc.register(this.aKI);
@@ -140,11 +155,15 @@ public class AdminUI implements KnowledgeBase {
 					// execute actual *ask* and use previously defined Knowledge Interaction
 					CompletableFuture<AskResult> askFuture = AdminUI.this.sc.ask(AdminUI.this.aKI, new BindingSet());
 
-					LOG.info("test");
 					// when result available, we print the knowledge bases to the console.
 					askFuture.thenAccept(askResult -> {
 						try {
-							this.printKnowledgeBases(askResult);
+							// using the BindingSet#generateModel() helper method, we can combine the graph
+							// pattern and the bindings for its variables into a valid RDF Model.
+							AdminUI.this.model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
+							model.setNsPrefixes(AdminUI.this.prefixes);
+
+							if (continuousLog) this.printKnowledgeBases(model);
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}
@@ -156,14 +175,9 @@ public class AdminUI implements KnowledgeBase {
 
 		}
 
-		private void printKnowledgeBases(AskResult askResult) throws ParseException {
+		private void printKnowledgeBases(Model model) throws ParseException {
 
-			// using the BindingSet#generateModel() helper method, we can combine the graph
-			// pattern and the bindings for its variables into a valid RDF Model.
-			Model model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
-			model.setNsPrefixes(AdminUI.this.prefixes);
-
-//			LOG.info("{}", this.getRDF(model));
+			//LOG.info("{}", AdminUI.this.getRDF(model));
 
 			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 			LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
@@ -236,4 +250,11 @@ public class AdminUI implements KnowledgeBase {
 		this.future.cancel(true);
 	}
 
+	public Model getModel() {
+		return model;
+	}
+
+	public void setModel(Model model) {
+		this.model = model;
+	}
 }
