@@ -651,6 +651,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public void stop() {
+		this.cancelInactivityTimeout();
 		this.sc.stop();
 		this.cancelAndClearAllHandleRequests();
 	}
