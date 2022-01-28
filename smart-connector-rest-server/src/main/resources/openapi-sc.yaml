@@ -34,15 +34,15 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If a problem occurred.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     post:
       summary: Create a new Smart Connector for the given Knowledge Base.
       tags:
@@ -76,9 +76,9 @@ paths:
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     delete:
       summary: Delete the Smart Connector belonging to the given Knowledge Base
       tags:
@@ -96,9 +96,9 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/lease/renew:
     put:
       summary: Renew the lease of a Smart Connector.
@@ -121,15 +121,15 @@ paths:
         '400':
           description: The request was faulty.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: The Knowledge Base doesn't exist (anymore), or doesn't have a lease.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/ki:
     get:
       summary: Get all KnowledgeInteractions for a given Knowledge-Base-Id
@@ -206,15 +206,15 @@ paths:
         '400':
           description: If the Knowledge Interaction is not successfully registered.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     delete:
       summary: Unregister the given Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -238,17 +238,17 @@ paths:
         '400':
           description: If unregistering the Knowledge Interaction failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Knowledge Interaction or Knowledge Interaction for
             the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be
             found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/ask:
     post:
       summary: Execute the given Ask Knowledge Interaction with the given binding set. It is possible to target this ask to a specific Knowledge Base by including a RecipientSelector in the requestBody.
@@ -303,21 +303,21 @@ paths:
         '400':
           description: If the ask failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If an internal server error occurs.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/post:
     post:
       summary: Execute the given Post Knowledge Interaction with the given binding set. It is possible to target this post to a specific Knowledge Base by including RecipientSelector in the requestBody.
@@ -372,15 +372,15 @@ paths:
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If an internal server error occurs.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
@@ -422,33 +422,33 @@ paths:
         '202':
           description: No problems, but please reinitiate the long polling request. To prevent very long open connections (which might cause problems for some systems), we regularly return with status code 202 to renew the long polling connection. Note that no handlerequests will be missed, because these are queued automatically.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string       
+                $ref: '#/components/schemas/ResponseMessage'       
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '409':
           description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '410':
           description: This long polling connection has stopped because the server will shut down, please do __not__ reinitiate this request.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If a problem occurred. Please reinitiate this long polling http call.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     post:
       summary: Send the answer or reaction of the last long polling handle
         request back to the Smart Connector of the given Knowledge-Base-Id.
@@ -480,16 +480,16 @@ paths:
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Handle Request Id or Knowledge Interaction for the
             given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
 components:
   schemas:
     SmartConnector:
