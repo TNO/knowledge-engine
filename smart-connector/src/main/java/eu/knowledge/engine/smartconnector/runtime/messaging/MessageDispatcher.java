@@ -57,8 +57,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 
 	private final int myPort;
 	private final URI myExposedUrl;
-	private final String kdHostname;
-	private final int kdPort;
+	private final URI kdUrl;
 
 	private State state;
 	private Server httpServer;
@@ -83,14 +82,12 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 *
 	 * @param myPort
 	 * @param myExposedUrl
-	 * @param kdHostname
-	 * @param kdPort
+	 * @param kdUrl
 	 */
-	public MessageDispatcher(int myPort, URI myExposedUrl, String kdHostname, int kdPort) {
+	public MessageDispatcher(int myPort, URI myExposedUrl, URI kdUrl) {
 		this.myPort = myPort;
 		this.myExposedUrl = myExposedUrl;
-		this.kdHostname = kdHostname;
-		this.kdPort = kdPort;
+		this.kdUrl = kdUrl;
 		this.state = State.NEW;
 	}
 
@@ -99,11 +96,11 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * external Knowledge Directory.
 	 */
 	public MessageDispatcher() {
-		this(0, null, null, 0);
+		this(0, null, null);
 	}
 
 	boolean runsInDistributedMode() {
-		return kdHostname != null;
+		return kdUrl != null;
 	}
 
 	public void start() throws Exception {
@@ -119,7 +116,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 
 		if (runsInDistributedMode()) {
 			// Start Knowledge Directory Connection Manager
-			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdHostname, kdPort, myExposedUrl);
+			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl);
 			this.getKnowledgeDirectoryConnectionManager().start();
 
 			// Start the RemoteSmartConnnectorConnectionsManager

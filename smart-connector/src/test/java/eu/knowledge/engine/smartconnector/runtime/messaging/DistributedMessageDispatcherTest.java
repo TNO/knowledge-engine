@@ -20,7 +20,7 @@ public class DistributedMessageDispatcherTest {
 	void testLocalMessageExchange() throws Exception {
 		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		MessageDispatcher md = new MessageDispatcher(8081, new URI("http://localhost:8081"), "localhost", 8080);
+		MessageDispatcher md = new MessageDispatcher(8081, new URI("http://localhost:8081"), new URI("http://localhost:8080"));
 
 		kd.start();
 
@@ -71,8 +71,8 @@ public class DistributedMessageDispatcherTest {
 	void testRemoteMessageExchange() throws Exception {
 		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
-		MessageDispatcher md1 = new MessageDispatcher(8081, new URI("http://localhost:8081"), "localhost", 8080);
-		MessageDispatcher md2 = new MessageDispatcher(8082, new URI("http://localhost:8082"), "localhost", 8080);
+		MessageDispatcher md1 = new MessageDispatcher(8081, new URI("http://localhost:8081"), new URI("http://localhost:8080"));
+		MessageDispatcher md2 = new MessageDispatcher(8082, new URI("http://localhost:8082"), new URI("http://localhost:8080"));
 
 		kd.start();
 

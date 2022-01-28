@@ -72,8 +72,7 @@ Once the Knowledge Directory is up and running, the REST server can be started. 
 
 | Key | Descrption |
 | --- | --- |
-| KD_HOSTNAME | Hostname where the Knowledge Directory can be found |
-| KD_PORT | Port on which the Knowledge Directory is hosted |
+| KD_URL | URL where the Knowledge Directory can be found |
 | KE_RUNTIME_EXPOSED_URL | URL where other Smart Connectors (peers) can contact this Knowledge Engine instance. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. |
 | KE_RUNTIME_PORT | Port where where this Knowledge Engine instance will listen for new peer connections |
 | KE_RUNTIME_HOSTNAME (deprecated) | Hostname where other Smart Connectors (peers) can contact this Knowledge Engine instance. This variable is superseded by (and conflicts with) KE_RUNTIME_EXPOSED_URL|
@@ -83,8 +82,7 @@ Note that the port for the REST API for the Knowledge Bases is still configured 
 ```bash
 cd smart-connector-rest-dist/target
 
-export KD_HOSTNAME=localhost
-export KD_PORT=8080
+export KD_URL=http://localhost:8080
 export KE_RUNTIME_EXPOSED_URL=http://localhost:8081
 export KE_RUNTIME_PORT=8081
 
