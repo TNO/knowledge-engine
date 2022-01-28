@@ -139,4 +139,10 @@ public interface InteractionProcessor {
 	 *                         reasoning, {@code false} otherwise.
 	 */
 	void setReasonerEnabled(boolean aReasonerEnabled);
+
+	/**
+	 * @return {@code true} if the reasoner for this interaction processor is
+	 *         enabled, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
 }

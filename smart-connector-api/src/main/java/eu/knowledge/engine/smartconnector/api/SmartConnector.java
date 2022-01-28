@@ -260,6 +260,12 @@ public interface SmartConnector {
 	void setReasonerEnabled(boolean aReasonerEnabled);
 
 	/**
+	 * @return {@code true} if this smart connector uses the reasoner for data
+	 *         exchange, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
+
+	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is
 	 * asynchronous and will call
 	 * {@link KnowledgeBase#smartConnectorStopped(SmartConnectorImpl)} when this
@@ -277,7 +283,6 @@ public interface SmartConnector {
 	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
-
 	void stop();
 
 }

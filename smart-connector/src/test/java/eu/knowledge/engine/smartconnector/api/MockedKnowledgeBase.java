@@ -375,4 +375,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 		this.reasonerEnabled = aReasonerEnabled;
 
 	}
+
+	@Override
+	public boolean isReasonerEnabled() {
+		return this.reasonerEnabled;
+	}
 }

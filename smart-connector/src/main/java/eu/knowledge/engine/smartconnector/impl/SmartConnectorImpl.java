@@ -535,4 +535,9 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public void setReasonerEnabled(boolean aReasonerEnabled) {
 		this.interactionProcessor.setReasonerEnabled(aReasonerEnabled);
 	}
+
+	@Override
+	public boolean isReasonerEnabled() {
+		return this.interactionProcessor.isReasonerEnabled();
+	}
 }
