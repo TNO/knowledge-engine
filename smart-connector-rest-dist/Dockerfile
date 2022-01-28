@@ -7,5 +7,7 @@ ARG DEPENDENCY_DIR=target/dependency/
 COPY ${DEPENDENCY_DIR} /knowledge_engine/
 COPY ${JAR_FILE} /knowledge_engine/
 
+EXPOSE 8280
+
 # Add that directory to the class path.
 ENTRYPOINT ["java", "-cp", "/knowledge_engine/*", "eu.knowledge.engine.rest.Main", "8280"]
