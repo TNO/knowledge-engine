@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response.Status;
 
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.api.SmartConnectorLeaseApiService;
+import eu.knowledge.engine.rest.model.ResponseMessage;
 
 public class SmartConnectorLeaseApiServiceImpl extends SmartConnectorLeaseApiService {
 
@@ -19,13 +20,19 @@ public class SmartConnectorLeaseApiServiceImpl extends SmartConnectorLeaseApiSer
 	public Response scLeaseRenewPut(@NotNull String knowledgeBaseId, SecurityContext securityContext)
 			throws NotFoundException {
 		if (knowledgeBaseId == null) {
-			return Response.status(Status.BAD_REQUEST).entity("Missing valid Knowledge-Base-Id header.").build();
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Missing valid Knowledge-Base-Id header.");
+			return Response.status(Status.BAD_REQUEST).entity(response).build();
 		}
 
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			return Response.status(Status.BAD_REQUEST).entity("Knowledge base not found, because its knowledge base ID must be a valid URI.")
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its knowledge base ID must be a valid URI.");
+			return Response.status(Status.BAD_REQUEST).entity(response)
 					.build();
 		}
 
@@ -33,16 +40,25 @@ public class SmartConnectorLeaseApiServiceImpl extends SmartConnectorLeaseApiSer
 		if (restKb == null) {
 			if (manager.hasSuspendedKB(knowledgeBaseId)) {
 				manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
 				return Response.status(Status.NOT_FOUND).entity(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+						response)
 					.build();
 			} else {
-				return Response.status(Status.NOT_FOUND).entity("Knowledge base not found. (Has its lease already expired?)").build();
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found. (Has its lease already expired?)");
+				return Response.status(Status.NOT_FOUND).entity(response).build();
 			}
 		}
 		
 		if (restKb.getLease() == null) {
-			return Response.status(Status.NOT_FOUND).entity("Knowledge base found, but its lease could not be found. Knowledge bases without a lease do not have to be renewed.").build();
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base found, but its lease could not be found. Knowledge bases without a lease do not have to be renewed.");
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 
 		restKb.renewLease();

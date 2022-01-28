@@ -22,6 +22,7 @@ import org.apache.jena.irix.IRIProviderJenaIRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnector;
 import eu.knowledge.engine.rest.api.NotFoundException;
 
@@ -54,7 +55,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			try {
 				new URI(knowledgeBaseId);
 			} catch (URISyntaxException e) {
-				asyncResponse.resume(Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found, because its ID must be a valid URI.");
+				asyncResponse.resume(Response.status(400).entity(response)
 						.build());
 				return;
 			}
@@ -64,7 +68,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 				asyncResponse.resume(Response.ok().entity(convertToModel(connectors)).build());
 				return;
 			} else {
-				asyncResponse.resume(Response.status(404).entity("Knowledge base not found.").build());
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found.");
+				asyncResponse.resume(Response.status(404).entity(response).build());
 				return;
 			}
 		}
@@ -84,7 +91,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		@Context SecurityContext securityContext
 	) throws NotFoundException {
 		if (smartConnector.getKnowledgeBaseId().isEmpty()) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge Base ID must be a non-empty URI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge Base ID must be a non-empty URI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -96,7 +106,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
 		} catch (URISyntaxException | IRIException e) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge base ID must be a valid IRI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base ID must be a valid IRI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -104,7 +117,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		final String kbName = smartConnector.getKnowledgeBaseName();
 
 		if (this.manager.hasKB(smartConnector.getKnowledgeBaseId())) {
-			asyncResponse.resume(Response.status(400).entity("That knowledge base ID is already in use.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("That knowledge base ID is already in use.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -135,14 +151,20 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		LOG.info("scDelete called: {}", knowledgeBaseId);
 
 		if (knowledgeBaseId == null) {
-			asyncResponse.resume(Response.status(Response.Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge-Base-Id header should not be null.");
+			asyncResponse.resume(Response.status(Response.Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its ID must be a valid URI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -153,11 +175,17 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 				return;
 			} else {
 				LOG.warn("Deletion failed of smart connector with ID {} because it was already stopping. Returning 404.", knowledgeBaseId);
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity("Deletion of knowledge base failed, because it was already being deleted.").build());
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Deletion of knowledge base failed, because it was already being deleted.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		} else {
-			asyncResponse.resume(Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.")
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Deletion of knowledge base failed, because it could not be found.");
+			asyncResponse.resume(Response.status(404).entity(response)
 					.build());
 			return;
 		}
