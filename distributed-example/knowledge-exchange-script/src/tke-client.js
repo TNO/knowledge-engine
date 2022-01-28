@@ -133,7 +133,8 @@ export class KnowledgeBase {
     if (!response.ok) {
       throw new Error(await response.text());
     }
-    let knowledgeInteractionId = await response.text();
+    let responseBody = await response.json();
+    let knowledgeInteractionId = responseBody.knowledgeInteractionId;
 
     if (handler != undefined && (type == 'AnswerKnowledgeInteraction' || type == 'ReactKnowledgeInteraction')) {
       // For reactive KI's, we store the handler that the caller provided. These
