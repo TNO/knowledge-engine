@@ -85,8 +85,8 @@ public class TestApiRoutes {
 	@Test
 	public void testEmptyResult() throws IOException {
 		try {
-			//stopKbs();
-			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
+			//todo: ask/poll if ready instead of waiting
+			Thread.sleep(5000);
 			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -125,6 +125,30 @@ public class TestApiRoutes {
 		stopKbs();
 	}
 
+	@Test
+	public void testSmartConnections() throws IOException, InterruptedException {
+		/*
+		startKbs();
+		try {
+			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertNotNull(list);
+			assertEquals(2, list.size());
+			assertEquals(9, list.get(0).getKnowledgeInteractions().size());
+			assertEquals(200, response.statusCode());
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+		}
+		stopKbs();
+		*/
+	}
 
 	@Test
 	public void testSmartConnectorAllRouteWithoutMetaData() throws IOException, InterruptedException {
@@ -191,7 +215,8 @@ public class TestApiRoutes {
 			return bindingSet;
 		});
 
-		Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
+		//todo: ask/poll if ready instead of waiting
+		Thread.sleep(5000);
 		kb2 = null;
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
@@ -207,7 +232,8 @@ public class TestApiRoutes {
 
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
-		Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
+		//todo: ask/poll if ready instead of waiting
+		Thread.sleep(10000);
 	}
 
 	public void stopKbs() {

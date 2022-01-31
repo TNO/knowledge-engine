@@ -61,10 +61,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/KnowledgeInteractionBase'
-        smartConnections:
+        connections:
           type: array
           items:
-            $ref: '#/components/schemas/SmartConnection'
+            $ref: '#/components/schemas/Connection'
     KnowledgeInteractionBase:
       type: object
       required: [knowledgeInteractionType]
@@ -144,11 +144,13 @@ components:
         you are allowed to use those prefixes in the graph pattern(s) that the 
         knowledge interaction contains. Keep in mind that the prefixes can only
         be used in your graph pattern during registration, and not within bindings.
-    SmartConnection:
+    Connection:
       type: object
       required: [ knowledgeBaseId, connectionType]
       properties:
         knowledgeBaseId:
           type: string
         connectionType:
+          type: string
+        matchedKeyword:
           type: string

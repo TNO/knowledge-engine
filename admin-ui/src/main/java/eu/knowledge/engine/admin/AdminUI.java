@@ -133,6 +133,7 @@ public class AdminUI implements KnowledgeBase {
 
 		this.connected = true;
 
+		//todo: use ad-hoc route/function for API to get data instead of polling
 		// job that regularly retrieves and prints all available knowledge bases.
 		this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
 	}
