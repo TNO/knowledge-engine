@@ -85,7 +85,7 @@ public class TestApiRoutes {
 	@Test
 	public void testEmptyResult() throws IOException {
 		try {
-			stopKbs();
+			//stopKbs();
 			Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
 			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
@@ -122,7 +122,9 @@ public class TestApiRoutes {
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
 		}
+		stopKbs();
 	}
+
 
 	@Test
 	public void testSmartConnectorAllRouteWithoutMetaData() throws IOException, InterruptedException {
@@ -145,6 +147,7 @@ public class TestApiRoutes {
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
 		}
+		stopKbs();
 	}
 
 	@AfterAll
@@ -188,7 +191,7 @@ public class TestApiRoutes {
 			return bindingSet;
 		});
 
-		Thread.sleep(5000);
+		Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
 		kb2 = null;
 		kb2 = new MockedKnowledgeBase("kb2") {
 			@Override
@@ -204,7 +207,7 @@ public class TestApiRoutes {
 
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
-		Thread.sleep(10000);
+		Thread.sleep(5000); //todo: make ad-hoc route/function to get data instead of polling
 	}
 
 	public void stopKbs() {
