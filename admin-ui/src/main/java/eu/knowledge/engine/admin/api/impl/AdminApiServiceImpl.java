@@ -4,6 +4,7 @@ import eu.knowledge.engine.admin.AdminUI;
 import eu.knowledge.engine.admin.Util;
 import eu.knowledge.engine.admin.model.*;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
@@ -15,9 +16,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Path("/admin")
 public class AdminApiServiceImpl {
@@ -27,6 +28,9 @@ public class AdminApiServiceImpl {
 	private AdminUI admin;
 
 	private Model model;
+
+	private static final Pattern p = Pattern.compile("[?][^\\s]+");
+	private static final List filteredSyntax = Arrays.asList("rdf", "owl", ".", ";", "a", "");
 
 	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response - get from knowledge directory?!
 	//todo: add active=true|false (show historical SCs, even after lease is expired. Missing or lost SCs can also be valuable information.)
@@ -52,11 +56,45 @@ public class AdminApiServiceImpl {
 		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
-			SmartConnector[] responses = convertToModel(kbs, model, includeMeta);
+			SmartConnector[] responses = findAndAddConnections(convertToModel(kbs, model, includeMeta));
 			asyncResponse.resume(Response.ok().entity(responses).build());
 		} else {
 			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
 		}
+	}
+
+	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
+		HashSet<Connection> graphPatterns = new HashSet<Connection>();
+
+		for (SmartConnector sc : smartConnectors) {
+			//get graph patterns of knowledge interaction temporarily stored in connections
+			graphPatterns.addAll(sc.getConnections());
+		}
+		for (SmartConnector sc : smartConnectors) {
+			for (Connection conn : sc.getConnections()) {
+				String[] tokens = StringUtils.splitPreserveAllTokens(conn.getMatchedKeyword(), " ");
+				for(int i =0; i < tokens.length; i++) {
+					if (!filteredSyntax.contains(tokens[i])) {
+						//try to match non-rdf/owl subject, predicate and object constructs or variables between graphpatterns
+						for ( Connection c : graphPatterns) {
+							if (c.getMatchedKeyword().contains(tokens[i]) &&
+									!c.getKnowledgeBaseId().equals(conn.getKnowledgeBaseId())){
+								System.out.println("match!");
+								System.out.println(tokens[i]);
+								System.out.println("between KBs/SCs");
+								System.out.println(conn.getKnowledgeBaseId());
+								System.out.println(c.getKnowledgeBaseId());
+							}
+						}
+					}
+					//explode matchedKeyword. Ignore RDF, RDFS, owl matches
+					//verwijder oude connections -> set flag/placeholder oid
+
+				}
+			}
+		}
+
+		return smartConnectors;
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] convertToModel(
@@ -64,6 +102,7 @@ public class AdminApiServiceImpl {
 		return kbs.stream().map((kbRes) -> {
 			Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
 			List<KnowledgeInteractionBase> knowledgeInteractions = new ArrayList<>();
+			List<Connection> connections = new ArrayList<>();
 			for (Resource kiRes : kiResources) {
 				if (includeMeta || !Util.isMeta(model, kiRes)) {
 					String type = Util.getKnowledgeInteractionType(model, kiRes);
@@ -91,13 +130,20 @@ public class AdminApiServiceImpl {
 					ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
 					ki.setCommunicativeAct(Util.getCommunicativeAct(model, kiRes));
 					knowledgeInteractions.add(ki);
+					if (!Util.isMeta(model, kiRes)) {
+						connections.add(new Connection()
+								.knowledgeBaseId(kbRes.toString())
+								.connectionType(type)
+								.matchedKeyword(Util.getGraphPattern(model, kiRes))); //todo argument and result ook invullen
+					}
 				}
 			}
 			return new eu.knowledge.engine.admin.model.SmartConnector()
 					.knowledgeBaseId(kbRes.toString())
 					.knowledgeBaseName(Util.getName(model, kbRes))
 					.knowledgeBaseDescription(Util.getDescription(model, kbRes))
-					.knowledgeInteractions(knowledgeInteractions);
+					.knowledgeInteractions(knowledgeInteractions)
+					.connections(connections);
 		}).toArray(eu.knowledge.engine.admin.model.SmartConnector[]::new);
 	}
 }
