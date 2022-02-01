@@ -83,7 +83,7 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testEmptyResult() throws IOException {
+	public void testEmptyResult() {
 		try {
 			//todo: ask/poll if ready instead of waiting
 			Thread.sleep(5000);
@@ -102,7 +102,7 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testSmartConnectorAllRoute() throws IOException, InterruptedException {
+	public void testSmartConnectorAllRoute() throws InterruptedException {
 		startKbs();
 
 		try {
@@ -126,7 +126,7 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testConnections() throws IOException, InterruptedException {
+	public void testConnections() throws InterruptedException {
 
 		startKbs();
 		try {
@@ -152,7 +152,7 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testSmartConnectorAllRouteWithoutMetaData() throws IOException, InterruptedException {
+	public void testSmartConnectorAllRouteWithoutMetaData() throws InterruptedException {
 		startKbs();
 
 		try {
@@ -185,7 +185,7 @@ public class TestApiRoutes {
 		thread.interrupt();
 	}
 
-	public void startKbs() throws IOException, InterruptedException{
+	public void startKbs() throws InterruptedException{
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");

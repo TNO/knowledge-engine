@@ -29,7 +29,8 @@ public class AdminApiServiceImpl {
 
 	private Model model;
 
-	private static final List FILTERED_SYNTAX = Arrays.asList("rdf", "owl", ".", ";", "a", "");
+	private static final String[] FILTERED_SYNTAX = {"rdf", "owl"};
+	private static final List FILTERED_SYNTAX_TOKENS = Arrays.asList(".", "a", ";", "", " ");
 
 	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response - get from knowledge directory?!
 	//todo: add active=true|false (show historical SCs, even after lease is expired. Missing or lost SCs can also be valuable information.)
@@ -64,6 +65,7 @@ public class AdminApiServiceImpl {
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
 		HashSet<Connection> allPossibleConnections = new HashSet<Connection>();
+		boolean stop;
 		for (SmartConnector sc : smartConnectors) {
 			allPossibleConnections.addAll(sc.getConnections());
 		}
@@ -73,17 +75,28 @@ public class AdminApiServiceImpl {
 			for (Connection currentPossibleConnection : sc.getConnections()) {
 				String[] tokens = StringUtils.splitPreserveAllTokens(currentPossibleConnection.getMatchedKeyword(), " ");
 				for(int i =0; i < tokens.length; i++) {
-					//remove tokens with rdf/owl syntax
-					if (!FILTERED_SYNTAX.contains(tokens[i])) {
-						for ( Connection allPossibleConnection : allPossibleConnections) {
-							//try to match subject, predicate and object constructs or variables between graphpatterns
-							if (!sc.getKnowledgeBaseId().equals(allPossibleConnection.getKnowledgeBaseId()) &&
-									allPossibleConnection.getMatchedKeyword().contains(tokens[i])){
-								identifiedConnections.add(new Connection()
-										.knowledgeBaseId(allPossibleConnection.getKnowledgeBaseId())
-										.connectionType("outgoing")
-										.interactionType(currentPossibleConnection.getInteractionType())
-										.matchedKeyword(tokens[i]));
+					stop = false;
+					//ignore tokens with rdf/owl syntax
+					if (FILTERED_SYNTAX_TOKENS.contains(tokens[i])) {
+						stop = true;
+					}
+					if (!stop) {
+						for (String syntaxFilterToken : FILTERED_SYNTAX) {
+							if (tokens[i].contains(syntaxFilterToken) && !stop) {
+								stop = true;
+							}
+						}
+						if (!stop) {
+							for (Connection allPossibleConnection : allPossibleConnections) {
+								//try to match subject, predicate and object constructs or variables between graphpatterns
+								if (!sc.getKnowledgeBaseId().equals(allPossibleConnection.getKnowledgeBaseId()) &&
+										allPossibleConnection.getMatchedKeyword().contains(tokens[i])) {
+									identifiedConnections.add(new Connection()
+											.knowledgeBaseId(allPossibleConnection.getKnowledgeBaseId())
+											.connectionType("outgoing")
+											.interactionType(currentPossibleConnection.getInteractionType())
+											.matchedKeyword(tokens[i]));
+								}
 							}
 						}
 					}
