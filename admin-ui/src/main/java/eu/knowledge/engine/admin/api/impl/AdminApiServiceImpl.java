@@ -29,8 +29,7 @@ public class AdminApiServiceImpl {
 
 	private Model model;
 
-	private static final Pattern p = Pattern.compile("[?][^\\s]+");
-	private static final List filteredSyntax = Arrays.asList("rdf", "owl", ".", ";", "a", "");
+	private static final List FILTERED_SYNTAX = Arrays.asList("rdf", "owl", ".", ";", "a", "");
 
 	//todo: Add TKE runtimes + Smart connectors per runtime in JSON response - get from knowledge directory?!
 	//todo: add active=true|false (show historical SCs, even after lease is expired. Missing or lost SCs can also be valuable information.)
@@ -64,34 +63,33 @@ public class AdminApiServiceImpl {
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
-		HashSet<Connection> graphPatterns = new HashSet<Connection>();
+		HashSet<Connection> allPossibleConnections = new HashSet<Connection>();
+		for (SmartConnector sc : smartConnectors) {
+			allPossibleConnections.addAll(sc.getConnections());
+		}
 
 		for (SmartConnector sc : smartConnectors) {
-			//get graph patterns of knowledge interaction temporarily stored in connections
-			graphPatterns.addAll(sc.getConnections());
-		}
-		for (SmartConnector sc : smartConnectors) {
-			for (Connection conn : sc.getConnections()) {
-				String[] tokens = StringUtils.splitPreserveAllTokens(conn.getMatchedKeyword(), " ");
+			List<Connection> identifiedConnections = new ArrayList<>();
+			for (Connection currentPossibleConnection : sc.getConnections()) {
+				String[] tokens = StringUtils.splitPreserveAllTokens(currentPossibleConnection.getMatchedKeyword(), " ");
 				for(int i =0; i < tokens.length; i++) {
-					if (!filteredSyntax.contains(tokens[i])) {
-						//try to match non-rdf/owl subject, predicate and object constructs or variables between graphpatterns
-						for ( Connection c : graphPatterns) {
-							if (c.getMatchedKeyword().contains(tokens[i]) &&
-									!c.getKnowledgeBaseId().equals(conn.getKnowledgeBaseId())){
-								System.out.println("match!");
-								System.out.println(tokens[i]);
-								System.out.println("between KBs/SCs");
-								System.out.println(conn.getKnowledgeBaseId());
-								System.out.println(c.getKnowledgeBaseId());
+					//remove tokens with rdf/owl syntax
+					if (!FILTERED_SYNTAX.contains(tokens[i])) {
+						for ( Connection allPossibleConnection : allPossibleConnections) {
+							//try to match subject, predicate and object constructs or variables between graphpatterns
+							if (!sc.getKnowledgeBaseId().equals(allPossibleConnection.getKnowledgeBaseId()) &&
+									allPossibleConnection.getMatchedKeyword().contains(tokens[i])){
+								identifiedConnections.add(new Connection()
+										.knowledgeBaseId(allPossibleConnection.getKnowledgeBaseId())
+										.connectionType("outgoing")
+										.interactionType(currentPossibleConnection.getInteractionType())
+										.matchedKeyword(tokens[i]));
 							}
 						}
 					}
-					//explode matchedKeyword. Ignore RDF, RDFS, owl matches
-					//verwijder oude connections -> set flag/placeholder oid
-
 				}
 			}
+			sc.connections(identifiedConnections); //overwrite temporaryConnections with identified connections via graph pattern token match
 		}
 
 		return smartConnectors;
@@ -102,7 +100,7 @@ public class AdminApiServiceImpl {
 		return kbs.stream().map((kbRes) -> {
 			Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
 			List<KnowledgeInteractionBase> knowledgeInteractions = new ArrayList<>();
-			List<Connection> connections = new ArrayList<>();
+			List<Connection> possibleConnections = new ArrayList<>();
 			for (Resource kiRes : kiResources) {
 				if (includeMeta || !Util.isMeta(model, kiRes)) {
 					String type = Util.getKnowledgeInteractionType(model, kiRes);
@@ -131,9 +129,9 @@ public class AdminApiServiceImpl {
 					ki.setCommunicativeAct(Util.getCommunicativeAct(model, kiRes));
 					knowledgeInteractions.add(ki);
 					if (!Util.isMeta(model, kiRes)) {
-						connections.add(new Connection()
+						possibleConnections.add(new Connection()
 								.knowledgeBaseId(kbRes.toString())
-								.connectionType(type)
+								.interactionType(type)
 								.matchedKeyword(Util.getGraphPattern(model, kiRes))); //todo argument and result ook invullen
 					}
 				}
@@ -143,7 +141,7 @@ public class AdminApiServiceImpl {
 					.knowledgeBaseName(Util.getName(model, kbRes))
 					.knowledgeBaseDescription(Util.getDescription(model, kbRes))
 					.knowledgeInteractions(knowledgeInteractions)
-					.connections(connections);
+					.connections(possibleConnections);
 		}).toArray(eu.knowledge.engine.admin.model.SmartConnector[]::new);
 	}
 }

@@ -152,5 +152,7 @@ components:
           type: string
         connectionType:
           type: string
+        interactionType:
+          type: string
         matchedKeyword:
           type: string

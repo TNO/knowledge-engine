@@ -126,8 +126,8 @@ public class TestApiRoutes {
 	}
 
 	@Test
-	public void testSmartConnections() throws IOException, InterruptedException {
-		/*
+	public void testConnections() throws IOException, InterruptedException {
+
 		startKbs();
 		try {
 			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
@@ -141,13 +141,14 @@ public class TestApiRoutes {
 			Collections.addAll(list, result);
 			assertNotNull(list);
 			assertEquals(2, list.size());
-			assertEquals(9, list.get(0).getKnowledgeInteractions().size());
+			assertEquals(1, list.get(0).getConnections().size());
+			assertEquals(1, list.get(1).getConnections().size());
 			assertEquals(200, response.statusCode());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
 		}
 		stopKbs();
-		*/
+
 	}
 
 	@Test
@@ -177,8 +178,6 @@ public class TestApiRoutes {
 	@AfterAll
 	public void cleanup() {
 		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
-
-		stopKbs();
 
 		if (admin != null) {
 			admin.close();
