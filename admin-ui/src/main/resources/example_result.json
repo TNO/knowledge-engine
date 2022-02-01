@@ -1,0 +1,306 @@
+example results rest/admin/sc/all/false route 01-02-2022
+[
+  {
+    "knowledgeBaseId": "http://www.example.org/washing-machine",
+    "knowledgeBaseName": "Washing machine",
+    "knowledgeBaseDescription": "This is a washing machine",
+    "knowledgeInteractions": [
+      {
+        "knowledgeInteractionType": "ReactKnowledgeInteraction",
+        "argumentGraphPattern": "?cmd <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/DeviceCommand> . ?cmd <http://example.org/requestedStatus> ?enabled . ",
+        "resultGraphPattern": "<none>",
+        "knowledgeInteractionId": "http://www.example.org/washing-machine/interaction/4e175b85-1d4f-46fb-a1d8-2b44aee74407",
+        "communicativeAct": {
+          "requiredPurposes": [
+            "http://www.example.org/washing-machine/interaction/4e175b85-1d4f-46fb-a1d8-2b44aee74407/act/req"
+          ],
+          "satisfiedPurposes": [
+            "http://www.example.org/washing-machine/interaction/4e175b85-1d4f-46fb-a1d8-2b44aee74407/act/sat"
+          ]
+        },
+        "isMeta": "false"
+      }
+    ],
+    "connections": [
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "?cmd"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/DeviceCommand>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "?cmd"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/requestedStatus>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "?enabled"
+      }
+    ]
+  },
+  {
+    "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+    "knowledgeBaseName": "Solar panels",
+    "knowledgeBaseDescription": "These are solar panels",
+    "knowledgeInteractions": [
+      {
+        "knowledgeInteractionType": "PostKnowledgeInteraction",
+        "argumentGraphPattern": "?panel <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/EnergyProducer> . ?panel <http://example.org/produces> ?watt . ",
+        "resultGraphPattern": "<none>",
+        "knowledgeInteractionId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9/interaction/d7b3eb92-8111-4fee-9769-39a21b07a52a",
+        "communicativeAct": {
+          "requiredPurposes": [
+            "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9/interaction/d7b3eb92-8111-4fee-9769-39a21b07a52a/act/req"
+          ],
+          "satisfiedPurposes": [
+            "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9/interaction/d7b3eb92-8111-4fee-9769-39a21b07a52a/act/sat"
+          ]
+        },
+        "isMeta": "false"
+      }
+    ],
+    "connections": [
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?panel"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?panel"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      }
+    ]
+  },
+  {
+    "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+    "knowledgeBaseName": "Solar panels",
+    "knowledgeBaseDescription": "These are solar panels",
+    "knowledgeInteractions": [
+      {
+        "knowledgeInteractionType": "PostKnowledgeInteraction",
+        "argumentGraphPattern": "?panel <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/EnergyProducer> . ?panel <http://example.org/produces> ?watt . ",
+        "resultGraphPattern": "<none>",
+        "knowledgeInteractionId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr/interaction/732e298e-0d48-4313-a423-11b467face1d",
+        "communicativeAct": {
+          "requiredPurposes": [
+            "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr/interaction/732e298e-0d48-4313-a423-11b467face1d/act/req"
+          ],
+          "satisfiedPurposes": [
+            "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr/interaction/732e298e-0d48-4313-a423-11b467face1d/act/sat"
+          ]
+        },
+        "isMeta": "false"
+      }
+    ],
+    "connections": [
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?panel"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?panel"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/flexibility-service",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      }
+    ]
+  },
+  {
+    "knowledgeBaseId": "http://www.example.org/flexibility-service",
+    "knowledgeBaseName": "Flexibility service",
+    "knowledgeBaseDescription": "This is the flexibility service",
+    "knowledgeInteractions": [
+      {
+        "knowledgeInteractionType": "PostKnowledgeInteraction",
+        "argumentGraphPattern": "?cmd <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/DeviceCommand> . ?cmd <http://example.org/requestedStatus> ?enabled . ",
+        "resultGraphPattern": "<none>",
+        "knowledgeInteractionId": "http://www.example.org/flexibility-service/interaction/a75a9924-1f6a-44e6-98ae-2bd1b3099d7d",
+        "communicativeAct": {
+          "requiredPurposes": [
+            "http://www.example.org/flexibility-service/interaction/a75a9924-1f6a-44e6-98ae-2bd1b3099d7d/act/req"
+          ],
+          "satisfiedPurposes": [
+            "http://www.example.org/flexibility-service/interaction/a75a9924-1f6a-44e6-98ae-2bd1b3099d7d/act/sat"
+          ]
+        },
+        "isMeta": "false"
+      },
+      {
+        "knowledgeInteractionType": "ReactKnowledgeInteraction",
+        "argumentGraphPattern": "?producer <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/EnergyProducer> . ?producer <http://example.org/produces> ?watt . ",
+        "resultGraphPattern": "<none>",
+        "knowledgeInteractionId": "http://www.example.org/flexibility-service/interaction/c8c69876-5914-4d81-a02f-2c3932d0d120",
+        "communicativeAct": {
+          "requiredPurposes": [
+            "http://www.example.org/flexibility-service/interaction/c8c69876-5914-4d81-a02f-2c3932d0d120/act/req"
+          ],
+          "satisfiedPurposes": [
+            "http://www.example.org/flexibility-service/interaction/c8c69876-5914-4d81-a02f-2c3932d0d120/act/sat"
+          ]
+        },
+        "isMeta": "false"
+      }
+    ],
+    "connections": [
+      {
+        "knowledgeBaseId": "http://www.example.org/washing-machine",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?cmd"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/washing-machine",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/DeviceCommand>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/washing-machine",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?cmd"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/washing-machine",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/requestedStatus>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/washing-machine",
+        "connectionType": "outgoing",
+        "interactionType": "PostKnowledgeInteraction",
+        "matchedKeyword": "?enabled"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/EnergyProducer>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "<http://example.org/produces>"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-w0yk0ubwb1s9pf73mosafr",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      },
+      {
+        "knowledgeBaseId": "http://www.example.org/solar-panels-dlbtuq6cuecgsc83cxcyb9",
+        "connectionType": "outgoing",
+        "interactionType": "ReactKnowledgeInteraction",
+        "matchedKeyword": "?watt"
+      }
+    ]
+  }
+]
