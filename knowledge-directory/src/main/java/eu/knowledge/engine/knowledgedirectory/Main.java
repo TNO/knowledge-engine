@@ -27,8 +27,8 @@ public class Main {
 		try {
 			knowledgeDirectory.start();
 			knowledgeDirectory.join();
-		} catch (Exception e) {
-			LOG.error("Error starting server");
+		} catch (Throwable e) {
+			LOG.error("Error starting server", e);
 		} finally {
 			knowledgeDirectory.stop();
 		}
