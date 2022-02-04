@@ -24,6 +24,20 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.2</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!--
 			This plugin packages all dependencies in a so-called uber-jar. See also:
 			- https://stackoverflow.com/questions/58562397/org-apache-jena-shared-noreaderforlangexception-reader-not-found-nt
