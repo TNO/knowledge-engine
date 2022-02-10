@@ -56,7 +56,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
-	private synchronized void queryKnowledgeDirectory() {
+	public synchronized void queryKnowledgeDirectory() {
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = messageDispatcher
 				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
 		// Check if there are new KERs
