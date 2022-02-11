@@ -1,0 +1,8 @@
+stages:
+  - build
+
+maven compile:
+  stage: build
+  image: maven:3-jdk-11
+  script:
+    - mvn --batch-mode clean compile
