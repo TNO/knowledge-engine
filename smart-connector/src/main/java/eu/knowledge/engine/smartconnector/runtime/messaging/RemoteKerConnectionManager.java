@@ -63,9 +63,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			return;
 		}
 
-		// Determine when the cooldown will end (or has ended)
 		var now = new Date();
-
+		
 		if (knowledgeDirectoryUpdateCooldownEnds == null || now.getTime() > knowledgeDirectoryUpdateCooldownEnds.getTime()) {
 			// Cooldown already ended: do it right away.
 			queryKnowledgeDirectory();
