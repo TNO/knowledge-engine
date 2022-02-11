@@ -215,7 +215,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
+			LOG.error("An error occurred while answering a msg: {}", e);
+			LOG.debug("The error occured while answering this message: {}", anAskMsg);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					e.getMessage());
@@ -295,7 +296,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
+			LOG.error("An error occurred while answering a msg: {}", e);
+			LOG.debug("The error occured while answering this message: {}", aPostMsg);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					e.getMessage());

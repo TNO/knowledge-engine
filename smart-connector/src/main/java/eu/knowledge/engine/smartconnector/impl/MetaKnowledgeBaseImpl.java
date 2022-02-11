@@ -490,7 +490,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				this.interactionProcessor
 						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("No error should occurre while notifying others of an registered knowledge interaction.");
+				LOG.error("No error should occur while notifying others of a registered knowledge interaction.");
 			}
 		}
 	}
@@ -503,7 +503,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				this.interactionProcessor
 						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
-				LOG.error("No error should occurre while notifying others of an unregistered knowledge interaction.");
+				LOG.error("No error should occur while notifying others of an unregistered knowledge interaction.");
 			}
 		}
 	}
