@@ -237,9 +237,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			this.undeliverableMail.add(message);
 
 			// Force a refresh of the KERs from the Knowledge Directory
-			this.remoteSmartConnectorConnectionsManager.queryKnowledgeDirectory();
-			// After that, try to deliver the undelivered mail.
-			this.tryDeliverUndeliveredMail();
+			this.remoteSmartConnectorConnectionsManager.scheduleQueryKnowledgeDirectory();
 		} else {
 			LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
 					.getLocalSmartConnectorConnection(message.getToKnowledgeBase());
