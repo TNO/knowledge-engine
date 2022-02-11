@@ -154,7 +154,8 @@ public class ReactiveApiServiceImpl {
 			@ApiParam(value = "") @Valid @NotNull eu.knowledge.engine.rest.model.HandleResponse responseBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
-		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, responseBody);
+		LOG.info("scHandlePost() called with {}, {}", knowledgeBaseId, knowledgeInteractionId);
+		LOG.debug("scHandlePost() received this response body: {}", responseBody);
 
 		if (knowledgeBaseId == null) {
 			var response = new ResponseMessage();
