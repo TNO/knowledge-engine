@@ -25,7 +25,8 @@ public class RestKnowledgeBaseManager {
 	private final static int CHECK_LEASES_PERIOD = 10;
 	private final static int CHECK_LEASES_INITIAL_DELAY = 5;
 
-	private static RestKnowledgeBaseManager instance;
+	private static final Object instanceLock = new Object();
+	private static volatile RestKnowledgeBaseManager instance;
 
 	private RestKnowledgeBaseManager() {
 		LOG.info("RestKnowledgeBaseManager initialized!");
@@ -38,10 +39,20 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public static RestKnowledgeBaseManager newInstance() {
-		if (instance == null) {
-			instance = new RestKnowledgeBaseManager();
-		}
-		return instance;
+		// See:
+		// - https://stackoverflow.com/a/11165926/2501474
+		// - https://en.wikipedia.org/wiki/Double-checked_locking#Usage_in_Java
+		RestKnowledgeBaseManager r = instance;
+    if (r == null) {
+			synchronized (instanceLock) { // While we were waiting for the lock, another 
+				r = instance;             // thread may have instantiated the object.
+				if (r == null) {  
+					r = new RestKnowledgeBaseManager();
+					instance = r;
+				}
+			}
+    }
+    return r;
 	}
 
 	public boolean hasKB(String knowledgeBaseId) {
