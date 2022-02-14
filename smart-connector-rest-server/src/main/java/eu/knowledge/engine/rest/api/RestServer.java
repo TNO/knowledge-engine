@@ -47,6 +47,8 @@ public class RestServer {
 		try {
 			server.start();
 			server.join();
+		} catch (InterruptedException ex) {
+			LOG.info("REST server thread was interrupted.");
 		} catch (Exception ex) {
 			LOG.error("{}", ex);
 		} finally {

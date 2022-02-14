@@ -2,6 +2,7 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,10 +37,13 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnectionManager.class);
 
 	private static final int KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL = 60;
+	private static final int KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN = 2;
 	private final RemoteMessageReceiver messageReceiver;
 	private final Map<String, RemoteKerConnection> remoteKerConnections = new ConcurrentHashMap<>();
-	private ScheduledFuture<?> scheduledFuture;
+	private ScheduledFuture<?> scheduledScheduleFuture;
+	private ScheduledFuture<?> scheduledKnowledgeDirectoryQueryFuture;
 	private final MessageDispatcher messageDispatcher;
+	private Date knowledgeDirectoryUpdateCooldownEnds = null;
 
 	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
@@ -47,19 +51,43 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	}
 
 	public void start() {
-		scheduledFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
-			try {
-				queryKnowledgeDirectory();
-			} catch (Exception e) {
-				LOG.error("Error while querying the Knowledge Directory", e);
-			}
+		// Make a schedule to schedule a knowledge directory update every minute.
+		scheduledScheduleFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
+			scheduleQueryKnowledgeDirectory();
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
+	public synchronized void scheduleQueryKnowledgeDirectory() {
+		if (this.scheduledKnowledgeDirectoryQueryFuture != null && !this.scheduledKnowledgeDirectoryQueryFuture.isDone()) {
+			// There was already a scheduled update, so we don't have to do anything.
+			return;
+		}
+
+		var now = new Date();
+		
+		if (knowledgeDirectoryUpdateCooldownEnds == null || now.getTime() > knowledgeDirectoryUpdateCooldownEnds.getTime()) {
+			// Cooldown already ended: do it right away.
+			queryKnowledgeDirectory();
+		} else {
+			// Cooldown not yet ended: schedule to update when the cooldown ends.
+			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
+				queryKnowledgeDirectory();
+				this.scheduledKnowledgeDirectoryQueryFuture = null;
+			}, knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime(), TimeUnit.MILLISECONDS);
+		}
+	}
+
 	private synchronized void queryKnowledgeDirectory() {
-		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails = messageDispatcher
+		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails;
+		try {
+			kerConnectionDetails = messageDispatcher
 				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
-		// Check if there are new KERs
+			// Check if there are new KERs
+		} catch (Exception e) {
+			LOG.error("Error while querying the Knowledge Directory", e);
+			return;
+		}
+
 		for (KnowledgeEngineRuntimeConnectionDetails knowledgeEngineRuntime : kerConnectionDetails) {
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
@@ -81,10 +109,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				it.remove();
 			}
 		}
+		this.knowledgeDirectoryUpdateCooldownEnds = new Date(new Date().getTime() + KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN * 1000);
 	}
-
+	
 	public void stop() {
-		this.scheduledFuture.cancel(false);
+		this.scheduledScheduleFuture.cancel(false);
 	}
 
 	public RemoteKerConnection getRemoteKerConnection(URI toKnowledgeBase) {
@@ -117,7 +146,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		if (remoteKerConnection == null) {
 			// It is a new KER. We don't process the data now, but trigger a new knowledge
 			// directory query, which should trigger a GET.
-			KeRuntime.executorService().execute(() -> queryKnowledgeDirectory());
+			KeRuntime.executorService().execute(() -> scheduleQueryKnowledgeDirectory());
 		} else {
 			// The KER has changed its details
 			LOG.info("Received new or removed Smart Connectors from peer "

@@ -270,8 +270,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(
 							new Exception("It was not possible to add this request to the knowledge base's queue.")));
 					LOG.warn(
-							"Could not add handle request {} to queue of knowledge base {}, even after removing an item.",
-							handleRequest, this.knowledgeBaseId);
+							"Could not add handle request to queue of knowledge base {}, even after removing an item.",
+							this.knowledgeBaseId);
+					LOG.debug("This handle request couldn't be added: {}", handleRequest);
 				}
 			}
 		}

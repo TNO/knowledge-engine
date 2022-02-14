@@ -111,12 +111,12 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 									this.checkOtherKnowledgeInteraction(bindingSet);
 								} catch (Throwable t) {
-									this.LOG.error("Receiving a answer message should succeed.", t);
+									this.LOG.error("Receiving an answer message should succeed.", t);
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ askMessage.toString() + ": " +  e.getMessage());
+							this.LOG.warn("An error occured while sending and processing a message: {}", e);
+							this.LOG.debug("This is the message where the error occured: {}", askMessage);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -165,8 +165,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ postMessage.toString() + ": " + e.getMessage());
+							this.LOG.warn("An error occured while sending and processing a message: {}", e);
+							this.LOG.debug("This is the message where the error occured: {}", postMessage);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);

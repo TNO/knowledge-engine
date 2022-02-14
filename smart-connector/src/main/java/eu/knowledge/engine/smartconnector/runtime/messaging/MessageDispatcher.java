@@ -235,6 +235,9 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			LOG.warn("Received message from unknown Knowledge Base: " + message.getFromKnowledgeBase()
 					+ ", I only know " + knowledgeBaseIds);
 			this.undeliverableMail.add(message);
+
+			// Force a refresh of the KERs from the Knowledge Directory
+			this.remoteSmartConnectorConnectionsManager.scheduleQueryKnowledgeDirectory();
 		} else {
 			LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
 					.getLocalSmartConnectorConnection(message.getToKnowledgeBase());

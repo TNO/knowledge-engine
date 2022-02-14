@@ -139,7 +139,7 @@ public class OtherKnowledgeBase {
 						m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(result)));
 					break;
 				default:
-					this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
+					LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
 					assert false;
 				}
 			}
