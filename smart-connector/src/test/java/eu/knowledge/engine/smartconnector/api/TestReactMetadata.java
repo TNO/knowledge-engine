@@ -118,6 +118,7 @@ public class TestReactMetadata {
 
 		});
 
+		LOG.info("Waiting for up-to-date...");
 		kn.waitForUpToDate();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",

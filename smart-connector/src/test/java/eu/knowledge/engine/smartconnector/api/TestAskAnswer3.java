@@ -63,11 +63,12 @@ public class TestAskAnswer3 {
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
-
+		LOG.info("Everyone is ready!");
+		
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -81,7 +82,7 @@ public class TestAskAnswer3 {
 		GraphPattern gp3 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 		kb3.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -95,7 +96,7 @@ public class TestAskAnswer3 {
 		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g.");
 		AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
 		kb4.register(aKI4, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(), "Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -109,8 +110,9 @@ public class TestAskAnswer3 {
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
-
+		LOG.info("Waiting until everyone is up-to-date!");
 		kn.waitForUpToDate();
+		LOG.info("Everyone is up-to-date!");
 
 		// start testing!
 		BindingSet bindings = null;

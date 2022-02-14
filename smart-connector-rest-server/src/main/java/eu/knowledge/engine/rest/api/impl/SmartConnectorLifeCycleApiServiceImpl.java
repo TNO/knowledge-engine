@@ -22,6 +22,7 @@ import org.apache.jena.irix.IRIProviderJenaIRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnector;
 import eu.knowledge.engine.rest.api.NotFoundException;
 
@@ -36,17 +37,16 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 	@GET
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
-	@io.swagger.annotations.ApiOperation(value = "Either get all available Smart Connectors or a specific one if the Knowledge-Base-Id is provided.", notes = "", response = SmartConnector.class, responseContainer = "List", tags={ "smart connector life cycle", })
+	@io.swagger.annotations.ApiOperation(value = "Either get all available Smart Connectors or a specific one if the Knowledge-Base-Id is provided.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {
+			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
-		@io.swagger.annotations.ApiResponse(code = 200, message = "A list of Smart Connectors. It will have only a single element if the Knowledge-Base-Id was provided.", response = SmartConnector.class, responseContainer = "List"),
-		@io.swagger.annotations.ApiResponse(code = 404, message = "If there is no Smart Connector for the given Knowledge-Base-Id.", response = String.class),
-		@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class)
-	})
+			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of Smart Connectors. It will have only a single element if the Knowledge-Base-Id was provided.", response = SmartConnector.class, responseContainer = "List"),
+			@io.swagger.annotations.ApiResponse(code = 404, message = "If there is no Smart Connector for the given Knowledge-Base-Id.", response = String.class),
+			@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class) })
 	public void scGet(
-		@ApiParam(value = "The knowledge base id who's Smart Connector information you would like to have." )@HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
-		@Suspended final AsyncResponse asyncResponse,
-		@Context SecurityContext securityContext
-	) throws NotFoundException {
+			@ApiParam(value = "The knowledge base id who's Smart Connector information you would like to have.") @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
+			throws NotFoundException {
 		if (knowledgeBaseId == null) {
 			asyncResponse.resume(Response.ok().entity(convertToModel(this.manager.getKBs())).build());
 			return;
@@ -54,7 +54,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			try {
 				new URI(knowledgeBaseId);
 			} catch (URISyntaxException e) {
-				asyncResponse.resume(Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.")
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found, because its ID must be a valid URI.");
+				asyncResponse.resume(Response.status(400).entity(response)
 						.build());
 				return;
 			}
@@ -64,27 +67,31 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 				asyncResponse.resume(Response.ok().entity(convertToModel(connectors)).build());
 				return;
 			} else {
-				asyncResponse.resume(Response.status(404).entity("Knowledge base not found.").build());
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found.");
+				asyncResponse.resume(Response.status(404).entity(response).build());
 				return;
 			}
 		}
 	}
 
-	@POST	
+	@POST
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "text/plain; charset=UTF-8" })
-	@io.swagger.annotations.ApiOperation(value = "Create a new Smart Connector for the given Knowledge Base.", notes = "", response = Void.class, tags={ "smart connector life cycle", })
+	@io.swagger.annotations.ApiOperation(value = "Create a new Smart Connector for the given Knowledge Base.", notes = "", response = Void.class, tags = {
+			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
-		@io.swagger.annotations.ApiResponse(code = 200, message = "If the Smart Connector for the given Knowledge Base is successfully created.", response = Void.class),
-		@io.swagger.annotations.ApiResponse(code = 400, message = "If the creation of the Smart Connector for the given Knowledge Base failed.", response = String.class)
-	})
-	public void scPost(
-		@ApiParam(value = "", required = true) @NotNull @Valid  SmartConnector smartConnector,
-		@Suspended final AsyncResponse asyncResponse,
-		@Context SecurityContext securityContext
-	) throws NotFoundException {
+			@io.swagger.annotations.ApiResponse(code = 200, message = "If the Smart Connector for the given Knowledge Base is successfully created.", response = Void.class),
+			@io.swagger.annotations.ApiResponse(code = 400, message = "If the creation of the Smart Connector for the given Knowledge Base failed.", response = String.class) })
+	public void scPost(@ApiParam(value = "", required = true) @NotNull @Valid SmartConnector smartConnector,
+			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
+			throws NotFoundException {
 		if (smartConnector.getKnowledgeBaseId().isEmpty()) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge Base ID must be a non-empty URI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge Base ID must be a non-empty URI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -96,7 +103,10 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
 		} catch (URISyntaxException | IRIException e) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge base ID must be a valid IRI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base ID must be a valid IRI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -104,16 +114,23 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		final String kbName = smartConnector.getKnowledgeBaseName();
 
 		if (this.manager.hasKB(smartConnector.getKnowledgeBaseId())) {
-			asyncResponse.resume(Response.status(400).entity("That knowledge base ID is already in use.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("That knowledge base ID is already in use.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
+		final boolean reasonerEnabled = smartConnector.getReasonerEnabled() == null ? false
+				: smartConnector.getReasonerEnabled();
+
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)
-			.knowledgeBaseDescription(kbDescription).leaseRenewalTime(smartConnector.getLeaseRenewalTime())).thenRun(() -> {
-				LOG.info("Returning response for smart connector with ID {}", kbId);
-				asyncResponse.resume(Response.ok().build());
-			});
+				.knowledgeBaseDescription(kbDescription).leaseRenewalTime(smartConnector.getLeaseRenewalTime())
+				.reasonerEnabled(reasonerEnabled)).thenRun(() -> {
+					LOG.info("Returning response for smart connector with ID {}", kbId);
+					asyncResponse.resume(Response.ok().build());
+				});
 
 		LOG.info("Creating smart connector with ID {}.", kbId);
 
@@ -122,27 +139,32 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 	@DELETE
 	@Produces({ "text/plain; charset=UTF-8" })
-	@io.swagger.annotations.ApiOperation(value = "Delete the Smart Connector belonging to the given Knowledge Base", notes = "", response = Void.class, tags={ "smart connector life cycle", })
+	@io.swagger.annotations.ApiOperation(value = "Delete the Smart Connector belonging to the given Knowledge Base", notes = "", response = Void.class, tags = {
+			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
-		@io.swagger.annotations.ApiResponse(code = 200, message = "If the Smart Connector for the given Knowledge Base is successfully deleted.", response = Void.class),
-		@io.swagger.annotations.ApiResponse(code = 404, message = "If there is no Smart Connector for the given Knowledge-Base-Id.", response = String.class)
-	})
+			@io.swagger.annotations.ApiResponse(code = 200, message = "If the Smart Connector for the given Knowledge Base is successfully deleted.", response = Void.class),
+			@io.swagger.annotations.ApiResponse(code = 404, message = "If there is no Smart Connector for the given Knowledge-Base-Id.", response = String.class) })
 	public void scDelete(
-		@ApiParam(value = "The knowledge base id who's smart connector should be deleted." ,required=true)@HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
-		@Suspended final AsyncResponse asyncResponse,
-		@Context SecurityContext securityContext
-	) throws NotFoundException {
+			@ApiParam(value = "The knowledge base id who's smart connector should be deleted.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
+			throws NotFoundException {
 		LOG.info("scDelete called: {}", knowledgeBaseId);
 
 		if (knowledgeBaseId == null) {
-			asyncResponse.resume(Response.status(Response.Status.BAD_REQUEST).entity("Knowledge-Base-Id header should not be null.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge-Base-Id header should not be null.");
+			asyncResponse.resume(Response.status(Response.Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
-			asyncResponse.resume(Response.status(400).entity("Knowledge base not found, because its ID must be a valid URI.").build());
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its ID must be a valid URI.");
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
 
@@ -153,24 +175,30 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 				return;
 			} else {
 				LOG.warn("Deletion failed of smart connector with ID {} because it was already stopping. Returning 404.", knowledgeBaseId);
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity("Deletion of knowledge base failed, because it was already being deleted.").build());
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Deletion of knowledge base failed, because it was already being deleted.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		} else {
-			asyncResponse.resume(Response.status(404).entity("Deletion of knowledge base failed, because it could not be found.")
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Deletion of knowledge base failed, because it could not be found.");
+			asyncResponse.resume(Response.status(404).entity(response)
 					.build());
 			return;
 		}
 	}
 
-	private eu.knowledge.engine.rest.model.SmartConnector[] convertToModel(
-			Set<RestKnowledgeBase> kbs) {
+	private eu.knowledge.engine.rest.model.SmartConnector[] convertToModel(Set<RestKnowledgeBase> kbs) {
 		return kbs.stream().map((restKb) -> {
 			return new eu.knowledge.engine.rest.model.SmartConnector()
 					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
 					.knowledgeBaseName(restKb.getKnowledgeBaseName())
 					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription())
-					.leaseRenewalTime(restKb.getLeaseRenewalTime());
+					.leaseRenewalTime(restKb.getLeaseRenewalTime())
+					.reasonerEnabled(restKb.getReasonerEnabled());
 		}).toArray(eu.knowledge.engine.rest.model.SmartConnector[]::new);
 	}
 }

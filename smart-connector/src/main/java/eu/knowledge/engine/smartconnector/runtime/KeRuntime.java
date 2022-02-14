@@ -21,8 +21,7 @@ public class KeRuntime {
 
 	private static final String CONF_KEY_MY_HOSTNAME = "KE_RUNTIME_HOSTNAME";
 	private static final String CONF_KEY_MY_PORT = "KE_RUNTIME_PORT";
-	private static final String CONF_KEY_KD_HOSTNAME = "KD_HOSTNAME";
-	private static final String CONF_KEY_KD_PORT = "KD_PORT";
+	private static final String CONF_KEY_KD_URL = "KD_URL";
 	private static final String CONF_KEY_MY_EXPOSED_URL = "KE_RUNTIME_EXPOSED_URL";
 
 	private static final String EXPOSED_URL_DEFAULT_PROTOCOL = "http";
@@ -70,7 +69,7 @@ public class KeRuntime {
 	public static MessageDispatcher getMessageDispatcher() {
 		if (messageDispatcher == null) {
 			try {
-				if (!hasConfigProperty(CONF_KEY_KD_HOSTNAME) || !hasConfigProperty(CONF_KEY_KD_PORT)) {
+				if (!hasConfigProperty(CONF_KEY_KD_URL)) {
 					LOG.warn(
 							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
 					messageDispatcher = new MessageDispatcher();
@@ -90,8 +89,8 @@ public class KeRuntime {
 					messageDispatcher = new MessageDispatcher(
 						myPort,
 						myExposedUrl,
-						getConfigProperty(CONF_KEY_KD_HOSTNAME, "localhost"),
-						Integer.parseInt(getConfigProperty(CONF_KEY_KD_PORT, "8080")));
+						new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080"))
+					);
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);

@@ -21,6 +21,7 @@ import eu.knowledge.engine.rest.model.CommunicativeAct;
 import eu.knowledge.engine.rest.model.HandleRequest;
 import eu.knowledge.engine.rest.model.HandleResponse;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionBase;
+import eu.knowledge.engine.rest.model.KnowledgeInteractionId;
 import eu.knowledge.engine.rest.model.PostKnowledgeInteraction;
 import eu.knowledge.engine.rest.model.PostResult;
 import eu.knowledge.engine.rest.model.ReactKnowledgeInteraction;
@@ -32,6 +33,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
 
 public class KnowledgeEngineRestApiClient {
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeEngineRestApiClient.class);
@@ -120,7 +122,7 @@ public class KnowledgeEngineRestApiClient {
 		}
 	}
 
-	private String postKi(String type, String graphPattern, String argumentPattern, String resultPattern,
+	private KnowledgeInteractionId postKi(String type, String graphPattern, String argumentPattern, String resultPattern,
 			List<String> requires, List<String> satisfies) {
 
 		KnowledgeInteractionBase ki = null;
@@ -160,7 +162,9 @@ public class KnowledgeEngineRestApiClient {
 					.build();
 			try {
 				var response = this.okClient.newCall(request).execute();
-				return response.body().string();
+				KnowledgeInteractionId kii = new KnowledgeInteractionId();
+				kii.setKnowledgeInteractionId(response.body().string());
+				return kii;
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not POST the new KI.");
@@ -170,43 +174,43 @@ public class KnowledgeEngineRestApiClient {
 		}
 	}
 
-	public String registerAsk(String graphPattern, List<String> requires, List<String> satisfies) {
+	public KnowledgeInteractionId registerAsk(String graphPattern, List<String> requires, List<String> satisfies) {
 		return this.postKi("AskKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
 	}
 
-	public String registerAsk(String graphPattern) {
+	public KnowledgeInteractionId registerAsk(String graphPattern) {
 		return this.registerAsk(graphPattern, null, null);
 	}
 
-	public String registerAnswer(String graphPattern, List<String> requires, List<String> satisfies,
+	public KnowledgeInteractionId registerAnswer(String graphPattern, List<String> requires, List<String> satisfies,
 			KnowledgeHandler handler) {
-		String kiId = this.postKi("AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
-		this.knowledgeHandlers.put(kiId, handler);
+		KnowledgeInteractionId kiId = this.postKi("AnswerKnowledgeInteraction", graphPattern, null, null, requires, satisfies);
+		this.knowledgeHandlers.put(kiId.getKnowledgeInteractionId(), handler);
 		return kiId;
 	}
 
-	public String registerAnswer(String graphPattern, KnowledgeHandler handler) {
+	public KnowledgeInteractionId registerAnswer(String graphPattern, KnowledgeHandler handler) {
 		return this.registerAnswer(graphPattern, null, null, handler);
 	}
 
-	public String registerPost(String argumentPattern, String resultPattern, List<String> requires,
+	public KnowledgeInteractionId registerPost(String argumentPattern, String resultPattern, List<String> requires,
 			List<String> satisfies) {
 		return this.postKi("PostKnowledgeInteraction", null, argumentPattern, resultPattern, requires, satisfies);
 	}
 
-	public String registerPost(String argumentPattern, String resultPattern) {
+	public KnowledgeInteractionId registerPost(String argumentPattern, String resultPattern) {
 		return this.registerPost(argumentPattern, resultPattern, null, null);
 	}
 
-	public String registerReact(String argumentPattern, String resultPattern, List<String> requires,
+	public KnowledgeInteractionId registerReact(String argumentPattern, String resultPattern, List<String> requires,
 			List<String> satisfies, KnowledgeHandler handler) {
-		String kiId = this.postKi("ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires,
+		KnowledgeInteractionId kiId = this.postKi("ReactKnowledgeInteraction", null, argumentPattern, resultPattern, requires,
 				satisfies);
-		this.knowledgeHandlers.put(kiId, handler);
+		this.knowledgeHandlers.put(kiId.getKnowledgeInteractionId(), handler);
 		return kiId;
 	}
 
-	public String registerReact(String argumentPattern, String resultPattern, KnowledgeHandler handler) {
+	public KnowledgeInteractionId registerReact(String argumentPattern, String resultPattern, KnowledgeHandler handler) {
 		return this.registerReact(argumentPattern, resultPattern, null, null, handler);
 	}
 

@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 1.0.3-SNAPSHOT
+  version: 1.1.1-SNAPSHOT
   
 paths:
   /sc:
@@ -34,15 +34,15 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If a problem occurred.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     post:
       summary: Create a new Smart Connector for the given Knowledge Base.
       tags:
@@ -70,15 +70,31 @@ paths:
                   after about 60 seconds. To postpone the cleanup, your
                   knowledge base has to call /sc/lease/renew to extend the lease
                   by 60 seconds.
+              with reasoner enabled:
+                value:
+                  knowledgeBaseId: http://example.org/a-knowledge-base-id
+                  knowledgeBaseName: Example Knowledge Base
+                  knowledgeBaseDescription: This is a detailed description
+                  reasonerEnabled: true
+                description:
+                  The reasoner is disabled by default. If enabled, the created smart 
+                  connector will use a reasoner to orchestrate the data exchange. 
+                  This increases the flexibility, but can decrease the performance 
+                  and cause unexpected behaviour, for now. This flexibility means the 
+                  smart connector will automatically try to combine data coming 
+                  from different knowledge bases or try to convert units of measures. 
+                  If the reasoner is disabled, the smart connector will only exchange 
+                  data with other smart connectors if their graph patterns match 
+                  entirely (apart from ordering and variable names).
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
         '400':
           description: If the creation of the Smart Connector for the given Knowledge Base failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     delete:
       summary: Delete the Smart Connector belonging to the given Knowledge Base
       tags:
@@ -96,9 +112,9 @@ paths:
         '404':
           description: If there is no Smart Connector for the given Knowledge-Base-Id.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/lease/renew:
     put:
       summary: Renew the lease of a Smart Connector.
@@ -121,15 +137,15 @@ paths:
         '400':
           description: The request was faulty.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: The Knowledge Base doesn't exist (anymore), or doesn't have a lease.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/ki:
     get:
       summary: Get all KnowledgeInteractions for a given Knowledge-Base-Id
@@ -195,24 +211,26 @@ paths:
             
       responses:
         '200':
-          description: If the Knowledge Interaction is successfully registered, it returns the knowledge interaction id.
+          description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
-                example: https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
+                $ref: '#/components/schemas/KnowledgeInteractionId'
+              example:
+                knowledgeInteractionId:
+                  https://www.interconnectproject.eu/knowledge-engine/knowledgebase/example/a-reacting-kb/42
         '400':
           description: If the Knowledge Interaction is not successfully registered.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Smart Connector for the given Knowledge-Base-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     delete:
       summary: Unregister the given Knowledge Interaction with the Smart Connector of the given Knowledge Base
       tags:
@@ -236,17 +254,17 @@ paths:
         '400':
           description: If unregistering the Knowledge Interaction failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Knowledge Interaction or Knowledge Interaction for
             the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be
             found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/ask:
     post:
       summary: Execute the given Ask Knowledge Interaction with the given binding set. It is possible to target this ask to a specific Knowledge Base by including a RecipientSelector in the requestBody.
@@ -301,21 +319,21 @@ paths:
         '400':
           description: If the ask failed.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If an internal server error occurs.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/post:
     post:
       summary: Execute the given Post Knowledge Interaction with the given binding set. It is possible to target this post to a specific Knowledge Base by including RecipientSelector in the requestBody.
@@ -370,15 +388,15 @@ paths:
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If an internal server error occurs.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
   /sc/handle:
     get:
       summary: Start waiting for a handle request for the given Knowledge Base Id.
@@ -420,33 +438,33 @@ paths:
         '202':
           description: No problems, but please reinitiate the long polling request. To prevent very long open connections (which might cause problems for some systems), we regularly return with status code 202 to renew the long polling connection. Note that no handlerequests will be missed, because these are queued automatically.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string       
+                $ref: '#/components/schemas/ResponseMessage'       
         '404':
           description: If a Knowledge Interaction for the given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '409':
           description: Only one connection per Knowledge-Base-Id is allowed and we already have one.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '410':
           description: This long polling connection has stopped because the server will shut down, please do __not__ reinitiate this request.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '500':
           description: If a problem occurred. Please reinitiate this long polling http call.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
     post:
       summary: Send the answer or reaction of the last long polling handle
         request back to the Smart Connector of the given Knowledge-Base-Id.
@@ -478,16 +496,16 @@ paths:
         '400':
           description: If the answer was not successfully processed by the Knowledge Base's smart connector.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
         '404':
           description: If a Handle Request Id or Knowledge Interaction for the
             given Knowledge-Base-Id and Knowledge-Interaction-Id cannot be found.
           content:
-            text/plain; charset=UTF-8:
+            application/json; charset=UTF-8:
               schema:
-                type: string
+                $ref: '#/components/schemas/ResponseMessage'
 components:
   schemas:
     SmartConnector:
@@ -508,6 +526,13 @@ components:
             base automatically unregistered when you don't renew your lease. Expiry
             is checked periodically, so your knowledge base may actually be
             valid for longer than the given time.
+        reasonerEnabled:
+          type: boolean
+          description: Include this optional property if you want to specify whether 
+            the smart connector should use a reasoner or a matcher to orchestrate data 
+            exchange. In general the reasoner increases the flexibility, but decreases 
+            the performance. The matcher decreases the flexibility, but increases 
+            the performance.
     BindingSet:
       type: array
       items:
@@ -528,6 +553,13 @@ components:
       properties:
         "singleKnowledgeBase": 
           type: string
+    ResponseMessage:
+      type: object
+      properties:
+        messageType:
+          type: string
+        message: 
+          type: string
     KnowledgeInteractionBase:
       type: object
       required: [knowledgeInteractionType]
@@ -545,6 +577,11 @@ components:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
           $ref: '#/components/schemas/Prefixes'
+    KnowledgeInteractionId:
+      type: object
+      properties:
+        knowledgeInteractionId:
+          type: string
     KnowledgeInteractionWithId:
       allOf:
         - anyOf:
