@@ -84,6 +84,15 @@ public class PostResult {
 
 	}
 
+	/**
+	 * If the reasoner was enabled during this post interaction, this method returns
+	 * detailed information about the steps taken during the reasoning process.
+	 * Otherwise it returns {@code null}.
+	 * 
+	 * See {@link SmartConnector#setReasonerEnabled(boolean)}
+	 * 
+	 * @return
+	 */
 	public ReasoningNode getReasoningNode() {
 		return this.rootNode;
 	}
