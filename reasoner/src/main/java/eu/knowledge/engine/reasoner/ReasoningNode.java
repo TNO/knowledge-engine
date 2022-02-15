@@ -49,6 +49,11 @@ public class ReasoningNode {
 	private Map<ReasoningNode, Set<Match>> antecedentNeighbors;
 
 	/**
+	 * All neighbors that have matching antecedents to this node's consequent.
+	 */
+	private Map<ReasoningNode, Set<Match>> consequentNeighbors;
+
+	/**
 	 * All loop antecedent neighbors (i.e. antecedent neighbors that eventually loop
 	 * back to this particular node).
 	 */
@@ -77,14 +82,21 @@ public class ReasoningNode {
 	 * continue the backward reasoning process. It represents the consequent graph
 	 * pattern.
 	 */
-	private BindingSet resultingBackwardBindingSet;
+	private BindingSet fromBindingSetHandlerBackward;
 
 	/**
 	 * This is the bindingset that has been retrieved and is now ready to be used to
 	 * continue the forward reasoning process. It represents the consequent graph
 	 * pattern.
 	 */
-	private BindingSet resultingForwardBindingSet;
+	private BindingSet fromBindingSetHandlerForward;
+
+	/**
+	 * These contains the bindingsets that were given to the bindingset handler (if
+	 * any).
+	 */
+	private BindingSet toBindingSetHandlerBackward;
+	private BindingSet toBindingSetHandlerForward;
 
 	/**
 	 * The start and end time of the execution of the bindingsethandler
@@ -124,11 +136,6 @@ public class ReasoningNode {
 	 * chaining plan includes some backward chaining?
 	 */
 	private boolean shouldPlanBackward;
-
-	/**
-	 * All neighbors that have matching antecedents to this node's consequent.
-	 */
-	private Map<ReasoningNode, Set<Match>> consequentNeighbors;
 
 	/**
 	 * The TaskBoard used to place new tasks on. Tasks are applications of rules to
@@ -448,28 +455,29 @@ public class ReasoningNode {
 
 					}
 
+					this.toBindingSetHandlerBackward = consequentAntecedentBindings.toBindingSet();
 					if (this.taskboard != null) {
-						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
+						if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
 
-							this.taskboard.addTask(this, consequentAntecedentBindings.toBindingSet());
+							this.taskboard.addTask(this, this.toBindingSetHandlerBackward);
 							this.bcState = BC_BINDINGSET_REQUESTED;
 						} else {
 							this.startTime = Instant.now();
-							this.resultingBackwardBindingSet = new BindingSet();
+							this.fromBindingSetHandlerBackward = new BindingSet();
 							this.endTime = Instant.now();
 							this.bcState = BC_BINDINGSET_AVAILABLE;
-							return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.consequent);
+							return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 						}
 					} else {
 
 						// call the handler directly because taskboard is null. This makes debugging
 						// easier.
-						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
+						if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
 
 							try {
 								startTime = Instant.now();
-								this.resultingBackwardBindingSet = this.rule.getBindingSetHandler()
-										.handle(consequentAntecedentBindings.toBindingSet()).get();
+								this.fromBindingSetHandlerBackward = this.rule.getBindingSetHandler()
+										.handle(this.toBindingSetHandlerBackward).get();
 								endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
 							} catch (InterruptedException | ExecutionException e) {
@@ -477,11 +485,11 @@ public class ReasoningNode {
 							}
 						} else {
 							this.startTime = Instant.now();
-							this.resultingBackwardBindingSet = new BindingSet();
+							this.fromBindingSetHandlerBackward = new BindingSet();
 							this.endTime = Instant.now();
 							this.bcState = BC_BINDINGSET_AVAILABLE;
 						}
-						return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.consequent);
+						return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 
 					}
 				}
@@ -489,7 +497,7 @@ public class ReasoningNode {
 
 			return null;
 		} else {
-			assert resultingBackwardBindingSet != null;
+			assert fromBindingSetHandlerBackward != null;
 
 			// TODO internally the bindingset should contain bindings with variables where
 			// instead of having a single entry per variable name, we need an entry per
@@ -497,9 +505,9 @@ public class ReasoningNode {
 			// the same two variables are still correctly matched.
 			// we start however, with the naive version that does not support this.
 			if (this.rule.consequent.isEmpty())
-				return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.antecedent);
+				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.antecedent);
 			else
-				return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.consequent);
+				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 		}
 	}
 
@@ -604,14 +612,17 @@ public class ReasoningNode {
 
 			if (allNeighborBindingSetsAvailable) {
 				allFinished = false;
+
+				this.toBindingSetHandlerForward = resultAntecedentBindings;
+
 				if (this.taskboard != null) {
-					this.taskboard.addTask(this, resultAntecedentBindings);
+					this.taskboard.addTask(this, this.toBindingSetHandlerForward);
 					this.fcState = FC_BINDINGSET_REQUESTED;
 				} else {
 					try {
 						this.startTime = Instant.now();
-						this.resultingForwardBindingSet = this.rule.getBindingSetHandler()
-								.handle(resultAntecedentBindings).get();
+						this.fromBindingSetHandlerForward = this.rule.getBindingSetHandler()
+								.handle(this.toBindingSetHandlerForward).get();
 						this.endTime = Instant.now();
 					} catch (InterruptedException | ExecutionException e) {
 						LOG.error("Handling a bindingset should not fail.", e);
@@ -623,11 +634,11 @@ public class ReasoningNode {
 			// bindingset available, so we send it to our consequent neighbors.
 			Set<ReasoningNode> someNeighbors = this.consequentNeighbors.keySet();
 
-			if (!this.resultingForwardBindingSet.isEmpty()) {
+			if (!this.fromBindingSetHandlerForward.isEmpty()) {
 				TripleVarBindingSet consequentPredefinedBindings;
 				consequentPredefinedBindings = new TripleVarBindingSet(this.rule.consequent);
 				TripleVarBinding aTripleVarBinding;
-				for (Binding b : this.resultingForwardBindingSet) {
+				for (Binding b : this.fromBindingSetHandlerForward) {
 					aTripleVarBinding = new TripleVarBinding(this.rule.consequent, b);
 					consequentPredefinedBindings.add(aTripleVarBinding);
 				}
@@ -671,7 +682,7 @@ public class ReasoningNode {
 						existing = generateAdditionalTripleVarBindings(existing);
 
 					TripleVarBindingSet existing3 = existing
-							.merge(this.resultingForwardBindingSet.toGraphBindingSet(this.rule.consequent)
+							.merge(this.fromBindingSetHandlerForward.toGraphBindingSet(this.rule.consequent)
 									.translate(child.rule.antecedent, invert(childMatch)));
 
 					// we use forward reasoning to prevent an infinite loop
@@ -873,14 +884,14 @@ public class ReasoningNode {
 		this.startTime = aStartTime;
 		this.endTime = anEndTime;
 		if (bcState == BC_BINDINGSET_REQUESTED) {
-			this.resultingBackwardBindingSet = bs;
+			this.fromBindingSetHandlerBackward = bs;
 			this.bcState = BC_BINDINGSET_AVAILABLE;
 		} else if (fcState == FC_BINDINGSET_REQUESTED) {
 
-			if (resultingForwardBindingSet != null) {
-				this.resultingForwardBindingSet.addAll(bs);
+			if (fromBindingSetHandlerForward != null) {
+				this.fromBindingSetHandlerForward.addAll(bs);
 			} else {
-				this.resultingForwardBindingSet = bs;
+				this.fromBindingSetHandlerForward = bs;
 			}
 			this.fcState = FC_BINDINGSET_AVAILABLE;
 		}
@@ -894,9 +905,9 @@ public class ReasoningNode {
 		StringBuilder sb = new StringBuilder();
 
 		if (this.getBackwardState() == BC_BINDINGSET_AVAILABLE) {
-			sb.append(this.resultingBackwardBindingSet);
+			sb.append(this.fromBindingSetHandlerBackward);
 		} else if (this.getForwardState() == FC_BINDINGSET_AVAILABLE) {
-			sb.append(this.resultingForwardBindingSet);
+			sb.append(this.fromBindingSetHandlerForward);
 		} else {
 			if (this.shouldPlanBackward) {
 				String stateText = getStateText(this.bcState);
@@ -1021,6 +1032,30 @@ public class ReasoningNode {
 	 */
 	public Instant getEndTime() {
 		return this.endTime;
+	}
+
+	public BindingSet getBindingSetToHandler() {
+		if (this.shouldPlanBackward) {
+			return this.toBindingSetHandlerBackward;
+		} else {
+			return this.toBindingSetHandlerForward;
+		}
+	}
+
+	public BindingSet getBindingSetFromHandler() {
+		if (this.shouldPlanBackward) {
+			return this.fromBindingSetHandlerBackward;
+		} else {
+			return this.fromBindingSetHandlerForward;
+		}
+	}
+
+	public Map<ReasoningNode, Set<Match>> getAntecedentNeighbors() {
+		return this.antecedentNeighbors;
+	}
+
+	public Map<ReasoningNode, Set<Match>> getConsequentNeighbors() {
+		return this.consequentNeighbors;
 	}
 
 }
