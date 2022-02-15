@@ -8,6 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.ReasoningNode;
+
 /**
  * A {@link PostResult} contains the result of the
  * {@link PostKnowledgeInteraction}, of course including the {@link Binding}s,
@@ -20,6 +22,10 @@ public class PostResult {
 
 	private final BindingSet bindings;
 	private final Set<PostExchangeInfo> exchangeInfos;
+	/**
+	 * Can be null if the matcher is used instead of the reasoner.
+	 */
+	private final ReasoningNode rootNode;
 
 	/**
 	 * Create a {@link PostResult}.
@@ -31,10 +37,13 @@ public class PostResult {
 	 *                     {@link GraphPattern}.
 	 */
 	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos) {
+		this(someBindings, postExchangeInfos, null);
+	}
+
+	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos, ReasoningNode aNode) {
 		this.bindings = someBindings;
-
-		exchangeInfos = postExchangeInfos;
-
+		this.exchangeInfos = postExchangeInfos;
+		this.rootNode = aNode;
 	}
 
 	/**
@@ -73,6 +82,10 @@ public class PostResult {
 			return Duration.ofMillis(0);
 		}
 
+	}
+
+	public ReasoningNode getReasoningNode() {
+		return this.rootNode;
 	}
 
 	@Override

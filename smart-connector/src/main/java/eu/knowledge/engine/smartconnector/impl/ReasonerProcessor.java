@@ -55,7 +55,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
-	private ReasoningNode node;
+	private ReasoningNode rootNode;
 	private TaskBoard taskBoard;
 
 	/**
@@ -117,7 +117,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		if (aAKI.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
-			this.node = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
+			this.rootNode = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
 					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
 					this.taskBoard);
 
@@ -129,7 +129,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos);
+			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.rootNode);
 		});
 	}
 
@@ -138,9 +138,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		eu.knowledge.engine.reasoner.api.BindingSet bs = null;
 		// TODO think about incorporating the futures into the continueBackward method,
 		// i.e. returning a Future<BindingSet> (with child future<bindingsets>).
-		if ((bs = this.node.continueBackward(incomingBS)) == null) {
+		if ((bs = this.rootNode.continueBackward(incomingBS)) == null) {
 
-			LOG.debug("ask:\n{}", this.node);
+			LOG.debug("ask:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 				continueReasoningBackward(incomingBS);
 			});
@@ -175,7 +175,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
 					new StoreBindingSetHandler(translatedBindingSet)));
 
-			this.node = this.reasoner.forwardPlan(translatedGraphPattern,
+			this.rootNode = this.reasoner.forwardPlan(translatedGraphPattern,
 					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
 							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
 					this.taskBoard);
@@ -188,7 +188,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			return new PostResult(translateBindingSetFrom(bs), this.postExchangeInfos);
+			return new PostResult(translateBindingSetFrom(bs), this.postExchangeInfos, this.rootNode);
 		});
 	}
 
@@ -197,9 +197,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		// TODO think about incorporating the futures into the continueBackward method,
 		// i.e. returning a Future<BindingSet> (with child future<bindingsets>).
-		if (!this.node.continueForward(incomingBS)) {
+		if (!this.rootNode.continueForward(incomingBS)) {
 
-			LOG.debug("post:\n{}", this.node);
+			LOG.debug("post:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 				continueReasoningForward(incomingBS, aBindingSetHandler);
 			});
