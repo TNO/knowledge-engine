@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,6 +85,12 @@ public class ReasoningNode {
 	 * pattern.
 	 */
 	private BindingSet resultingForwardBindingSet;
+
+	/**
+	 * The start and end time of the execution of the bindingsethandler
+	 */
+	private Instant startTime;
+	private Instant endTime;
 
 	/**
 	 * This bcState keeps track of whether the procedural code (if there is one) to
@@ -447,7 +454,9 @@ public class ReasoningNode {
 							this.taskboard.addTask(this, consequentAntecedentBindings.toBindingSet());
 							this.bcState = BC_BINDINGSET_REQUESTED;
 						} else {
+							this.startTime = Instant.now();
 							this.resultingBackwardBindingSet = new BindingSet();
+							this.endTime = Instant.now();
 							this.bcState = BC_BINDINGSET_AVAILABLE;
 							return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.consequent);
 						}
@@ -458,14 +467,18 @@ public class ReasoningNode {
 						if (this.rule.antecedent.isEmpty() || !consequentAntecedentBindings.isEmpty()) {
 
 							try {
+								startTime = Instant.now();
 								this.resultingBackwardBindingSet = this.rule.getBindingSetHandler()
 										.handle(consequentAntecedentBindings.toBindingSet()).get();
+								endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
 							} catch (InterruptedException | ExecutionException e) {
 								LOG.error("Handling a bindingset should not fail.", e);
 							}
 						} else {
+							this.startTime = Instant.now();
 							this.resultingBackwardBindingSet = new BindingSet();
+							this.endTime = Instant.now();
 							this.bcState = BC_BINDINGSET_AVAILABLE;
 						}
 						return this.resultingBackwardBindingSet.toGraphBindingSet(this.rule.consequent);
@@ -596,8 +609,10 @@ public class ReasoningNode {
 					this.fcState = FC_BINDINGSET_REQUESTED;
 				} else {
 					try {
+						this.startTime = Instant.now();
 						this.resultingForwardBindingSet = this.rule.getBindingSetHandler()
 								.handle(resultAntecedentBindings).get();
+						this.endTime = Instant.now();
 					} catch (InterruptedException | ExecutionException e) {
 						LOG.error("Handling a bindingset should not fail.", e);
 					}
@@ -850,9 +865,13 @@ public class ReasoningNode {
 	 * produced.
 	 * 
 	 * @param bs
+	 * @param instant
+	 * @param aStartTime
 	 */
-	public void setBindingSet(BindingSet bs) {
+	public void setBindingSet(BindingSet bs, Instant aStartTime, Instant anEndTime) {
 
+		this.startTime = aStartTime;
+		this.endTime = anEndTime;
 		if (bcState == BC_BINDINGSET_REQUESTED) {
 			this.resultingBackwardBindingSet = bs;
 			this.bcState = BC_BINDINGSET_AVAILABLE;
@@ -987,6 +1006,21 @@ public class ReasoningNode {
 		}
 
 		return list;
+	}
+
+	/**
+	 * @return The time the BindingSetHandler was started.
+	 */
+	public Instant getStartTime() {
+		return this.startTime;
+	}
+
+	/**
+	 * 
+	 * @return The time the BindingSetHandler finished.
+	 */
+	public Instant getEndTime() {
+		return this.endTime;
 	}
 
 }

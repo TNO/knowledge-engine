@@ -8,6 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.ReasoningNode;
+
 /**
  * An {@link AskResult} contains the result of the
  * {@link AskKnowledgeInteraction}, of course including the {@link Binding}s,
@@ -19,6 +21,9 @@ public class AskResult {
 	private static final Logger LOG = LoggerFactory.getLogger(AskResult.class);
 
 	private final BindingSet bindings;
+	
+	private ReasoningNode root;
+	
 	private final Set<AskExchangeInfo> exchangeInfos;
 
 	/**

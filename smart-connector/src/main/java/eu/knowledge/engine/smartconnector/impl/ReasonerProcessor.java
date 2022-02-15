@@ -326,6 +326,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			this.kii = aKii;
 		}
 
+		public KnowledgeInteractionInfo getKnowledgeInteractionInfo() {
+			return this.kii;
+		}
+
 		@Override
 		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
 				eu.knowledge.engine.reasoner.api.BindingSet bs) {
@@ -379,6 +383,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		public ReactBindingSetHandler(KnowledgeInteractionInfo aKii) {
 			this.kii = aKii;
+		}
+
+		public KnowledgeInteractionInfo getKnowledgeInteractionInfo() {
+			return this.kii;
 		}
 
 		@Override

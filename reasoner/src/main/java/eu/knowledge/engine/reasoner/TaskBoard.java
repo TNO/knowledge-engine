@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,6 +12,12 @@ import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
+/**
+ * TODO replace part of this code with java's Executor Services.
+ * 
+ * @author nouwtb
+ *
+ */
 public class TaskBoard {
 
 	public Set<Task> tasks;
@@ -49,16 +56,20 @@ public class TaskBoard {
 		Iterator<Task> iter = tasks.iterator();
 		Set<CompletableFuture<?>> futures = new HashSet<>();
 		while (iter.hasNext()) {
+			final Instant startTime;
 			Task task = iter.next();
 			final ReasoningNode node = task.getNodes().iterator().next();
 			assert node != null;
 			rule = node.getRule();
 			assert rule != null;
 			assert task.getBindingSet(node) != null;
+
+			startTime = Instant.now();
 			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
 			resultingBindingSetFuture.thenAccept((bs) -> {
+
 				// TODO this assumes every node only occurs once in all tasks.
-				node.setBindingSet(bs);
+				node.setBindingSet(bs, startTime, Instant.now());
 			});
 
 			futures.add(resultingBindingSetFuture);
