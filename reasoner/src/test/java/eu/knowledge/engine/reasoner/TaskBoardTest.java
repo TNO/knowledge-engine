@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -87,7 +88,7 @@ public class TaskBoardTest {
 		LOG.info("2) Starttime: {}", aSecondNode.getStartTime());
 		LOG.info("2) Endtime:   {}", aSecondNode.getEndTime());
 
-		assertTrue(aFirstNode.getStartTime().isBefore(aSecondNode.getStartTime()));
+		assertFalse(aFirstNode.getStartTime().equals(aSecondNode.getStartTime()));
 	}
 
 }
