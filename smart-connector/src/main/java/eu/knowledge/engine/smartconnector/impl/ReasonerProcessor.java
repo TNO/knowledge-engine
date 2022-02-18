@@ -318,7 +318,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @author nouwtb
 	 *
 	 */
-	private class AnswerBindingSetHandler implements BindingSetHandler {
+	public class AnswerBindingSetHandler implements BindingSetHandler {
 
 		private KnowledgeInteractionInfo kii;
 
@@ -377,7 +377,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @author nouwtb
 	 *
 	 */
-	private class ReactBindingSetHandler implements BindingSetHandler {
+	public class ReactBindingSetHandler implements BindingSetHandler {
 
 		private KnowledgeInteractionInfo kii;
 
