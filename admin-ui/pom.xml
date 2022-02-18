@@ -143,6 +143,11 @@
 			<version>5.7.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>eu.knowledge.engine</groupId>
+			<artifactId>smart-connector-rest-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
