@@ -179,7 +179,7 @@ public class TestDynamicSemanticComposition {
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 			// try to generate JSON tree.
-			printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
+			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
 					result.getReasoningNode());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
@@ -215,7 +215,7 @@ public class TestDynamicSemanticComposition {
 			LOG.info("After post!");
 
 			// try to generate JSON tree.
-			printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post", postKI.getArgument(),
+			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post", postKI.getArgument(),
 					result.getReasoningNode());
 		} catch (Exception e) {
 			LOG.error("Error", e);
@@ -223,180 +223,7 @@ public class TestDynamicSemanticComposition {
 
 	}
 
-	private void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasoningNode rn) {
 
-//		System.out.println(rn.toString());
-
-		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
-		queue.add(rn);
-
-		List<String> actors = new ArrayList<>();
-		actors.add(proactiveKB);
-
-		class Pair {
-			String first;
-			String second;
-
-			public Pair(String aFirst, String aSecond) {
-				first = aFirst;
-				second = aSecond;
-			}
-		}
-
-		Map<Pair, ReasoningNode> toFromExchanges = new HashMap<>();
-		Map<Pair, ReasoningNode> toExchanges = new HashMap<>();
-
-		while (!queue.isEmpty()) {
-
-			ReasoningNode node = queue.poll();
-
-			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getBindingSetHandler();
-			ReactBindingSetHandler rbsh = null;
-			AnswerBindingSetHandler absh = null;
-			if (bsh instanceof ReactBindingSetHandler) {
-				rbsh = (ReactBindingSetHandler) bsh;
-
-				currentActor = rbsh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
-			} else if (bsh instanceof AnswerBindingSetHandler) {
-				absh = (AnswerBindingSetHandler) bsh;
-				currentActor = absh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
-			} else {
-				currentActor = proactiveKB;
-			}
-
-			for (ReasoningNode neighbor : node.getAntecedentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
-
-				AnswerBindingSetHandler absh2 = null;
-				ReactBindingSetHandler rbsh2 = null;
-				if (bsh2 instanceof ReactBindingSetHandler) {
-					rbsh2 = (ReactBindingSetHandler) bsh2;
-
-					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
-							.getKnowledgeInteraction();
-
-					if (!react.isMeta()) {
-						if (react.getResult() != null) {
-							toFromExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						} else {
-							toExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						}
-					}
-
-				} else if (bsh2 instanceof AnswerBindingSetHandler) {
-					absh2 = (AnswerBindingSetHandler) bsh2;
-					if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
-						toFromExchanges.put(new Pair(proactiveKB,
-								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
-					}
-				} else {
-					toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
-				}
-			}
-
-			for (ReasoningNode neighbor : node.getConsequentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
-
-				AnswerBindingSetHandler absh2 = null;
-				ReactBindingSetHandler rbsh2 = null;
-				if (bsh2 instanceof ReactBindingSetHandler) {
-					rbsh2 = (ReactBindingSetHandler) bsh2;
-
-					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
-							.getKnowledgeInteraction();
-
-					if (react.isMeta()) {
-						if (react.getResult() != null) {
-							toFromExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						} else {
-							toExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						}
-					}
-				} else if (bsh2 instanceof AnswerBindingSetHandler) {
-					absh2 = (AnswerBindingSetHandler) bsh2;
-
-					if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
-						toFromExchanges.put(new Pair(proactiveKB,
-								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
-					}
-				} else {
-					toExchanges.put(new Pair(currentActor, currentActor), neighbor);
-				}
-			}
-
-			queue.addAll(node.getAntecedentNeighbors().keySet());
-			queue.addAll(node.getConsequentNeighbors().keySet());
-		}
-
-		String title = kiType + " data exchange";
-
-		System.out.println("title " + title);
-
-		for (String actor : actors) {
-			System.out.println("actor " + removeChars(actor));
-		}
-
-		System.out.println("activate " + removeChars(proactiveKB));
-
-		for (Pair pair : toExchanges.keySet()) {
-
-			ReasoningNode node = toExchanges.get(pair);
-
-			System.out.println(removeChars(pair.first) + "->" + removeChars(pair.second) + ":"
-					+ checkSize(node.getBindingSetToHandler().toString()));
-
-		}
-
-		for (Pair pair : toFromExchanges.keySet()) {
-			ReasoningNode node = toFromExchanges.get(pair);
-
-			assert node != null;
-
-			String toHandler = node.getBindingSetToHandler().toString();
-			String fromHandler = node.getBindingSetFromHandler().toString();
-			System.out.println(removeChars(pair.first) + "->" + removeChars(pair.second) + ":" + checkSize(toHandler));
-
-			if (!pair.second.equals(proactiveKB))
-				System.out.println("deactivate " + removeChars(proactiveKB));
-
-			System.out.println("activate " + removeChars(pair.second));
-			System.out
-					.println(removeChars(pair.second) + "-->" + removeChars(pair.first) + ":" + checkSize(fromHandler));
-
-			System.out.println("deactivate " + removeChars(pair.second));
-			if (!pair.second.equals(proactiveKB))
-				System.out.println("activate " + removeChars(proactiveKB));
-
-		}
-
-	}
-
-	private String checkSize(String toHandler) {
-		int endIndex = 100;
-		if (toHandler.length() > endIndex)
-			return "[{...}]";
-		else
-			return toHandler;
-	}
-
-	public static String removeChars(String path) {
-		return path.replace(":", "");
-	}
 
 	@AfterAll
 	public static void cleanup() {
