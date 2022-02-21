@@ -15,9 +15,8 @@ public class KnowledgeInteractionInfo {
 
 	protected final URI id;
 	protected final URI knowledgeBaseId;
-	protected final MyKnowledgeInteractionInfo.Type type;
+	protected final KnowledgeInteractionInfo.Type type;
 	protected final KnowledgeInteraction knowledgeInteraction;
-
 
 	public KnowledgeInteractionInfo(URI id, URI knowledgeBaseId, KnowledgeInteraction knowledgeInteraction) {
 		this.id = id;
@@ -38,7 +37,7 @@ public class KnowledgeInteractionInfo {
 		return this.id;
 	}
 
-	public MyKnowledgeInteractionInfo.Type getType() {
+	public KnowledgeInteractionInfo.Type getType() {
 		return this.type;
 	}
 

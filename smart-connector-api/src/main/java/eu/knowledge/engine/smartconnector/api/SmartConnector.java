@@ -114,6 +114,14 @@ public interface SmartConnector {
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
 	/**
+	 * Return a plan for executing an ask knowledge interaction. This plan can be
+	 * executed using {@link AskPlan#execute(BindingSet)}.
+	 * 
+	 * @return
+	 */
+	AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector);
+
+	/**
 	 * With this method a {@link KnowledgeBase} can ask a question to its
 	 * {@link SmartConnectorImpl}. The Smart Connector will first check which of all
 	 * the other {@link KnowledgeBase}s fit the {@link RecipientSelector} and
@@ -165,8 +173,21 @@ public interface SmartConnector {
 	 *
 	 * @see SmartConnectorImpl#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
+	 * @see SmartConnector#planAsk(AskKnowledgeInteraction, RecipientSelector,
+	 *      BindingSet)
 	 */
 	CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings);
+
+	/**
+	 * Returns a plan for executing a post knowledge interaction. This plan can be
+	 * executed using {@link PostPlan#execute(BindingSet)}.
+	 * 
+	 * @param aPKI
+	 * @param aSelector
+	 * @param someArguments
+	 * @return
+	 */
+	PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector);
 
 	/**
 	 * With this method a {@link KnowledgeBase} can post data to its
@@ -220,6 +241,9 @@ public interface SmartConnector {
 	 * @return A {@link CompletableFuture} that will return a {@link PostResult} in
 	 *         the future when the post is successfully processed by the
 	 *         {@link SmartConnectorImpl}.
+	 * 
+	 * @see SmartConnector#planPost(PostKnowledgeInteraction, RecipientSelector,
+	 *      BindingSet)
 	 */
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments);

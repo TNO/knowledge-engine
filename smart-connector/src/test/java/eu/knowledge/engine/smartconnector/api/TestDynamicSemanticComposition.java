@@ -5,13 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -22,16 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 
 public class TestDynamicSemanticComposition {
 
@@ -178,6 +178,9 @@ public class TestDynamicSemanticComposition {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
+			// try to generate JSON tree.
+			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
+					result.getReasoningNode());
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -204,17 +207,23 @@ public class TestDynamicSemanticComposition {
 
 		try {
 			LOG.info("Before post!");
-			PostResult result = kbTargetObserver.post(postKI, bindingSet).get();
-
+			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
+			PostResult result = aPlan.execute(bindingSet).get();
 			bindings = result.getBindings();
 			iter = bindings.iterator();
 			assertFalse(iter.hasNext(), "there should be no bindings");
 			LOG.info("After post!");
+
+			// try to generate JSON tree.
+			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post", postKI.getArgument(),
+					result.getReasoningNode());
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}
 
 	}
+
+
 
 	@AfterAll
 	public static void cleanup() {

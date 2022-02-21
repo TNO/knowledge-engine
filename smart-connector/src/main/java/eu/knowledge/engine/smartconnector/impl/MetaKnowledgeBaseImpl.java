@@ -322,7 +322,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		// model.write(sw, "turtle");
 		// this.LOG.trace("Incoming RDF: {}", sw.toString());
 
-		
 		ResIterator listSubjectsWithProperty = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE);
 		Resource kb = listSubjectsWithProperty.next();
 		assert !listSubjectsWithProperty.hasNext();
@@ -478,8 +477,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	@Override
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
-		return this.interactionProcessor.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(),
-				this.fillMetaBindings());
+		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
+				.execute(this.fillMetaBindings());
 	}
 
 	@Override
@@ -487,8 +486,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		if (!ki.isMeta()) {
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.interactionProcessor
-						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
+				this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
+						.execute(this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occur while notifying others of a registered knowledge interaction.");
 			}
@@ -500,8 +499,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		if (!ki.isMeta()) {
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
-				this.interactionProcessor
-						.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings()).get();
+				this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
+						.execute(this.fillMetaBindings()).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occur while notifying others of an unregistered knowledge interaction.");
 			}
@@ -518,9 +517,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
 					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
 			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
-			this.interactionProcessor
-					.processPostFromKnowledgeBase(kiInfo, new RecipientSelector(), this.fillMetaBindings())
-					.get(timeout, TimeUnit.MILLISECONDS);
+			this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
+					.execute(this.fillMetaBindings()).get(timeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOG.error("An error occured while informing other KBs about our "
 					+ "termination. Proceeding to stop the smart connector regardless.", e);

@@ -93,8 +93,9 @@ public class InteractionProcessorImplTest {
 				new GraphPattern(this.graphPattern1));
 
 		CompletableFuture<AskResult> future = this.interactionProcessor
-				.processAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
-						new URI("http://www.tno.nl/"), askInteraction, null, null), new RecipientSelector(), new BindingSet());
+				.planAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
+						new URI("http://www.tno.nl/"), askInteraction, null, null), new RecipientSelector())
+				.execute(new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
 

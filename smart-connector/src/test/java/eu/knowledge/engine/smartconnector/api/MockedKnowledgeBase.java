@@ -22,21 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostResult;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.RecipientSelector;
-import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
@@ -380,4 +365,15 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	public boolean isReasonerEnabled() {
 		return this.reasonerEnabled;
 	}
+
+	@Override
+	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
+		return this.sc.planAsk(anAKI, aSelector);
+	}
+
+	@Override
+	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
+		return this.sc.planPost(aPKI, aSelector);
+	}
+
 }
