@@ -7,12 +7,14 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -71,8 +73,7 @@ public interface InteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link AskResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
-			RecipientSelector aSelector, BindingSet aBindingSet);
+	AskPlan planAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI, RecipientSelector aSelector);
 
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
@@ -91,8 +92,7 @@ public interface InteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI,
-			RecipientSelector aSelector, BindingSet aBindingSet);
+	PostPlan planPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector);
 
 	/**
 	 * Interprets the given {@link AskMessage} and returns an {@link AnswerMessage}

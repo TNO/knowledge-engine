@@ -33,9 +33,36 @@ public abstract class SingleInteractionProcessor {
 
 	}
 
-	abstract CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo aAKI, BindingSet someBindings);
+	/**
+	 * Make a plan (if applicable) for executing the given Ask Knowledge
+	 * Interaction.
+	 * 
+	 * @param aAKI
+	 */
+	abstract void planAskInteraction(MyKnowledgeInteractionInfo aAKI);
 
-	abstract CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI, BindingSet someBindings);
+	/**
+	 * Execute the plan (if applicable) and return an AskResult.
+	 * 
+	 * @param someBindings
+	 * @return
+	 */
+	abstract CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings);
+
+	/**
+	 * Make a plan (if applicable) for executing the given PostKnowledgeInteraction
+	 * 
+	 * @param aPKI
+	 */
+	abstract void planPostInteraction(MyKnowledgeInteractionInfo aPKI);
+
+	/**
+	 * Execute the plan (if applicable) and return an PostResult.
+	 * 
+	 * @param someBindings
+	 * @return
+	 */
+	abstract CompletableFuture<PostResult> executePostInteraction(BindingSet someBindings);
 
 	// close?
 

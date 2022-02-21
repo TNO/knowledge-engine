@@ -12,9 +12,11 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -196,6 +198,18 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 	public boolean isReasonerEnabled() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

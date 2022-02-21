@@ -207,8 +207,8 @@ public class TestDynamicSemanticComposition {
 
 		try {
 			LOG.info("Before post!");
-			PostResult result = kbTargetObserver.post(postKI, bindingSet).get();
-
+			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
+			PostResult result = aPlan.execute(bindingSet).get();
 			bindings = result.getBindings();
 			iter = bindings.iterator();
 			assertFalse(iter.hasNext(), "there should be no bindings");

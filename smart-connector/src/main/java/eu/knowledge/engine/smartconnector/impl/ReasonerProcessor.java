@@ -59,6 +59,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private TaskBoard taskBoard;
 
 	/**
+	 * These two bindingset handler are a bit dodgy. We need them to make the post
+	 * interactions work correctly in the reasoner.
+	 */
+	private CaptureBindingSetHandler captureResultBindingSetHandler;
+	private StoreBindingSetHandler rememberIncomingBindingSetHandler;
+
+	/**
 	 * The future returned to the caller of this class which keeps track of when all
 	 * the futures of outstanding messages are completed.
 	 */
@@ -107,26 +114,26 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo aAKI,
-			BindingSet someBindings) {
-		KnowledgeInteraction ki = aAKI.getKnowledgeInteraction();
-
+	void planAskInteraction(MyKnowledgeInteractionInfo aAKI) {
 		this.myKnowledgeInteraction = aAKI;
-
-		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-
-		if (aAKI.getType().equals(Type.ASK)) {
+		KnowledgeInteraction ki = this.myKnowledgeInteraction.getKnowledgeInteraction();
+		if (this.myKnowledgeInteraction.getType().equals(Type.ASK)) {
 			AskKnowledgeInteraction aki = (AskKnowledgeInteraction) ki;
 			this.rootNode = this.reasoner.backwardPlan(translateGraphPatternTo(aki.getPattern()),
 					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
 					this.taskBoard);
-
-			continueReasoningBackward(translateBindingSetTo(someBindings));
-
 		} else {
-			LOG.warn("Type should be Ask, not {}", aAKI.getType());
+			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 		}
+	}
+
+	@Override
+	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
+
+		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+
+		continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.rootNode);
@@ -143,6 +150,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			LOG.debug("ask:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 				continueReasoningBackward(incomingBS);
+			}).exceptionally((Throwable t) -> {
+				LOG.error("Executing scheduled tasks for the reasoner should not result in problems.", t);
+				return null;
 			});
 		} else {
 			this.finalBindingSetFuture.complete(bs);
@@ -150,42 +160,46 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo aPKI,
-			BindingSet someBindings) {
-		KnowledgeInteraction ki = aPKI.getKnowledgeInteraction();
-
+	void planPostInteraction(MyKnowledgeInteractionInfo aPKI) {
 		this.myKnowledgeInteraction = aPKI;
+		KnowledgeInteraction ki = this.myKnowledgeInteraction.getKnowledgeInteraction();
 
-		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-		if (aPKI.getType().equals(Type.POST)) {
+		if (this.myKnowledgeInteraction.getType().equals(Type.POST)) {
 
 			PostKnowledgeInteraction pki = (PostKnowledgeInteraction) ki;
 
-			CaptureBindingSetHandler aBindingSetHandler = null;
 			if (pki.getResult() != null) {
-				aBindingSetHandler = new CaptureBindingSetHandler();
-				reasoner.addRule(
-						new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(), aBindingSetHandler));
+				this.captureResultBindingSetHandler = new CaptureBindingSetHandler();
+				reasoner.addRule(new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(),
+						this.captureResultBindingSetHandler));
 			}
 
 			Set<TriplePattern> translatedGraphPattern = translateGraphPatternTo(pki.getArgument());
 
-			eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
-
+			this.rememberIncomingBindingSetHandler = new StoreBindingSetHandler();
 			reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
-					new StoreBindingSetHandler(translatedBindingSet)));
+					this.rememberIncomingBindingSetHandler));
 
 			this.rootNode = this.reasoner.forwardPlan(translatedGraphPattern,
 					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
 							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES,
 					this.taskBoard);
 
-			continueReasoningForward(translatedBindingSet, aBindingSetHandler);
-
 		} else {
-			LOG.warn("Type should be Post, not {}", aPKI.getType());
+			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 		}
+	}
+
+	@Override
+	public CompletableFuture<PostResult> executePostInteraction(BindingSet someBindings) {
+
+		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
+
+		this.rememberIncomingBindingSetHandler.setBindingSet(translatedBindingSet);
+
+		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			return new PostResult(translateBindingSetFrom(bs), this.postExchangeInfos, this.rootNode);
@@ -202,6 +216,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			LOG.debug("post:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 				continueReasoningForward(incomingBS, aBindingSetHandler);
+			}).exceptionally((Throwable t) -> {
+				LOG.error("Executing scheduled tasks for the reasoner should not result in errors.", t);
+				return null;
 			});
 		} else {
 			eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
@@ -437,8 +454,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		private eu.knowledge.engine.reasoner.api.BindingSet b = null;
 
-		public StoreBindingSetHandler(eu.knowledge.engine.reasoner.api.BindingSet aB) {
-			this.b = aB;
+		public StoreBindingSetHandler() {
+		}
+
+		public void setBindingSet(eu.knowledge.engine.reasoner.api.BindingSet bs) {
+			this.b = bs;
 		}
 
 		@Override
@@ -448,5 +468,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			future.complete(this.b);
 			return future;
 		}
+	}
+
+	public ReasoningNode getReasoningNode() {
+		return this.rootNode;
 	}
 }

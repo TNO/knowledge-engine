@@ -58,19 +58,25 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo askKnowledgeInteraction,
-			BindingSet bindingSet) {
-		this.myKnowledgeInteraction = askKnowledgeInteraction;
+	void planAskInteraction(MyKnowledgeInteractionInfo aAKI) {
+		this.myKnowledgeInteraction = aAKI;
+	}
+
+	@Override
+	CompletableFuture<AskResult> executeAskInteraction(BindingSet bindingSet) {
 		this.answerFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
 		return this.answerFuture;
 	}
 
 	@Override
-	CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo postKnowledgeInteraction,
-			BindingSet bindingSet) {
+	void planPostInteraction(MyKnowledgeInteractionInfo aPKI) {
+		this.myKnowledgeInteraction = aPKI;
+	}
+
+	@Override
+	CompletableFuture<PostResult> executePostInteraction(BindingSet bindingSet) {
 		this.LOG.trace("processPost()");
-		this.myKnowledgeInteraction = postKnowledgeInteraction;
 		this.reactFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
 		return this.reactFuture;
@@ -197,8 +203,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		}
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
-				status, failedMessage);
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(), status,
+				failedMessage);
 	}
 
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
@@ -209,7 +215,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		if (failedMessage != null) {
 			status = Status.FAILED;
 		}
-	
+
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
 				this.previousSend, Instant.now(), status, failedMessage);
