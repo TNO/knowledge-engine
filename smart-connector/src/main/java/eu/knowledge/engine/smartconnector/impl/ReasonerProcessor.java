@@ -114,7 +114,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	void planAskInteraction(MyKnowledgeInteractionInfo aAKI) {
+	public void planAskInteraction(MyKnowledgeInteractionInfo aAKI) {
 		this.myKnowledgeInteraction = aAKI;
 		KnowledgeInteraction ki = this.myKnowledgeInteraction.getKnowledgeInteraction();
 		if (this.myKnowledgeInteraction.getType().equals(Type.ASK)) {
@@ -160,7 +160,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	void planPostInteraction(MyKnowledgeInteractionInfo aPKI) {
+	public void planPostInteraction(MyKnowledgeInteractionInfo aPKI) {
 		this.myKnowledgeInteraction = aPKI;
 		KnowledgeInteraction ki = this.myKnowledgeInteraction.getKnowledgeInteraction();
 
