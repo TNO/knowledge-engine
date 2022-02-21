@@ -28,12 +28,12 @@ import org.slf4j.Logger;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostResult;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
@@ -87,10 +87,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
-			RecipientSelector aSelector, BindingSet aBindingSet) {
+	public AskPlan planAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI, RecipientSelector aSelector) {
 		assert anAKI != null : "the knowledge interaction should be non-null";
-		assert aBindingSet != null : "the binding set should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
@@ -131,9 +129,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// MessageDispatcher will finish this process and the thread that handles the
 		// last reply message will complete the future and notify the caller
 		// KnowledgeBase.
-		CompletableFuture<AskResult> future = processor.processAskInteraction(anAKI, aBindingSet);
-
-		return future;
+		processor.planAskInteraction(anAKI);
+		return new AskPlanImpl(processor);
 	}
 
 	private Set<OtherKnowledgeBase> filterOtherKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
@@ -224,10 +221,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI,
-			RecipientSelector aSelector, BindingSet someArguments) {
+	public PostPlan planPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector) {
 		assert aPKI != null : "the knowledge interaction should be non-null";
-		assert someArguments != null : "the binding set should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
@@ -267,9 +262,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// MessageDispatcher will finish this process and the thread that handles the
 		// last reply message will complete the future and notify the caller
 		// KnowledgeBase.
-		CompletableFuture<PostResult> future = processor.processPostInteraction(aPKI, someArguments);
 
-		return future;
+		processor.planPostInteraction(aPKI);
+		return new PostPlanImpl(processor);
 	}
 
 	@Override

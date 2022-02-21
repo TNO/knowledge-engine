@@ -8,6 +8,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.ReasoningNode;
+
 /**
  * An {@link AskResult} contains the result of the
  * {@link AskKnowledgeInteraction}, of course including the {@link Binding}s,
@@ -19,6 +21,12 @@ public class AskResult {
 	private static final Logger LOG = LoggerFactory.getLogger(AskResult.class);
 
 	private final BindingSet bindings;
+
+	/**
+	 * Can be null, if the matcher is used instead of the reasoner.
+	 */
+	private ReasoningNode rootNode;
+
 	private final Set<AskExchangeInfo> exchangeInfos;
 
 	/**
@@ -30,11 +38,14 @@ public class AskResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos) {
+	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasoningNode aRootNode) {
 		this.bindings = someBindings;
+		this.exchangeInfos = askExchangeInfos;
+		this.rootNode = aRootNode;
+	}
 
-		exchangeInfos = askExchangeInfos;
-
+	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos) {
+		this(someBindings, askExchangeInfos, null);
 	}
 
 	/**
@@ -73,6 +84,19 @@ public class AskResult {
 			return Duration.ofMillis(0);
 		}
 
+	}
+
+	/**
+	 * If the reasoner was enabled during this post interaction, this method returns
+	 * detailed information about the steps taken during the reasoning process.
+	 * Otherwise it returns {@code null}.
+	 * 
+	 * See {@link SmartConnector#setReasonerEnabled(boolean)}
+	 * 
+	 * @return
+	 */
+	public ReasoningNode getReasoningNode() {
+		return this.rootNode;
 	}
 
 	@Override

@@ -3,7 +3,6 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +15,7 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.BindingValidator;
@@ -23,6 +23,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -305,19 +306,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
 
-		this.checkStopped();
-		if (aSelector == null)
-			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
-
-		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
-
-		this.bindingValidator.validatePartialBindings(anAKI.getPattern(), aBindingSet);
-
-		assert info != null; // TODO omschrijven naar runtime check
-		assert info.getType() == Type.ASK;
-
-		LOG.info("Processing ask for KI <{}>.", info.getId());
-		return this.interactionProcessor.processAskFromKnowledgeBase(info, aSelector, aBindingSet);
+		return this.planAsk(anAKI, aSelector).execute(aBindingSet).exceptionally((Throwable t) -> {
+			LOG.error("Processing an Ask should not result in errors.", t);
+			return null;
+		});
 	}
 
 	/**
@@ -393,21 +385,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments) {
-		this.checkStopped();
-
-		if (aSelector == null)
-			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
-
-		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
-
-		this.bindingValidator.validateCompleteBindings(aPKI.getArgument(), someArguments);
-
-		assert info != null; // TODO omschrijven naar runtime check
-		assert info.getType() == Type.POST;
-
-		LOG.info("Processing post for KI <{}>.", info.getId());
-
-		return this.interactionProcessor.processPostFromKnowledgeBase(info, aSelector, someArguments);
+		return this.planPost(aPKI, aSelector).execute(someArguments).exceptionally((Throwable t) -> {
+			LOG.error("Processing a Post should not result in errors.", t);
+			return null;
+		});
 	}
 
 	/**
@@ -424,6 +405,39 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return this.post(ki, new RecipientSelector(), argument);
+	}
+
+	@Override
+	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
+		this.checkStopped();
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
+
+		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.ASK;
+
+		LOG.info("Planning ask for KI <{}>.", info.getId());
+		return this.interactionProcessor.planAskFromKnowledgeBase(info, aSelector);
+
+	}
+
+	@Override
+	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
+		this.checkStopped();
+
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
+
+		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.POST;
+
+		LOG.info("Planning post for KI <{}>.", info.getId());
+
+		return this.interactionProcessor.planPostFromKnowledgeBase(info, aSelector);
 	}
 
 	/**
@@ -498,6 +512,9 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 					});
 				});
 			});
+		}).exceptionally((Throwable t) -> {
+			LOG.error("Populating the Smart Connector should not result in errors.", t);
+			return null;
 		});
 	}
 
