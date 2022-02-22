@@ -1,6 +1,5 @@
 package eu.knowledge.engine.admin.api.impl;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -8,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -21,7 +19,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -37,19 +34,20 @@ import eu.knowledge.engine.admin.model.KnowledgeInteractionBase;
 import eu.knowledge.engine.admin.model.PostKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.ReactKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.SmartConnector;
+import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
+import eu.knowledge.engine.smartconnector.api.AnswerHandler;
+import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.impl.InteractionProcessor;
+import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
+import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.MessageRouter;
-import eu.knowledge.engine.smartconnector.impl.MetaKnowledgeBase;
+import eu.knowledge.engine.smartconnector.impl.MyKnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor;
-import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
-import eu.knowledge.engine.smartconnector.messaging.AskMessage;
-import eu.knowledge.engine.smartconnector.messaging.PostMessage;
-import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 import io.swagger.annotations.ApiParam;
 
 @Path("/")
@@ -93,7 +91,7 @@ public class AdminApiServiceImpl {
 		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
-			SmartConnector[] responses = findAndAddConnections2(convertToModel(kbs, model, includeMeta));
+			SmartConnector[] responses = findAndAddConnections(convertToModel(kbs, model, includeMeta));
 			asyncResponse.resume(Response.ok().entity(responses).build());
 		} else {
 			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
@@ -101,80 +99,84 @@ public class AdminApiServiceImpl {
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
-		HashSet<Connection> allPossibleConnections = new HashSet<Connection>();
-		boolean stop;
-		for (SmartConnector sc : smartConnectors) {
-			allPossibleConnections.addAll(sc.getConnections());
-		}
-
-		for (SmartConnector sc : smartConnectors) {
-			List<Connection> identifiedConnections = new ArrayList<>();
-			for (Connection currentPossibleConnection : sc.getConnections()) {
-				String[] tokens = StringUtils.splitPreserveAllTokens(currentPossibleConnection.getMatchedKeyword(),
-						" ");
-				for (int i = 0; i < tokens.length; i++) {
-					stop = false;
-					// ignore tokens with rdf/owl syntax
-					if (FILTERED_SYNTAX_TOKENS.contains(tokens[i])) {
-						stop = true;
-					}
-					if (!stop) {
-						for (String syntaxFilterToken : FILTERED_SYNTAX) {
-							if (tokens[i].contains(syntaxFilterToken) && !stop) {
-								stop = true;
-							}
-						}
-						if (!stop) {
-							for (Connection allPossibleConnection : allPossibleConnections) {
-								// try to match subject, predicate and object constructs or variables between
-								// graphpatterns
-								if (!sc.getKnowledgeBaseId().equals(allPossibleConnection.getKnowledgeBaseId())
-										&& allPossibleConnection.getMatchedKeyword().contains(tokens[i])) {
-									identifiedConnections.add(
-											new Connection().knowledgeBaseId(allPossibleConnection.getKnowledgeBaseId())
-													.connectionType("outgoing")
-													.interactionType(currentPossibleConnection.getInteractionType())
-													.matchedKeyword(tokens[i]));
-								}
-							}
-						}
-					}
-				}
-			}
-			sc.connections(identifiedConnections); // overwrite temporaryConnections with identified connections via
-													// graph pattern token match
-		}
-
-		return smartConnectors;
-	}
-
-	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections2(SmartConnector[] smartConnectors) {
 
 		Set<KnowledgeInteractionInfo> allRelevantKnowledgeInteractions = new HashSet<>();
 		KnowledgeInteractionInfo kii;
 		for (SmartConnector sc : smartConnectors) {
 			for (KnowledgeInteractionBase ki : sc.getKnowledgeInteractions()) {
-				kii = createKnowledgeInteractionInfoObject(ki);
-				allRelevantKnowledgeInteractions.add(kii);
-
+				if (!Boolean.valueOf(ki.getIsMeta())) {
+					kii = createKnowledgeInteractionInfoObject(sc.getKnowledgeBaseId(), ki);
+					allRelevantKnowledgeInteractions.add(kii);
+				}
 			}
 		}
 
+		LOG.debug("Number of relevant Knowledge Interactions: {}", allRelevantKnowledgeInteractions.size());
+
 		// TODO first filter on communicative act!
-		ReasonerProcessor rp = new ReasonerProcessor(allRelevantKnowledgeInteractions, (MessageRouter) null,
-				new HashSet<Rule>());
+		List<Connection> identifiedConnections = null;
+		for (SmartConnector sc : smartConnectors) {
+
+			for (KnowledgeInteractionBase ki : sc.getKnowledgeInteractions()) {
+				if (!Boolean.valueOf(ki.getIsMeta())) {
+					ReasonerProcessor rp = new ReasonerProcessor(allRelevantKnowledgeInteractions, (MessageRouter) null,
+							new HashSet<Rule>());
+
+					ReasoningNode rn = null;
+					if (ki.getKnowledgeInteractionType().equalsIgnoreCase("AskKnowledgeInteraction")) {
+						rp.planAskInteraction(createKnowledgeInteractionInfoObject(sc.getKnowledgeBaseId(), ki));
+						rn = rp.getReasoningNode();
+					} else if (ki.getKnowledgeInteractionType().equalsIgnoreCase("PostKnowledgeInteraction")) {
+						rp.planPostInteraction(createKnowledgeInteractionInfoObject(sc.getKnowledgeBaseId(), ki));
+						rn = rp.getReasoningNode();
+					}
+					if (rn != null)
+						identifiedConnections = Util.createConnectionObjects(rn);
+					else
+						identifiedConnections = new ArrayList<>();
+					ki.connections(identifiedConnections);
+				}
+
+			}
+		}
 
 		return smartConnectors;
 
 	}
 
-	private KnowledgeInteractionInfo createKnowledgeInteractionInfoObject(KnowledgeInteractionBase incomingKI) {
-
+	/**
+	 * We return them as MyKnowledgeInteractionInfo, but most of the time we only
+	 * need the KnowledgeInteractionInfo signatures.
+	 * 
+	 * @param incomingKI
+	 * @return
+	 */
+	private MyKnowledgeInteractionInfo createKnowledgeInteractionInfoObject(String kbId,
+			KnowledgeInteractionBase incomingKI) {
 		URI id = null;
 		URI knowledgeBaseId = null;
 		KnowledgeInteraction newKI = null;
-		try {
+		MyKnowledgeInteractionInfo myKnowledgeInteractionInfo;
 
+		ReactHandler rHandler = new ReactHandler() {
+			@Override
+			public BindingSet react(eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction anRKI,
+					ReactExchangeInfo aReactExchangeInfo) {
+				return null;
+			}
+		};
+
+		AnswerHandler aHandler = new AnswerHandler() {
+			@Override
+			public BindingSet answer(eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction anAKI,
+					AnswerExchangeInfo anAnswerExchangeInfo) {
+				return null;
+			}
+		};
+
+		try {
+			id = new URI(incomingKI.getKnowledgeInteractionId());
+			knowledgeBaseId = new URI(kbId);
 			if (incomingKI instanceof AskKnowledgeInteraction) {
 
 				newKI = new eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction(
@@ -182,38 +184,44 @@ public class AdminApiServiceImpl {
 								transformPurpose(incomingKI.getCommunicativeAct().getSatisfiedPurposes())),
 						new GraphPattern(((AskKnowledgeInteraction) incomingKI).getGraphPattern()),
 						Boolean.valueOf(incomingKI.getIsMeta()), Boolean.valueOf(incomingKI.getIsMeta()));
-
+				myKnowledgeInteractionInfo = new MyKnowledgeInteractionInfo(id, knowledgeBaseId, newKI, null, null);
 			} else if (incomingKI instanceof AnswerKnowledgeInteraction) {
 				newKI = new eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction(
 						new CommunicativeAct(transformPurpose(incomingKI.getCommunicativeAct().getRequiredPurposes()),
 								transformPurpose(incomingKI.getCommunicativeAct().getSatisfiedPurposes())),
 						new GraphPattern(((AnswerKnowledgeInteraction) incomingKI).getGraphPattern()),
 						Boolean.valueOf(incomingKI.getIsMeta()), Boolean.valueOf(incomingKI.getIsMeta()));
+				myKnowledgeInteractionInfo = new MyKnowledgeInteractionInfo(id, knowledgeBaseId, newKI, aHandler, null);
 			} else if (incomingKI instanceof PostKnowledgeInteraction) {
+				String resultGraphPattern = ((PostKnowledgeInteraction) incomingKI).getResultGraphPattern();
 				newKI = new eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction(
 						new CommunicativeAct(transformPurpose(incomingKI.getCommunicativeAct().getRequiredPurposes()),
 								transformPurpose(incomingKI.getCommunicativeAct().getSatisfiedPurposes())),
 						new GraphPattern(((PostKnowledgeInteraction) incomingKI).getArgumentGraphPattern()),
-						new GraphPattern(((PostKnowledgeInteraction) incomingKI).getResultGraphPattern()),
+						resultGraphPattern != null ? new GraphPattern(resultGraphPattern) : null,
 						Boolean.valueOf(incomingKI.getIsMeta()), Boolean.valueOf(incomingKI.getIsMeta()));
+				myKnowledgeInteractionInfo = new MyKnowledgeInteractionInfo(id, knowledgeBaseId, newKI, null, null);
 			} else if (incomingKI instanceof ReactKnowledgeInteraction) {
+				String resultGraphPattern = ((ReactKnowledgeInteraction) incomingKI).getResultGraphPattern();
 				newKI = new eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction(
 						new CommunicativeAct(transformPurpose(incomingKI.getCommunicativeAct().getRequiredPurposes()),
 								transformPurpose(incomingKI.getCommunicativeAct().getSatisfiedPurposes())),
 						new GraphPattern(((ReactKnowledgeInteraction) incomingKI).getArgumentGraphPattern()),
-						new GraphPattern(((ReactKnowledgeInteraction) incomingKI).getResultGraphPattern()),
+						resultGraphPattern != null ? new GraphPattern(resultGraphPattern) : null,
 						Boolean.valueOf(incomingKI.getIsMeta()), Boolean.valueOf(incomingKI.getIsMeta()));
+				myKnowledgeInteractionInfo = new MyKnowledgeInteractionInfo(id, knowledgeBaseId, newKI, null, rHandler);
 			} else {
 				assert false : "Should either be Ask/Answer/Post/React Knowledge Interaction and not: "
 						+ incomingKI.getClass();
+				myKnowledgeInteractionInfo = null;
 			}
-			id = new URI(incomingKI.getKnowledgeInteractionId());
-			knowledgeBaseId = new URI("https://test");
 
 		} catch (URISyntaxException e) {
-
+			myKnowledgeInteractionInfo = null;
+			LOG.error("An error occurred.");
 		}
-		return new KnowledgeInteractionInfo(id, knowledgeBaseId, newKI);
+
+		return myKnowledgeInteractionInfo;
 
 	}
 
@@ -232,8 +240,8 @@ public class AdminApiServiceImpl {
 		return kbs.stream().map((kbRes) -> {
 			Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
 			List<KnowledgeInteractionBase> knowledgeInteractions = new ArrayList<>();
-			List<Connection> possibleConnections = new ArrayList<>();
 			for (Resource kiRes : kiResources) {
+				List<Connection> possibleConnections = new ArrayList<>();
 				if (includeMeta || !Util.isMeta(model, kiRes)) {
 					String type = Util.getKnowledgeInteractionType(model, kiRes);
 					KnowledgeInteractionBase ki = new KnowledgeInteractionBase();
@@ -264,17 +272,13 @@ public class AdminApiServiceImpl {
 					ki.setIsMeta(String.valueOf(Util.isMeta(model, kiRes)));
 					ki.setCommunicativeAct(Util.getCommunicativeAct(model, kiRes));
 					knowledgeInteractions.add(ki);
-					if (!Util.isMeta(model, kiRes)) {
-						possibleConnections.add(new Connection().knowledgeBaseId(kbRes.toString()).interactionType(type)
-								.matchedKeyword(Util.getGraphPattern(model, kiRes))); // todo argument and result ook
-																						// invullen
-					}
+					ki.connections(possibleConnections);
 				}
 			}
 			return new eu.knowledge.engine.admin.model.SmartConnector().knowledgeBaseId(kbRes.toString())
 					.knowledgeBaseName(Util.getName(model, kbRes))
 					.knowledgeBaseDescription(Util.getDescription(model, kbRes))
-					.knowledgeInteractions(knowledgeInteractions).connections(possibleConnections);
+					.knowledgeInteractions(knowledgeInteractions);
 		}).toArray(eu.knowledge.engine.admin.model.SmartConnector[]::new);
 	}
 }

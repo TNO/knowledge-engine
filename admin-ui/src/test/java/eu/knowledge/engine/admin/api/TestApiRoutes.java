@@ -46,10 +46,10 @@ public class TestApiRoutes {
 		admin = AdminUI.newInstance(false);
 		httpClient = HttpClient.newBuilder().build();
 
-		var r = new Runnable(){
+		var r = new Runnable() {
 			@Override
 			public void run() {
-				RestServer.main(new String[]{});
+				RestServer.main(new String[] {});
 			}
 		};
 		this.thread = new Thread(r);
@@ -57,12 +57,13 @@ public class TestApiRoutes {
 		Thread.sleep(5000);
 	}
 
-	//todo: test with Knowledge directory -> needs second server (TKE runtime) in new thread?
+	// todo: test with Knowledge directory -> needs second server (TKE runtime) in
+	// new thread?
 	// see KnowledgeDirectoryConnectionManagerTest.java.testSuccess for
 
 	@Test
 	public void testMethodNotAllowed() throws IOException {
-		URL url = new URL("http://localhost:8283/rest/admin/sc/all/false");
+		URL url = new URL("http://localhost:8283/admin/sc/all/false");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Content-Type", "application/json");
@@ -85,9 +86,9 @@ public class TestApiRoutes {
 	@Test
 	public void testEmptyResult() {
 		try {
-			//todo: ask/poll if ready instead of waiting
+			// todo: ask/poll if ready instead of waiting
 			Thread.sleep(5000);
-			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			assertEquals(200, response.statusCode());
@@ -106,7 +107,7 @@ public class TestApiRoutes {
 		startKbs();
 
 		try {
-			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -130,7 +131,7 @@ public class TestApiRoutes {
 
 		startKbs();
 		try {
-			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/admin/sc/all/true");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -139,13 +140,20 @@ public class TestApiRoutes {
 					eu.knowledge.engine.admin.model.SmartConnector[].class);
 			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
 			Collections.addAll(list, result);
+			
+			System.out.println(list);
+			
 			assertNotNull(list);
 			assertEquals(2, list.size());
-			assertEquals(1, list.get(0).getConnections().size());
-			assertEquals(1, list.get(1).getConnections().size());
+			assertEquals(1, list.get(0).getKnowledgeInteractions().get(0).getConnections().size());
+			assertEquals(1, list.get(1).getKnowledgeInteractions().get(0).getConnections().size());
 			assertEquals(200, response.statusCode());
+			
+			
+			
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
 		}
 		stopKbs();
 
@@ -185,7 +193,7 @@ public class TestApiRoutes {
 		thread.interrupt();
 	}
 
-	public void startKbs() throws InterruptedException{
+	public void startKbs() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
@@ -203,7 +211,8 @@ public class TestApiRoutes {
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(),
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -214,7 +223,7 @@ public class TestApiRoutes {
 			return bindingSet;
 		});
 
-		//todo: ask/poll if ready instead of waiting
+		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
 		kb2 = null;
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -231,7 +240,7 @@ public class TestApiRoutes {
 
 		kb2.getSmartConnector().register(askKI);
 		LOG.trace("After kb2 register");
-		//todo: ask/poll if ready instead of waiting
+		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(10000);
 	}
 
