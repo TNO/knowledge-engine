@@ -131,7 +131,7 @@ public class TestApiRoutes {
 
 		startKbs();
 		try {
-			URI uri = new URI("http://localhost:8283/admin/sc/all/true");
+			URI uri = new URI("http://localhost:8283/admin/sc/all/false");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -145,7 +145,7 @@ public class TestApiRoutes {
 			
 			assertNotNull(list);
 			assertEquals(2, list.size());
-			assertEquals(1, list.get(0).getKnowledgeInteractions().get(0).getConnections().size());
+			assertEquals(0, list.get(0).getKnowledgeInteractions().get(0).getConnections().size());
 			assertEquals(1, list.get(1).getKnowledgeInteractions().get(0).getConnections().size());
 			assertEquals(200, response.statusCode());
 			
