@@ -90,7 +90,6 @@ public class TestAskAnswer4 {
 				"The variable names should follow the graph pattern of the current KB.");
 
 		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 	}
