@@ -161,7 +161,7 @@
 							<packageName>eu.knowledge.engine.admin</packageName>
 							<apiPackage>eu.knowledge.engine.admin.api</apiPackage>
 							<modelPackage>eu.knowledge.engine.admin.model</modelPackage>
-							<inputSpec>${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/openapi-admin-ui.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
