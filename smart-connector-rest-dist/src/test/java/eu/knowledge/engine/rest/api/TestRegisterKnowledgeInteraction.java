@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -25,6 +26,7 @@ public class TestRegisterKnowledgeInteraction {
 	}
 
 	@Test
+	@Disabled
 	public void testRegisterKi() throws IOException {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
