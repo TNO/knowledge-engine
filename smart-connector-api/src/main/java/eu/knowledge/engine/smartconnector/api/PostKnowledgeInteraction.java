@@ -1,9 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-
 /**
  * An object of this class represents that the associated {@link KnowledgeBase}
  * will possibly post knowledge of the shape `argument` to the network, and
@@ -43,19 +39,26 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		this(act, argument, result, false);
+		this(act, argument, result, null, false, false);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
+		this(act, argument, result, name, false, false);
 	}
 
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
 			boolean anIsFullMatch) {
-		super(act, false, anIsFullMatch);
-		this.argument = argument;
-		this.result = result;
+		this(act, argument, result, null, false, anIsFullMatch);
 	}
 
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
 			boolean anIsFullMatch) {
-		super(act, anIsMeta, anIsFullMatch);
+		this(act, argument, result, null, anIsMeta, anIsFullMatch);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name, boolean anIsMeta,
+			boolean anIsFullMatch) {
+		super(act, name, anIsMeta, anIsFullMatch);
 		this.argument = argument;
 		this.result = result;
 	}
@@ -79,7 +82,8 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 
 	@Override
 	public String toString() {
-		return "PostKnowledgeInteraction [" + (this.argument != null ? "argument=" + this.argument + ", " : "")
+		return "PostKnowledgeInteraction [" + (this.name != null ? "name=" + this.name + ", " : "")
+				+ (this.argument != null ? "argument=" + this.argument + ", " : "")
 				+ (this.result != null ? "result=" + this.result + ", " : "")
 				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "]";
 	}
