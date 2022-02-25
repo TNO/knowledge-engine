@@ -573,6 +573,8 @@ components:
       properties:
         knowledgeInteractionType:
           type: string
+        knowledgeInteractionName:
+          type: string
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:

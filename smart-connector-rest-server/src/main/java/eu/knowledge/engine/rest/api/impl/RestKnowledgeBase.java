@@ -354,7 +354,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
-			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()));
+			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()), ki.getKnowledgeInteractionName());
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -364,7 +364,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ANSWER knowledge interactions.");
 			}
-			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()));
+			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()), ki.getKnowledgeInteractionName());
 
 			kiId = this.sc.register(answerKI, this.answerHandler);
 
@@ -388,7 +388,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 						"At least one of argumentGraphPattern and resultGraphPattern must be given for POST knowledge interactions.");
 			}
 
-			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP);
+			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP, ki.getKnowledgeInteractionName());
 			kiId = this.sc.register(postKI);
 
 			this.knowledgeInteractions.put(kiId, postKI);
@@ -411,7 +411,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 						"At least one of argumentGraphPattern and resultGraphPattern must be given for REACT knowledge interactions.");
 			}
 
-			var reactKI = new ReactKnowledgeInteraction(ca, argGP, resGP);
+			var reactKI = new ReactKnowledgeInteraction(ca, argGP, resGP, ki.getKnowledgeInteractionName());
 			kiId = this.sc.register(reactKI, this.reactHandler);
 
 			this.knowledgeInteractions.put(kiId, reactKI);
@@ -462,7 +462,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var act = ki.getAct();
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
-		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
+		var kiwid = new KnowledgeInteractionWithId()
+				.knowledgeInteractionId(kiId.toString())
+				.knowledgeInteractionName(ki.getName())
 				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
 						.satisfiedPurposes(satisfactions));
 

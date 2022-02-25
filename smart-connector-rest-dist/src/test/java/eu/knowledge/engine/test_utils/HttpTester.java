@@ -77,4 +77,11 @@ public class HttpTester {
 			fail();
 		}
 	}
+
+	public String getBody() {
+		if (!didRequest) {
+			doRequest();
+		}
+		return this.gotBody;
+	}
 }
