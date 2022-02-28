@@ -260,6 +260,11 @@ Examples include:
                                             owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/isMeta> ;
                                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                             owl:onDataRange xsd:boolean
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :hasName ;
+                                            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                            owl:onDataRange xsd:string
                                           ] ;
                       rdfs:comment "A knowledge interaction is a declaration of how a knowledge base interacts with its smart connector."@en .
 
