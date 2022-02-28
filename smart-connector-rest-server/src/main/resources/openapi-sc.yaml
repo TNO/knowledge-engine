@@ -208,7 +208,14 @@ paths:
                   prefixes:
                     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                     ex: "http://example.org/"
-            
+              ASK with name and prefixes:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  knowledgeInteractionName: books-by-shakespeare
+                  graphPattern: "?a rdf:type ex:Book . ?a ex:hasAuthor ex:Shakespeare"
+                  prefixes:
+                    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ex: "http://example.org/"
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -575,6 +582,7 @@ components:
           type: string
         knowledgeInteractionName:
           type: string
+          pattern: '^[a-zA-Z0-9-]*$'
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:

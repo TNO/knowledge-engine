@@ -84,6 +84,12 @@ public abstract class KnowledgeInteraction {
 		return this.fullMatchOnly;
 	}
 
+	/**
+	 * Throws an exception if {@code name} does not conform to the requirements of
+	 * knowledge interaction names.
+	 * 
+	 * @param name
+	 */
 	private void validateName(String name) {
 		if (name != null && !name.matches("[a-zA-Z0-9-]*")) {
 			throw new IllegalArgumentException("Knowledge Interaction names can only contain alphanumeric characters and hyphens.");
