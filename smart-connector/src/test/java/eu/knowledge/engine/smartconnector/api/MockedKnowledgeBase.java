@@ -258,7 +258,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
 
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
 							String patternFromObject = convertToPattern(askKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -266,7 +266,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							var answerKI = (AnswerKnowledgeInteraction) someKi;
 							// compare graph pattern
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().toString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
 							String patternFromObject = convertToPattern(answerKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -275,14 +275,14 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							// compare graph pattern
 							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
 							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+									.getLexicalForm();
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
 							boolean resultPatternsEqual = false;
 							if (ki.hasProperty(Vocab.HAS_RES)) {
 								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
 								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+										.getLexicalForm();
 								String resPatternFromObject = convertToPattern(postKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
 							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
@@ -296,14 +296,14 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							// compare graph pattern
 							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
 							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+									.getLexicalForm();
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
 							boolean resultPatternsEqual = false;
 							if (ki.hasProperty(Vocab.HAS_RES)) {
 								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
 								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+										.getLexicalForm();
 								String resPatternFromObject = convertToPattern(reactKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
 							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {
