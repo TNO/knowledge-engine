@@ -103,8 +103,10 @@ These are instructions on what to do when we release a new version of the knowle
 4. Build and push the new docker images:
 	- `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.1`
 	- `docker build ./knowledge-directory -t docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.1`
+	- `docker build ./admin-ui -t docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.1.1`
 	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.1`
 	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.1`
+	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.1.1`
 5. Prepare the next SNAPSHOT version and make a commit for that too.
 
 ## Running the REST server in Docker
