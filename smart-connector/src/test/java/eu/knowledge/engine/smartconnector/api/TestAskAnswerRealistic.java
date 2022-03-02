@@ -1,9 +1,17 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +52,7 @@ public class TestAskAnswerRealistic {
         kn.startAndWaitForReady();
         LOG.info("Everyone is ready!");
 
-        GraphPattern gp = new GraphPattern("?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+        GraphPattern gp1 = new GraphPattern("?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
          + "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ." 
          + "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
          + "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . " 
@@ -58,11 +66,132 @@ public class TestAskAnswerRealistic {
          + "?buildingDevice <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> ." 
          + "?buildingDevice <http://tno.io/PowerLimit#hasContractualPowerLimit> ?powerSubscribed .");
 
-        // Register KnowledgeInteractions
 
-        // Put bindings
+        AnswerKnowledgeInteraction aKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
+        kb1.register(aKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+            assertTrue(
+                anAnswerExchangeInfo.getIncomingBindings().isEmpty() 
+                    || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+                    "Should not have bindings in this bindings set");
 
-        // Actual test/s
+            BindingSet bindingSet = new BindingSet();
+            Binding binding = new Binding();
+            binding.put("building", "<https://www.tno.nl/example/building>");
+            binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing>");
+            binding.put("zipCode", "<https://www.tno.nl/example/zipCode>");
+            binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
+            binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider>");
+            binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager>");
+            binding.put("communityID", "<https://www.tno.nl/example/communityID>");
+            binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace>");
+            binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice>");
+            binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed>");
+
+            bindingSet.add(binding);
+            return bindingSet;
+        });
+
+        GraphPattern gp2 = new GraphPattern("?construcao <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+         + "?construcao <http://ontology.tno.nl/building#LocatedIn> ?coisaEspacial ." 
+         + "?coisaEspacial <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
+         + "?coisaEspacial <http://www.geonames.org/ontology#postalCode> ?codigoPostal . " 
+         + "?construcao <http://ontology.tno.nl/building#hasEnergyClass> ?classeDeEnergia ." 
+         + "?construcao <http://ontology.tno.nl/building#energyProvider> ?fornecedorDeEnergia ." 
+         + "?construcao <http://ontology.tno.nl/building#flexibilityManager> ?gerenteDeFlexibilidade ." 
+         + "?construcao <http://ontology.tno.nl/building#communityID> ?IDdaComunidade ." 
+         + "?construcao <https://saref.etsi.org/saref4bldg/hasSpace> ?edificioEspaco ." 
+         + "?edificioEspaco <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
+         + "?edificioEspaco <https://saref.etsi.org/saref4bldg/contains> ?dispositivoDeConstrucao ." 
+         + "?dispositivoDeConstrucao <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> ." 
+         + "?dispositivoDeConstrucao <http://tno.io/PowerLimit#hasContractualPowerLimit> ?poderSubscrito .");
+
+
+         AnswerKnowledgeInteraction aKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp2);
+         kb2.register(aKI2, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+             assertTrue(
+                 anAnswerExchangeInfo.getIncomingBindings().isEmpty() || 
+                    anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+                    "Should not having bindings in this bindings set"
+             );
+
+            BindingSet bindingSet = new BindingSet();
+            Binding binding = new Binding();
+            binding.put("construcao", "<https://www.tno.nl/example/construcao>");
+            binding.put("coisaEspacial", "<https://www.tno.nl/example/coisaEspacial>");
+            binding.put("codigoPostal", "<https://www.tno.nl/example/codigoPostal>");
+            binding.put("classeDeEnergia", "<https://www.tno.nl/example/classeDeEnergia>");
+            binding.put("fornecedorDeEnergia", "<https://www.tno.nl/example/fornecedorDeEnergia>");
+            binding.put("gerenteDeFlexibilidade", "<https://www.tno.nl/example/gerenteDeFlexibilidade>");
+            binding.put("IDdaComunidade", "<https://www.tno.nl/example/IDdaDomunidade>");
+            binding.put("edificioEspaco", "<https://www.tno.nl/example/edificioEspaco>");
+            binding.put("dispositivoDeConstrucao", "<https://www.tno.nl/example/dispositivoDeConstrucao>");
+            binding.put("poderSubscrito", "<https://www.tno.nl/example/poderSubscrito>");
+
+            bindingSet.add(binding);
+            return bindingSet;
+         });
+        
+
+        GraphPattern gp3 = new GraphPattern("?gebouw <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+         + "?gebouw <http://ontology.tno.nl/building#LocatedIn> ?ruimtelijkDing ." 
+         + "?ruimtelijkDing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
+         + "?ruimtelijkDing <http://www.geonames.org/ontology#postalCode> ?postcode . " 
+         + "?gebouw <http://ontology.tno.nl/building#hasEnergyClass> ?energieklasse ." 
+         + "?gebouw <http://ontology.tno.nl/building#energyProvider> ?energieaanbieder ." 
+         + "?gebouw <http://ontology.tno.nl/building#flexibilityManager> ?flexibiliteitManager ." 
+         + "?gebouw <http://ontology.tno.nl/building#communityID> ?gemeenschapsID ." 
+         + "?gebouw <https://saref.etsi.org/saref4bldg/hasSpace> ?gebouwRuimte ." 
+         + "?gebouwRuimte <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
+         + "?gebouwRuimte <https://saref.etsi.org/saref4bldg/contains> ?gebouwApparaat ." 
+         + "?gebouwApparaat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> ." 
+         + "?gebouwApparaat <http://tno.io/PowerLimit#hasContractualPowerLimit> ?powerAbonneer .");
+
+         AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp3);
+         kb3.register(askKI);
+         LOG.info("Waiting until everyone is up to date!");
+         kn.waitForUpToDate();
+         LOG.info("Everyone is up to date!");
+
+         BindingSet bindings = null;
+         AskResult result = null;
+
+         try {
+
+             LOG.trace("Before ask");
+             result = kb3.ask(askKI, new BindingSet()).get();
+             bindings = result.getBindings();
+             LOG.trace("After ask");
+
+             Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(
+                 AskExchangeInfo::getKnowledgeBaseId
+             ).collect(Collectors.toSet());
+
+             assertEquals(
+                 new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(),
+                                                kb2.getKnowledgeBaseId()
+
+                 )), kbIds, "The result/s should come from kb1 and kb2 and not: " + kbIds);
+
+            assertEquals(2, bindings.size());
+            
+            for (Binding b : bindings) {
+                assertTrue(b.containsKey("gebouw"));
+                assertTrue(b.containsKey("ruimtelijkDing"));
+                assertTrue(b.containsKey("postcode"));
+                assertTrue(b.containsKey("energieklasse"));
+                assertTrue(b.containsKey("energieaanbieder"));
+                assertTrue(b.containsKey("flexibiliteitManager"));
+                assertTrue(b.containsKey("gemeenschapsID"));
+                assertTrue(b.containsKey("gebouwRuimte"));
+                assertTrue(b.containsKey("gebouwApparaat"));
+                assertTrue(b.containsKey("powerAbonneer"));
+                LOG.info("Bindings: {}", bindings);
+            }
+
+         } catch (InterruptedException | ExecutionException e) {
+             fail();
+         }
+        
     }
 
     @AfterAll
