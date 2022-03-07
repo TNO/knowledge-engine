@@ -36,7 +36,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 	private final IRIProvider iriProvider = new IRIProviderJenaIRI();
 
 	@GET
-	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8" })
 	@io.swagger.annotations.ApiOperation(value = "Either get all available Smart Connectors or a specific one if the Knowledge-Base-Id is provided.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {
 			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
@@ -78,7 +78,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 	@POST
 	@Consumes({ "application/json; charset=UTF-8" })
-	@Produces({ "text/plain; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8" })
 	@io.swagger.annotations.ApiOperation(value = "Create a new Smart Connector for the given Knowledge Base.", notes = "", response = Void.class, tags = {
 			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
@@ -138,7 +138,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 	}
 
 	@DELETE
-	@Produces({ "text/plain; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8" })
 	@io.swagger.annotations.ApiOperation(value = "Delete the Smart Connector belonging to the given Knowledge Base", notes = "", response = Void.class, tags = {
 			"smart connector life cycle", })
 	@io.swagger.annotations.ApiResponses(value = {
