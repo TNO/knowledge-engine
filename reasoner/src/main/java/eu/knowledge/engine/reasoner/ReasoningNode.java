@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -58,6 +59,13 @@ public class ReasoningNode {
 	 * back to this particular node).
 	 */
 	private Map<ReasoningNode, Set<Match>> loopAntecedentNeighbors;
+
+	/**
+	 * A cached mapping from triple patterns in the antecedent of this
+	 * ReasoningNode's rule to all the antecedent neighbors that cover that
+	 * particular triple pattern. We can use this to deal with knowledge gaps.
+	 */
+	private Map<TriplePattern, Set<ReasoningNode>> antecedentCoverageCache;
 
 	private List<Rule> allRules;
 
@@ -356,143 +364,154 @@ public class ReasoningNode {
 		// the actual result.
 		if (this.bcState != BC_BINDINGSET_AVAILABLE) {
 
-			boolean allChildBindingSetsAvailable = true;
+			if (!this.hasKnowledgeGaps()) {
 
-			Set<ReasoningNode> someNeighbors = this.antecedentNeighbors.keySet();
+				boolean allChildBindingSetsAvailable = true;
 
-			// store the results of the children separately and afterwards combine them.
-			Set<TripleVarBindingSet> childResults = new HashSet<>();
+				Set<ReasoningNode> someNeighbors = this.antecedentNeighbors.keySet();
 
-			// TODO the order in which we iterate the backwardChildren is important. A
-			// strategy like first processing the backwardChildren that have the incoming
-			// variables in their consequent might be smart.
+				// store the results of the children separately and afterwards combine them.
+				Set<TripleVarBindingSet> childResults = new HashSet<>();
 
-			Iterator<ReasoningNode> someIter = someNeighbors.iterator();
-			while (someIter.hasNext()) {
-				ReasoningNode neighbor = someIter.next();
-				Set<Match> neighborMatches = this.antecedentNeighbors.get(neighbor);
+				// TODO the order in which we iterate the backwardChildren is important. A
+				// strategy like first processing the backwardChildren that have the incoming
+				// variables in their consequent might be smart.
 
-				// we can combine all different matches of this child's consequent into a single
-				// bindingset. We do not want to send bindings with variables that do not exist
-				// for that child.
+				Iterator<ReasoningNode> someIter = someNeighbors.iterator();
+				while (someIter.hasNext()) {
+					ReasoningNode neighbor = someIter.next();
+					Set<Match> neighborMatches = this.antecedentNeighbors.get(neighbor);
 
-				// TODO do we need the following two lines? Do we want to send bindings received
-				// from other children to this child? Or do we just send the bindings that we
-				// received as an argument of this method.
+					// we can combine all different matches of this child's consequent into a single
+					// bindingset. We do not want to send bindings with variables that do not exist
+					// for that child.
+
+					// TODO do we need the following two lines? Do we want to send bindings received
+					// from other children to this child? Or do we just send the bindings that we
+					// received as an argument of this method.
 //				TripleVarBindingSet preparedBindings1 = combinedBindings.getPartialBindingSet();
 //				TripleVarBindingSet preparedBindings2 = preparedBindings1.merge(antecedentPredefinedBindings);
 
-				TripleVarBindingSet neighborBindings = neighbor
-						.continueBackward(bindingSet.translate(neighbor.rule.consequent, neighborMatches));
-				if (neighborBindings == null) {
-					allChildBindingSetsAvailable = false;
-				} else {
-					TripleVarBindingSet neighborGraphBindingSet = neighborBindings;
-
-					// create powerset of graph pattern triples and use those to create additional
-					// triplevarbindings.
-
-					TripleVarBindingSet convertedNeighborTripleVarBindingSet = neighborGraphBindingSet
-							.translate(this.rule.antecedent, invert(neighborMatches));
-
-					// we do this expensive operation only on the overlapping part to improve
-					// performance. If large graph patterns of our children only match with a single
-					// triple on us, then we only generate additional bindings for this single
-					// triple, which takes MUCH MUCH MUCH less time than generating them for the
-					// full graph pattern.
-					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-						convertedNeighborTripleVarBindingSet = generateAdditionalTripleVarBindings(
-								convertedNeighborTripleVarBindingSet);
-
-					if (neighborMatches.size() > 1) {
-						// the child matches in multiple ways, so we need to merge the bindingset with
-						// itself to combine all ways that it matches.
-						// TODO or do we want to translate per match and combine each translated
-						// bindingset per match with each other?
-						convertedNeighborTripleVarBindingSet = convertedNeighborTripleVarBindingSet
-								.merge(convertedNeighborTripleVarBindingSet);
-					}
-
-					childResults.add(convertedNeighborTripleVarBindingSet);
-				}
-			}
-
-			TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
-			if (allChildBindingSetsAvailable) {
-
-				// combine the results from all the children.
-				for (TripleVarBindingSet childBS : childResults) {
-					combinedBindings = combinedBindings.merge(childBS);
-				}
-
-				boolean finished = true;
-				// process the loop backwardChildren
-				someIter = this.loopAntecedentNeighbors.keySet().iterator();
-				while (someIter.hasNext()) {
-					ReasoningNode child = someIter.next();
-					// we use forward reasoning to prevent an infinite loop
-					combinedBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent, combinedBindings);
-
-					finished &= child.continueForward(combinedBindings);
-				}
-
-				if (finished) {
-
-					// TODO this code is a bit shady. If we have an antecedent, we take the combined
-					// bindings from all our antecedent neighbors and only keep those that are
-					// compatible with the consequent bindings? What if the antecedent and
-					// consequent graph patterns of this reasoningnode do not have any variables in
-					// common?
-					TripleVarBindingSet consequentAntecedentBindings;
-					if (this.antecedentNeighbors.isEmpty()) {
-						consequentAntecedentBindings = bindingSet; // send the consequent binding set
+					TripleVarBindingSet neighborBindings = neighbor
+							.continueBackward(bindingSet.translate(neighbor.rule.consequent, neighborMatches));
+					if (neighborBindings == null) {
+						allChildBindingSetsAvailable = false;
 					} else {
-						consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
-								bindingSet.toBindingSet().toGraphBindingSet(this.rule.antecedent), combinedBindings);
+						TripleVarBindingSet neighborGraphBindingSet = neighborBindings;
 
-						consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
-								consequentAntecedentBindings);
+						// create powerset of graph pattern triples and use those to create additional
+						// triplevarbindings.
 
-					}
+						TripleVarBindingSet convertedNeighborTripleVarBindingSet = neighborGraphBindingSet
+								.translate(this.rule.antecedent, invert(neighborMatches));
 
-					this.toBindingSetHandlerBackward = consequentAntecedentBindings.toBindingSet();
-					if (this.taskboard != null) {
-						if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
+						// we do this expensive operation only on the overlapping part to improve
+						// performance. If large graph patterns of our children only match with a single
+						// triple on us, then we only generate additional bindings for this single
+						// triple, which takes MUCH MUCH MUCH less time than generating them for the
+						// full graph pattern.
+						if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
+							convertedNeighborTripleVarBindingSet = generateAdditionalTripleVarBindings(
+									convertedNeighborTripleVarBindingSet);
 
-							this.taskboard.addTask(this, this.toBindingSetHandlerBackward);
-							this.bcState = BC_BINDINGSET_REQUESTED;
-						} else {
-							this.startTime = Instant.now();
-							this.fromBindingSetHandlerBackward = new BindingSet();
-							this.endTime = Instant.now();
-							this.bcState = BC_BINDINGSET_AVAILABLE;
-							return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
+						if (neighborMatches.size() > 1) {
+							// the child matches in multiple ways, so we need to merge the bindingset with
+							// itself to combine all ways that it matches.
+							// TODO or do we want to translate per match and combine each translated
+							// bindingset per match with each other?
+							convertedNeighborTripleVarBindingSet = convertedNeighborTripleVarBindingSet
+									.merge(convertedNeighborTripleVarBindingSet);
 						}
-					} else {
 
-						// call the handler directly because taskboard is null. This makes debugging
-						// easier.
-						if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
+						childResults.add(convertedNeighborTripleVarBindingSet);
+					}
+				}
 
-							try {
-								startTime = Instant.now();
-								this.fromBindingSetHandlerBackward = this.rule.getBindingSetHandler()
-										.handle(this.toBindingSetHandlerBackward).get();
-								endTime = Instant.now();
+				TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
+				if (allChildBindingSetsAvailable) {
+
+					// combine the results from all the children.
+					for (TripleVarBindingSet childBS : childResults) {
+						combinedBindings = combinedBindings.merge(childBS);
+					}
+
+					boolean finished = true;
+					// process the loop backwardChildren
+					someIter = this.loopAntecedentNeighbors.keySet().iterator();
+					while (someIter.hasNext()) {
+						ReasoningNode child = someIter.next();
+						// we use forward reasoning to prevent an infinite loop
+						combinedBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent, combinedBindings);
+
+						finished &= child.continueForward(combinedBindings);
+					}
+
+					if (finished) {
+
+						// TODO this code is a bit shady. If we have an antecedent, we take the combined
+						// bindings from all our antecedent neighbors and only keep those that are
+						// compatible with the consequent bindings? What if the antecedent and
+						// consequent graph patterns of this reasoningnode do not have any variables in
+						// common?
+						TripleVarBindingSet consequentAntecedentBindings;
+						if (this.antecedentNeighbors.isEmpty()) {
+							consequentAntecedentBindings = bindingSet; // send the consequent binding set
+						} else {
+							consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
+									bindingSet.toBindingSet().toGraphBindingSet(this.rule.antecedent),
+									combinedBindings);
+
+							consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
+									consequentAntecedentBindings);
+
+						}
+
+						this.toBindingSetHandlerBackward = consequentAntecedentBindings.toBindingSet();
+						if (this.taskboard != null) {
+							if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
+
+								this.taskboard.addTask(this, this.toBindingSetHandlerBackward);
+								this.bcState = BC_BINDINGSET_REQUESTED;
+							} else {
+								this.startTime = Instant.now();
+								this.fromBindingSetHandlerBackward = new BindingSet();
+								this.endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
-							} catch (InterruptedException | ExecutionException e) {
-								LOG.error("Handling a bindingset should not fail.", e);
+								return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 							}
 						} else {
-							this.startTime = Instant.now();
-							this.fromBindingSetHandlerBackward = new BindingSet();
-							this.endTime = Instant.now();
-							this.bcState = BC_BINDINGSET_AVAILABLE;
-						}
-						return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 
+							// call the handler directly because taskboard is null. This makes debugging
+							// easier.
+							if (this.rule.antecedent.isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
+
+								try {
+									startTime = Instant.now();
+									this.fromBindingSetHandlerBackward = this.rule.getBindingSetHandler()
+											.handle(this.toBindingSetHandlerBackward).get();
+									endTime = Instant.now();
+									this.bcState = BC_BINDINGSET_AVAILABLE;
+								} catch (InterruptedException | ExecutionException e) {
+									LOG.error("Handling a bindingset should not fail.", e);
+								}
+							} else {
+								this.startTime = Instant.now();
+								this.fromBindingSetHandlerBackward = new BindingSet();
+								this.endTime = Instant.now();
+								this.bcState = BC_BINDINGSET_AVAILABLE;
+							}
+							return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
+
+						}
 					}
 				}
+			} else {
+				// has knowledge gaps -> return empty
+				startTime = Instant.now();
+				endTime = Instant.now();
+				this.fromBindingSetHandlerBackward = new BindingSet();
+				this.bcState = BC_BINDINGSET_AVAILABLE;
+				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
 			}
 
 			return null;
@@ -1056,6 +1075,43 @@ public class ReasoningNode {
 
 	public Map<ReasoningNode, Set<Match>> getConsequentNeighbors() {
 		return this.consequentNeighbors;
+	}
+
+	public Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage() {
+		if (this.antecedentCoverageCache == null) {
+			antecedentCoverageCache = new HashMap<>();
+			// TODO find the coverage
+			Set<ReasoningNode> coveringNodes;
+			for (TriplePattern tp : this.rule.antecedent) {
+				coveringNodes = new HashSet<>();
+				antecedentCoverageCache.put(tp, coveringNodes);
+
+				for (Entry<ReasoningNode, Set<Match>> entry : this.antecedentNeighbors.entrySet()) {
+					for (Match m : entry.getValue()) {
+						if (m.getMatchingPatterns().keySet().contains(tp)) {
+							coveringNodes.add(entry.getKey());
+							break; // where does this break from?
+						}
+					}
+				}
+
+			}
+		}
+		return this.antecedentCoverageCache;
+	}
+
+	private boolean hasKnowledgeGaps() {
+		boolean hasGaps = false;
+		Map<TriplePattern, Set<ReasoningNode>> nodeCoverage = this.findAntecedentCoverage();
+
+		for (Entry<TriplePattern, Set<ReasoningNode>> entry : nodeCoverage.entrySet()) {
+			if (entry.getValue().isEmpty()) {
+				hasGaps = true;
+				break;
+			}
+		}
+		return hasGaps;
+
 	}
 
 }
