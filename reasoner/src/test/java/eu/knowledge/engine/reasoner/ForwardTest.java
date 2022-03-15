@@ -25,7 +25,7 @@ import eu.knowledge.engine.reasoner.api.Util;
 
 public class ForwardTest {
 
-	public static class MyBindingSetHandler implements BindingSetHandler {
+	private static class MyBindingSetHandler implements BindingSetHandler {
 
 		private BindingSet bs;
 
@@ -451,7 +451,7 @@ public class ForwardTest {
 				"<sens1>,\"69.0\"^^<http://www.w3.org/2001/XMLSchema#float>"
 				// @formatter:on
 		}).getData());
-		
+
 		reasoner.addRule(
 				new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)), new StoreBindingSetHandler(bs)));
 
