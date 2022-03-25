@@ -132,7 +132,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-
+		this.rootNode.prune();
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -196,7 +196,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
-
+		this.rootNode.prune();
 		this.rememberIncomingBindingSetHandler.setBindingSet(translatedBindingSet);
 
 		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
