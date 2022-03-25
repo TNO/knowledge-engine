@@ -1,6 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -43,6 +43,7 @@ public class PruningTest {
 	private KeReasoner reasoner;
 	private Rule isInRoomRule;
 	private Rule grandParentRule;
+	private Rule obsoleteRule;
 
 	@Before
 	public void init() {
@@ -85,6 +86,12 @@ public class PruningTest {
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
 		grandParentRule = new Rule(antecedent, consequent);
+
+		Set<TriplePattern> obsoleteAntecedent = new HashSet<>(Arrays
+				.asList(new TriplePattern("?d <hasGPSCoordinates> ?coords"), new TriplePattern("?d <type> <Device>")));
+		Set<TriplePattern> obsoleteConsequent = new HashSet<>(Arrays.asList(new TriplePattern("?d <isInRoom> ?rm")));
+
+		this.obsoleteRule = new Rule(obsoleteAntecedent, obsoleteConsequent);
 
 	}
 
@@ -191,6 +198,53 @@ public class PruningTest {
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNull(aBindingSetHandler.getBindingSet());
+	}
+
+	@Test
+	public void testBackwardPrune() {
+		Binding b = new Binding();
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		objective.add(new TriplePattern("?p <isInRoom> ?r"));
+//		objective.add(new TriplePattern("?p <hasOwner> ?o")); //knowledge gap
+
+		reasoner.addRule(this.obsoleteRule); // should be removed
+		reasoner.addRule(this.isInRoomRule);
+
+		String gp = "?d <hasGPSCoordinates> ?coords";
+		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
+		reasoner.addRule(r);
+
+		TaskBoard taskboard = new TaskBoard();
+
+		// Start reasoning
+		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		System.out.println("Before prune");
+		System.out.println(root);
+
+//		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
+//				.findAntecedentCoverage(root.getAntecedentNeighbors());
+
+		root.prune();
+
+		System.out.println("After prune");
+		System.out.println(root);
+
+		assertTrue(root.isAntecedentFullyCovered());
+
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		BindingSet bind;
+		while ((bind = root.continueBackward(bs)) == null) {
+			System.out.println(root);
+			taskboard.executeScheduledTasks();
+		}
+
+		System.out.println("bindings: " + bind);
+		assertFalse(bind.isEmpty());
 	}
 
 }

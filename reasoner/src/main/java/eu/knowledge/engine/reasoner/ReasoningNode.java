@@ -1105,14 +1105,13 @@ public class ReasoningNode {
 		return this.antecedentCoverageCache;
 	}
 
-	private boolean isAntecedentFullyCovered() {
+	public boolean isAntecedentFullyCovered() {
 		boolean isFullyCovered = true;
 
 		Map<ReasoningNode, Set<Match>> someAntecedentNeighbors = new HashMap<>(this.antecedentNeighbors);
 
 		if (!this.shouldPlanBackward && this.parent != null) {
-			Set<Match> parentMatches = this.rule.antecedentMatches(this.parent.rule.consequent,
-					this.matchStrategy);
+			Set<Match> parentMatches = this.rule.antecedentMatches(this.parent.rule.consequent, this.matchStrategy);
 
 			Set<Match> inversedParentMatches = new HashSet<>();
 			for (Match m : parentMatches) {
@@ -1132,6 +1131,29 @@ public class ReasoningNode {
 		}
 		return isFullyCovered;
 
+	}
+
+	/**
+	 * Check all children and remove the ones of which the antecedent is not fully
+	 * covered.
+	 */
+	public void prune() {
+
+		boolean antecedentNeighborsChanged = false;
+
+		Iterator<Entry<ReasoningNode, Set<Match>>> entryIter = this.antecedentNeighbors.entrySet().iterator();
+		while (entryIter.hasNext()) {
+			Entry<ReasoningNode, Set<Match>> entry = entryIter.next();
+			entry.getKey().prune();
+			if (!entry.getKey().isAntecedentFullyCovered()) {
+				entryIter.remove();
+				antecedentNeighborsChanged = true;
+			}
+		}
+		if (antecedentNeighborsChanged) {
+			// reset cache to force recalculation.
+			this.antecedentCoverageCache = null;
+		}
 	}
 
 }
