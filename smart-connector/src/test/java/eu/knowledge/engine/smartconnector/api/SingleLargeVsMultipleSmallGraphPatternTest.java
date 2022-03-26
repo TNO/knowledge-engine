@@ -70,7 +70,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 		kb1.register(askKI);
 
 		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb2.register(answerKI, (AnswerHandler) (bindingSet, answerEI) -> {
+		kb2.register(answerKI, (AnswerHandler) (aAnswerKI, answerEI) -> {
 			return bs;
 		});
 
@@ -139,11 +139,11 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 				"?s ex:pred9 ?p9.", "?s ex:pred10 ?p10.");
 		AnswerKnowledgeInteraction answerKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp2);
 		AnswerKnowledgeInteraction answerKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
-		kb2.register(answerKI2, (AnswerHandler) (bindingSet, answerEI) -> {
+		kb2.register(answerKI2, (AnswerHandler) (aAnswerKI, answerEI) -> {
 			return bs1;
 		});
 
-		kb2.register(answerKI3, (AnswerHandler) (bindingSet, answerEI) -> {
+		kb2.register(answerKI3, (AnswerHandler) (aAnswerKI, answerEI) -> {
 			return bs2;
 		});
 
