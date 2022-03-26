@@ -40,6 +40,11 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	 */
 	private boolean reasonerEnabled = false;
 
+	/**
+	 * Whether the Knowledge Base is threadsafe.
+	 */
+	private boolean isThreadSafe = false;
+
 	public MockedKnowledgeBase(String aName) {
 		this.kis = new HashSet<>();
 		this.name = aName;
@@ -156,7 +161,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	@Override
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
-		var id =  this.getSC().register(anReactKI, aReactHandler);
+		var id = this.getSC().register(anReactKI, aReactHandler);
 		this.kis.add(anReactKI);
 		return id;
 	}
@@ -258,7 +263,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
 
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(askKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -266,7 +272,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							var answerKI = (AnswerKnowledgeInteraction) someKi;
 							// compare graph pattern
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(answerKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -349,7 +356,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	}
 
 	public void start() {
-		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+		this.sc = SmartConnectorBuilder.newSmartConnector(this).knowledgeBaseIsThreadSafe(isThreadSafe).create();
 		this.sc.setReasonerEnabled(this.reasonerEnabled);
 	}
 
@@ -377,6 +384,10 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	@Override
 	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
 		return this.sc.planPost(aPKI, aSelector);
+	}
+
+	public void setIsThreadSafe(boolean aIsThreadSafe) {
+		this.isThreadSafe = aIsThreadSafe;
 	}
 
 }
