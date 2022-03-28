@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,11 +47,12 @@ public class TestDynamicSemanticComposition {
 	}
 
 	@Test
-	public void testAskAnswer() throws InterruptedException {
+	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+//		prefixes.setNsPrefix("tno", "https://www.tno.nl/");
 		prefixes.setNsPrefix("v1905", "https://www.tno.nl/defense/ontology/v1905/");
 
 		var kn = new KnowledgeNetwork();
@@ -86,11 +88,11 @@ public class TestDynamicSemanticComposition {
 			// add 2 dummy bindings to the answer
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
-			binding1.put("id", "<https://www.tno.nl/target0>");
+			binding1.put("id", "<https://www.tno.nl/example/target0>");
 			binding1.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding1);
 			Binding binding2 = new Binding();
-			binding2.put("id", "<https://www.tno.nl/target1>");
+			binding2.put("id", "<https://www.tno.nl/example/target1>");
 			binding2.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding2);
 
@@ -139,9 +141,9 @@ public class TestDynamicSemanticComposition {
 				String country = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
-				if (b.get("id").equals("<https://www.tno.nl/target1>")) {
+				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
 					country = "\"Russia\"";
-				} else if (b.get("id").equals("<https://www.tno.nl/target0>")) {
+				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
 					country = "\"Holland\"";
 				} else {
 					country = "\"Belgium\"";
@@ -180,7 +182,7 @@ public class TestDynamicSemanticComposition {
 			LOG.trace("After ask.");
 			// try to generate JSON tree.
 			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-					result.getReasoningNode());
+					result.getReasoningNode(), prefixes);
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -191,7 +193,7 @@ public class TestDynamicSemanticComposition {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/target1>", b.get("id"), "Binding of 'id' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
 //		assertEquals("\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>", b.get("name"), "Binding of 'name' is incorrect.");
 		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
 
@@ -200,7 +202,7 @@ public class TestDynamicSemanticComposition {
 		// start testing post of targets!
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/target1>");
+		binding.put("id", "<https://www.tno.nl/example/target1>");
 //		binding.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 		binding.put("name", "\"Bla\"");
 		bindingSet.add(binding);
@@ -215,15 +217,13 @@ public class TestDynamicSemanticComposition {
 			LOG.info("After post!");
 
 			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post", postKI.getArgument(),
-					result.getReasoningNode());
+//			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
+//					postKI.getArgument(), result.getReasoningNode(), prefixes);
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}
 
 	}
-
-
 
 	@AfterAll
 	public static void cleanup() {
