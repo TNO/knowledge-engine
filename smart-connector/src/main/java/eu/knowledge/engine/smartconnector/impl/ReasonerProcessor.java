@@ -149,6 +149,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			LOG.debug("ask:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+				LOG.debug("All tasks finished.");
 				continueReasoningBackward(incomingBS);
 			}).exceptionally((Throwable t) -> {
 				LOG.error("Executing scheduled tasks for the reasoner should not result in problems.", t);
@@ -366,6 +367,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					LOG.error("A problem occurred while handling a bindingset.", t);
 					return null; // TODO when some error happens, what do we return?
 				}).thenApply((answerMessage) -> {
+					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = null;
 					if (answerMessage != null)
 						resultBindingSet = answerMessage.getBindings();
