@@ -78,7 +78,7 @@ public class TestDynamicSemanticComposition {
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
 		GraphPattern gp1 = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
-		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
+		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1, "answerTargets");
 		kbTargetObserver.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
 					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
@@ -99,13 +99,14 @@ public class TestDynamicSemanticComposition {
 			return bindingSet;
 		});
 		// and a post pattern to publish newly observed Targets
-		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
+		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null,
+				"postTargets");
 		kbTargetObserver.register(postKI);
 
 		// Patterns for the HVTSearcher
 		// a pattern to ask for High Value Target searches
 		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
+		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
 		kbHVTSearcher.register(askKI);
 		// a pattern to react to incoming new High Value Targets
 		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
@@ -125,7 +126,8 @@ public class TestDynamicSemanticComposition {
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
-		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out);
+		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
+				"reactCountry");
 		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("TargetAttributeSupplier Reacting...");
@@ -216,9 +218,11 @@ public class TestDynamicSemanticComposition {
 			assertFalse(iter.hasNext(), "there should be no bindings");
 			LOG.info("After post!");
 
+//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
+
 			// try to generate JSON tree.
-//			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
-//					postKI.getArgument(), result.getReasoningNode(), prefixes);
+			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
+					postKI.getArgument(), result.getReasoningNode(), prefixes);
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}

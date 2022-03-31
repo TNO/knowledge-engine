@@ -156,11 +156,13 @@ public class TestUtils {
 				rbsh = (ReactBindingSetHandler) bsh;
 
 				currentActor = rbsh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
+				if (!actors.contains(currentActor))
+					actors.add(currentActor);
 			} else if (bsh instanceof AnswerBindingSetHandler) {
 				absh = (AnswerBindingSetHandler) bsh;
 				currentActor = absh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
+				if (!actors.contains(currentActor))
+					actors.add(currentActor);
 			} else {
 				currentActor = proactiveKB;
 			}
@@ -197,7 +199,8 @@ public class TestUtils {
 								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
 					}
 				} else {
-					toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
+					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
+						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
 			}
 
@@ -212,7 +215,7 @@ public class TestUtils {
 					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
 							.getKnowledgeInteraction();
 
-					if (react.isMeta()) {
+					if (!react.isMeta()) {
 						if (react.getResult() != null) {
 							toFromExchanges.put(
 									new Pair(proactiveKB,
@@ -233,7 +236,8 @@ public class TestUtils {
 								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
 					}
 				} else {
-					toExchanges.put(new Pair(currentActor, currentActor), neighbor);
+					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
+						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
 			}
 
@@ -246,12 +250,14 @@ public class TestUtils {
 		System.out.println("title " + title);
 
 		for (String actor : actors) {
-			System.out.println("actor " + new URI(actor).getPath().substring(1));
+			System.out.println("participant " + new URI(actor).getPath().substring(1));
 		}
 
 		System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
-		
-		System.out.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes, rn.getRule().antecedent));
+
+		System.out
+				.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes,
+						(rn.getRule().antecedent).isEmpty() ? rn.getRule().consequent : rn.getRule().antecedent));
 
 		for (Pair pair : toExchanges.keySet()) {
 
@@ -259,9 +265,10 @@ public class TestUtils {
 
 			Rule rule = node.getRule();
 
-			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
-					+ new URI(pair.second).getPath().substring(1) + ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
-					+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
+			System.out.println(
+					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
+							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
+							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
 
 		}
 
@@ -294,22 +301,22 @@ public class TestUtils {
 	}
 
 	private static String convertGP(PrefixMapping prefixes, Set<TriplePattern> aGraphPattern) {
-		
+
 		StringBuilder sb = new StringBuilder();
-		
-		for(TriplePattern tp: aGraphPattern)
-		{
+
+		for (TriplePattern tp : aGraphPattern) {
 			Node ns = tp.getSubject();
 			Node np = tp.getPredicate();
 			Node no = tp.getObject();
 			String s = ns.isURI() ? prefixes.shortForm(ns.getURI()) : ns.toString();
-			String p = np.isURI() ? prefixes.shortForm(np.getURI()) : np.toString();			
+			String p = np.isURI() ? prefixes.shortForm(np.getURI()) : np.toString();
 			String o = no.isURI() ? prefixes.shortForm(no.getURI()) : no.toString();
 			sb.append(s).append(" ").append(p).append(" ").append(o).append(". ");
 		}
-		
-		if (sb.length() == 0) sb.append("<empty>");
-		
+
+		if (sb.length() == 0)
+			sb.append("<empty>");
+
 		return sb.toString();
 	}
 
@@ -348,7 +355,7 @@ public class TestUtils {
 				sb.append("\\n");
 			}
 			sb.delete(sb.length() - 2, sb.length());
-			
+
 		} else {
 			sb.append("<empty>");
 		}
@@ -358,4 +365,61 @@ public class TestUtils {
 	public static String removeChars(String path) {
 		return path.replace(":", "");
 	}
+
+	/**
+	 * Just a quick and dirty way of generating dit notation of a reasoning graph.
+	 * Not sure if I really want to keep this, though. Can be visualized online
+	 * <a href="https://dreampuf.github.io/GraphvizOnline/">here</a>.
+	 * 
+	 *
+	 * 
+	 * @param aRootNodeName
+	 * @param rn
+	 */
+//	public static void printReasoningNodeDotNotation(String aRootNodeName, ReasoningNode rn) {
+//		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
+//		queue.add(rn);
+//
+//		System.out.println("digraph { concentrate=true");
+//
+//		Set<String> edges = new HashSet<String>();
+//
+//		while (!queue.isEmpty()) {
+//			ReasoningNode node = queue.poll();
+//
+//			node.getRule().getBindingSetHandler();
+//
+//			String currentNodeName = node.getRule().getName();
+//
+//			if (currentNodeName == null)
+//				currentNodeName = aRootNodeName;
+//
+//			for (ReasoningNode antecedentNode : node.getAntecedentNeighbors().keySet()) {
+//				String neighborNodeName = antecedentNode.getRule().getName();
+//
+//				if (neighborNodeName == null)
+//					neighborNodeName = "<unknown>";
+//
+//				edges.add(neighborNodeName + " -> " + currentNodeName);
+//			}
+//
+//			for (ReasoningNode antecedentNode : node.getConsequentNeighbors().keySet()) {
+//				String neighborNodeName = antecedentNode.getRule().getName();
+//
+//				if (neighborNodeName == null)
+//					neighborNodeName = "<unknown>";
+//
+//				edges.add(currentNodeName + " -> " + neighborNodeName);
+//			}
+//
+//			queue.addAll(node.getAntecedentNeighbors().keySet());
+//			queue.addAll(node.getConsequentNeighbors().keySet());
+//		}
+//
+//		for (String edge : edges) {
+//			System.out.println(edge);
+//		}
+//
+//		System.out.println("}");
+//	}
 }
