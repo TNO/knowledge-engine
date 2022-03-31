@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -13,19 +14,19 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class TestUtils {
 
@@ -116,7 +117,8 @@ public class TestUtils {
 		return KE_PREFIX + value;
 	}
 
-	public static void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasoningNode rn) {
+	public static void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasoningNode rn,
+			PrefixMapping prefixes) throws URISyntaxException {
 
 //		System.out.println(rn.toString());
 
@@ -136,7 +138,10 @@ public class TestUtils {
 			}
 		}
 
+		// arrows to actors that need to come back
 		Map<Pair, ReasoningNode> toFromExchanges = new HashMap<>();
+
+		// arrows to actors that do not need to come back (only to ourselves)
 		Map<Pair, ReasoningNode> toExchanges = new HashMap<>();
 
 		while (!queue.isEmpty()) {
@@ -151,11 +156,13 @@ public class TestUtils {
 				rbsh = (ReactBindingSetHandler) bsh;
 
 				currentActor = rbsh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
+				if (!actors.contains(currentActor))
+					actors.add(currentActor);
 			} else if (bsh instanceof AnswerBindingSetHandler) {
 				absh = (AnswerBindingSetHandler) bsh;
 				currentActor = absh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
-				actors.add(currentActor);
+				if (!actors.contains(currentActor))
+					actors.add(currentActor);
 			} else {
 				currentActor = proactiveKB;
 			}
@@ -192,7 +199,8 @@ public class TestUtils {
 								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
 					}
 				} else {
-					toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
+					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
+						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
 			}
 
@@ -207,7 +215,7 @@ public class TestUtils {
 					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
 							.getKnowledgeInteraction();
 
-					if (react.isMeta()) {
+					if (!react.isMeta()) {
 						if (react.getResult() != null) {
 							toFromExchanges.put(
 									new Pair(proactiveKB,
@@ -228,7 +236,8 @@ public class TestUtils {
 								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
 					}
 				} else {
-					toExchanges.put(new Pair(currentActor, currentActor), neighbor);
+					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
+						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
 			}
 
@@ -241,17 +250,25 @@ public class TestUtils {
 		System.out.println("title " + title);
 
 		for (String actor : actors) {
-			System.out.println("actor " + removeChars(actor));
+			System.out.println("participant " + new URI(actor).getPath().substring(1));
 		}
 
-		System.out.println("activate " + removeChars(proactiveKB));
+		System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
+
+		System.out
+				.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes,
+						(rn.getRule().antecedent).isEmpty() ? rn.getRule().consequent : rn.getRule().antecedent));
 
 		for (Pair pair : toExchanges.keySet()) {
 
 			ReasoningNode node = toExchanges.get(pair);
 
-			System.out.println(removeChars(pair.first) + "->" + removeChars(pair.second) + ":"
-					+ checkSize(node.getBindingSetToHandler().toString()));
+			Rule rule = node.getRule();
+
+			System.out.println(
+					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
+							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
+							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
 
 		}
 
@@ -260,34 +277,149 @@ public class TestUtils {
 
 			assert node != null;
 
-			String toHandler = node.getBindingSetToHandler().toString();
-			String fromHandler = node.getBindingSetFromHandler().toString();
-			System.out.println(removeChars(pair.first) + "->" + removeChars(pair.second) + ":" + checkSize(toHandler));
+			Rule rule = node.getRule();
+			boolean empty = rule.antecedent.isEmpty();
+
+			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
+					+ new URI(pair.second).getPath().substring(1) + ":" + convertGP(prefixes, rule.antecedent) + "\\n"
+					+ (empty ? "" : convertBindingSet(prefixes, node.getBindingSetToHandler())));
 
 			if (!pair.second.equals(proactiveKB))
-				System.out.println("deactivate " + removeChars(proactiveKB));
+				System.out.println("deactivate " + new URI(proactiveKB).getPath().substring(1));
 
-			System.out.println("activate " + removeChars(pair.second));
-			System.out
-					.println(removeChars(pair.second) + "-->" + removeChars(pair.first) + ":" + checkSize(fromHandler));
+			System.out.println("activate " + new URI(pair.second).getPath().substring(1));
+			System.out.println(new URI(pair.second).getPath().substring(1) + "-->"
+					+ new URI(pair.first).getPath().substring(1) + ":" + convertGP(prefixes, rule.consequent) + "\\n"
+					+ convertBindingSet(prefixes, node.getBindingSetFromHandler()));
 
-			System.out.println("deactivate " + removeChars(pair.second));
+			System.out.println("deactivate " + new URI(pair.second).getPath().substring(1));
 			if (!pair.second.equals(proactiveKB))
-				System.out.println("activate " + removeChars(proactiveKB));
+				System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
 
 		}
 
 	}
 
-	private static String checkSize(String toHandler) {
-		int endIndex = 100;
-		if (toHandler.length() > endIndex)
-			return "[{...}]";
-		else
-			return toHandler;
+	private static String convertGP(PrefixMapping prefixes, Set<TriplePattern> aGraphPattern) {
+
+		StringBuilder sb = new StringBuilder();
+
+		for (TriplePattern tp : aGraphPattern) {
+			Node ns = tp.getSubject();
+			Node np = tp.getPredicate();
+			Node no = tp.getObject();
+			String s = ns.isURI() ? prefixes.shortForm(ns.getURI()) : ns.toString();
+			String p = np.isURI() ? prefixes.shortForm(np.getURI()) : np.toString();
+			String o = no.isURI() ? prefixes.shortForm(no.getURI()) : no.toString();
+			sb.append(s).append(" ").append(p).append(" ").append(o).append(". ");
+		}
+
+		if (sb.length() == 0)
+			sb.append("<empty>");
+
+		return sb.toString();
+	}
+
+	private static String convertBindingSet(PrefixMapping prefixes,
+			eu.knowledge.engine.reasoner.api.BindingSet toFromHandler) {
+
+		int MAX = 5;
+		String GAP = "  ";
+		StringBuilder sb = new StringBuilder();
+
+		if (!toFromHandler.isEmpty() && !toFromHandler.iterator().next().isEmpty()) {
+
+			// header
+			eu.knowledge.engine.reasoner.api.Binding forHeader = toFromHandler.iterator().next();
+
+			Var[] vars = new Var[forHeader.size()];
+
+			int count = 0;
+			sb.append("**");
+			for (Var var : forHeader.keySet()) {
+				sb.append(var.toString()).append(GAP);
+				vars[count] = var;
+				count++;
+			}
+			sb.append("**");
+			sb.append("\\n");
+
+			// data
+			// TODO if there are too many bindings, truncate the rows with '...'.
+			Iterator<eu.knowledge.engine.reasoner.api.Binding> bIter = toFromHandler.iterator();
+			while (bIter.hasNext()) {
+				eu.knowledge.engine.reasoner.api.Binding b = bIter.next();
+				for (Var var : vars) {
+					sb.append(prefixes.shortForm(b.get(var).toString())).append(GAP);
+				}
+				sb.append("\\n");
+			}
+			sb.delete(sb.length() - 2, sb.length());
+
+		} else {
+			sb.append("<empty>");
+		}
+		return sb.toString();
 	}
 
 	public static String removeChars(String path) {
 		return path.replace(":", "");
 	}
+
+	/**
+	 * Just a quick and dirty way of generating dit notation of a reasoning graph.
+	 * Not sure if I really want to keep this, though. Can be visualized online
+	 * <a href="https://dreampuf.github.io/GraphvizOnline/">here</a>.
+	 * 
+	 *
+	 * 
+	 * @param aRootNodeName
+	 * @param rn
+	 */
+//	public static void printReasoningNodeDotNotation(String aRootNodeName, ReasoningNode rn) {
+//		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
+//		queue.add(rn);
+//
+//		System.out.println("digraph { concentrate=true");
+//
+//		Set<String> edges = new HashSet<String>();
+//
+//		while (!queue.isEmpty()) {
+//			ReasoningNode node = queue.poll();
+//
+//			node.getRule().getBindingSetHandler();
+//
+//			String currentNodeName = node.getRule().getName();
+//
+//			if (currentNodeName == null)
+//				currentNodeName = aRootNodeName;
+//
+//			for (ReasoningNode antecedentNode : node.getAntecedentNeighbors().keySet()) {
+//				String neighborNodeName = antecedentNode.getRule().getName();
+//
+//				if (neighborNodeName == null)
+//					neighborNodeName = "<unknown>";
+//
+//				edges.add(neighborNodeName + " -> " + currentNodeName);
+//			}
+//
+//			for (ReasoningNode antecedentNode : node.getConsequentNeighbors().keySet()) {
+//				String neighborNodeName = antecedentNode.getRule().getName();
+//
+//				if (neighborNodeName == null)
+//					neighborNodeName = "<unknown>";
+//
+//				edges.add(currentNodeName + " -> " + neighborNodeName);
+//			}
+//
+//			queue.addAll(node.getAntecedentNeighbors().keySet());
+//			queue.addAll(node.getConsequentNeighbors().keySet());
+//		}
+//
+//		for (String edge : edges) {
+//			System.out.println(edge);
+//		}
+//
+//		System.out.println("}");
+//	}
 }

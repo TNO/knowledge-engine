@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,11 +47,12 @@ public class TestDynamicSemanticComposition {
 	}
 
 	@Test
-	public void testAskAnswer() throws InterruptedException {
+	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+//		prefixes.setNsPrefix("tno", "https://www.tno.nl/");
 		prefixes.setNsPrefix("v1905", "https://www.tno.nl/defense/ontology/v1905/");
 
 		var kn = new KnowledgeNetwork();
@@ -76,7 +78,7 @@ public class TestDynamicSemanticComposition {
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
 		GraphPattern gp1 = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
-		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
+		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1, "answerTargets");
 		kbTargetObserver.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
 					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
@@ -86,24 +88,25 @@ public class TestDynamicSemanticComposition {
 			// add 2 dummy bindings to the answer
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
-			binding1.put("id", "<https://www.tno.nl/target0>");
+			binding1.put("id", "<https://www.tno.nl/example/target0>");
 			binding1.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding1);
 			Binding binding2 = new Binding();
-			binding2.put("id", "<https://www.tno.nl/target1>");
+			binding2.put("id", "<https://www.tno.nl/example/target1>");
 			binding2.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding2);
 
 			return bindingSet;
 		});
 		// and a post pattern to publish newly observed Targets
-		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
+		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null,
+				"postTargets");
 		kbTargetObserver.register(postKI);
 
 		// Patterns for the HVTSearcher
 		// a pattern to ask for High Value Target searches
 		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
+		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
 		kbHVTSearcher.register(askKI);
 		// a pattern to react to incoming new High Value Targets
 		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
@@ -123,7 +126,8 @@ public class TestDynamicSemanticComposition {
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
-		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out);
+		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
+				"reactCountry");
 		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("TargetAttributeSupplier Reacting...");
@@ -139,9 +143,9 @@ public class TestDynamicSemanticComposition {
 				String country = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
-				if (b.get("id").equals("<https://www.tno.nl/target1>")) {
+				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
 					country = "\"Russia\"";
-				} else if (b.get("id").equals("<https://www.tno.nl/target0>")) {
+				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
 					country = "\"Holland\"";
 				} else {
 					country = "\"Belgium\"";
@@ -180,7 +184,7 @@ public class TestDynamicSemanticComposition {
 			LOG.trace("After ask.");
 			// try to generate JSON tree.
 			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-					result.getReasoningNode());
+					result.getReasoningNode(), prefixes);
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -191,7 +195,7 @@ public class TestDynamicSemanticComposition {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/target1>", b.get("id"), "Binding of 'id' is incorrect.");
+		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
 //		assertEquals("\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>", b.get("name"), "Binding of 'name' is incorrect.");
 		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
 
@@ -200,7 +204,7 @@ public class TestDynamicSemanticComposition {
 		// start testing post of targets!
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/target1>");
+		binding.put("id", "<https://www.tno.nl/example/target1>");
 //		binding.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 		binding.put("name", "\"Bla\"");
 		bindingSet.add(binding);
@@ -214,16 +218,16 @@ public class TestDynamicSemanticComposition {
 			assertFalse(iter.hasNext(), "there should be no bindings");
 			LOG.info("After post!");
 
+//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
+
 			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post", postKI.getArgument(),
-					result.getReasoningNode());
+			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
+					postKI.getArgument(), result.getReasoningNode(), prefixes);
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}
 
 	}
-
-
 
 	@AfterAll
 	public static void cleanup() {
