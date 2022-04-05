@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +128,30 @@ public class NotDesignedToWorkTogetherTest {
 		boolean allTouched = latch.await(3000, TimeUnit.MILLISECONDS);
 
 		assertTrue(allTouched);
+
+	}
+
+	@AfterAll
+	public void close() {
+		LOG.info("Clean up: {}", NotDesignedToWorkTogetherTest.class.getSimpleName());
+		if (this.appKb != null) {
+			this.appKb.stop();
+		} else {
+			fail("AppKB should not be null!");
+		}
+
+		if (this.lamp1Kb != null) {
+
+			this.lamp1Kb.stop();
+		} else {
+			fail("Lamp1Kb should not be null!");
+		}
+
+		if (this.lamp2Kb != null) {
+			this.lamp2Kb.stop();
+		} else {
+			fail("lamp2Kb should not be null!");
+		}
 
 	}
 
