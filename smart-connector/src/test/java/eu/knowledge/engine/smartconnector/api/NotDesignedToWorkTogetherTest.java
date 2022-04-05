@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -34,7 +35,7 @@ public class NotDesignedToWorkTogetherTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(NotDesignedToWorkTogetherTest.class);
 
-	private KnowledgeNetwork kn = new KnowledgeNetwork();
+	private static KnowledgeNetwork kn = new KnowledgeNetwork();
 	private MockedKnowledgeBase appKb = new MockedKnowledgeBase("AppKB");
 	private MockedKnowledgeBase lamp1Kb = new MockedKnowledgeBase("Lamp1KB");
 	private MockedKnowledgeBase lamp2Kb = new MockedKnowledgeBase("Lamp2KB");
@@ -132,27 +133,13 @@ public class NotDesignedToWorkTogetherTest {
 	}
 
 	@AfterAll
-	public void close() {
+	public static void close() {
 		LOG.info("Clean up: {}", NotDesignedToWorkTogetherTest.class.getSimpleName());
-		if (this.appKb != null) {
-			this.appKb.stop();
-		} else {
-			fail("AppKB should not be null!");
+		try {
+			kn.stop().get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("Stopping the Knowledge Network should succeed: {}", e);
 		}
-
-		if (this.lamp1Kb != null) {
-
-			this.lamp1Kb.stop();
-		} else {
-			fail("Lamp1Kb should not be null!");
-		}
-
-		if (this.lamp2Kb != null) {
-			this.lamp2Kb.stop();
-		} else {
-			fail("lamp2Kb should not be null!");
-		}
-
 	}
 
 }
