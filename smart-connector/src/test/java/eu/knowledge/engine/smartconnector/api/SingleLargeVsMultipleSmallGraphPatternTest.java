@@ -48,6 +48,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 			b1 = new Binding();
 
 			b1.put("s", "<s" + i + ">");
+			b1.put("o0", "<o" + (i + 0) + ">");
 			b1.put("o1", "<o" + (i + 1) + ">");
 			b1.put("o2", "<o" + (i + 2) + ">");
 			b1.put("o3", "<o" + (i + 3) + ">");
@@ -63,9 +64,9 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 
 		// adding KIs
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?s ex:pred1 ?o1.", "?s ex:pred2 ?o2.", "?s ex:pred3 ?o3.",
-				"?s ex:pred4 ?o4.", "?s ex:pred5 ?o5.", "?s ex:pred6 ?o6.", "?s ex:pred7 ?o7.", "?s ex:pred8 ?o8.",
-				"?s ex:pred9 ?o9.", "?s ex:pred10 ?o10.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?s ex:pred0 ?o0.", "?s ex:pred1 ?o1.", "?s ex:pred2 ?o2.",
+				"?s ex:pred3 ?o3.", "?s ex:pred4 ?o4.", "?s ex:pred5 ?o5.", "?s ex:pred6 ?o6.", "?s ex:pred7 ?o7.",
+				"?s ex:pred8 ?o8.", "?s ex:pred9 ?o9.", "?s ex:pred10 ?o10.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(askKI);
 
@@ -109,6 +110,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 			b2 = new Binding();
 
 			b1.put("s", "<s" + i + ">");
+			b1.put("p0", "<p" + (i + 0) + ">");
 			b1.put("p1", "<p" + (i + 1) + ">");
 			b1.put("p2", "<p" + (i + 2) + ">");
 			b1.put("p3", "<p" + (i + 3) + ">");
@@ -133,8 +135,8 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(askKI);
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?s ex:pred1 ?p1.", "?s ex:pred2 ?p2.", "?s ex:pred3 ?p3.",
-				"?s ex:pred4 ?p4.", "?s ex:pred5 ?p5.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?s ex:pred0 ?p0.", "?s ex:pred1 ?p1.", "?s ex:pred2 ?p2.",
+				"?s ex:pred3 ?p3.", "?s ex:pred4 ?p4.", "?s ex:pred5 ?p5.");
 		GraphPattern gp3 = new GraphPattern(prefixes, "?s ex:pred6 ?p6.", "?s ex:pred7 ?p7.", "?s ex:pred8 ?p8.",
 				"?s ex:pred9 ?p9.", "?s ex:pred10 ?p10.");
 		AnswerKnowledgeInteraction answerKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp2);
