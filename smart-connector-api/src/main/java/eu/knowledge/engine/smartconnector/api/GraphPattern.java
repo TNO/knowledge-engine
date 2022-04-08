@@ -139,11 +139,13 @@ public class GraphPattern {
 
 		Element e = null;
 		e = parser.GroupGraphPatternSub();
+
 		LOG.trace("parsed knowledge: {}", e);
 		eg = (ElementGroup) e;
 		Element last = eg.getLast();
 
-		if (!(last instanceof ElementPathBlock)) {
+		// Additional EOF check based on: https://lists.apache.org/thread/4cfr7pkzo0fdmdtqlxg88w0ksl8gw2rk
+		if (!(last instanceof ElementPathBlock) || parser.token.next.kind != ARQParser.EOF) {
 			LOG.error("This knowledge '{}' should be parseable to a ElementPathBlock", pattern);
 			throw new ParseException(
 					"The knowledge should be parseable to a ARQ ElementPathBlock (i.e. a BasicGraphPattern in the SPARQL syntax specification)");
