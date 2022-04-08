@@ -439,10 +439,18 @@ public class MatchTest {
 
 		Set<Rule> allRules = new HashSet<>(Arrays.asList(rule1, rule2));
 
-		Set<Map<Rule, Match>> completeMatches = Rule.findMatches(antecedent, allRules,
+		Set<Map<Rule, Match>> completeMatches1 = Rule.findMatches(antecedent, allRules, MatchStrategy.FIND_ALL_MATCHES,
+				true);
+		assertEquals(11, completeMatches1.size());
+		Set<Map<Rule, Match>> completeMatches2 = Rule.findMatches(antecedent, allRules,
+				MatchStrategy.FIND_ONLY_FULL_MATCHES, true);
+		assertEquals(0, completeMatches2.size());
+		Set<Map<Rule, Match>> completeMatches3 = Rule.findMatches(antecedent, allRules,
 				MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, true);
-
-		System.out.println("Matches: " + completeMatches);
+		assertEquals(2, completeMatches3.size());
+		System.out.println("ALL MATCHES: " + completeMatches1);
+		System.out.println("FULL MATCHES: " + completeMatches2);
+		System.out.println("BIGGEST MATCHES: " + completeMatches3);
 	}
 
 	private long getNumberOfMatches(int graphPatternSize) {

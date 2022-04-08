@@ -194,7 +194,7 @@ public class Rule {
 
 									if (hasMerged) {
 										// add to smallerMatches and sometimes to biggestMatches.
-										if (isSubMatch2(m2, m1entry.getKey(), toBeAddedToBiggestMatches)) {
+										if (isSubMatch2(ruleMatch2, toBeAddedToBiggestMatches)) {
 											// add to smaller matches
 											HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
 											newRuleMatch.put(m1entry.getKey(), mergedMatch);
@@ -218,14 +218,22 @@ public class Rule {
 								if (hasMerged) {
 
 									// TODO probably we need to check for isSubMatch2() here too?
+									// yes, if the current ruleMatch2 is a submatch of one of the
+									// toBeAddedToBiggestMatches
 
-									HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-									newRuleMatch.put(m1entry.getKey(), m1);
-									toBeAddedToSmallerMatches.add(newRuleMatch);
+									if (isSubMatch2(ruleMatch2, toBeAddedToBiggestMatches)) {
+										HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
+										newRuleMatch.put(m1entry.getKey(), m1);
+										toBeAddedToSmallerMatches.add(newRuleMatch);
+									} else {
+										HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
+										newRuleMatch.put(m1entry.getKey(), m1);
+										toBeAddedToBiggestMatches.add(newRuleMatch);
+									}
 								} else {
 									HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
 									newRuleMatch.put(m1entry.getKey(), m1);
-									toBeAddedToBiggestMatches.add(newRuleMatch);									
+									toBeAddedToBiggestMatches.add(newRuleMatch);
 								}
 							}
 						}
@@ -270,11 +278,19 @@ public class Rule {
 
 	}
 
-	private static boolean isSubMatch2(Match m2, Rule key, List<Map<Rule, Match>> toBeAddedToBiggestMatches) {
+	private static boolean isSubMatch2(Map<Rule, Match> aRuleMatch, List<Map<Rule, Match>> toBeAddedToBiggestMatches) {
+
 		for (Map<Rule, Match> ruleMatch : toBeAddedToBiggestMatches) {
-			if (ruleMatch.get(key).isSubMatch(m2)) {
-				return true;
+			boolean foundAll = true;
+			for (Entry<Rule, Match> rm : aRuleMatch.entrySet()) {
+
+				if (!ruleMatch.containsKey(rm.getKey()) || !ruleMatch.get(rm.getKey()).isSubMatch(rm.getValue())) {
+					foundAll = false;
+					break;
+				}
 			}
+			if (foundAll)
+				return true;
 		}
 		return false;
 	}
