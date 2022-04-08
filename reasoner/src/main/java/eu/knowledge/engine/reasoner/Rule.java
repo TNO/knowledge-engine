@@ -92,6 +92,64 @@ public class Rule {
 	}
 
 	/**
+	 * Try if we can match with better heuristics: try to work towards full matches
+	 * of the graph pattern using all the rules at once. This way, hopefully, a lot
+	 * of matches can already be discarded and do not slow down the process further
+	 * down the line.
+	 * 
+	 * How do we know whether we should match the antecedent or consequent of those
+	 * rules?
+	 * 
+	 * @param aFirstPattern
+	 * @param allRules
+	 * @param aMatchStrategy
+	 * @return
+	 */
+	public static Set<Map<Rule, Match>> findConsequentMatches(Set<TriplePattern> aFirstPattern, Set<Rule> allRules,
+			MatchStrategy aMatchStrategy) {
+
+		Map<TriplePattern, Map<Rule, Set<Match>>> matchesPerTriplePerRule = getMatchesPerTriplePerRule(aFirstPattern,
+				allRules, true);
+
+		// if not every triple pattern can be matched, we stop the process if we require
+		// a full match.
+		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
+				&& matchesPerTriplePerRule.keySet().size() < aFirstPattern.size())
+			return new HashSet<>();
+
+		// now combine all found matches.
+
+		return new HashSet<Map<Rule, Match>>();
+
+	}
+
+	public static Map<TriplePattern, Map<Rule, Set<Match>>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
+			Set<Rule> allRules, boolean useConsequent) {
+		Map<TriplePattern, Map<Rule, Set<Match>>> matchesPerRule = new HashMap<>();
+
+		for (Rule r : allRules) {
+			// first find all triples in the consequent that match each triple in the
+			// antecedent
+			Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
+			Set<Match> foundMatches;
+			for (TriplePattern anteTriple : aFirstPattern) {
+				// find all possible matches of the current antecedent triple in the consequent
+				foundMatches = findMatches(anteTriple, useConsequent ? r.consequent : r.antecedent);
+				if (!foundMatches.isEmpty()) {
+					matchesPerTriple.put(anteTriple, foundMatches);
+					Map<Rule, Set<Match>> ruleMatches = matchesPerRule.get(anteTriple);
+					if (ruleMatches == null) {
+						ruleMatches = new HashMap<>();
+						matchesPerRule.put(anteTriple, ruleMatches);
+					}
+					ruleMatches.put(r, foundMatches);
+				}
+			}
+		}
+		return matchesPerRule;
+	}
+
+	/**
 	 * FInd the biggest matches bewteen two graph patterns.
 	 * 
 	 * @param aFirstPattern
