@@ -105,11 +105,11 @@ public class Rule {
 	 * @param aMatchStrategy
 	 * @return
 	 */
-	public static Set<Map<Rule, Match>> findConsequentMatches(Set<TriplePattern> aFirstPattern, Set<Rule> allRules,
-			MatchStrategy aMatchStrategy) {
+	public static Set<Map<Rule, Match>> findMatches(Set<TriplePattern> aFirstPattern, Set<Rule> allRules,
+			MatchStrategy aMatchStrategy, boolean forConsequent) {
 
-		Map<TriplePattern, Map<Rule, Set<Match>>> matchesPerTriplePerRule = getMatchesPerTriplePerRule(aFirstPattern,
-				allRules, true);
+		Map<TriplePattern, Set<Map<Rule, Match>>> matchesPerTriplePerRule = getMatchesPerTriplePerRule(aFirstPattern,
+				allRules, forConsequent);
 
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
@@ -118,31 +118,125 @@ public class Rule {
 			return new HashSet<>();
 
 		// now combine all found matches.
+		List<Map<Rule, Match>> biggestMatches = new ArrayList<>();
+		List<Map<Rule, Match>> smallerMatches = new ArrayList<>();
+		Match mergedMatch = null;
+		List<Map<Rule, Match>> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
+		Set<Integer> toBeDemotedMatchIndices = null;
 
+		Iterator<Map.Entry<TriplePattern, Set<Map<Rule, Match>>>> matchIter = matchesPerTriplePerRule.entrySet()
+				.iterator();
+		// always add first matches
+		if (matchIter.hasNext()) {
+			biggestMatches.addAll(matchIter.next().getValue());
+		}
+
+		while (matchIter.hasNext()) {
+
+			Set<Map<Rule, Match>> matches = matchIter.next().getValue();
+
+			// keep a set of new/remove matches, so we can add/remove them at the end of
+			// this loop
+			toBeAddedToBiggestMatches = new ArrayList<>();
+			toBeAddedToSmallerMatches = new ArrayList<>();
+			toBeDemotedMatchIndices = new HashSet<>();
+
+			assert matches != null;
+
+			for (Map<Rule, Match> m1 : matches) {
+				// check if we need to merge with existing matches
+				boolean hasMerged = false;
+				// first check if m1 can be merged with any of the existing biggest matches.
+				for (int i = 0; i < biggestMatches.size(); i++) {
+					Match m2 = biggestMatches.get(i);
+					mergedMatch = m2.merge(m1);
+					if (mergedMatch != null) {
+						hasMerged = true;
+						toBeAddedToBiggestMatches.add(mergedMatch);
+						toBeDemotedMatchIndices.add(i);
+					} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+						toBeDemotedMatchIndices.add(i);
+					}
+				}
+
+				// then check if m1 can be merged with any of the existing smaller matches
+				if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+					for (Match m2 : smallerMatches) {
+						mergedMatch = m2.merge(m1);
+						if (mergedMatch != null) {
+
+							if (hasMerged) {
+								// add to smallerMatches and sometimes to biggestMatches.
+								if (isSubMatch(m2, toBeAddedToBiggestMatches)) {
+									// add to smaller matches
+									toBeAddedToSmallerMatches.add(mergedMatch);
+								} else {
+									// add to biggest matches
+									toBeAddedToBiggestMatches.add(mergedMatch);
+								}
+							} else {
+								// add to biggestMatches
+								hasMerged = true;
+								toBeAddedToBiggestMatches.add(mergedMatch);
+							}
+						}
+					}
+				}
+
+				if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+					toBeAddedToBiggestMatches.add(m1);
+				} else {
+					toBeAddedToSmallerMatches.add(m1);
+				}
+			}
+
+			// remove all toBeDemotedMatches from the biggestMatches and add them to the
+			// smallerMatches.
+
+			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
+			Collections.sort(sortedList, Collections.reverseOrder());
+			for (int i : sortedList) {
+				smallerMatches.add(biggestMatches.get(i));
+				biggestMatches.remove(i);
+			}
+
+			// add all toBeAddedMatches
+			biggestMatches.addAll(toBeAddedToBiggestMatches);
+			smallerMatches.addAll(toBeAddedToSmallerMatches);
+
+			long innerEnd = System.currentTimeMillis();
+			toBeAddedToBiggestMatches = null;
+			toBeDemotedMatchIndices = null;
+			toBeAddedToSmallerMatches = null;
+
+		}
 		return new HashSet<Map<Rule, Match>>();
 
 	}
 
-	public static Map<TriplePattern, Map<Rule, Set<Match>>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
+	public static Map<TriplePattern, Set<Map<Rule, Match>>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
 			Set<Rule> allRules, boolean useConsequent) {
-		Map<TriplePattern, Map<Rule, Set<Match>>> matchesPerRule = new HashMap<>();
+		Map<TriplePattern, Set<Map<Rule, Match>>> matchesPerRule = new HashMap<>();
 
 		for (Rule r : allRules) {
 			// first find all triples in the consequent that match each triple in the
 			// antecedent
-			Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
 			Set<Match> foundMatches;
 			for (TriplePattern anteTriple : aFirstPattern) {
 				// find all possible matches of the current antecedent triple in the consequent
 				foundMatches = findMatches(anteTriple, useConsequent ? r.consequent : r.antecedent);
 				if (!foundMatches.isEmpty()) {
-					matchesPerTriple.put(anteTriple, foundMatches);
-					Map<Rule, Set<Match>> ruleMatches = matchesPerRule.get(anteTriple);
+
+					Set<Map<Rule, Match>> ruleMatches = matchesPerRule.get(anteTriple);
 					if (ruleMatches == null) {
-						ruleMatches = new HashMap<>();
+						ruleMatches = new HashSet<>();
 						matchesPerRule.put(anteTriple, ruleMatches);
 					}
-					ruleMatches.put(r, foundMatches);
+					for (Match m : foundMatches) {
+						HashMap<Rule, Match> hashMap = new HashMap<Rule, Match>();
+						hashMap.put(r, m);
+						ruleMatches.add(hashMap);
+					}
 				}
 			}
 		}
