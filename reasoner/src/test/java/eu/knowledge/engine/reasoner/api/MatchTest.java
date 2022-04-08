@@ -422,6 +422,29 @@ public class MatchTest {
 		}
 	}
 
+	@Test
+	public void testNewMatchingAlgorithm() {
+
+		Set<TriplePattern> antecedent = new HashSet<TriplePattern>(Arrays.asList(new TriplePattern("?s <p1> ?o1"),
+				new TriplePattern("?s <p2> ?o2"), new TriplePattern("?s <p3> ?o3"), new TriplePattern("?s <p4> ?o4")));
+
+		Set<TriplePattern> rule1consequent = new HashSet<TriplePattern>(
+				Arrays.asList(new TriplePattern("?a <p1> ?b1"), new TriplePattern("?a <p2> ?b2")));
+
+		Rule rule1 = new Rule(null, rule1consequent);
+
+		Set<TriplePattern> rule2consequent = new HashSet<TriplePattern>(
+				Arrays.asList(new TriplePattern("?v <p2> ?w2"), new TriplePattern("?v <p3> ?w3")));
+		Rule rule2 = new Rule(null, rule2consequent);
+
+		Set<Rule> allRules = new HashSet<>(Arrays.asList(rule1, rule2));
+
+		Set<Map<Rule, Match>> completeMatches = Rule.findMatches(antecedent, allRules,
+				MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, true);
+
+		System.out.println("Matches: " + completeMatches);
+	}
+
 	private long getNumberOfMatches(int graphPatternSize) {
 
 		int sum = 0;

@@ -172,11 +172,6 @@ public class Match {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return "Match [matchingPatterns=" + matchingPatterns + ", mapping=" + mapping + "]";
-	}
-
 	/**
 	 * invert the triple patterns and mapping.
 	 * 
@@ -218,5 +213,10 @@ public class Match {
 		}
 
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Match [matchingPatterns=" + matchingPatterns + "]";
 	}
 }
