@@ -401,7 +401,7 @@ public class MatchTest {
 	@Test
 	public void testGPMatcherCardinalityTest() {
 
-		for (int gpSize = 1; gpSize < 5; gpSize++) {
+		for (int gpSize = 1; gpSize < 7; gpSize++) {
 
 			TriplePattern[] graphPattern = new TriplePattern[gpSize];
 
