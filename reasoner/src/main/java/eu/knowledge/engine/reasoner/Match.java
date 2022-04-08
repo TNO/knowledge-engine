@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.jena.graph.Node;
 
@@ -193,5 +194,29 @@ public class Match {
 			invertedMap.put(entry.getValue(), entry.getKey());
 		}
 		return new Match(newMatchingPatterns, invertedMap);
+	}
+
+	/**
+	 * Checks if aMatch is a submatch of this match.
+	 * 
+	 * @param aMatch
+	 * @return
+	 */
+	public boolean isSubMatch(Match aMatch) {
+
+		for (Entry<TriplePattern, TriplePattern> entry : aMatch.getMatchingPatterns().entrySet()) {
+
+			if (!entry.getValue().equals(this.matchingPatterns.get(entry.getKey()))) {
+				return false;
+			}
+		}
+
+		for (Entry<Node, Node> entry : aMatch.getMappings().entrySet()) {
+			if (!entry.getValue().equals(this.mapping.get(entry.getKey()))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
