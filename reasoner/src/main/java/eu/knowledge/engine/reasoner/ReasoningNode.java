@@ -198,9 +198,18 @@ public class ReasoningNode {
 
 		if (!shouldPlanBackward) {
 			// generate consequent neighbors
+
 			if (!this.rule.consequent.isEmpty()) {
-				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
-						this.matchStrategy);
+				Set<Map<Rule, Match>> ruleMatches = Rule.findMatches(this.rule.consequent, this.allRules,
+						this.matchStrategy, false);
+
+				// convert to a mapping from rule to a set of matches
+				Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
+
+//				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
+//						this.matchStrategy);
+				printRelevantRules(relevantRules);
+
 				ReasoningNode child;
 				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
@@ -220,9 +229,18 @@ public class ReasoningNode {
 		// note that in some scenario's antecedent neighbors are also necessary in a
 		// forward scenario
 		if (!this.rule.antecedent.isEmpty()) {
-			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
-					this.matchStrategy);
+
+			Set<Map<Rule, Match>> ruleMatches = Rule.findMatches(this.rule.antecedent, this.allRules,
+					this.matchStrategy, true);
+
+			// convert to a mapping from rule to a set of matches
+			Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
+
+//			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
+//					this.matchStrategy);
+			printRelevantRules(relevantRules);
 			ReasoningNode child;
+
 			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
 				// some infinite loop detection (see transitivity test)
@@ -241,6 +259,33 @@ public class ReasoningNode {
 				}
 			}
 		}
+	}
+
+	private void printRelevantRules(Map<Rule, Set<Match>> relevantRules) {
+
+		System.out.println("Relevant rules");
+		for (Entry<Rule, Set<Match>> ruleEntry : relevantRules.entrySet()) {
+			System.out.println(ruleEntry.getValue().size() + ": " + ruleEntry.getKey());
+		}
+
+	}
+
+	private Map<Rule, Set<Match>> convertToOtherMapping(Set<Map<Rule, Match>> ruleMatches) {
+
+		Map<Rule, Set<Match>> mapping = new HashMap<>();
+
+		for (Map<Rule, Match> map : ruleMatches) {
+			for (Entry<Rule, Match> entry : map.entrySet()) {
+				Set<Match> matches = mapping.get(entry.getKey());
+				if (matches == null) {
+					matches = new HashSet<>();
+					mapping.put(entry.getKey(), matches);
+				}
+				matches.add(entry.getValue());
+			}
+		}
+
+		return mapping;
 	}
 
 	/**

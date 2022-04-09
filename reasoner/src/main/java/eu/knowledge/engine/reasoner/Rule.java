@@ -106,7 +106,7 @@ public class Rule {
 	 * @param aMatchStrategy
 	 * @return
 	 */
-	public static Set<Map<Rule, Match>> findMatches(Set<TriplePattern> aFirstPattern, Set<Rule> allRules,
+	public static Set<Map<Rule, Match>> findMatches(Set<TriplePattern> aFirstPattern, List<Rule> allRules,
 			MatchStrategy aMatchStrategy, boolean forConsequent) {
 
 		List<Map<Rule, Match>> allMatches = new ArrayList<>();
@@ -141,15 +141,15 @@ public class Rule {
 
 			// keep a set of new/removed matches, so we can add/remove them at the end of
 			// this loop
-			toBeAddedToBiggestMatches = new ArrayList<>();
-			toBeAddedToSmallerMatches = new ArrayList<>();
-			toBeDemotedMatchIndices = new HashSet<>();
 
 			assert matches != null;
 
 			for (Map<Rule, Match> ruleMatch1 : matches) {
 
 				for (Entry<Rule, Match> m1entry : ruleMatch1.entrySet()) {
+					toBeAddedToBiggestMatches = new ArrayList<>();
+					toBeAddedToSmallerMatches = new ArrayList<>();
+					toBeDemotedMatchIndices = new HashSet<>();
 					Match m1 = m1entry.getValue();
 
 					// check if we need to merge with existing matches
@@ -296,7 +296,7 @@ public class Rule {
 	}
 
 	public static Map<TriplePattern, Set<Map<Rule, Match>>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
-			Set<Rule> allRules, boolean useConsequent) {
+			List<Rule> allRules, boolean useConsequent) {
 		Map<TriplePattern, Set<Map<Rule, Match>>> matchesPerRule = new HashMap<>();
 
 		for (Rule r : allRules) {
@@ -305,18 +305,20 @@ public class Rule {
 			Set<Match> foundMatches;
 			for (TriplePattern anteTriple : aFirstPattern) {
 				// find all possible matches of the current antecedent triple in the consequent
-				foundMatches = findMatches(anteTriple, useConsequent ? r.consequent : r.antecedent);
-				if (!foundMatches.isEmpty()) {
+				if (useConsequent ? !r.consequent.isEmpty() : !r.antecedent.isEmpty()) {
+					foundMatches = findMatches(anteTriple, useConsequent ? r.consequent : r.antecedent);
+					if (!foundMatches.isEmpty()) {
 
-					Set<Map<Rule, Match>> ruleMatches = matchesPerRule.get(anteTriple);
-					if (ruleMatches == null) {
-						ruleMatches = new HashSet<>();
-						matchesPerRule.put(anteTriple, ruleMatches);
-					}
-					for (Match m : foundMatches) {
-						HashMap<Rule, Match> hashMap = new HashMap<Rule, Match>();
-						hashMap.put(r, m);
-						ruleMatches.add(hashMap);
+						Set<Map<Rule, Match>> ruleMatches = matchesPerRule.get(anteTriple);
+						if (ruleMatches == null) {
+							ruleMatches = new HashSet<>();
+							matchesPerRule.put(anteTriple, ruleMatches);
+						}
+						for (Match m : foundMatches) {
+							HashMap<Rule, Match> hashMap = new HashMap<Rule, Match>();
+							hashMap.put(r, m);
+							ruleMatches.add(hashMap);
+						}
 					}
 				}
 			}

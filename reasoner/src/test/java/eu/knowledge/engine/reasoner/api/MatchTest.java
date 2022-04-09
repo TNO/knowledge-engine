@@ -437,15 +437,13 @@ public class MatchTest {
 				Arrays.asList(new TriplePattern("?v <p2> ?w2"), new TriplePattern("?v <p3> ?w3")));
 		Rule rule2 = new Rule(null, rule2consequent);
 
-		Set<Rule> allRules = new HashSet<>(Arrays.asList(rule1, rule2));
-
-		Set<Map<Rule, Match>> completeMatches1 = Rule.findMatches(antecedent, allRules, MatchStrategy.FIND_ALL_MATCHES,
-				true);
+		Set<Map<Rule, Match>> completeMatches1 = Rule.findMatches(antecedent, Arrays.asList(rule1, rule2),
+				MatchStrategy.FIND_ALL_MATCHES, true);
 		assertEquals(11, completeMatches1.size());
-		Set<Map<Rule, Match>> completeMatches2 = Rule.findMatches(antecedent, allRules,
+		Set<Map<Rule, Match>> completeMatches2 = Rule.findMatches(antecedent, Arrays.asList(rule1, rule2),
 				MatchStrategy.FIND_ONLY_FULL_MATCHES, true);
 		assertEquals(0, completeMatches2.size());
-		Set<Map<Rule, Match>> completeMatches3 = Rule.findMatches(antecedent, allRules,
+		Set<Map<Rule, Match>> completeMatches3 = Rule.findMatches(antecedent, Arrays.asList(rule1, rule2),
 				MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, true);
 		assertEquals(2, completeMatches3.size());
 		System.out.println("ALL MATCHES: " + completeMatches1);
