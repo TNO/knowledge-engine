@@ -121,7 +121,7 @@ public class Rule {
 			return new HashSet<>();
 
 		// now combine all found matches.
-		List<Map<Rule, Match>> biggestMatches = new ArrayList<>();
+		List<Map<Rule, Match>> biggestRuleMatches = new ArrayList<>();
 		List<Map<Rule, Match>> smallerMatches = new ArrayList<>();
 		Match mergedMatch = null;
 		List<Map<Rule, Match>> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
@@ -132,7 +132,7 @@ public class Rule {
 
 		// always add all matches of first triple
 		if (matchIter.hasNext()) {
-			biggestMatches.addAll(matchIter.next().getValue());
+			biggestRuleMatches.addAll(matchIter.next().getValue());
 		}
 
 		while (matchIter.hasNext()) {
@@ -144,9 +144,9 @@ public class Rule {
 
 			assert matches != null;
 
-			for (Map<Rule, Match> ruleMatch1 : matches) {
-
-				for (Entry<Rule, Match> m1entry : ruleMatch1.entrySet()) {
+			for (Map<Rule, Match> nextMatch : matches) {
+				// see if this next match can be merged with one of the existing biggest matches
+				for (Entry<Rule, Match> m1entry : nextMatch.entrySet()) {
 					toBeAddedToBiggestMatches = new ArrayList<>();
 					toBeAddedToSmallerMatches = new ArrayList<>();
 					toBeDemotedMatchIndices = new HashSet<>();
@@ -155,18 +155,18 @@ public class Rule {
 					// check if we need to merge with existing matches
 					boolean hasMerged = false;
 					// first check if m1 can be merged with any of the existing biggest matches.
-					for (int i = 0; i < biggestMatches.size(); i++) {
+					for (int i = 0; i < biggestRuleMatches.size(); i++) {
 
-						Map<Rule, Match> ruleMatch2 = biggestMatches.get(i);
+						Map<Rule, Match> existingBiggestRuleMatch = biggestRuleMatches.get(i);
 
-						Match m2 = ruleMatch2.get(m1entry.getKey());
+						Match m2 = existingBiggestRuleMatch.get(m1entry.getKey());
 
 						if (m2 != null) {
 
 							mergedMatch = m2.merge(m1);
 							if (mergedMatch != null) {
 								hasMerged = true;
-								HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
+								HashMap<Rule, Match> newRuleMatch = new HashMap<>(existingBiggestRuleMatch);
 								newRuleMatch.put(m1entry.getKey(), mergedMatch);
 								toBeAddedToBiggestMatches.add(newRuleMatch);
 								toBeDemotedMatchIndices.add(i);
@@ -174,10 +174,14 @@ public class Rule {
 								toBeDemotedMatchIndices.add(i);
 							}
 						} else {
-							HashMap<Rule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-							newRuleMatch.put(m1entry.getKey(), m1);
-							toBeAddedToBiggestMatches.add(newRuleMatch);
 							toBeDemotedMatchIndices.add(i);
+							HashMap<Rule, Match> newRuleMatch = new HashMap<>(existingBiggestRuleMatch);
+							newRuleMatch.put(m1entry.getKey(), m1);
+							if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+								toBeAddedToBiggestMatches.add(newRuleMatch);
+							} else {
+								toBeAddedToSmallerMatches.add(newRuleMatch);
+							}
 						}
 					}
 
@@ -240,9 +244,9 @@ public class Rule {
 					}
 
 					if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-						toBeAddedToBiggestMatches.add(ruleMatch1);
+						toBeAddedToBiggestMatches.add(nextMatch);
 					} else {
-						toBeAddedToSmallerMatches.add(ruleMatch1);
+						toBeAddedToSmallerMatches.add(nextMatch);
 					}
 					// remove all toBeDemotedMatches from the biggestMatches and add them to the
 					// smallerMatches.
@@ -250,12 +254,12 @@ public class Rule {
 					List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
 					Collections.sort(sortedList, Collections.reverseOrder());
 					for (int i : sortedList) {
-						smallerMatches.add(biggestMatches.get(i));
-						biggestMatches.remove(i);
+						smallerMatches.add(biggestRuleMatches.get(i));
+						biggestRuleMatches.remove(i);
 					}
 
 					// add all toBeAddedMatches
-					biggestMatches.addAll(toBeAddedToBiggestMatches);
+					biggestRuleMatches.addAll(toBeAddedToBiggestMatches);
 					smallerMatches.addAll(toBeAddedToSmallerMatches);
 
 					long innerEnd = System.currentTimeMillis();
@@ -267,11 +271,11 @@ public class Rule {
 
 		}
 		if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
-			allMatches.addAll(biggestMatches);
+			allMatches.addAll(biggestRuleMatches);
 			allMatches.addAll(smallerMatches);
 		} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)
 				|| aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-			allMatches.addAll(biggestMatches);
+			allMatches.addAll(biggestRuleMatches);
 		}
 
 		return new HashSet<>(allMatches);
