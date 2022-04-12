@@ -26,6 +26,7 @@ public class TestAskAnswerRealistic {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 	private static MockedKnowledgeBase kb3;
+    private static MockedKnowledgeBase kb4;
 
     @BeforeAll
     public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -43,10 +44,13 @@ public class TestAskAnswerRealistic {
         kb2.setReasonerEnabled(true);
         kb3 = new MockedKnowledgeBase("kb3");
         kb3.setReasonerEnabled(true);
+        kb4 = new MockedKnowledgeBase("kb4");
+        kb4.setReasonerEnabled(true);
 
         kn.addKB(kb1);
         kn.addKB(kb2);
         kn.addKB(kb3);
+        kn.addKB(kb4);
 
         LOG.info("Waiting for everyone to be ready...");
         kn.startAndWaitForReady();
@@ -59,7 +63,7 @@ public class TestAskAnswerRealistic {
          + "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ." 
          + "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ." 
          + "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ." 
-         + "?building <http://ontology.tno.nl/building#communityID> ?community-ID ." 
+         + "?building <http://ontology.tno.nl/building#communityID> ?communityID ." 
          + "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ." 
          + "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
          + "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ." 
@@ -82,7 +86,7 @@ public class TestAskAnswerRealistic {
             binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
             binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider>");
             binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager>");
-            binding.put("community-ID", "<https://www.tno.nl/example/communityID>");
+            binding.put("communityID", "<https://www.tno.nl/example/communityID>");
             binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace>");
             binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice>");
             binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed>");
@@ -130,6 +134,43 @@ public class TestAskAnswerRealistic {
             bindingSet.add(binding);
             return bindingSet;
          });
+
+        GraphPattern gp4 = new GraphPattern("?zgrada <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+        + "?zgrada <http://ontology.tno.nl/building#LocatedIn> ?prostornaStvar ." 
+        + "?prostornaStvar <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
+        + "?prostornaStvar <http://www.geonames.org/ontology#postalCode> ?postanskiBroj . " 
+        + "?zgrada <http://ontology.tno.nl/building#hasEnergyClass> ?energetskaKlasa ." 
+        + "?zgrada <http://ontology.tno.nl/building#energyProvider> ?dobavljacEnergije ." 
+        + "?zgrada <http://ontology.tno.nl/building#flexibilityManager> ?menadzerFleksibilnosti ." 
+        + "?zgrada <http://ontology.tno.nl/building#communityID> ?zajednica ." 
+        + "?zgrada <https://saref.etsi.org/saref4bldg/hasSpace> ?zgradniProstor ." 
+        + "?zgradniProstor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
+        + "?zgradniProstor <https://saref.etsi.org/saref4bldg/contains> ?zgradniUredjaj ." 
+        + "?zgradniUredjaj <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> .");
+
+        AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
+         kb4.register(aKI4, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+             assertTrue(
+                 anAnswerExchangeInfo.getIncomingBindings().isEmpty() || 
+                    anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+                    "Should not having bindings in this bindings set"
+             );
+
+            BindingSet bindingSet = new BindingSet();
+            Binding binding = new Binding();
+            binding.put("zgrada", "<https://www.tno.nl/example/zgrada>");
+            binding.put("prostornaStvar", "<https://www.tno.nl/example/prostornaStvar>");
+            binding.put("postanskiBroj", "<https://www.tno.nl/example/postanskiBroj>");
+            binding.put("energetskaKlasa", "<https://www.tno.nl/example/energetskaKlasa>");
+            binding.put("dobavljacEnergije", "<https://www.tno.nl/example/dobavljacEnergije>");
+            binding.put("menadzerFleksibilnosti", "<https://www.tno.nl/example/menadzerFleksibilnosti>");
+            binding.put("zajednica", "<https://www.tno.nl/example/zajednica>");
+            binding.put("zgradniProstor", "<https://www.tno.nl/example/zgradniProstor>");
+            binding.put("zgradniUredjaj", "<https://www.tno.nl/example/zgradniUredjaj>");
+
+            bindingSet.add(binding);
+            return bindingSet;
+         });
         
 
         GraphPattern gp3 = new GraphPattern("?gebouw <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
@@ -143,8 +184,7 @@ public class TestAskAnswerRealistic {
          + "?gebouw <https://saref.etsi.org/saref4bldg/hasSpace> ?gebouwRuimte ." 
          + "?gebouwRuimte <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
          + "?gebouwRuimte <https://saref.etsi.org/saref4bldg/contains> ?gebouwApparaat ." 
-         + "?gebouwApparaat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> ." 
-         + "?gebouwApparaat <http://tno.io/PowerLimit#hasContractualPowerLimit> ?powerAbonneer .");
+         + "?gebouwApparaat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> .");
 
          AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp3);
          kb3.register(askKI);
@@ -168,11 +208,12 @@ public class TestAskAnswerRealistic {
 
              assertEquals(
                  new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(),
-                                                kb2.getKnowledgeBaseId()
+                                                kb2.getKnowledgeBaseId(),
+                                                kb4.getKnowledgeBaseId()
 
                  )), kbIds, "The result/s should come from kb1 and kb2 and not: " + kbIds);
 
-            assertEquals(2, bindings.size());
+            assertEquals(3, bindings.size());
             
             for (Binding b : bindings) {
                 assertTrue(b.containsKey("gebouw"));
@@ -184,7 +225,6 @@ public class TestAskAnswerRealistic {
                 assertTrue(b.containsKey("gemeenschapsID"));
                 assertTrue(b.containsKey("gebouwRuimte"));
                 assertTrue(b.containsKey("gebouwApparaat"));
-                assertTrue(b.containsKey("powerAbonneer"));
                 LOG.info("Bindings: {}", bindings);
             }
 
@@ -212,7 +252,13 @@ public class TestAskAnswerRealistic {
         if (kb3 != null) {
             kb3.stop();
         } else {
-            fail("KB# should not be null!");
+            fail("KB3 should not be null!");
+        }
+
+        if (kb4 != null) {
+            kb4.stop();
+        } else {
+            fail("KB4 should not be null!");
         }
     }
     
