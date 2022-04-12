@@ -1,6 +1,8 @@
 package eu.knowledge.engine.admin.api;
 
 import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.rest.api.CORSFilter;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,16 +37,23 @@ public class RestServer {
 		ctx.setContextPath("/");
 		server.setHandler(ctx);
 
-		ResourceConfig rc = new ResourceConfig();
-		rc.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
-		rc.property(ServerProperties.WADL_FEATURE_DISABLE, true);
-		rc.register(new CORSFilter());
-
-		rc.packages("eu.knowledge.engine.admin.api");
-		ServletContainer sc = new ServletContainer(rc);
-		ServletHolder jerseyServlet = new ServletHolder(sc);
-
-		ctx.addServlet(jerseyServlet, "/rest/*");
+		ResourceConfig rcRuntime = new ResourceConfig();
+		rcRuntime.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+		rcRuntime.property(ServerProperties.WADL_FEATURE_DISABLE, true);
+		rcRuntime.register(new CORSFilter());
+		rcRuntime.packages("eu.knowledge.engine.rest");
+		ServletContainer scRuntime = new ServletContainer(rcRuntime);
+		ServletHolder jerseyRuntimeServlet = new ServletHolder(scRuntime);
+		ctx.addServlet(jerseyRuntimeServlet, "/runtime/*");
+		
+		ResourceConfig rcAdmin = new ResourceConfig();
+		rcAdmin.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+		rcAdmin.property(ServerProperties.WADL_FEATURE_DISABLE, true);
+		rcAdmin.register(new CORSFilter());
+		rcAdmin.packages("eu.knowledge.engine.admin.api");
+		ServletContainer scAdmin = new ServletContainer(rcAdmin);
+		ServletHolder jerseyAdminServlet = new ServletHolder(scAdmin);
+		ctx.addServlet(jerseyAdminServlet, "/admin/*");
 
 		try {
 			server.start();

@@ -61,10 +61,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/KnowledgeInteractionBase'
-        connections:
-          type: array
-          items:
-            $ref: '#/components/schemas/Connection'
     KnowledgeInteractionBase:
       type: object
       required: [knowledgeInteractionType]
@@ -84,6 +80,10 @@ components:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
           $ref: '#/components/schemas/Prefixes'
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
         isMeta:
           type: string
     AskKnowledgeInteraction:
@@ -146,13 +146,7 @@ components:
         be used in your graph pattern during registration, and not within bindings.
     Connection:
       type: object
-      required: [ knowledgeBaseId, connectionType]
+      required: [ knowledgeInteractionId]
       properties:
-        knowledgeBaseId:
-          type: string
-        connectionType:
-          type: string
-        interactionType:
-          type: string
-        matchedKeyword:
+        knowledgeInteractionId:
           type: string

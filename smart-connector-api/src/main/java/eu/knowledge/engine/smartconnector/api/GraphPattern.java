@@ -1,14 +1,15 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import java.io.StringReader;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.graph.Node_Variable;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.lang.arq.ARQParser;
 import org.apache.jena.sparql.lang.arq.ParseException;
@@ -46,8 +47,8 @@ public class GraphPattern {
 	 *
 	 * @param aPrefixMapping       A prefix mapping with prefixes that are allowed
 	 *                             to be used in the pattern.
-	 * @param somePatternFragments Strings that, when concatenated, contain a
-	 *                             SPARQL 1.1 Basic Graph Pattern
+	 * @param somePatternFragments Strings that, when concatenated, contain a SPARQL
+	 *                             1.1 Basic Graph Pattern
 	 *                             {@linkplain https://www.w3.org/TR/sparql11-query/}.
 	 *                             It encodes a particular type of knowledge about
 	 *                             which the {@link KnowledgeBase} wants to
@@ -57,7 +58,7 @@ public class GraphPattern {
 	 */
 	public GraphPattern(PrefixMapping aPrefixMapping, String... somePatternFragments) throws IllegalArgumentException {
 		String patternWithPrefixes = String.join("", somePatternFragments);
-		
+
 		// First we parse the graph pattern with the given prefixes.
 		ElementPathBlock epb;
 		try {
@@ -109,20 +110,20 @@ public class GraphPattern {
 	public Set<String> getVariables() {
 		var triples = this.getGraphPattern().getPattern().getList();
 		return triples.stream()
-			// Redirect the subjects, predicates and objects to a single stream of nodes.
-			.flatMap(t -> Stream.of(t.getSubject(), t.getPredicate(), t.getObject()))
-			// Map the nodes to variable names if they're variables, and otherwise `null`.
-			.map(n -> {
-				if (n instanceof Node_Variable) {
-					return ((Node_Variable) n).getName();
-				} else {
-					return null;
-				}
-			})
-			// Filter out the nulls.
-			.filter(Objects::nonNull)
-			// Collect them into a set.
-			.collect(Collectors.toSet());
+				// Redirect the subjects, predicates and objects to a single stream of nodes.
+				.flatMap(t -> Stream.of(t.getSubject(), t.getPredicate(), t.getObject()))
+				// Map the nodes to variable names if they're variables, and otherwise `null`.
+				.map(n -> {
+					if (n instanceof Node_Variable) {
+						return ((Node_Variable) n).getName();
+					} else {
+						return null;
+					}
+				})
+				// Filter out the nulls.
+				.filter(Objects::nonNull)
+				// Collect them into a set.
+				.collect(Collectors.toSet());
 	}
 
 	public ElementPathBlock getGraphPattern() {
@@ -134,11 +135,13 @@ public class GraphPattern {
 		LOG.trace("prefixes: {}- pattern: {}", prefixes, pattern);
 
 		ElementGroup eg;
-		ARQParser parser = new ARQParser(new StringReader(pattern));
-		parser.setPrologue(new Prologue(prefixes));
+		String queryString = "SELECT * {" + pattern + "}";
 
-		Element e = null;
-		e = parser.GroupGraphPatternSub();
+		Query query = new Query();
+		query.setPrefixMapping(prefixes);
+		QueryFactory.parse(query, queryString, null, Syntax.defaultQuerySyntax);
+
+		Element e = query.getQueryPattern();
 		LOG.trace("parsed knowledge: {}", e);
 		eg = (ElementGroup) e;
 		Element last = eg.getLast();

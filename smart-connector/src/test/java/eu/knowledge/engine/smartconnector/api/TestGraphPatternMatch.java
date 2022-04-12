@@ -229,5 +229,11 @@ public class TestGraphPatternMatch {
 
 		return sb.toString();
 	}
+	
+	@Test
+	public void testGraphPatternWithLiteral()
+	{
+		GraphPattern gp = new GraphPattern("?s <http://example.org/something> \"test\" .");
+	}
 
 }

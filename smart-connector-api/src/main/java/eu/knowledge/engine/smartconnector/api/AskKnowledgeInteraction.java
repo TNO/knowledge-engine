@@ -1,9 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-
 /**
  * An object of this class represents that the associated {@link KnowledgeBase}
  * will possibly ask for data that matches the configured {@link GraphPattern}
@@ -31,17 +27,25 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 *                that this {@link KnowledgeInteraction} asks for.
 	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, false);
+		this(act, pattern, null, false, false);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
+		this(act, pattern, name, false, false);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
-		super(act, false, anIsFullMatch);
-		this.pattern = pattern;
+		this(act, pattern, null, false, anIsFullMatch);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
 			boolean anIsFullMatch) {
-		super(act, anisMeta, anIsFullMatch);
+		this(act, pattern, null, anisMeta, anIsFullMatch);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
+			boolean anIsFullMatch) {
+		super(act, name, anisMeta, anIsFullMatch);
 		this.pattern = pattern;
 	}
 
@@ -54,7 +58,8 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 
 	@Override
 	public String toString() {
-		return "AskKnowledgeInteraction [" + (this.pattern != null ? "pattern=" + this.pattern + ", " : "")
+		return "AskKnowledgeInteraction [" + (this.name != null ? "name=" + this.name + ", " : "")
+				+ (this.pattern != null ? "pattern=" + this.pattern + ", " : "")
 				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "]";
 	}
 }
