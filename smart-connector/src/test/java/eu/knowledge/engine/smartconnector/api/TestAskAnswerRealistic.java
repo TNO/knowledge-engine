@@ -59,7 +59,7 @@ public class TestAskAnswerRealistic {
          + "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ." 
          + "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ." 
          + "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ." 
-         + "?building <http://ontology.tno.nl/building#communityID> ?community-ID ." 
+         + "?building <http://ontology.tno.nl/building#communityID> ?communityID ." 
          + "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ." 
          + "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
          + "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ." 
@@ -82,7 +82,7 @@ public class TestAskAnswerRealistic {
             binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
             binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider>");
             binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager>");
-            binding.put("community-ID", "<https://www.tno.nl/example/communityID>");
+            binding.put("communityID", "<https://www.tno.nl/example/communityID>");
             binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace>");
             binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice>");
             binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed>");
