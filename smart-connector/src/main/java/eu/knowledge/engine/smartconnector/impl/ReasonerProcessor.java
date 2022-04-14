@@ -132,7 +132,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-
+		this.rootNode.prune();
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -149,6 +149,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			LOG.debug("ask:\n{}", this.rootNode);
 			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+				LOG.debug("All tasks finished.");
 				continueReasoningBackward(incomingBS);
 			}).exceptionally((Throwable t) -> {
 				LOG.error("Executing scheduled tasks for the reasoner should not result in problems.", t);
@@ -196,7 +197,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
-
+		this.rootNode.prune();
 		this.rememberIncomingBindingSetHandler.setBindingSet(translatedBindingSet);
 
 		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
@@ -366,6 +367,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					LOG.error("A problem occurred while handling a bindingset.", t);
 					return null; // TODO when some error happens, what do we return?
 				}).thenApply((answerMessage) -> {
+					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = null;
 					if (answerMessage != null)
 						resultBindingSet = answerMessage.getBindings();

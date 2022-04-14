@@ -135,7 +135,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		URI id = this.generateId(anAskKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAskKI, null,
 				null);
-		this.kiis.put(id, kii);
+		this.tryPut(kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
@@ -154,7 +154,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		URI id = this.generateId(anAnswerKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anAnswerKI,
 				anAnswerHandler, null);
-		this.kiis.put(id, kii);
+		this.tryPut(kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
@@ -173,7 +173,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		URI id = this.generateId(aPostKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), aPostKI, null,
 				null);
-		this.kiis.put(id, kii);
+		this.tryPut(kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
@@ -192,7 +192,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 		URI id = this.generateId(anReactKI, isMeta);
 		MyKnowledgeInteractionInfo kii = new MyKnowledgeInteractionInfo(id, this.getKnowledgeBaseId(), anReactKI, null,
 				aReactHandler);
-		this.kiis.put(id, kii);
+		this.tryPut(kii);
 		this.listeners.forEach(l -> l.knowledgeInteractionRegistered(kii));
 		return id;
 	}
@@ -204,6 +204,13 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 					this.kiis.remove(e.getKey());
 					this.listeners.forEach(l -> l.knowledgeInteractionUnregistered(e.getValue()));
 				});
+	}
+
+	private void tryPut(MyKnowledgeInteractionInfo kii) throws IllegalArgumentException {
+		var existing = this.kiis.putIfAbsent(kii.id, kii);
+		if (existing != null) {
+			throw new IllegalArgumentException("A Knowledge Interaction with that URI was already registered.");
+		}
 	}
 
 	private URI generateId(KnowledgeInteraction aKI, boolean isMeta) {
@@ -232,8 +239,12 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 					return null;
 				}
 			} else {
-				return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
+				if (aKI.getName() != null) {
+					return new URI(this.getKnowledgeBaseId().toString() + "/interaction/" + aKI.getName());
+				} else {
+					return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
 						+ UUID.randomUUID().toString());
+				}
 			}
 		} catch (URISyntaxException e) {
 			// This should not happen if knowledgeBaseId is correct

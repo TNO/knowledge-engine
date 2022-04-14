@@ -117,51 +117,54 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	@Override
 	public URI register(AskKnowledgeInteraction anAskKI) {
+		var id = this.getSC().register(anAskKI);
 		this.kis.add(anAskKI);
-		return this.getSC().register(anAskKI);
+		return id;
 	}
 
 	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
-		this.kis.remove(anAskKI);
 		this.getSC().unregister(anAskKI);
+		this.kis.remove(anAskKI);
 	}
 
 	@Override
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
+		var id = this.getSC().register(anAnswerKI, aAnswerHandler);
 		this.kis.add(anAnswerKI);
-		return this.getSC().register(anAnswerKI, aAnswerHandler);
+		return id;
 	}
 
 	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
-		this.kis.remove(anAnswerKI);
 		this.getSC().unregister(anAnswerKI);
-
+		this.kis.remove(anAnswerKI);
 	}
 
 	@Override
 	public URI register(PostKnowledgeInteraction aPostKI) {
+		var id = this.getSC().register(aPostKI);
 		this.kis.add(aPostKI);
-		return this.getSC().register(aPostKI);
+		return id;
 	}
 
 	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
-		this.kis.remove(aPostKI);
 		this.getSC().unregister(aPostKI);
+		this.kis.remove(aPostKI);
 	}
 
 	@Override
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
+		var id =  this.getSC().register(anReactKI, aReactHandler);
 		this.kis.add(anReactKI);
-		return this.getSC().register(anReactKI, aReactHandler);
+		return id;
 	}
 
 	@Override
 	public void unregister(ReactKnowledgeInteraction anReactKI) {
-		this.kis.remove(anReactKI);
 		this.getSC().unregister(anReactKI);
+		this.kis.remove(anReactKI);
 	}
 
 	@Override
@@ -255,7 +258,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
 
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
 							String patternFromObject = convertToPattern(askKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -263,7 +266,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							var answerKI = (AnswerKnowledgeInteraction) someKi;
 							// compare graph pattern
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().toString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
 							String patternFromObject = convertToPattern(answerKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -272,14 +275,14 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							// compare graph pattern
 							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
 							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+									.getLexicalForm();
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
 							boolean resultPatternsEqual = false;
 							if (ki.hasProperty(Vocab.HAS_RES)) {
 								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
 								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+										.getLexicalForm();
 								String resPatternFromObject = convertToPattern(postKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
 							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
@@ -293,14 +296,14 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							// compare graph pattern
 							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
 							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+									.getLexicalForm();
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
 							boolean resultPatternsEqual = false;
 							if (ki.hasProperty(Vocab.HAS_RES)) {
 								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
 								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+										.getLexicalForm();
 								String resPatternFromObject = convertToPattern(reactKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
 							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {

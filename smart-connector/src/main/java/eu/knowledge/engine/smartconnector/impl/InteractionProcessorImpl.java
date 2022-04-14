@@ -208,6 +208,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
 		return future.thenApply((b) -> {
+			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
@@ -287,6 +288,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
 		return future.thenApply(b -> {
+			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);

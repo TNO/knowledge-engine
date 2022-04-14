@@ -179,8 +179,21 @@ public class Rule {
 					for (Match m2 : smallerMatches) {
 						mergedMatch = m2.merge(m1);
 						if (mergedMatch != null) {
-							hasMerged = true;
-							toBeAddedToBiggestMatches.add(mergedMatch);
+
+							if (hasMerged) {
+								// add to smallerMatches and sometimes to biggestMatches.
+								if (isSubMatch(m2, toBeAddedToBiggestMatches)) {
+									// add to smaller matches
+									toBeAddedToSmallerMatches.add(mergedMatch);
+								} else {
+									// add to biggest matches
+									toBeAddedToBiggestMatches.add(mergedMatch);
+								}
+							} else {
+								// add to biggestMatches
+								hasMerged = true;
+								toBeAddedToBiggestMatches.add(mergedMatch);
+							}
 						}
 					}
 				}
@@ -225,6 +238,24 @@ public class Rule {
 		}
 
 		return new HashSet<>(allMatches);
+	}
+
+	/**
+	 * Go over all matches in toBeaddedToBiggesetMatches and check if aMatch is a
+	 * subMatch of one of those.
+	 * 
+	 * @param aMatch
+	 * @param toBeAddedToBiggestMatches
+	 * @return
+	 */
+	private static boolean isSubMatch(Match aMatch, List<Match> toBeAddedToBiggestMatches) {
+
+		for (Match m : toBeAddedToBiggestMatches) {
+			if (m.isSubMatch(aMatch)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
