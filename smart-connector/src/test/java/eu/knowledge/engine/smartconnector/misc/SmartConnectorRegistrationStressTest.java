@@ -43,7 +43,8 @@ public class SmartConnectorRegistrationStressTest {
 	}
 
 	@Test
-	public void testRegisterWhenManySmartConnectorsExist() throws ExecutionException, InterruptedException, URISyntaxException {
+	public void testRegisterWhenManySmartConnectorsExist()
+			throws ExecutionException, InterruptedException, URISyntaxException {
 		Instant beforeRegistration = Instant.now();
 
 		var future = new CompletableFuture<Void>();
@@ -52,13 +53,19 @@ public class SmartConnectorRegistrationStressTest {
 
 		var kb = new KnowledgeBase() {
 			@Override
-			public URI getKnowledgeBaseId() { return testKBUri; }
+			public URI getKnowledgeBaseId() {
+				return testKBUri;
+			}
 
 			@Override
-			public String getKnowledgeBaseName() { return "TEST KB"; }
+			public String getKnowledgeBaseName() {
+				return "TEST KB";
+			}
 
 			@Override
-			public String getKnowledgeBaseDescription() { return "A test KB"; }
+			public String getKnowledgeBaseDescription() {
+				return "A test KB";
+			}
 
 			@Override
 			public void smartConnectorReady(SmartConnector sc) {
@@ -66,15 +73,18 @@ public class SmartConnectorRegistrationStressTest {
 			}
 
 			@Override
-			public void smartConnectorConnectionLost(SmartConnector aSC) {}
+			public void smartConnectorConnectionLost(SmartConnector aSC) {
+			}
 
 			@Override
-			public void smartConnectorConnectionRestored(SmartConnector aSC) {}
+			public void smartConnectorConnectionRestored(SmartConnector aSC) {
+			}
 
 			@Override
-			public void smartConnectorStopped(SmartConnector aSC) {}
+			public void smartConnectorStopped(SmartConnector aSC) {
+			}
 		};
-		
+
 		var sc = SmartConnectorBuilder.newSmartConnector(kb).create();
 
 		future.get(); // Waits for the future.
