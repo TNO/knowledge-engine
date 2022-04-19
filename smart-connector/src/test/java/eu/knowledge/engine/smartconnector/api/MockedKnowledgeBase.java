@@ -2,10 +2,10 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Phaser;
 
@@ -41,7 +41,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	private boolean reasonerEnabled = false;
 
 	public MockedKnowledgeBase(String aName) {
-		this.kis = new HashSet<>();
+		this.kis = ConcurrentHashMap.newKeySet();
 		this.name = aName;
 	}
 
@@ -78,7 +78,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
 		LOG.debug(this.name + " ready");
-		this.readyPhaser.arriveAndAwaitAdvance();
+		this.readyPhaser.arrive();
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	@Override
 	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
-		var id =  this.getSC().register(anReactKI, aReactHandler);
+		var id = this.getSC().register(anReactKI, aReactHandler);
 		this.kis.add(anReactKI);
 		return id;
 	}
@@ -258,7 +258,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
 
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(askKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -266,7 +267,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							var answerKI = (AnswerKnowledgeInteraction) someKi;
 							// compare graph pattern
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getLexicalForm();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(answerKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
