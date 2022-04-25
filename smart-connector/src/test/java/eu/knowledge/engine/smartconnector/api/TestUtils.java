@@ -291,19 +291,6 @@ public class TestUtils {
 				.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes,
 						(rn.getRule().antecedent).isEmpty() ? rn.getRule().consequent : rn.getRule().antecedent));
 
-		for (Pair pair : toExchanges.keySet()) {
-
-			ReasoningNode node = toExchanges.get(pair);
-
-			Rule rule = node.getRule();
-
-			System.out.println(
-					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
-							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
-							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
-
-		}
-
 		for (Pair pair : toFromExchanges.keySet()) {
 			ReasoningNode node = toFromExchanges.get(pair);
 
@@ -327,6 +314,19 @@ public class TestUtils {
 			System.out.println("deactivate " + new URI(pair.second).getPath().substring(1));
 			if (!pair.second.equals(proactiveKB))
 				System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
+
+		}
+
+		for (Pair pair : toExchanges.keySet()) {
+
+			ReasoningNode node = toExchanges.get(pair);
+
+			Rule rule = node.getRule();
+
+			System.out.println(
+					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
+							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
+							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
 
 		}
 
