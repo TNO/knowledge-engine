@@ -127,29 +127,29 @@ public class Rule {
 		List<Map<Rule, Match>> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
 		Set<Integer> toBeDemotedMatchIndices = null;
 
-		Iterator<Map.Entry<TriplePattern, Set<Map<Rule, Match>>>> matchIter = matchesPerTriplePerRule.entrySet()
+		Iterator<Map.Entry<TriplePattern, Set<Map<Rule, Match>>>> matchesPerTripleIter = matchesPerTriplePerRule.entrySet()
 				.iterator();
 
 		// always add all matches of first triple
-		if (matchIter.hasNext()) {
-			biggestRuleMatches.addAll(matchIter.next().getValue());
+		if (matchesPerTripleIter.hasNext()) {
+			biggestRuleMatches.addAll(matchesPerTripleIter.next().getValue());
 		}
 
-		while (matchIter.hasNext()) {
+		while (matchesPerTripleIter.hasNext()) {
 
-			Set<Map<Rule, Match>> matches = matchIter.next().getValue();
+			Set<Map<Rule, Match>> matchesForCurrentTriple = matchesPerTripleIter.next().getValue();
 
 			// keep a set of new/removed matches, so we can add/remove them at the end of
 			// this loop
 
-			assert matches != null;
+			assert matchesForCurrentTriple != null;
 
-			for (Map<Rule, Match> nextMatch : matches) {
+			toBeAddedToBiggestMatches = new ArrayList<>();
+			toBeAddedToSmallerMatches = new ArrayList<>();
+			toBeDemotedMatchIndices = new HashSet<>();
+			for (Map<Rule, Match> matchForCurrentTriple : matchesForCurrentTriple) {
 				// see if this next match can be merged with one of the existing biggest matches
-				for (Entry<Rule, Match> m1entry : nextMatch.entrySet()) {
-					toBeAddedToBiggestMatches = new ArrayList<>();
-					toBeAddedToSmallerMatches = new ArrayList<>();
-					toBeDemotedMatchIndices = new HashSet<>();
+				for (Entry<Rule, Match> m1entry : matchForCurrentTriple.entrySet()) {
 					Match m1 = m1entry.getValue();
 
 					// check if we need to merge with existing matches
@@ -244,30 +244,30 @@ public class Rule {
 					}
 
 					if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-						toBeAddedToBiggestMatches.add(nextMatch);
+						toBeAddedToBiggestMatches.add(matchForCurrentTriple);
 					} else {
-						toBeAddedToSmallerMatches.add(nextMatch);
+						toBeAddedToSmallerMatches.add(matchForCurrentTriple);
 					}
-					// remove all toBeDemotedMatches from the biggestMatches and add them to the
-					// smallerMatches.
-
-					List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
-					Collections.sort(sortedList, Collections.reverseOrder());
-					for (int i : sortedList) {
-						smallerMatches.add(biggestRuleMatches.get(i));
-						biggestRuleMatches.remove(i);
-					}
-
-					// add all toBeAddedMatches
-					biggestRuleMatches.addAll(toBeAddedToBiggestMatches);
-					smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-					long innerEnd = System.currentTimeMillis();
-					toBeAddedToBiggestMatches = null;
-					toBeDemotedMatchIndices = null;
-					toBeAddedToSmallerMatches = null;
 				}
 			}
+			// remove all toBeDemotedMatches from the biggestMatches and add them to the
+			// smallerMatches.
+			
+			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
+			Collections.sort(sortedList, Collections.reverseOrder());
+			for (int i : sortedList) {
+				smallerMatches.add(biggestRuleMatches.get(i));
+				biggestRuleMatches.remove(i);
+			}
+			
+			// add all toBeAddedMatches
+			biggestRuleMatches.addAll(toBeAddedToBiggestMatches);
+			smallerMatches.addAll(toBeAddedToSmallerMatches);
+			
+			long innerEnd = System.currentTimeMillis();
+			toBeAddedToBiggestMatches = null;
+			toBeDemotedMatchIndices = null;
+			toBeAddedToSmallerMatches = null;
 
 		}
 		if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
