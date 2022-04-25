@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -206,10 +207,6 @@ public class ReasoningNode {
 				// convert to a mapping from rule to a set of matches
 				Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
 
-//				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
-//						this.matchStrategy);
-				printRelevantRules(relevantRules);
-
 				ReasoningNode child;
 				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
@@ -236,9 +233,6 @@ public class ReasoningNode {
 			// convert to a mapping from rule to a set of matches
 			Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
 
-//			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.antecedent,
-//					this.matchStrategy);
-			printRelevantRules(relevantRules);
 			ReasoningNode child;
 
 			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
@@ -351,40 +345,6 @@ public class ReasoningNode {
 			return null;
 	}
 
-	private Map<Rule, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
-			MatchStrategy aMatchStrategy) {
-
-		assert aPattern != null;
-		assert !aPattern.isEmpty();
-
-		Set<Match> possibleMatches;
-		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
-		for (Rule r : this.allRules) {
-			if (!(possibleMatches = r.consequentMatches(aPattern, aMatchStrategy)).isEmpty()) {
-				overlappingRules.put(r, possibleMatches);
-			}
-		}
-		assert overlappingRules != null;
-		return overlappingRules;
-	}
-
-	private Map<Rule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
-			MatchStrategy aMatchStrategy) {
-		assert aConsequentPattern != null;
-		assert !aConsequentPattern.isEmpty();
-
-		Set<Match> possibleMatches;
-		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
-		for (Rule r : this.allRules) {
-
-			if (!(possibleMatches = r.antecedentMatches(aConsequentPattern, aMatchStrategy)).isEmpty()) {
-				overlappingRules.put(r, possibleMatches);
-			}
-		}
-		assert overlappingRules != null;
-		return overlappingRules;
-	}
-
 	public BindingSet continueBackward(BindingSet bindingSet) {
 
 		TripleVarBindingSet tvbs;
@@ -422,7 +382,7 @@ public class ReasoningNode {
 				Set<ReasoningNode> someNeighbors = this.antecedentNeighbors.keySet();
 
 				// store the results of the children separately and afterwards combine them.
-				Set<TripleVarBindingSet> childResults = new HashSet<>();
+				Set<TripleVarBindingSet> neighborResults = new HashSet<>();
 
 				// TODO the order in which we iterate the backwardChildren is important. A
 				// strategy like first processing the backwardChildren that have the incoming
@@ -450,40 +410,39 @@ public class ReasoningNode {
 					} else {
 						TripleVarBindingSet neighborGraphBindingSet = neighborBindings;
 
-						// create powerset of graph pattern triples and use those to create additional
-						// triplevarbindings.
-
 						TripleVarBindingSet convertedNeighborTripleVarBindingSet = neighborGraphBindingSet
 								.translate(this.rule.antecedent, invert(neighborMatches));
 
-						// we do this expensive operation only on the overlapping part to improve
-						// performance. If large graph patterns of our children only match with a single
-						// triple on us, then we only generate additional bindings for this single
-						// triple, which takes MUCH MUCH MUCH less time than generating them for the
-						// full graph pattern.
-						if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-							convertedNeighborTripleVarBindingSet = generateAdditionalTripleVarBindings(
-									convertedNeighborTripleVarBindingSet);
-
-						if (neighborMatches.size() > 1) {
-							// the child matches in multiple ways, so we need to merge the bindingset with
-							// itself to combine all ways that it matches.
-							// TODO or do we want to translate per match and combine each translated
-							// bindingset per match with each other?
-							convertedNeighborTripleVarBindingSet = convertedNeighborTripleVarBindingSet
-									.merge(convertedNeighborTripleVarBindingSet);
-						}
-
-						childResults.add(convertedNeighborTripleVarBindingSet);
+						neighborResults.add(convertedNeighborTripleVarBindingSet);
 					}
 				}
 
-				TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
 				if (allChildBindingSetsAvailable) {
 
+					TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
+					Map<ReasoningNode, TripleVarBindingSet> neighborBindings = new HashMap<>();
+					Set<Map<ReasoningNode, Match>> neighborMatches = new HashSet<>();
+
+					for (Map<ReasoningNode, Match> multiNeighborMatch : neighborMatches) {
+
+						TripleVarBindingSet multiNeighborBs = new TripleVarBindingSet(this.rule.antecedent);
+
+						for (Entry<ReasoningNode, Match> neighborMatch : multiNeighborMatch.entrySet()) {
+							Match m = neighborMatch.getValue();
+							TripleVarBindingSet bs = neighborBindings.get(neighborMatch.getKey());
+
+							TripleVarBindingSet transBs = bs.translate(this.rule.antecedent,
+									new HashSet<>(Arrays.asList(m)));
+
+							multiNeighborBs.merge2(transBs);
+						}
+						combinedBindings.addAll(multiNeighborBs.getBindings());
+					}
+					combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
+
 					// combine the results from all the children.
-					for (TripleVarBindingSet childBS : childResults) {
-						combinedBindings = combinedBindings.merge(childBS);
+					for (TripleVarBindingSet neighborBS : neighborResults) {
+						combinedBindings = combinedBindings.merge(neighborBS);
 					}
 
 					boolean finished = true;
@@ -630,29 +589,8 @@ public class ReasoningNode {
 						} else {
 							TripleVarBindingSet neighborTripleVarBindingSet = neighborBindings;
 
-							// create powerset of graph pattern triples and use those to create additional
-							// triplevarbindings.
-
 							TripleVarBindingSet convertedNeighborTripleVarBindingSet = neighborTripleVarBindingSet
 									.translate(this.rule.antecedent, invert(neighborMatches));
-
-							// we do this expensive operation only on the overlapping part to improve
-							// performance. If large graph patterns of our neighbors only match with a
-							// single
-							// triple on us, then we only generate additional bindings for this single
-							// triple, which takes MUCH MUCH MUCH less time than generating them for the
-							// full graph pattern.
-							if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-								convertedNeighborTripleVarBindingSet = generateAdditionalTripleVarBindings(
-										convertedNeighborTripleVarBindingSet);
-
-							if (neighborMatches.size() > 1) {
-								// the child matches in multiple ways, so we need to merge the bindingset with
-								// itself to combine all ways that it matches or do we want to translate per
-								// match and combine each translated bindingset per match with each other?
-								convertedNeighborTripleVarBindingSet = convertedNeighborTripleVarBindingSet
-										.merge(convertedNeighborTripleVarBindingSet);
-							}
 
 							neighborResults.add(convertedNeighborTripleVarBindingSet);
 						}

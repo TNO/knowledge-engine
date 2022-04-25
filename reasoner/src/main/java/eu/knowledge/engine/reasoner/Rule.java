@@ -177,6 +177,7 @@ public class Rule {
 							toBeDemotedMatchIndices.add(i);
 							HashMap<Rule, Match> newRuleMatch = new HashMap<>(existingBiggestRuleMatch);
 							newRuleMatch.put(m1entry.getKey(), m1);
+							hasMerged = true;
 							if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
 								toBeAddedToBiggestMatches.add(newRuleMatch);
 							} else {

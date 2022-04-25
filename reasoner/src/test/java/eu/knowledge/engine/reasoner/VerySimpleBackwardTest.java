@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -13,6 +14,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -20,6 +23,8 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class VerySimpleBackwardTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(VerySimpleBackwardTest.class);
 
 	private KeReasoner reasoner;
 	private ProxyDataBindingSetHandler bindingSetHandler;
@@ -72,7 +77,8 @@ public class VerySimpleBackwardTest {
 				//@formatter:on
 		}));
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
@@ -88,7 +94,7 @@ public class VerySimpleBackwardTest {
 
 		// emtpy the bindingsets collected
 		this.bindingSetHandler.clear();
-		System.out.println("----------------- new reasoning ------------------");
+		LOG.info("----------------- new reasoning ------------------");
 
 		// test without taskboard
 		doReasoning(null);
@@ -98,8 +104,8 @@ public class VerySimpleBackwardTest {
 		// not using taskboard. Ordering is not important. Is the number of times it is
 		// called important? Maybe not because the TaskBoard might aggregate multiple
 		// calls together into a single one?
-		System.out.println("With TaskBoard   : " + bsWithTaskBoard);
-		System.out.println("Without TaskBoard: " + bsWithoutTaskBoard);
+		LOG.info("With TaskBoard   : " + bsWithTaskBoard);
+		LOG.info("Without TaskBoard: " + bsWithoutTaskBoard);
 
 		assertEquals(new HashSet<>(bsWithTaskBoard), new HashSet<>(bsWithoutTaskBoard));
 
@@ -114,7 +120,7 @@ public class VerySimpleBackwardTest {
 
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskBoard);
-		System.out.println(root);
+		LOG.info("\n{}", root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
@@ -124,14 +130,14 @@ public class VerySimpleBackwardTest {
 
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
+			LOG.info("\n{}", root);
 
 			if (aTaskBoard != null)
 				aTaskBoard.executeScheduledTasks();
 		}
 
-		System.out.println("bindings: " + bind);
-		assertFalse(bind.isEmpty());
+		LOG.info("bindings: " + bind);
+		assertTrue(!bind.isEmpty() && !bind.iterator().next().isEmpty());
 	}
 
 }

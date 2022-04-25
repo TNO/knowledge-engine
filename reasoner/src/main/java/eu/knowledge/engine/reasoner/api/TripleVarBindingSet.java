@@ -149,6 +149,32 @@ public class TripleVarBindingSet {
 		return gbs;
 	}
 
+	/**
+	 * Merge two triple var bindingsets without adding the separate bindings to the
+	 * result. So, only merged bindings are added if they do not conflict.
+	 * 
+	 * @param aTripleVarBindingSet
+	 * @return
+	 */
+	public TripleVarBindingSet merge2(TripleVarBindingSet aTripleVarBindingSet) {
+		TripleVarBindingSet tvbs = new TripleVarBindingSet(this.graphPattern);
+
+		if (this.bindings.isEmpty()) {
+			for (TripleVarBinding tvb : aTripleVarBindingSet.getBindings()) {
+				tvbs.add(tvb);
+			}
+		} else {
+			for (TripleVarBinding tvb : this.bindings) {
+				for (TripleVarBinding otherTvb : aTripleVarBindingSet.getBindings()) {
+					if (!tvb.isConflicting(otherTvb)) {
+						tvbs.add(tvb.merge(otherTvb));
+					}
+				}
+			}
+		}
+		return tvbs;
+	}
+
 	public boolean isEmpty() {
 
 		return this.bindings.isEmpty();
