@@ -263,9 +263,15 @@ public class ReasoningNode {
 
 	private void printRelevantRules(Map<Rule, Set<Match>> relevantRules) {
 
-		System.out.println("Relevant rules");
-		for (Entry<Rule, Set<Match>> ruleEntry : relevantRules.entrySet()) {
-			System.out.println(ruleEntry.getValue().size() + ": " + ruleEntry.getKey());
+		System.out.print("Relevant rules:");
+
+		if (relevantRules.isEmpty()) {
+			System.out.println(" empty");
+		} else {
+			System.out.println("");
+			for (Entry<Rule, Set<Match>> ruleEntry : relevantRules.entrySet()) {
+				System.out.println(ruleEntry.getValue().size() + ": " + ruleEntry.getKey());
+			}
 		}
 
 	}
