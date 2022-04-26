@@ -51,9 +51,23 @@ public class ReasoningNode {
 	private Map<ReasoningNode, Set<Match>> antecedentNeighbors;
 
 	/**
+	 * A set of combined matches on the antecedent side of this node's rule. Each
+	 * combined match defines which rules participates in the match in what way
+	 * (match).
+	 */
+	private Set<Map<ReasoningNode, Match>> antecedentMatches;
+
+	/**
 	 * All neighbors that have matching antecedents to this node's consequent.
 	 */
 	private Map<ReasoningNode, Set<Match>> consequentNeighbors;
+
+	/**
+	 * A set of combined matches on the consequent side of this node's rule. Each
+	 * combined match defines which rules participates in that combined match with a
+	 * separate match.
+	 */
+	private Set<Map<ReasoningNode, Match>> consequentMatches;
 
 	/**
 	 * All loop antecedent neighbors (i.e. antecedent neighbors that eventually loop
@@ -185,7 +199,9 @@ public class ReasoningNode {
 		this.allRules = someRules;
 		this.rule = aRule;
 		this.antecedentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
+		this.antecedentMatches = new HashSet<Map<ReasoningNode, Match>>();
 		this.consequentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
+		this.consequentMatches = new HashSet<Map<ReasoningNode, Match>>();
 		this.loopAntecedentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
 		this.shouldPlanBackward = aShouldPlanBackward;
 		this.taskboard = aTaskboard;
@@ -206,7 +222,7 @@ public class ReasoningNode {
 
 				// convert to a mapping from rule to a set of matches
 				Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
-
+				Map<Rule, ReasoningNode> ruleNodes = new HashMap<>();
 				ReasoningNode child;
 				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
@@ -217,7 +233,18 @@ public class ReasoningNode {
 						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
 								this.shouldPlanBackward, this.taskboard);
 						this.consequentNeighbors.put(child, entry.getValue());
+						ruleNodes.put(entry.getKey(), child);
 					}
+				}
+
+				// do we actually use the consequentMatches for forward reasoning? Probably not!
+				Map<ReasoningNode, Match> nodeMap;
+				for (Map<Rule, Match> map : ruleMatches) {
+					nodeMap = new HashMap<>();
+					for (Entry<Rule, Match> entry : map.entrySet()) {
+						nodeMap.put(ruleNodes.get(entry.getKey()), entry.getValue());
+					}
+					this.consequentMatches.add(nodeMap);
 				}
 			}
 		}
@@ -233,6 +260,7 @@ public class ReasoningNode {
 			// convert to a mapping from rule to a set of matches
 			Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
 
+			Map<Rule, ReasoningNode> ruleNodes = new HashMap<>();
 			ReasoningNode child;
 
 			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
@@ -249,8 +277,17 @@ public class ReasoningNode {
 					child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy, true,
 							this.taskboard);
 					this.antecedentNeighbors.put(child, entry.getValue());
-
+					ruleNodes.put(entry.getKey(), child);
 				}
+			}
+
+			Map<ReasoningNode, Match> nodeMap;
+			for (Map<Rule, Match> map : ruleMatches) {
+				nodeMap = new HashMap<>();
+				for (Entry<Rule, Match> entry : map.entrySet()) {
+					nodeMap.put(ruleNodes.get(entry.getKey()), entry.getValue());
+				}
+				this.antecedentMatches.add(nodeMap);
 			}
 		}
 	}
@@ -267,7 +304,6 @@ public class ReasoningNode {
 				System.out.println(ruleEntry.getValue().size() + ": " + ruleEntry.getKey());
 			}
 		}
-
 	}
 
 	private Map<Rule, Set<Match>> convertToOtherMapping(Set<Map<Rule, Match>> ruleMatches) {
@@ -382,7 +418,7 @@ public class ReasoningNode {
 				Set<ReasoningNode> someNeighbors = this.antecedentNeighbors.keySet();
 
 				// store the results of the children separately and afterwards combine them.
-				Set<TripleVarBindingSet> neighborResults = new HashSet<>();
+				Map<ReasoningNode, TripleVarBindingSet> neighborResults = new HashMap<>();
 
 				// TODO the order in which we iterate the backwardChildren is important. A
 				// strategy like first processing the backwardChildren that have the incoming
@@ -410,39 +446,28 @@ public class ReasoningNode {
 					} else {
 						TripleVarBindingSet neighborGraphBindingSet = neighborBindings;
 
-						TripleVarBindingSet convertedNeighborTripleVarBindingSet = neighborGraphBindingSet
-								.translate(this.rule.antecedent, invert(neighborMatches));
-
-						neighborResults.add(convertedNeighborTripleVarBindingSet);
+						neighborResults.put(neighbor, neighborGraphBindingSet);
 					}
 				}
 
 				if (allChildBindingSetsAvailable) {
 
+					// combine the results from all the children.
 					TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
-					Map<ReasoningNode, TripleVarBindingSet> neighborBindings = new HashMap<>();
-					Set<Map<ReasoningNode, Match>> neighborMatches = new HashSet<>();
-
-					for (Map<ReasoningNode, Match> multiNeighborMatch : neighborMatches) {
+					for (Map<ReasoningNode, Match> multiNeighborMatch : this.antecedentMatches) {
 
 						TripleVarBindingSet multiNeighborBs = new TripleVarBindingSet(this.rule.antecedent);
 
 						for (Entry<ReasoningNode, Match> neighborMatch : multiNeighborMatch.entrySet()) {
 							Match m = neighborMatch.getValue();
-							TripleVarBindingSet bs = neighborBindings.get(neighborMatch.getKey());
+							TripleVarBindingSet bs = neighborResults.get(neighborMatch.getKey());
 
 							TripleVarBindingSet transBs = bs.translate(this.rule.antecedent,
-									new HashSet<>(Arrays.asList(m)));
+									new HashSet<>(Arrays.asList(m.inverse())));
 
-							multiNeighborBs.merge2(transBs);
+							multiNeighborBs = multiNeighborBs.merge2(transBs);
 						}
 						combinedBindings.addAll(multiNeighborBs.getBindings());
-					}
-					combinedBindings = new TripleVarBindingSet(this.rule.antecedent);
-
-					// combine the results from all the children.
-					for (TripleVarBindingSet neighborBS : neighborResults) {
-						combinedBindings = combinedBindings.merge(neighborBS);
 					}
 
 					boolean finished = true;
@@ -510,8 +535,10 @@ public class ReasoningNode {
 								this.endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
 							}
-							return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
-
+							if (!this.rule.consequent.isEmpty())
+								return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.consequent);
+							else
+								return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.antecedent);
 						}
 					}
 				}
@@ -561,7 +588,7 @@ public class ReasoningNode {
 		// we first call the rule's bindingsethandler with the incoming bindingset (this
 		// should go through the taskboard and requires an additional reasoning step)
 		// the result should be compatible with the consequent of our rule
-		// and we send it to the forward backwardChildren for further processing.
+		// and we send it to the consequent neighbors for further processing.
 
 		boolean allFinished = true;
 		BindingSet resultAntecedentBindings = new BindingSet();
@@ -607,8 +634,7 @@ public class ReasoningNode {
 								.merge(antecedentPredefinedBindings);
 
 						// we moved the removal of incomplete bindings to just before adding them to the
-						// taskboard.
-						// previously it already happened in the parent node.
+						// taskboard. previously it already happened in the parent node.
 						resultAntecedentBindings = keepOnlyFullAndCompatibleGraphPatternBindings(
 								mergedTripleVarBindings.getGraphPattern(), mergedTripleVarBindings,
 								antecedentPredefinedBindings).toBindingSet();
@@ -1094,6 +1120,12 @@ public class ReasoningNode {
 		return this.antecedentCoverageCache;
 	}
 
+	/**
+	 * Check if the antecedent is fully covered by the antecedent neighbors. If it
+	 * is not, we can skip the whole branch.
+	 * 
+	 * @return
+	 */
 	public boolean isAntecedentFullyCovered() {
 		boolean isFullyCovered = true;
 
@@ -1124,7 +1156,10 @@ public class ReasoningNode {
 
 	/**
 	 * Check all children and remove the ones of which the antecedent is not fully
-	 * covered.
+	 * covered. Note that only neighbors are considered, so the root node will still
+	 * remain even if it is not fully covered. Use
+	 * {@link ReasoningNode#isAntecedentFullyCovered()} to check whether the root is
+	 * still usable.
 	 */
 	public void prune() {
 
@@ -1135,6 +1170,19 @@ public class ReasoningNode {
 			Entry<ReasoningNode, Set<Match>> entry = entryIter.next();
 			entry.getKey().prune();
 			if (!entry.getKey().isAntecedentFullyCovered()) {
+
+				// first remove all entries from antecedent matches
+				Iterator<Map<ReasoningNode, Match>> iter = this.antecedentMatches.iterator();
+				while (iter.hasNext()) {
+					Map<ReasoningNode, Match> map = iter.next();
+					// if this combined match used the current neighbor, we remove the full combined
+					// match.
+					if (map.containsKey(entry.getKey())) {
+						iter.remove();
+					}
+				}
+
+				// second remove the neighbor
 				entryIter.remove();
 				antecedentNeighborsChanged = true;
 			}
