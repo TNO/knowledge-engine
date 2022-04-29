@@ -96,4 +96,46 @@ public class BindingValidator {
 		}
 		LOG.debug("{} is valid", value);
 	}
+
+	public void validateIncomingOutgoingAnswer(GraphPattern pattern, BindingSet incoming, BindingSet outgoing) {
+		// make sure each of the outgoing bindings 'fits' on at least 1 incoming binding.
+		
+		// TODO: Is an empty binding set, [], simply 'syntactic sugar' for a binding
+		// set with the empty binding, [{}]? Then this would be consistent.
+		if (incoming.size() == 0) {
+			// if there were no incoming bindings, all is good
+			return;
+		}
+
+		outgoing.forEach(outgoingBinding -> {
+			// Check if there is an incoming binding that is matches (is a 'sub-binding' of) the outgoing binding.
+			if (incoming.stream().allMatch(incomingBinding -> !incomingBinding.isSubBindingOf(outgoingBinding))) {
+				// If not, it is invalid.
+				throw new IllegalArgumentException("No matching incoming binding found for outgoing binding " + outgoingBinding);
+			}
+		});
+	}
+
+	public void validateIncomingOutgoingReact(GraphPattern argumentPattern, GraphPattern resultPattern, BindingSet incoming, BindingSet outgoing) {
+		// this one is different, because only the variables that occur in both the
+		// argument and result patterns have to 'fit'.
+
+		if (resultPattern == null && outgoing.size() > 0) {
+			throw new IllegalArgumentException("Cannot have outgoing bindings when result pattern is null.");
+		} else if (resultPattern != null) {
+			var overlappingVariables = argumentPattern.getVariables();
+			overlappingVariables.retainAll(resultPattern.getVariables());
+
+			outgoing.forEach(outgoingBinding -> {
+				// Note that here, we first transform the incoming bindings to bindings
+				// with ONLY the overlapping variables, and then check if any of them
+				// match with the outgoing binding. This is because the argument
+				// (incoming) graph pattern can have variables that do not occur in the
+				// result (outgoing) graph pattern.
+				if (incoming.stream().map(incomingBinding -> incomingBinding.keepOnly(overlappingVariables)).allMatch(b -> !b.isSubBindingOf(outgoingBinding))) {
+					throw new IllegalArgumentException("No matching incoming binding found for outgoing binding " + outgoingBinding);
+				}
+			});
+		}
+	}
 }
