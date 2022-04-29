@@ -31,6 +31,7 @@ import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.PostPlan;
@@ -209,6 +210,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.thenApply((b) -> {
 			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+			var validator = new BindingValidator();
+			validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(), anAskMsg.getBindings(), b);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
@@ -289,6 +292,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.thenApply(b -> {
 			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+			var validator = new BindingValidator();
+			validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(), reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);
