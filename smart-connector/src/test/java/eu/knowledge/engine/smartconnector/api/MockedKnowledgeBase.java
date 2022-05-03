@@ -283,18 +283,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							while (graphPatternIterator.hasNext()) {
 								Resource graphPattern = graphPatternIterator.next();
 								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
-								if (gpType == Vocab.ARGUMENT_GRAPH_PATTERN) {
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
 									if (argPatternFromRDF != null) {
 										throw new IllegalArgumentException("Knowledge interaction cannot have multiple argument patterns.");
 									}
-									argPatternFromRDF = graphPattern.getPropertyResourceValue(Vocab.HAS_PATTERN).asLiteral().getLexicalForm();
-								} else if (gpType == Vocab.RESULT_GRAPH_PATTERN) {
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
 									if (resPatternFromRDF != null) {
 										throw new IllegalArgumentException("Knowledge interaction cannot have multiple result patterns.");
 									}
-									resPatternFromRDF = graphPattern.getPropertyResourceValue(Vocab.HAS_PATTERN).asLiteral().getLexicalForm();
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
 								} else {
-									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN));
+									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
 								}
 							}
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
@@ -318,18 +318,18 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							while (graphPatternIterator.hasNext()) {
 								Resource graphPattern = graphPatternIterator.next();
 								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
-								if (gpType == Vocab.ARGUMENT_GRAPH_PATTERN) {
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
 									if (argPatternFromRDF != null) {
 										throw new IllegalArgumentException("Knowledge interaction cannot have multiple argument patterns.");
 									}
-									argPatternFromRDF = graphPattern.getPropertyResourceValue(Vocab.HAS_PATTERN).asLiteral().getLexicalForm();
-								} else if (gpType == Vocab.RESULT_GRAPH_PATTERN) {
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
 									if (resPatternFromRDF != null) {
 										throw new IllegalArgumentException("Knowledge interaction cannot have multiple result patterns.");
 									}
-									resPatternFromRDF = graphPattern.getPropertyResourceValue(Vocab.HAS_PATTERN).asLiteral().getLexicalForm();
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
 								} else {
-									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN));
+									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
 								}
 							}
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
