@@ -52,7 +52,7 @@ public class ReactiveApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException, IOException {
 
-		LOG.info("scHandleGet() called by KB: {}", knowledgeBaseId);
+		LOG.debug("scHandleGet() called by KB: {}", knowledgeBaseId);
 		asyncResponse.setTimeout(LONGPOLL_TIMEOUT, TimeUnit.SECONDS);
 		try {
 			// validate kb id
