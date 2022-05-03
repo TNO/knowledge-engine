@@ -73,7 +73,7 @@ public class TestRequestMetadata {
 				.toList();
 		assertEquals(3 + 1, i.size());
 
-		assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
+		assertTrue(m.listStatements((Resource) null, RDF.type, Vocab.ARGUMENT_GRAPH_PATTERN).hasNext());
 
 	}
 
