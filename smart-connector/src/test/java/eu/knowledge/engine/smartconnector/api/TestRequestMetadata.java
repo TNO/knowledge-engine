@@ -53,8 +53,7 @@ public class TestRequestMetadata {
 				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
 				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
 				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
+				"?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp kb:hasPattern ?pattern .");
 
 		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 		kb2.register(aKI);

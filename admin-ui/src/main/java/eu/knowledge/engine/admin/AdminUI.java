@@ -117,8 +117,7 @@ public class AdminUI implements KnowledgeBase {
 			"?req rdf:type ?reqType .",
 			"?sat rdf:type ?satType .",
 			"?ki kb:hasGraphPattern ?gp .",
-			"?ki ?patternType ?gp .",
-			"?gp rdf:type kb:GraphPattern .",
+			"?gp rdf:type ?patternType .",
 			"?gp kb:hasPattern ?pattern ."
 		);
 		//todo: possibly add:
