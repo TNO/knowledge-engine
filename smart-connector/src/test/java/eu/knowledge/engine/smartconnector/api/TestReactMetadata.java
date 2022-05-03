@@ -86,7 +86,7 @@ public class TestReactMetadata {
 					while (kiIter.hasNext()) {
 						var ki = kiIter.next().getObject().asResource();
 
-						var prop = m.getProperty(m.expandPrefix("kb:hasArgumentGraphPattern"));
+						var prop = m.getProperty(m.expandPrefix("kb:hasGraphPattern"));
 
 						LOG.debug("KI: {}", ki);
 
