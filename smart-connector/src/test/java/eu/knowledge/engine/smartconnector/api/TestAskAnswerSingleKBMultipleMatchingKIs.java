@@ -107,8 +107,10 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 			List<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toList());
 
-			// with the reasoner there are more matching gp (i.e. the meta KIs)
-			assertEquals(3, kbIds.size());
+			// with the reasoner there used to be more matching gp (i.e. the meta
+			// KIs), but after changing the meta GPs to remove the generic triples, we
+			// have the expected size of 2 again.
+			assertEquals(2, kbIds.size());
 
 			for (Binding b : bindings) {
 				assertTrue(b.containsKey("p"));
