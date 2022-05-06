@@ -51,6 +51,7 @@ public class AdminUI implements KnowledgeBase {
 	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
 
 	private Model model;
+
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
@@ -103,27 +104,16 @@ public class AdminUI implements KnowledgeBase {
 		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
 		// first define your graph pattern
-		GraphPattern gp = new GraphPattern(this.prefixes,
-			"?kb rdf:type kb:KnowledgeBase .",
-			"?kb kb:hasName ?name .",
-			"?kb kb:hasDescription ?description .",
-			"?kb kb:hasKnowledgeInteraction ?ki .",
-			"?ki rdf:type ?kiType .",
-			"?ki kb:isMeta ?isMeta .",
-			"?ki kb:hasCommunicativeAct ?act .",
-			"?act rdf:type kb:CommunicativeAct .",
-			"?act kb:hasRequirement ?req .",
-			"?act kb:hasSatisfaction ?sat .",
-			"?req rdf:type ?reqType .",
-			"?sat rdf:type ?satType .",
-			"?ki kb:hasGraphPattern ?gp .",
-			"?ki ?patternType ?gp .",
-			"?gp rdf:type kb:GraphPattern .",
-			"?gp kb:hasPattern ?pattern ."
-		);
-		//todo: possibly add:
-		//"?s kb:hasEndpoint ?endpoint .",
-		//"?t kb:hasData ?data .",
+		GraphPattern gp = new GraphPattern(this.prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
+				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
+				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
+				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
+				"?gp kb:hasPattern ?pattern .");
+		// todo: possibly add:
+		// "?s kb:hasEndpoint ?endpoint .",
+		// "?t kb:hasData ?data .",
 
 		// create the correct Knowledge Interaction
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
@@ -133,7 +123,7 @@ public class AdminUI implements KnowledgeBase {
 
 		this.connected = true;
 
-		//todo: use ad-hoc route/function for API to get data instead of polling
+		// todo: use ad-hoc route/function for API to get data instead of polling
 		// job that regularly retrieves and prints all available knowledge bases.
 		this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
 	}
@@ -161,10 +151,12 @@ public class AdminUI implements KnowledgeBase {
 						try {
 							// using the BindingSet#generateModel() helper method, we can combine the graph
 							// pattern and the bindings for its variables into a valid RDF Model.
-							AdminUI.this.model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
+							AdminUI.this.model = eu.knowledge.engine.smartconnector.impl.Util
+									.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
 							model.setNsPrefixes(AdminUI.this.prefixes);
 
-							if (continuousLog) this.printKnowledgeBases(model);
+							if (continuousLog)
+								this.printKnowledgeBases(model);
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}
@@ -178,7 +170,7 @@ public class AdminUI implements KnowledgeBase {
 
 		private void printKnowledgeBases(Model model) throws ParseException {
 
-			//LOG.info("{}", AdminUI.this.getRDF(model));
+			// LOG.info("{}", AdminUI.this.getRDF(model));
 
 			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 			LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
