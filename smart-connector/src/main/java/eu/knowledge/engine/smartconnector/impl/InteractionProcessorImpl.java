@@ -3,12 +3,14 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -22,6 +24,10 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.syntax.ElementData;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
@@ -67,7 +73,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * Whether this interaction processor should use reasoning to orchestrate the
 	 * data exchange.
 	 */
-	private boolean reasonerEnabled = false;
+	private boolean reasonerEnabled = true;
+
+	private static final Query query = QueryFactory.create(
+			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
 			KnowledgeBaseStore myKnowledgeBaseStore) {
@@ -376,26 +385,40 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// TODO can we do this with a single query execution? This might be a lot
 		// faster. either we set multiple iris for the same params. Or we change the ASK
 		// to include myReq/otherReq and mySat/otherSat vars.
-		ParameterizedSparqlString queryString = new ParameterizedSparqlString(
-				"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .}}");
 
 		// my perspective
-		queryString.setIri("req", myRequirementPurpose.toString());
-		queryString.setIri("sat", otherSatisfactionPurpose.toString());
-		QueryExecution myQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+		Var reqVar = Var.alloc("req");
+		Var satVar = Var.alloc("sat");
+		org.apache.jena.sparql.engine.binding.Binding theBinding = BindingFactory.binding(reqVar,
+				NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
+				NodeFactory.createURI(otherSatisfactionPurpose.toString()));
 
-		queryString.clearParams();
+		Query q = (Query) query.clone();
+		// TODO the VALUES clause should go inside the where clause. Then it works.
+		ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
+		List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
+//		query.setValuesDataBlock(Arrays.asList(reqVar, satVar), Arrays.asList(theBinding));
+		data.add(theBinding);
+
+		QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
+		boolean execAskMy = myQe.execAsk();
+		myQe.close();
+
+		data.clear();
 
 		// other perspective
-		queryString.setIri("req", otherRequirementPurpose.toString());
-		queryString.setIri("sat", mySatisfactionPurpose.toString());
-		QueryExecution otherQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+		theBinding = BindingFactory.binding(reqVar, NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
+				NodeFactory.createURI(mySatisfactionPurpose.toString()));
 
-		doTheyMatch = !myQe.execAsk() && !otherQe.execAsk();
+		data.add(theBinding);
 
-		myQe.close();
+//		query.setValuesDataBlock(Arrays.asList(reqVar, satVar), Arrays.asList());
+
+		QueryExecution otherQe = QueryExecutionFactory.create(q, infModel);
+		boolean execAskOther = otherQe.execAsk();
 		otherQe.close();
 
+		doTheyMatch = !execAskMy && !execAskOther;
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
 
 		return doTheyMatch;
