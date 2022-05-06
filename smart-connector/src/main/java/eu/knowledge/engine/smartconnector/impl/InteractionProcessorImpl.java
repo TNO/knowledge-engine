@@ -73,7 +73,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * Whether this interaction processor should use reasoning to orchestrate the
 	 * data exchange.
 	 */
-	private boolean reasonerEnabled = true;
+	private boolean reasonerEnabled = false;
 
 	private static final Query query = QueryFactory.create(
 			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");

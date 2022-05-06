@@ -39,7 +39,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	/**
 	 * Enable the reasoner. Off by default (for now).
 	 */
-	private boolean reasonerEnabled = true;
+	private boolean reasonerEnabled = false;
 
 	public MockedKnowledgeBase(String aName) {
 		this.kis = ConcurrentHashMap.newKeySet();
