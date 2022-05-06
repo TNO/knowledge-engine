@@ -1,6 +1,8 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -18,6 +20,9 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+
+	private static Map<String, Node> nodeCache = new HashMap<>();
+
 	/**
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
 	 * triples.
@@ -29,7 +34,7 @@ public class Util {
 	public static Model generateModel(GraphPattern graphPattern, BindingSet variableBindings) throws ParseException {
 
 		LOG.trace("generating model");
-		
+
 		List<TriplePath> tripleList = graphPattern.getGraphPattern().getPattern().getList();
 
 		Model m = ModelFactory.createDefaultModel();
@@ -55,7 +60,10 @@ public class Util {
 
 							LOG.trace("Parsing: {}", repr);
 
-							newN = SSE.parseNode(repr);
+							if ((newN = nodeCache.get(repr)) == null) {
+								newN = SSE.parseNode(repr);
+								nodeCache.put(repr, newN);
+							}
 
 						} else {
 							LOG.error("The variable {} in the Knowledge should be bound.", n.getName());

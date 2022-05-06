@@ -42,57 +42,6 @@ public class BindingSet extends HashSet<Binding> {
 	}
 
 	/**
-	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
-	 * triples.
-	 *
-	 * @param graphPattern The Knowledge to populate to a model.
-	 * @return A model where all variables of the kIO are populated with URIs.
-	 * @throws ParseException
-	 */
-	public static Model generateModel(GraphPattern graphPattern, BindingSet variableBindings) throws ParseException {
-
-		List<TriplePath> tripleList = graphPattern.getGraphPattern().getPattern().getList();
-
-		Model m = ModelFactory.createDefaultModel();
-
-		for (Binding b : variableBindings) {
-
-			for (TriplePath tp : tripleList) {
-
-				Node s = tp.getSubject();
-				Node p = tp.getPredicate();
-				Node o = tp.getObject();
-
-				Node[] oldNodes = new Node[] { s, p, o };
-				Node[] newNodes = new Node[3];
-				for (int i = 0; i < oldNodes.length; i++) {
-					Node n = oldNodes[i];
-					Node newN = n;
-					if (n.isVariable()) {
-
-						String repr;
-						if (b.containsKey(n.getName())) {
-							repr = b.get(n.getName());
-
-							LOG.trace("Parsing: {}", repr);
-
-							newN = SSE.parseNode(repr);
-
-							// newN = NodeFactoryExtra.parseNode(repr);
-						} else {
-							LOG.error("The variable {} should be bound.", n.getName());
-						}
-					}
-					newNodes[i] = newN;
-				}
-
-				m.add(m.asStatement(new Triple(newNodes[0], newNodes[1], newNodes[2])));
-			}
-		}
-		return m;
-	}
-
-	/**
 	 * Write this BindingSet to the standard output.
 	 * This is convenient for debugging.
 	 */
