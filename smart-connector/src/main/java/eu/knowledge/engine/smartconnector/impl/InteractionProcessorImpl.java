@@ -67,7 +67,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * Whether this interaction processor should use reasoning to orchestrate the
 	 * data exchange.
 	 */
-	private boolean reasonerEnabled = true;
+	private boolean reasonerEnabled = false;
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
 			KnowledgeBaseStore myKnowledgeBaseStore) {
