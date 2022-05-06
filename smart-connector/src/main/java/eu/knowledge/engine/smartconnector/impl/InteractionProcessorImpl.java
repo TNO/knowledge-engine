@@ -389,36 +389,26 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// my perspective
 		Var reqVar = Var.alloc("req");
 		Var satVar = Var.alloc("sat");
-		org.apache.jena.sparql.engine.binding.Binding theBinding = BindingFactory.binding(reqVar,
+		org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
 				NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
 				NodeFactory.createURI(otherSatisfactionPurpose.toString()));
 
+		org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
+				NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
+				NodeFactory.createURI(mySatisfactionPurpose.toString()));
+
 		Query q = (Query) query.clone();
-		// TODO the VALUES clause should go inside the where clause. Then it works.
 		ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
+
 		List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
-//		query.setValuesDataBlock(Arrays.asList(reqVar, satVar), Arrays.asList(theBinding));
-		data.add(theBinding);
+		data.add(theFirstBinding);
+		data.add(theSecondBinding);
 
 		QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
 		boolean execAskMy = myQe.execAsk();
 		myQe.close();
 
-		data.clear();
-
-		// other perspective
-		theBinding = BindingFactory.binding(reqVar, NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
-				NodeFactory.createURI(mySatisfactionPurpose.toString()));
-
-		data.add(theBinding);
-
-//		query.setValuesDataBlock(Arrays.asList(reqVar, satVar), Arrays.asList());
-
-		QueryExecution otherQe = QueryExecutionFactory.create(q, infModel);
-		boolean execAskOther = otherQe.execAsk();
-		otherQe.close();
-
-		doTheyMatch = !execAskMy && !execAskOther;
+		doTheyMatch = !execAskMy;
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
 
 		return doTheyMatch;
