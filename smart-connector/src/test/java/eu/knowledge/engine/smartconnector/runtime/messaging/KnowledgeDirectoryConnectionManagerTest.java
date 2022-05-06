@@ -7,14 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.net.URI;
 import java.util.List;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.knowledgedirectory.KnowledgeDirectory;
-import eu.knowledge.engine.smartconnector.runtime.messaging.KnowledgeDirectoryConnection;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 
+@Tag("Long")
 public class KnowledgeDirectoryConnectionManagerTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectoryConnectionManagerTest.class);
@@ -24,13 +25,14 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		kd.start();
-		
-		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"), new URI("http://localhost:8081"));
-		
+
+		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"),
+				new URI("http://localhost:8081"));
+
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
-		
+
 		Thread.sleep(5000);
-		
+
 		assertFalse(NetUtils.portAvailable(8080));
 		cm.start();
 
@@ -56,7 +58,8 @@ public class KnowledgeDirectoryConnectionManagerTest {
 	@Test
 	public void testNoKd() throws Exception {
 
-		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"), new URI("http://localhost:8081"));
+		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"),
+				new URI("http://localhost:8081"));
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
