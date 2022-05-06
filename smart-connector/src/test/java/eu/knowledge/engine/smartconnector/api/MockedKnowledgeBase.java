@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
@@ -38,7 +39,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	/**
 	 * Enable the reasoner. Off by default (for now).
 	 */
-	private boolean reasonerEnabled = false;
+	private boolean reasonerEnabled = true;
 
 	public MockedKnowledgeBase(String aName) {
 		this.kis = ConcurrentHashMap.newKeySet();
@@ -204,7 +205,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 			LOG.trace("before ask metadata");
 			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
 			LOG.trace("after ask metadata");
-			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
+			Model m = Util.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
 //			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
 //			m.write(System.out, "turtle");
