@@ -17,21 +17,13 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-
+@Tag("Long")
 public class TestAskAnswerManyKIs {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerManyKIs.class);
