@@ -201,7 +201,6 @@ public class ReasoningNode {
 		this.antecedentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
 		this.antecedentMatches = new HashSet<Map<ReasoningNode, Match>>();
 		this.consequentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
-		this.consequentMatches = new HashSet<Map<ReasoningNode, Match>>();
 		this.loopAntecedentNeighbors = new HashMap<ReasoningNode, Set<Match>>();
 		this.shouldPlanBackward = aShouldPlanBackward;
 		this.taskboard = aTaskboard;
@@ -217,12 +216,10 @@ public class ReasoningNode {
 			// generate consequent neighbors
 
 			if (!this.rule.consequent.isEmpty()) {
-				Set<Map<Rule, Match>> ruleMatches = Rule.findMatches(this.rule.consequent, this.allRules,
-						this.matchStrategy, false);
 
 				// convert to a mapping from rule to a set of matches
-				Map<Rule, Set<Match>> relevantRules = convertToOtherMapping(ruleMatches);
-				Map<Rule, ReasoningNode> ruleNodes = new HashMap<>();
+				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.consequent,
+						this.matchStrategy);
 				ReasoningNode child;
 				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
 
@@ -233,18 +230,7 @@ public class ReasoningNode {
 						child = new ReasoningNode(this.allRules, this, entry.getKey(), this.matchStrategy,
 								this.shouldPlanBackward, this.taskboard);
 						this.consequentNeighbors.put(child, entry.getValue());
-						ruleNodes.put(entry.getKey(), child);
 					}
-				}
-
-				// do we actually use the consequentMatches for forward reasoning? Probably not!
-				Map<ReasoningNode, Match> nodeMap;
-				for (Map<Rule, Match> map : ruleMatches) {
-					nodeMap = new HashMap<>();
-					for (Entry<Rule, Match> entry : map.entrySet()) {
-						nodeMap.put(ruleNodes.get(entry.getKey()), entry.getValue());
-					}
-					this.consequentMatches.add(nodeMap);
 				}
 			}
 		}
@@ -322,6 +308,23 @@ public class ReasoningNode {
 		}
 
 		return mapping;
+	}
+
+	private Map<Rule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
+			MatchStrategy aMatchStrategy) {
+		assert aConsequentPattern != null;
+		assert !aConsequentPattern.isEmpty();
+
+		Set<Match> possibleMatches;
+		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
+		for (Rule r : this.allRules) {
+
+			if (!(possibleMatches = r.antecedentMatches(aConsequentPattern, aMatchStrategy)).isEmpty()) {
+				overlappingRules.put(r, possibleMatches);
+			}
+		}
+		assert overlappingRules != null;
+		return overlappingRules;
 	}
 
 	/**
