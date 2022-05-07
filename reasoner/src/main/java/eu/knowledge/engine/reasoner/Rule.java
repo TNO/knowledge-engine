@@ -127,8 +127,8 @@ public class Rule {
 		List<Map<Rule, Match>> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
 		Set<Integer> toBeDemotedMatchIndices = null;
 
-		Iterator<Map.Entry<TriplePattern, Set<Map<Rule, Match>>>> matchesPerTripleIter = matchesPerTriplePerRule.entrySet()
-				.iterator();
+		Iterator<Map.Entry<TriplePattern, Set<Map<Rule, Match>>>> matchesPerTripleIter = matchesPerTriplePerRule
+				.entrySet().iterator();
 
 		// always add all matches of first triple
 		if (matchesPerTripleIter.hasNext()) {
@@ -253,18 +253,18 @@ public class Rule {
 			}
 			// remove all toBeDemotedMatches from the biggestMatches and add them to the
 			// smallerMatches.
-			
+
 			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
 			Collections.sort(sortedList, Collections.reverseOrder());
 			for (int i : sortedList) {
 				smallerMatches.add(biggestRuleMatches.get(i));
 				biggestRuleMatches.remove(i);
 			}
-			
+
 			// add all toBeAddedMatches
 			biggestRuleMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
-			
+
 			long innerEnd = System.currentTimeMillis();
 			toBeAddedToBiggestMatches = null;
 			toBeDemotedMatchIndices = null;
@@ -307,7 +307,7 @@ public class Rule {
 		for (Rule r : allRules) {
 			// first find all triples in the consequent that match each triple in the
 			// antecedent
-			Set<Match> foundMatches;
+			List<Match> foundMatches;
 			for (TriplePattern anteTriple : aFirstPattern) {
 				// find all possible matches of the current antecedent triple in the consequent
 				if (useConsequent ? !r.consequent.isEmpty() : !r.antecedent.isEmpty()) {
