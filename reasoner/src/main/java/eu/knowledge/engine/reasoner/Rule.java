@@ -353,8 +353,8 @@ public class Rule {
 
 		// first find all triples in the consequent that match each triple in the
 		// antecedent
-		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
-		Set<Match> findMatches;
+		Map<TriplePattern, List<Match>> matchesPerTriple = new HashMap<>();
+		List<Match> findMatches;
 		for (TriplePattern anteTriple : aFirstPattern) {
 			// find all possible matches of the current antecedent triple in the consequent
 			findMatches = findMatches(anteTriple, aSecondPattern);
@@ -372,11 +372,11 @@ public class Rule {
 		List<Match> biggestMatches = new ArrayList<>();
 		List<Match> smallerMatches = new ArrayList<>();
 		Match mergedMatch = null;
-		Set<Match> matches = null;
+		List<Match> matches = null;
 		List<Match> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
 		Set<Integer> toBeDemotedMatchIndices = null;
 
-		Iterator<Map.Entry<TriplePattern, Set<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
+		Iterator<Map.Entry<TriplePattern, List<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
 
 		// always add first matches
 		if (matchIter.hasNext()) {
@@ -387,7 +387,7 @@ public class Rule {
 
 			long innerStart = System.currentTimeMillis();
 
-			Map.Entry<TriplePattern, Set<Match>> entry = matchIter.next();
+			Map.Entry<TriplePattern, List<Match>> entry = matchIter.next();
 
 			// keep a set of new/remove matches, so we can add/remove them at the end of
 			// this loop
@@ -498,13 +498,13 @@ public class Rule {
 		return false;
 	}
 
-	private static Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
+	private static List<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
 
 		assert consequent != null;
 		assert antecedent != null;
 		assert !consequent.isEmpty();
 
-		Set<Match> matchingTriplePatterns = new HashSet<>();
+		List<Match> matchingTriplePatterns = new ArrayList<>();
 		Map<Node, Node> map;
 		for (TriplePattern tp : consequent) {
 			map = antecedent.findMatches(tp);

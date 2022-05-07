@@ -69,13 +69,9 @@ public class Match {
 		Match m = null;
 
 		// if both sides of the matching patterns do not overlap
-		boolean doKeysIntersect = doIntersect(this.getMatchingPatterns().keySet(),
-				otherMatch.getMatchingPatterns().keySet());
+		boolean doMapsIntersect = doIntersect(this.getMatchingPatterns(), otherMatch.getMatchingPatterns());
 
-		boolean doValuesIntersect = doIntersect(this.getMatchingPatterns().values(),
-				otherMatch.getMatchingPatterns().values());
-
-		if (!doKeysIntersect && !doValuesIntersect) {
+		if (!doMapsIntersect) {
 
 			// and if the mappings do not conflict
 			Map<Node, Node> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
@@ -92,11 +88,19 @@ public class Match {
 		return m;
 	}
 
-	private boolean doIntersect(Collection<TriplePattern> aFirstSet, Collection<TriplePattern> aSecondSet) {
+	/**
+	 * Checks both the keys and the values.
+	 * 
+	 * @param aFirstMap
+	 * @param aSecondMap
+	 * @return
+	 */
+	private boolean doIntersect(Map<TriplePattern, TriplePattern> aFirstMap,
+			Map<TriplePattern, TriplePattern> aSecondMap) {
 
-		for (TriplePattern tp1 : aFirstSet) {
-			for (TriplePattern tp2 : aSecondSet) {
-				if (tp1.equals(tp2))
+		for (Entry<TriplePattern, TriplePattern> entry1 : aFirstMap.entrySet()) {
+			for (Entry<TriplePattern, TriplePattern> entry2 : aSecondMap.entrySet()) {
+				if (entry1.getKey().equals(entry2.getKey()) || entry1.getValue().equals(entry2.getValue()))
 					return true;
 			}
 		}
@@ -121,16 +125,20 @@ public class Match {
 	 */
 	private Map<Node, Node> mergeContexts(Map<Node, Node> existingContext, Map<Node, Node> newContext) {
 
+		Collection<Node> existingContextValues = existingContext.values();
 		Map<Node, Node> mergedContext = new HashMap<Node, Node>(existingContext);
 		for (Map.Entry<Node, Node> newEntry : newContext.entrySet()) {
-			if (existingContext.containsKey(newEntry.getKey())) {
-				if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
+			Node node;
+			if ((node = existingContext.get(newEntry.getKey())) != null) {
+				if (!node.equals(newEntry.getValue())) {
 					return null;
 				}
-			} else if (existingContext.values().contains(newEntry.getValue())) {
-				return null;
 			} else {
-				mergedContext.put(newEntry.getKey(), newEntry.getValue());
+				if (existingContextValues.contains(newEntry.getValue())) {
+					return null;
+				} else {
+					mergedContext.put(newEntry.getKey(), newEntry.getValue());
+				}
 			}
 		}
 
