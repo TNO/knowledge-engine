@@ -1,6 +1,16 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
+import javax.cache.spi.CachingProvider;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -18,6 +28,18 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+
+	static {
+		CachingProvider cachingProvider = Caching.getCachingProvider();
+		CacheManager cacheManager = cachingProvider.getCacheManager();
+		MutableConfiguration<String, Node> config = new MutableConfiguration<String, Node>()
+				.setTypes(String.class, Node.class).setStoreByValue(false)
+				.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.ONE_HOUR));
+		nodeCache = cacheManager.createCache("nodeCache", config);
+	}
+
+	private static Cache<String, Node> nodeCache;
+
 	/**
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
 	 * triples.
@@ -29,7 +51,7 @@ public class Util {
 	public static Model generateModel(GraphPattern graphPattern, BindingSet variableBindings) throws ParseException {
 
 		LOG.trace("generating model");
-		
+
 		List<TriplePath> tripleList = graphPattern.getGraphPattern().getPattern().getList();
 
 		Model m = ModelFactory.createDefaultModel();
@@ -55,7 +77,10 @@ public class Util {
 
 							LOG.trace("Parsing: {}", repr);
 
-							newN = SSE.parseNode(repr);
+							if ((newN = nodeCache.get(repr)) == null) {
+								newN = SSE.parseNode(repr);
+								nodeCache.put(repr, newN);
+							}
 
 						} else {
 							LOG.error("The variable {} in the Knowledge should be bound.", n.getName());

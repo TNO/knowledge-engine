@@ -13,16 +13,19 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.util.FmtUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
@@ -204,7 +207,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 			LOG.trace("before ask metadata");
 			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
 			LOG.trace("after ask metadata");
-			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
+			Model m = Util.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
 //			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
 //			m.write(System.out, "turtle");
@@ -275,19 +278,33 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 						} else if (isOfType(ki, Vocab.POST_KI) && someKi instanceof PostKnowledgeInteraction) {
 							var postKI = (PostKnowledgeInteraction) someKi;
 							// compare graph pattern
-							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
-							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getLexicalForm();
+							ExtendedIterator<Resource> graphPatternIterator = ki.listProperties(Vocab.HAS_GP).mapWith(stmt -> stmt.getObject().asResource());
+							String argPatternFromRDF = null;
+							String resPatternFromRDF = null;
+							while (graphPatternIterator.hasNext()) {
+								Resource graphPattern = graphPatternIterator.next();
+								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
+									if (argPatternFromRDF != null) {
+										throw new IllegalArgumentException("Knowledge interaction cannot have multiple argument patterns.");
+									}
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
+									if (resPatternFromRDF != null) {
+										throw new IllegalArgumentException("Knowledge interaction cannot have multiple result patterns.");
+									}
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else {
+									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
+								}
+							}
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
 							boolean resultPatternsEqual = false;
-							if (ki.hasProperty(Vocab.HAS_RES)) {
-								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
-								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getLexicalForm();
+							if (resPatternFromRDF != null) {
 								String resPatternFromObject = convertToPattern(postKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
-							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
+							} else if (resPatternFromRDF == null && postKI.getResult() == null) {
 								resultPatternsEqual = true;
 							}
 
@@ -296,19 +313,33 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 						} else if (isOfType(ki, Vocab.REACT_KI) && someKi instanceof ReactKnowledgeInteraction) {
 							var reactKI = (ReactKnowledgeInteraction) someKi;
 							// compare graph pattern
-							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
-							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getLexicalForm();
+							ExtendedIterator<Resource> graphPatternIterator = ki.listProperties(Vocab.HAS_GP).mapWith(stmt -> stmt.getObject().asResource());
+							String argPatternFromRDF = null;
+							String resPatternFromRDF = null;
+							while (graphPatternIterator.hasNext()) {
+								Resource graphPattern = graphPatternIterator.next();
+								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
+									if (argPatternFromRDF != null) {
+										throw new IllegalArgumentException("Knowledge interaction cannot have multiple argument patterns.");
+									}
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
+									if (resPatternFromRDF != null) {
+										throw new IllegalArgumentException("Knowledge interaction cannot have multiple result patterns.");
+									}
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else {
+									throw new IllegalArgumentException(String.format("For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.", Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
+								}
+							}
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
 							boolean resultPatternsEqual = false;
-							if (ki.hasProperty(Vocab.HAS_RES)) {
-								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
-								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getLexicalForm();
+							if (resPatternFromRDF != null) {
 								String resPatternFromObject = convertToPattern(reactKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
-							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {
+							} else if (resPatternFromRDF == null && reactKI.getResult() == null) {
 								resultPatternsEqual = true;
 							}
 

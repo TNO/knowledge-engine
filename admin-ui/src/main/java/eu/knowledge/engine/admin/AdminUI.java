@@ -51,6 +51,7 @@ public class AdminUI implements KnowledgeBase {
 	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
 
 	private Model model;
+
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
@@ -117,8 +118,7 @@ public class AdminUI implements KnowledgeBase {
 			"?req rdf:type ?reqType .",
 			"?sat rdf:type ?satType .",
 			"?ki kb:hasGraphPattern ?gp .",
-			"?ki ?patternType ?gp .",
-			"?gp rdf:type kb:GraphPattern .",
+			"?gp rdf:type ?patternType .",
 			"?gp kb:hasPattern ?pattern ."
 		);
 		//todo: possibly add:
@@ -133,7 +133,7 @@ public class AdminUI implements KnowledgeBase {
 
 		this.connected = true;
 
-		//todo: use ad-hoc route/function for API to get data instead of polling
+		// todo: use ad-hoc route/function for API to get data instead of polling
 		// job that regularly retrieves and prints all available knowledge bases.
 		this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
 	}
@@ -161,10 +161,12 @@ public class AdminUI implements KnowledgeBase {
 						try {
 							// using the BindingSet#generateModel() helper method, we can combine the graph
 							// pattern and the bindings for its variables into a valid RDF Model.
-							AdminUI.this.model = BindingSet.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
+							AdminUI.this.model = eu.knowledge.engine.smartconnector.impl.Util
+									.generateModel(AdminUI.this.aKI.getPattern(), askResult.getBindings());
 							model.setNsPrefixes(AdminUI.this.prefixes);
 
-							if (continuousLog) this.printKnowledgeBases(model);
+							if (continuousLog)
+								this.printKnowledgeBases(model);
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}
@@ -178,7 +180,7 @@ public class AdminUI implements KnowledgeBase {
 
 		private void printKnowledgeBases(Model model) throws ParseException {
 
-			//LOG.info("{}", AdminUI.this.getRDF(model));
+			// LOG.info("{}", AdminUI.this.getRDF(model));
 
 			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
 			LOG.info("-=-=-=-=-=-=-= KE Admin -=-=-=-=-=-=-=-");
