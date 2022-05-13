@@ -111,7 +111,7 @@ public class BindingValidator {
 			// Check if there is an incoming binding that is matches (is a 'sub-binding' of) the outgoing binding.
 			if (incoming.stream().allMatch(incomingBinding -> !incomingBinding.isSubBindingOf(outgoingBinding))) {
 				// If not, it is invalid.
-				throw new IllegalArgumentException("No matching incoming binding found for outgoing binding " + outgoingBinding);
+				throw new IllegalArgumentException("KB gave outgoing binding " + outgoingBinding + ", but this doesn't have a matching incoming binding!");
 			}
 		});
 	}
@@ -133,7 +133,7 @@ public class BindingValidator {
 				// (incoming) graph pattern can have variables that do not occur in the
 				// result (outgoing) graph pattern.
 				if (incoming.stream().map(incomingBinding -> incomingBinding.keepOnly(overlappingVariables)).allMatch(b -> !b.isSubBindingOf(outgoingBinding))) {
-					throw new IllegalArgumentException("No matching incoming binding found for outgoing binding " + outgoingBinding);
+					throw new IllegalArgumentException("KB gave outgoing binding " + outgoingBinding + ", but this doesn't have a matching incoming binding!");
 				}
 			});
 		}
