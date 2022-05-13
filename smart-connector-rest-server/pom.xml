@@ -143,6 +143,13 @@
 			<version>5.7.0</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- maven model for dynamic version info -->
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-model</artifactId>
+			<version>3.8.5</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -165,7 +172,7 @@
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease</apisToGenerate>
+							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease,VersionInfo</apisToGenerate>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
