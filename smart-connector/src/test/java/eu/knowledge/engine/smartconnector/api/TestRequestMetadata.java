@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.impl.Util;
+
 public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -65,7 +67,7 @@ public class TestRequestMetadata {
 
 		LOG.info("Bindings: {}", result.getBindings());
 
-		Model m = BindingSet.generateModel(aKI.getPattern(), result.getBindings());
+		Model m = Util.generateModel(aKI.getPattern(), result.getBindings());
 
 		List<Resource> i = m
 				.listSubjectsWithProperty(RDF.type,
