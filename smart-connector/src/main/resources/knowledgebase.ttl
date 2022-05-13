@@ -42,15 +42,10 @@
                  rdfs:subPropertyOf owl:topObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasArgumentGraphPattern
-:hasArgumentGraphPattern rdf:type owl:ObjectProperty ;
-                         rdfs:subPropertyOf :hasGraphPattern .
-
-
 ###  https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct
 :hasCommunicativeAct rdf:type owl:ObjectProperty ;
                      rdfs:subPropertyOf owl:topObjectProperty ;
-                     rdfs:domain :KnowledgeBase ;
+                     rdfs:domain :KnowledgeInteraction ;
                      rdfs:range :CommunicativeAct .
 
 
@@ -58,7 +53,7 @@
 :hasGraphPattern rdf:type owl:ObjectProperty ;
                  rdfs:subPropertyOf owl:topObjectProperty ;
                  rdfs:domain :KnowledgeInteraction ;
-                 rdfs:range :GraphPattern .
+                 rdfs:range :BaseGraphPattern .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction
@@ -77,11 +72,6 @@
 :hasRequirement rdf:type owl:ObjectProperty ;
                 rdfs:subPropertyOf :hasPurpose ;
                 owl:propertyDisjointWith :hasSatisfaction .
-
-
-###  https://www.tno.nl/energy/ontology/interconnect#hasResultGraphPattern
-:hasResultGraphPattern rdf:type owl:ObjectProperty ;
-                       rdfs:subPropertyOf :hasGraphPattern .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction
@@ -128,7 +118,7 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 
 ###  https://www.tno.nl/energy/ontology/interconnect#hasPattern
 :hasPattern rdf:type owl:DatatypeProperty ;
-            rdfs:domain :GraphPattern ;
+            rdfs:domain :BaseGraphPattern ;
             rdfs:range xsd:string .
 
 
@@ -142,26 +132,50 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 #    Classes
 #################################################################
 
+###  https://www.tno.nl/energy/ontology/interconnect#ActuationPurpose
+:ActuationPurpose rdf:type owl:Class ;
+                  rdfs:subClassOf :Purpose ;
+                  rdfs:comment """This purpose should be required when an actuation has to be done. E.g., if a UI wants to set a power limit to a subnet, it should require the ActuationPurpose.
+If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when a knowledge base can switch a lamp on or off.""" .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#AnswerKnowledgeInteraction
 :AnswerKnowledgeInteraction rdf:type owl:Class ;
-                            owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                  owl:onProperty :hasGraphPattern ;
-                                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                  owl:onClass :GraphPattern
-                                                ] ;
-                            rdfs:subClassOf :KnowledgeInteraction ;
+                            rdfs:subClassOf :KnowledgeInteraction ,
+                                            [ rdf:type owl:Restriction ;
+                                              owl:onProperty :hasGraphPattern ;
+                                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                              owl:onClass :GraphPattern
+                                            ] ;
                             rdfs:comment "An answer knowledge interaction is a declaration that specifies the shape of knowledge that is available in the knowledge base."@en .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#ArgumentGraphPattern
+:ArgumentGraphPattern rdf:type owl:Class ;
+                      rdfs:subClassOf :BaseGraphPattern ;
+                      rdfs:label "Argument graph pattern" .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction
 :AskKnowledgeInteraction rdf:type owl:Class ;
-                         owl:equivalentClass [ rdf:type owl:Restriction ;
-                                               owl:onProperty :hasGraphPattern ;
-                                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                               owl:onClass :GraphPattern
-                                             ] ;
-                         rdfs:subClassOf :KnowledgeInteraction ;
+                         rdfs:subClassOf :KnowledgeInteraction ,
+                                         [ rdf:type owl:Restriction ;
+                                           owl:onProperty :hasGraphPattern ;
+                                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                           owl:onClass :GraphPattern
+                                         ] ;
                          rdfs:comment "An ask knowledge interaction declares the shape of knowledge that a knowledge base possibly asks its smart connector for."@en .
+
+
+###  https://www.tno.nl/energy/ontology/interconnect#BaseGraphPattern
+:BaseGraphPattern rdf:type owl:Class ;
+                  rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasPattern ;
+                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                    owl:onDataRange xsd:string
+                                  ] ;
+                  rdfs:comment "A graph pattern is used for describing knowledge. It uses basic graph pattern (BGP) from the SPARQL specification which includes terms from the ontology combined with variables." ;
+                  rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#ChangedKnowledgePurpose
@@ -193,13 +207,8 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 
 ###  https://www.tno.nl/energy/ontology/interconnect#GraphPattern
 :GraphPattern rdf:type owl:Class ;
-              owl:equivalentClass [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasPattern ;
-                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onDataRange xsd:string
-                                  ] ;
-              rdfs:comment "A graph pattern is used for describing knowledge. It uses basic graph pattern (BGP) from the SPARQL specification which includes terms from the ontology combined with variables." ;
-              rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
+              rdfs:subClassOf :BaseGraphPattern ;
+              rdfs:label "Graph pattern" .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#InformPurpose
@@ -210,35 +219,35 @@ It is not meant to be used in actual descriptions of knowledge bases. Instead, i
 
 ###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase
 :KnowledgeBase rdf:type owl:Class ;
-               owl:equivalentClass [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasKnowledgeInteraction ;
-                                     owl:someValuesFrom :KnowledgeInteraction
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :consumesService ;
-                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                                     owl:onClass :ServiceDescription
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :providesService ;
-                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                                     owl:onClass :ServiceDescription
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSmartConnector ;
-                                     owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onClass :SmartConnector
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasDescription ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:string
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasName ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:string
-                                   ] ;
+               rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasKnowledgeInteraction ;
+                                 owl:someValuesFrom :KnowledgeInteraction
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :consumesService ;
+                                 owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                 owl:onClass :ServiceDescription
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :providesService ;
+                                 owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                 owl:onClass :ServiceDescription
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasSmartConnector ;
+                                 owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                 owl:onClass :SmartConnector
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasDescription ;
+                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                 owl:onDataRange xsd:string
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasName ;
+                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                 owl:onDataRange xsd:string
+                               ] ;
                rdfs:comment """A knowledge base is a 'thing' that (through knowledge interactions) has a contract with its smart connector about how it exchanges knowledge.
 
 Examples include:
@@ -251,21 +260,21 @@ Examples include:
 
 ###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeInteraction
 :KnowledgeInteraction rdf:type owl:Class ;
-                      owl:equivalentClass [ rdf:type owl:Restriction ;
-                                            owl:onProperty :hasCommunicativeAct ;
-                                            owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                            owl:onClass :CommunicativeAct
-                                          ] ,
-                                          [ rdf:type owl:Restriction ;
-                                            owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/isMeta> ;
-                                            owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                            owl:onDataRange xsd:boolean
-                                          ] ,
-                                          [ rdf:type owl:Restriction ;
-                                            owl:onProperty :hasName ;
-                                            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                            owl:onDataRange xsd:string
-                                          ] ;
+                      rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                        owl:onProperty :hasCommunicativeAct ;
+                                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                        owl:onClass :CommunicativeAct
+                                      ] ,
+                                      [ rdf:type owl:Restriction ;
+                                        owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/isMeta> ;
+                                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                        owl:onDataRange xsd:boolean
+                                      ] ,
+                                      [ rdf:type owl:Restriction ;
+                                        owl:onProperty :hasName ;
+                                        owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                        owl:onDataRange xsd:string
+                                      ] ;
                       rdfs:comment "A knowledge interaction is a declaration of how a knowledge base interacts with its smart connector."@en .
 
 
@@ -284,17 +293,20 @@ Examples include:
 
 ###  https://www.tno.nl/energy/ontology/interconnect#PostKnowledgeInteraction
 :PostKnowledgeInteraction rdf:type owl:Class ;
-                          owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                owl:onProperty :hasArgumentGraphPattern ;
-                                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                owl:onClass :GraphPattern
-                                              ] ,
-                                              [ rdf:type owl:Restriction ;
-                                                owl:onProperty :hasResultGraphPattern ;
-                                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                owl:onClass :GraphPattern
-                                              ] ;
-                          rdfs:subClassOf :KnowledgeInteraction ;
+                          rdfs:subClassOf :KnowledgeInteraction ,
+                                          [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty :hasGraphPattern ;
+                                                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                   owl:onClass :ArgumentGraphPattern
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty :hasGraphPattern ;
+                                                                   owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                   owl:onClass :ResultGraphPattern
+                                                                 ]
+                                                               ) ;
+                                            rdf:type owl:Class
+                                          ] ;
                           rdfs:comment "A post knowledge interaction declares that this knowledge base can initiate an interaction where it sends some knowledge (matching the argument graph pattern) to its smart connector, and expects as a result some other knowledge (matchin the result graph pattern)."@en ;
                           rdfs:seeAlso :ReactKnowledgeInteraction .
 
@@ -306,17 +318,20 @@ Examples include:
 
 ###  https://www.tno.nl/energy/ontology/interconnect#ReactKnowledgeInteraction
 :ReactKnowledgeInteraction rdf:type owl:Class ;
-                           owl:equivalentClass [ rdf:type owl:Restriction ;
-                                                 owl:onProperty :hasArgumentGraphPattern ;
-                                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                 owl:onClass :GraphPattern
-                                               ] ,
-                                               [ rdf:type owl:Restriction ;
-                                                 owl:onProperty :hasResultGraphPattern ;
-                                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                                 owl:onClass :GraphPattern
-                                               ] ;
-                           rdfs:subClassOf :KnowledgeInteraction ;
+                           rdfs:subClassOf :KnowledgeInteraction ,
+                                           [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                    owl:onProperty :hasGraphPattern ;
+                                                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                    owl:onClass :ArgumentGraphPattern
+                                                                  ]
+                                                                  [ rdf:type owl:Restriction ;
+                                                                    owl:onProperty :hasGraphPattern ;
+                                                                    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                    owl:onClass :ResultGraphPattern
+                                                                  ]
+                                                                ) ;
+                                             rdf:type owl:Class
+                                           ] ;
                            rdfs:comment "A react knowledge interaction declares that this knowledge base can respond to an interaction where it receives some knowledge (matching the argument graph pattern) from its smart connector, and is expected to give as a result some other knowledge (matching the result graph pattern)."@en ;
                            rdfs:seeAlso :PostKnowledgeInteraction .
 
@@ -327,6 +342,12 @@ Examples include:
                          rdfs:comment "The purpose is to inform (or be informed) about knowledge that is removed. (Vaguely the 'D' in CRUD.)"@en .
 
 
+###  https://www.tno.nl/energy/ontology/interconnect#ResultGraphPattern
+:ResultGraphPattern rdf:type owl:Class ;
+                    rdfs:subClassOf :BaseGraphPattern ;
+                    rdfs:label "Result graph pattern" .
+
+
 ###  https://www.tno.nl/energy/ontology/interconnect#RetrieveKnowledgePurpose
 :RetrieveKnowledgePurpose rdf:type owl:Class ;
                           rdfs:subClassOf :InformPurpose ;
@@ -335,48 +356,41 @@ Examples include:
 
 ###  https://www.tno.nl/energy/ontology/interconnect#ServiceDescription
 :ServiceDescription rdf:type owl:Class ;
-                    owl:equivalentClass [ rdf:type owl:Restriction ;
-                                          owl:onProperty :consumerImplementsKnowledgeInteraction ;
-                                          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                          owl:onClass :KnowledgeInteraction
-                                        ] ,
-                                        [ rdf:type owl:Restriction ;
-                                          owl:onProperty :providerImplementsKnowledgeInteraction ;
-                                          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                          owl:onClass :KnowledgeInteraction
-                                        ] ,
-                                        [ rdf:type owl:Restriction ;
-                                          owl:onProperty :hasDescription ;
-                                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                          owl:onDataRange xsd:string
-                                        ] ,
-                                        [ rdf:type owl:Restriction ;
-                                          owl:onProperty :hasName ;
-                                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                          owl:onDataRange xsd:string
-                                        ] .
+                    rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                      owl:onProperty :consumerImplementsKnowledgeInteraction ;
+                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                      owl:onClass :KnowledgeInteraction
+                                    ] ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :providerImplementsKnowledgeInteraction ;
+                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                      owl:onClass :KnowledgeInteraction
+                                    ] ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :hasDescription ;
+                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                      owl:onDataRange xsd:string
+                                    ] ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :hasName ;
+                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                      owl:onDataRange xsd:string
+                                    ] .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#SmartConnector
 :SmartConnector rdf:type owl:Class ;
-                owl:equivalentClass [ rdf:type owl:Restriction ;
-                                      owl:onProperty :hasEndpoint ;
-                                      owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                      owl:onDataRange xsd:string
-                                    ] .
+                rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                  owl:onProperty :hasEndpoint ;
+                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                  owl:onDataRange xsd:string
+                                ] .
 
 
 ###  https://www.tno.nl/energy/ontology/interconnect#WhenChangedPurpose
 :WhenChangedPurpose rdf:type owl:Class ;
                     rdfs:subClassOf :Purpose ;
                     rdfs:comment "The purpose of the knowledge exchange is to only send updates when the knowledge changes. E.g., to only send a message when a toggle is toggled."@en .
-
-
-###  https://www.tno.nl/energy/ontology/interconnect/ActuationPurpose
-<https://www.tno.nl/energy/ontology/interconnect/ActuationPurpose> rdf:type owl:Class ;
-                                                                   rdfs:subClassOf :Purpose ;
-                                                                   rdfs:comment """This purpose should be required when an actuation has to be done. E.g., if a UI wants to set a power limit to a subnet, it should require the ActuationPurpose.
-If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when a knowledge base can switch a lamp on or off.""" .
 
 
 #################################################################
@@ -388,6 +402,14 @@ If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when
                 :AskKnowledgeInteraction
                 :PostKnowledgeInteraction
                 :ReactKnowledgeInteraction
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ArgumentGraphPattern
+                :GraphPattern
+                :ResultGraphPattern
               )
 ] .
 
