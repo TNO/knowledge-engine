@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -83,7 +84,7 @@ public class TestAskAnswerBindingValidity {
 		assertEquals(kb1.getKnowledgeBaseId(), aei.getKnowledgeBaseId());
 		assertEquals(aei.status, Status.FAILED);
 		assertNotNull(aei.failedMessage);
-		assertTrue(!bindings.iterator().hasNext(), "there should not be any bindings!");
+		assertFalse(bindings.iterator().hasNext(), "there should not be any bindings!");
 		assertTrue(wasInAnswerHandler.get(), "answer handler should have been called!");
 	}
 
