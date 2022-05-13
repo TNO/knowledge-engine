@@ -1,23 +1,21 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Iterator;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 
 public class TestAskAnswerBindingValidity {
 
@@ -68,18 +66,23 @@ public class TestAskAnswerBindingValidity {
 
 		// start testing!
 		BindingSet bindings = null;
+		AskResult result = null;
 		try {
 			// Ask for the capital of france
 			var incomingBindings = new BindingSet();
 			var b = new Binding();
 			b.put("country", "<https://example.org/france>");
 			incomingBindings.add(b);
-			AskResult result = kb2.ask(askKI, incomingBindings).get();
+			result = kb2.ask(askKI, incomingBindings).get();
 			bindings = result.getBindings();
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
 
+		var aei = result.getExchangeInfoPerKnowledgeBase().stream().findAny().get();
+		assertEquals(kb1.getKnowledgeBaseId(), aei.getKnowledgeBaseId());
+		assertEquals(aei.status, Status.FAILED);
+		assertNotNull(aei.failedMessage);
 		assertTrue(!bindings.iterator().hasNext(), "there should not be any bindings!");
 		assertTrue(wasInAnswerHandler.get(), "answer handler should have been called!");
 	}
