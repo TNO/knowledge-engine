@@ -47,7 +47,7 @@ class VariableBindingNameTest {
 						+ "?obs1 sosa:observedProperty ic:Temperature . \n" + "?obs1 sosa:hasSimpleResult ?temp1 .");
 		GraphPattern resGraphPattern1 = new GraphPattern(prefixes, "?s1 ?p1 ?o1");
 		PostKnowledgeInteraction sensorPostKI = new PostKnowledgeInteraction(new CommunicativeAct(), argGraphPattern1,
-				null);
+		resGraphPattern1);
 		sensor.register(sensorPostKI);
 
 		GraphPattern argGraphPattern2 = new GraphPattern(prefixes,
@@ -58,7 +58,7 @@ class VariableBindingNameTest {
 		GraphPattern resGraphPattern2 = new GraphPattern(prefixes, "?s2 ?p2 ?o2");
 
 		ReactKnowledgeInteraction thermostatReactKI = new ReactKnowledgeInteraction(new CommunicativeAct(),
-				argGraphPattern2, null);
+				argGraphPattern2, resGraphPattern2);
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
 			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
