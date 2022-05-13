@@ -156,6 +156,8 @@ public class ReasoningNode {
 	 */
 	private TaskBoard taskboard = null;
 
+	private BindingSet previousLoopBindingSet;
+
 	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
 			boolean aShouldPlanBackward) {
 		this(someRules, aParent, aRule, aMatchStrategy, aShouldPlanBackward, null);
@@ -444,6 +446,14 @@ public class ReasoningNode {
 						combinedBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent, combinedBindings);
 
 						finished &= child.continueForward(combinedBindings);
+
+						BindingSet bs = child.getBindingSetFromHandler();
+
+						if (bs.equals(this.previousLoopBindingSet)) {
+							finished = true;
+						} else {
+							this.previousLoopBindingSet = bs;
+						}
 					}
 
 					if (finished) {
@@ -460,6 +470,13 @@ public class ReasoningNode {
 							consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
 									bindingSet.toBindingSet().toGraphBindingSet(this.rule.antecedent),
 									combinedBindings);
+
+							// TODO do I need to compare bindingsets here, or in a different location?
+							//
+
+//							if (this.previousLoopBindingSet != null)
+//								consequentAntecedentBindings
+//										.merge(this.previousLoopBindingSet.toGraphBindingSet(aGraphPattern));
 
 							consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
 									consequentAntecedentBindings);
