@@ -447,12 +447,15 @@ public class ReasoningNode {
 
 						finished &= child.continueForward(combinedBindings);
 
-						BindingSet bs = child.getBindingSetFromHandler();
-
-						if (bs.equals(this.previousLoopBindingSet)) {
-							finished = true;
-						} else {
-							this.previousLoopBindingSet = bs;
+						if (finished) {
+							// get bindingset and compare with previous
+							BindingSet bs = child.getBindingSetFromHandler();
+							if (bs.equals(this.previousLoopBindingSet)) {
+								finished = true;
+							} else {
+								this.previousLoopBindingSet = bs;
+								finished = false;
+							}
 						}
 					}
 
@@ -471,12 +474,9 @@ public class ReasoningNode {
 									bindingSet.toBindingSet().toGraphBindingSet(this.rule.antecedent),
 									combinedBindings);
 
-							// TODO do I need to compare bindingsets here, or in a different location?
-							//
-
-//							if (this.previousLoopBindingSet != null)
-//								consequentAntecedentBindings
-//										.merge(this.previousLoopBindingSet.toGraphBindingSet(aGraphPattern));
+							if (this.previousLoopBindingSet != null)
+								consequentAntecedentBindings
+										.merge(this.previousLoopBindingSet.toGraphBindingSet(this.rule.antecedent));
 
 							consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
 									consequentAntecedentBindings);
