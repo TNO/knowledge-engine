@@ -6,14 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
@@ -27,12 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 
 public class TestDynamicSemanticComposition {
 
@@ -70,7 +63,6 @@ public class TestDynamicSemanticComposition {
 		// its basic attributes"
 		kbTargetAttributeSupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
 		kbTargetAttributeSupplier.setReasonerEnabled(true);
-		kn.addKB(kbTargetAttributeSupplier);
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
@@ -122,7 +114,41 @@ public class TestDynamicSemanticComposition {
 			return null;
 		});
 
+		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
+		HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
+		consequent.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
+		antecedent.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+		Rule r = new Rule(antecedent, consequent);
+		Set<Rule> ruleSet = new HashSet<>();
+		ruleSet.add(r);
+		kbHVTSearcher.setDomainKnowledge(ruleSet);
+		kbTargetObserver.setDomainKnowledge(ruleSet);
+
+		kn.waitForUpToDate();
+
+		// first check if our plan is covered
+		BindingSet bindings = null;
+		try {
+			AskPlan askPlan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
+
+			ReasoningNode plan = askPlan.getReasoningNode();
+
+			Set<TriplePattern> knowledgeGaps = plan.getKnowledgeGaps();
+			LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
+
+			AskResult result = askPlan.execute(new BindingSet()).get();
+			bindings = result.getBindings();
+		} catch (InterruptedException | ExecutionException e) {
+			fail();
+		}
+
 		// Patterns for the TargetAttributeSupplier
+		kn.addKB(kbTargetAttributeSupplier);
+		kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
@@ -158,29 +184,28 @@ public class TestDynamicSemanticComposition {
 			return resultBindings;
 		});
 
-		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
-		HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
-		consequent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
-		HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
-		Rule r = new Rule(antecedent, consequent);
-		Set<Rule> ruleSet = new HashSet<>();
-		ruleSet.add(r);
-		kbHVTSearcher.setDomainKnowledge(ruleSet);
-		kbTargetObserver.setDomainKnowledge(ruleSet);
-		kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
-
-		kn.waitForUpToDate();
-
 		// start testing ask for targets!
-		BindingSet bindings = null;
+		BindingSet bindings2 = null;
 		try {
 			LOG.trace("Before ask.");
-			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
-			bindings = result.getBindings();
+			AskPlan askPlan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
+
+			ReasoningNode plan = askPlan.getReasoningNode();
+
+			Set<TriplePattern> notSatisfiedTriplePatterns = new HashSet<>();
+			Map<TriplePattern, Set<ReasoningNode>> nodeCoverage = plan
+					.findAntecedentCoverage(plan.getAntecedentNeighbors());
+			for (Entry<TriplePattern, Set<ReasoningNode>> entry : nodeCoverage.entrySet()) {
+				if (entry.getValue().isEmpty()) {
+					notSatisfiedTriplePatterns.add(entry.getKey());
+				}
+			}
+
+			LOG.info("Not satisfied triple patterns: {}", notSatisfiedTriplePatterns);
+
+			AskResult result = askPlan.execute(new BindingSet()).get();
+			bindings2 = result.getBindings();
+
 			LOG.trace("After ask.");
 			// try to generate JSON tree.
 			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
@@ -189,8 +214,8 @@ public class TestDynamicSemanticComposition {
 			fail();
 		}
 
-		Iterator<Binding> iter = bindings.iterator();
-		LOG.info("Result bindings are: {}", bindings);
+		Iterator<Binding> iter = bindings2.iterator();
+		LOG.info("Result bindings are: {}", bindings2);
 
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
@@ -213,8 +238,8 @@ public class TestDynamicSemanticComposition {
 			LOG.info("Before post!");
 			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
 			PostResult result = aPlan.execute(bindingSet).get();
-			bindings = result.getBindings();
-			iter = bindings.iterator();
+			bindings2 = result.getBindings();
+			iter = bindings2.iterator();
 			assertFalse(iter.hasNext(), "there should be no bindings");
 			LOG.info("After post!");
 

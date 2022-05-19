@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -15,6 +16,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -23,15 +26,16 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class DynamicSemanticConfigurationTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
+
 	private KeReasoner reasoner;
 
 	@Before
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
+		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
+				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new BindingSetHandler() {
 
 					private Table data = new Table(new String[] {
@@ -78,9 +82,12 @@ public class DynamicSemanticConfigurationTest {
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
+	}
+
+	public void fixKnowledgeGap() {
 		reasoner.addRule(new Rule(
-				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
+						new TriplePattern("?id <hasName> ?name"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
 
 					@Override
@@ -128,6 +135,17 @@ public class DynamicSemanticConfigurationTest {
 		// Start reasoning
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		System.out.println(root);
+		// find knowledge gaps
+		Set<TriplePattern> knowledgeGaps = root.getKnowledgeGaps();
+		LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
+		assertFalse(knowledgeGaps.isEmpty());
+
+		// fix the knowledge gap
+		fixKnowledgeGap();
+		root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		System.out.println(root);
+		knowledgeGaps = root.getKnowledgeGaps();
+		assertTrue(knowledgeGaps.isEmpty());
 
 		BindingSet bs = new BindingSet();
 

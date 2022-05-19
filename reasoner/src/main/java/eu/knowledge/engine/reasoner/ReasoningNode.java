@@ -1085,17 +1085,18 @@ public class ReasoningNode {
 			Map<ReasoningNode, Set<Match>> someAntecedentNeighbors) {
 		if (this.antecedentCoverageCache == null) {
 			antecedentCoverageCache = new HashMap<>();
-			// TODO find the coverage
+
+			// find the coverage
 			Set<ReasoningNode> coveringNodes;
 			for (TriplePattern tp : this.rule.antecedent) {
 				coveringNodes = new HashSet<>();
 				antecedentCoverageCache.put(tp, coveringNodes);
 
-				for (Entry<ReasoningNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
+				middleloop: for (Entry<ReasoningNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
 					for (Match m : entry.getValue()) {
 						if (m.getMatchingPatterns().keySet().contains(tp)) {
 							coveringNodes.add(entry.getKey());
-							break; // where does this break from?
+							break middleloop; // where does this break from? The middle loop.
 						}
 					}
 				}
@@ -1154,6 +1155,59 @@ public class ReasoningNode {
 			// reset cache to force recalculation.
 			this.antecedentCoverageCache = null;
 		}
+	}
+
+	/**
+	 * Returns the knowledge gap of this reasoning node. A knowledge gap is a subset
+	 * of this node's antecedent triple patterns that do not match any neighbor that
+	 * has no knowledge gaps.
+	 * 
+	 * Currently, this method does not show how the knowledge gaps influence each
+	 * other. Some knowledge gaps might have an {@code or}-relation (namely those
+	 * that occur on the same triple) and some might have {@code and}-relations
+	 * (i.e. those that do not occur on the same triple). This information is
+	 * important if you want to know how to solve the gaps because 2 gaps related by
+	 * {@code or} do not both need to be solved, but only one of them. While 2 gaps
+	 * related by {@code and} both need to be solved to solve the gap.
+	 * 
+	 * @return returns all triples that have no matching nodes (and for which there
+	 *         are no alternatives).
+	 */
+	public Set<TriplePattern> getKnowledgeGaps() {
+
+		Set<TriplePattern> gaps = new HashSet<>();
+
+		// TODO do we need to include the parent if we are not backward chaining?
+		Map<TriplePattern, Set<ReasoningNode>> nodeCoverage = this.findAntecedentCoverage(this.antecedentNeighbors);
+
+		// collect triple patterns that have an empty set
+		Set<TriplePattern> collectGaps, someGaps;
+		for (Entry<TriplePattern, Set<ReasoningNode>> entry : nodeCoverage.entrySet()) {
+
+			collectGaps = new HashSet<>();
+			boolean foundNeighborWithoutGap = false;
+			for (ReasoningNode neighbor : entry.getValue()) {
+				// make sure neighbor has no knowledge gaps
+				if ((someGaps = neighbor.getKnowledgeGaps()).isEmpty()) {
+					// found neighbor without knowledge gaps for the current triple, so current
+					// triple is covered.
+					foundNeighborWithoutGap = true;
+					break;
+				}
+				collectGaps.addAll(someGaps);
+			}
+
+			if (!foundNeighborWithoutGap) {
+				// there is a gap here, either in the current node or in a neighbor.
+				if (collectGaps.isEmpty()) {
+					gaps.add(entry.getKey());
+				} else {
+					gaps.addAll(collectGaps);
+				}
+			}
+		}
+
+		return gaps;
 	}
 
 }
