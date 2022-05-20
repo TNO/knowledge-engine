@@ -1,22 +1,16 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.Vocab;
 
 public class KnowledgeNetwork {
 
@@ -33,8 +27,8 @@ public class KnowledgeNetwork {
 	private PrefixMapping prefixMapping;
 
 	public KnowledgeNetwork() {
-		this.knowledgeBases = new HashSet<>();
-		this.knowledgeInteractionMetadata = new HashMap<>();
+		this.knowledgeBases = ConcurrentHashMap.newKeySet();
+		this.knowledgeInteractionMetadata = new ConcurrentHashMap<>();
 		this.readyPhaser = new Phaser(1);
 		this.prefixMapping = new PrefixMappingMem();
 		this.prefixMapping.setNsPrefixes(PrefixMapping.Standard);
@@ -78,8 +72,7 @@ public class KnowledgeNetwork {
 				"?req rdf:type ?reqType .",
 				"?sat rdf:type ?satType .", 
 				"?ki kb:hasGraphPattern ?gp .", 
-				"?ki ?patternType ?gp .",
-				"?gp rdf:type kb:GraphPattern .", 
+				"?gp rdf:type ?patternType .",
 				"?gp kb:hasPattern ?pattern ."
 				//@formatter:on
 		);

@@ -60,8 +60,7 @@ public class TestReactMetadata {
 				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
 				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
 				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
+				"?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp kb:hasPattern ?pattern .");
 
 		var ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, new ReactHandler() {
@@ -87,7 +86,7 @@ public class TestReactMetadata {
 					while (kiIter.hasNext()) {
 						var ki = kiIter.next().getObject().asResource();
 
-						var prop = m.getProperty(m.expandPrefix("kb:hasArgumentGraphPattern"));
+						var prop = m.getProperty(m.expandPrefix("kb:hasGraphPattern"));
 
 						LOG.debug("KI: {}", ki);
 

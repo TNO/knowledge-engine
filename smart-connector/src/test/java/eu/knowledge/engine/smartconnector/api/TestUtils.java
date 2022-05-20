@@ -136,6 +136,38 @@ public class TestUtils {
 				first = aFirst;
 				second = aSecond;
 			}
+
+			@Override
+			public int hashCode() {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + ((first == null) ? 0 : first.hashCode());
+				result = prime * result + ((second == null) ? 0 : second.hashCode());
+				return result;
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				Pair other = (Pair) obj;
+				if (first == null) {
+					if (other.first != null)
+						return false;
+				} else if (!first.equals(other.first))
+					return false;
+				if (second == null) {
+					if (other.second != null)
+						return false;
+				} else if (!second.equals(other.second))
+					return false;
+				return true;
+			}
+
 		}
 
 		// arrows to actors that need to come back
@@ -259,19 +291,6 @@ public class TestUtils {
 				.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes,
 						(rn.getRule().antecedent).isEmpty() ? rn.getRule().consequent : rn.getRule().antecedent));
 
-		for (Pair pair : toExchanges.keySet()) {
-
-			ReasoningNode node = toExchanges.get(pair);
-
-			Rule rule = node.getRule();
-
-			System.out.println(
-					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
-							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
-							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
-
-		}
-
 		for (Pair pair : toFromExchanges.keySet()) {
 			ReasoningNode node = toFromExchanges.get(pair);
 
@@ -295,6 +314,19 @@ public class TestUtils {
 			System.out.println("deactivate " + new URI(pair.second).getPath().substring(1));
 			if (!pair.second.equals(proactiveKB))
 				System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
+
+		}
+
+		for (Pair pair : toExchanges.keySet()) {
+
+			ReasoningNode node = toExchanges.get(pair);
+
+			Rule rule = node.getRule();
+
+			System.out.println(
+					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
+							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
+							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
 
 		}
 
