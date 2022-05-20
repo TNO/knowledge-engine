@@ -61,5 +61,9 @@ public class VersionInfoApiServiceImpl extends VersionInfoApiService {
 		} catch (IOException | XmlPullParserException e) {
 			LOG.error("Could not read version info from {} or {}: {}", POM_LOCAL_PATH, POM_RESOURCE_PATH, e);
 		}
+
+		if (this.versionInfo.getVersion() == null) {
+			this.versionInfo.setVersion("");
+		}
 	}
 }
