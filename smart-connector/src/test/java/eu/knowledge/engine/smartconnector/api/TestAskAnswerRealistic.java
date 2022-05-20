@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+
 public class TestAskAnswerRealistic {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);
@@ -47,6 +50,13 @@ public class TestAskAnswerRealistic {
         kb4 = new MockedKnowledgeBase("kb4");
         kb4.setReasonerEnabled(true);
 
+        var rules = new HashSet<Rule>();
+        var antecedent = new HashSet<TriplePattern>();
+        antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
+        var consequent = new HashSet<TriplePattern>();
+        consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
+        rules.add(new Rule(antecedent, consequent));
+
         kn.addKB(kb1);
         kn.addKB(kb2);
         kn.addKB(kb3);
@@ -55,6 +65,11 @@ public class TestAskAnswerRealistic {
         LOG.info("Waiting for everyone to be ready...");
         kn.startAndWaitForReady();
         LOG.info("Everyone is ready!");
+
+        kb1.setDomainKnowledge(rules);
+        kb2.setDomainKnowledge(rules);
+        kb3.setDomainKnowledge(rules);
+        kb4.setDomainKnowledge(rules);
 
         GraphPattern gp1 = new GraphPattern("?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
          + "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ." 
@@ -178,7 +193,7 @@ public class TestAskAnswerRealistic {
          + "?ruimtelijkDing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
          + "?ruimtelijkDing <http://www.geonames.org/ontology#postalCode> ?postcode . " 
          + "?gebouw <http://ontology.tno.nl/building#hasEnergyClass> ?energieklasse ." 
-         + "?gebouw <http://ontology.tno.nl/building#energyProvider> ?energieaanbieder ." 
+         + "?gebouw <http://ontology.tno.nl/building#energyProviderSYNONYM> ?energieaanbieder ." 
          + "?gebouw <http://ontology.tno.nl/building#flexibilityManager> ?flexibiliteitManager ." 
          + "?gebouw <http://ontology.tno.nl/building#communityID> ?gemeenschapsID ." 
          + "?gebouw <https://saref.etsi.org/saref4bldg/hasSpace> ?gebouwRuimte ." 
