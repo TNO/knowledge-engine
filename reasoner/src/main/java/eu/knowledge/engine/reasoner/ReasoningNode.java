@@ -100,6 +100,14 @@ public class ReasoningNode {
 	private BindingSet fromBindingSetHandlerForward;
 
 	/**
+	 * Remembers the previous bindingset that we received. It is used to check
+	 * whether additional bindings were derived and if so we continue with the
+	 * forward looping process. Otherwise, if no knew bindings are derived, we stop
+	 * the forward process.
+	 */
+	private BindingSet fromBindingSetHandlerForwardPrevious;
+
+	/**
 	 * These contains the bindingsets that were given to the bindingset handler (if
 	 * any).
 	 */
@@ -155,8 +163,6 @@ public class ReasoningNode {
 	 * rules are immediately applied.
 	 */
 	private TaskBoard taskboard = null;
-
-	private BindingSet previousLoopBindingSet;
 
 	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
 			boolean aShouldPlanBackward) {
@@ -438,7 +444,7 @@ public class ReasoningNode {
 					}
 
 					boolean finished = true;
-					// process the loop backwardChildren
+					// process the loop antecedent neighbors
 					someIter = this.loopAntecedentNeighbors.keySet().iterator();
 					while (someIter.hasNext()) {
 						ReasoningNode child = someIter.next();
@@ -448,15 +454,10 @@ public class ReasoningNode {
 						finished &= child.continueForward(combinedBindings);
 
 						if (finished) {
-							// get bindingset and compare with previous
-							BindingSet bs = child.getBindingSetFromHandler();
-							if (bs.equals(this.previousLoopBindingSet)) {
-								finished = true;
-							} else {
-								this.previousLoopBindingSet = bs;
-								finished = false;
-							}
+							combinedBindings = combinedBindings.merge(child.getForwardBindingSetToHandler()
+									.toGraphBindingSet(combinedBindings.getGraphPattern()));
 						}
+
 					}
 
 					if (finished) {
@@ -473,10 +474,6 @@ public class ReasoningNode {
 							consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
 									bindingSet.toBindingSet().toGraphBindingSet(this.rule.antecedent),
 									combinedBindings);
-
-							if (this.previousLoopBindingSet != null)
-								consequentAntecedentBindings
-										.merge(this.previousLoopBindingSet.toGraphBindingSet(this.rule.antecedent));
 
 							consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.antecedent,
 									consequentAntecedentBindings);
@@ -714,23 +711,28 @@ public class ReasoningNode {
 				while (someIter.hasNext()) {
 					ReasoningNode child = someIter.next();
 
-					Set<Match> childMatch = this.loopAntecedentNeighbors.get(child);
+					if (!this.fromBindingSetHandlerForward.equals(this.fromBindingSetHandlerForwardPrevious)) {
 
-					TripleVarBindingSet existing = bindingSet;
+						Set<Match> childMatch = this.loopAntecedentNeighbors.get(child);
 
-					if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
-						existing = generateAdditionalTripleVarBindings(existing);
+						TripleVarBindingSet existing = bindingSet;
 
-					TripleVarBindingSet existing3 = existing
-							.merge(this.fromBindingSetHandlerForward.toGraphBindingSet(this.rule.consequent)
-									.translate(child.rule.antecedent, invert(childMatch)));
+						if (this.matchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES))
+							existing = generateAdditionalTripleVarBindings(existing);
 
-					// we use forward reasoning to prevent an infinite loop
-					existing = keepOnlyFullGraphPatternBindings(this.rule.antecedent, existing3);
+						TripleVarBindingSet existing3 = existing
+								.merge(this.fromBindingSetHandlerForward.toGraphBindingSet(this.rule.consequent)
+										.translate(child.rule.antecedent, invert(childMatch)));
 
-					this.fcState = FC_BINDINGSET_NOT_REQUESTED;
+						existing = keepOnlyFullGraphPatternBindings(this.rule.antecedent, existing3);
 
-					allFinished = child.continueForward(existing.toBindingSet());
+						this.fcState = FC_BINDINGSET_NOT_REQUESTED;
+
+						// we use forward reasoning to prevent an infinite loop
+						allFinished = child.continueForward(existing.toBindingSet());
+					} else {
+						allFinished = true;
+					}
 				}
 			}
 		}
@@ -929,8 +931,10 @@ public class ReasoningNode {
 		} else if (fcState == FC_BINDINGSET_REQUESTED) {
 
 			if (fromBindingSetHandlerForward != null) {
+				this.fromBindingSetHandlerForwardPrevious = new BindingSet(this.fromBindingSetHandlerForward);
 				this.fromBindingSetHandlerForward.addAll(bs);
 			} else {
+				this.fromBindingSetHandlerForwardPrevious = null;
 				this.fromBindingSetHandlerForward = bs;
 			}
 			this.fcState = FC_BINDINGSET_AVAILABLE;
@@ -1088,6 +1092,18 @@ public class ReasoningNode {
 		} else {
 			return this.fromBindingSetHandlerForward;
 		}
+	}
+
+	public BindingSet getForwardBindingSetFromHandler() {
+		return this.fromBindingSetHandlerForward;
+	}
+
+	public BindingSet getBackwardBindingSetFromHandler() {
+		return this.fromBindingSetHandlerBackward;
+	}
+
+	public BindingSet getForwardBindingSetToHandler() {
+		return this.toBindingSetHandlerForward;
 	}
 
 	public Map<ReasoningNode, Set<Match>> getAntecedentNeighbors() {
