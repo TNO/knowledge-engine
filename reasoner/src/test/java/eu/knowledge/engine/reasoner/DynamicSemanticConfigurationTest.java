@@ -132,30 +132,33 @@ public class DynamicSemanticConfigurationTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
+		// Make a plan
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		System.out.println(root);
-		// find knowledge gaps
+		LOG.info("\n{}", root);
+
+		// Find knowledge gaps
 		Set<TriplePattern> knowledgeGaps = root.getKnowledgeGaps();
 		LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
 		assertFalse(knowledgeGaps.isEmpty());
 
-		// fix the knowledge gap
+		// Fix the knowledge gap
 		fixKnowledgeGap();
+
+		// Make a new plan
 		root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		System.out.println(root);
+		LOG.info("\n{}", root);
 		knowledgeGaps = root.getKnowledgeGaps();
 		assertTrue(knowledgeGaps.isEmpty());
 
 		BindingSet bs = new BindingSet();
-
+		// Start reasoning
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
+			LOG.info("\n{}", root);
 			taskboard.executeScheduledTasks();
 		}
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}
