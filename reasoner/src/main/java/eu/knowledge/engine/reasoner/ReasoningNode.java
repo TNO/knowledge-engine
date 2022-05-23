@@ -657,8 +657,16 @@ public class ReasoningNode {
 					} else {
 						try {
 							this.startTime = Instant.now();
-							this.fromBindingSetHandlerForward = this.rule.getBindingSetHandler()
+							BindingSet bindingSet2 = this.rule.getBindingSetHandler()
 									.handle(this.toBindingSetHandlerForward).get();
+							if (fromBindingSetHandlerForward != null) {
+								this.fromBindingSetHandlerForwardPrevious = new BindingSet(
+										this.fromBindingSetHandlerForward);
+								this.fromBindingSetHandlerForward.addAll(bindingSet2);
+							} else {
+								this.fromBindingSetHandlerForwardPrevious = null;
+								this.fromBindingSetHandlerForward = bindingSet2;
+							}
 							this.endTime = Instant.now();
 						} catch (InterruptedException | ExecutionException e) {
 							LOG.error("Handling a bindingset should not fail.", e);
