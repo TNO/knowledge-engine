@@ -52,7 +52,15 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 		LOG.debug("Sent AskMessage: {}", askMessage);
 
-		return future;
+		return future.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	@Override
@@ -66,7 +74,15 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		messageDispatcher.send(postMessage);
 		LOG.debug("Sent PostMessage: {}", postMessage);
 
-		return future;
+		return future.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	/**
@@ -88,6 +104,14 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					messageDispatcher.send(reply);
 				} catch (Throwable e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+				}
+			}).handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured", e);
+					return null;
+				} else {
+					return r;
 				}
 			});
 		}
@@ -112,6 +136,14 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				} catch (Throwable e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
 				}
+			}).handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured", e);
+					return null;
+				} else {
+					return r;
+				}
 			});
 		}
 	}
@@ -127,6 +159,15 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			this.LOG.warn("I received a reply for an AskMessage with ID " + answerMessage.getReplyToAskMessage()
 					+ ", but I don't remember sending a message with that ID");
 		} else {
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(answerMessage);
 			LOG.debug("Received AnswerMessage: {}", answerMessage);
 		}
@@ -145,6 +186,15 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		} else {
 			assert reactMessage != null;
 			assert future != null;
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(reactMessage);
 			LOG.debug("Received ReactMessage: {}", reactMessage);
 		}

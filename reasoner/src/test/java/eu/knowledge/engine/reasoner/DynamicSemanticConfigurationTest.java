@@ -15,6 +15,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -22,6 +24,8 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class DynamicSemanticConfigurationTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
 
 	private KeReasoner reasoner;
 
@@ -66,6 +70,15 @@ public class DynamicSemanticConfigurationTest {
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 
 						return future;
@@ -110,6 +123,16 @@ public class DynamicSemanticConfigurationTest {
 							newBS.add(resultBinding);
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 						return future;
 					}

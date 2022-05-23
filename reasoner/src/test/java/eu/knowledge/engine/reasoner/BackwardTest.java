@@ -14,6 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -22,6 +24,8 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
 
 public class BackwardTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BackwardTest.class);
 
 	private KeReasoner reasoner;
 
@@ -81,6 +85,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -105,6 +119,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -130,6 +154,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 

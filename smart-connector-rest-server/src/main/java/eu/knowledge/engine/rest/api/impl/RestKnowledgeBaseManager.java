@@ -87,7 +87,15 @@ public class RestKnowledgeBaseManager {
 			f.complete(null);
 		}));
 		LOG.info("Added KB {}", scModel.getKnowledgeBaseId());
-		return f;
+		return f.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	public RestKnowledgeBase getKB(String knowledgeBaseId) {

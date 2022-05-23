@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -19,6 +22,8 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
  *
  */
 public class TaskBoard {
+
+	private static final Logger LOG = LoggerFactory.getLogger(TaskBoard.class);
 
 	public Set<Task> tasks;
 
@@ -70,6 +75,15 @@ public class TaskBoard {
 
 				// TODO this assumes every node only occurs once in all tasks.
 				node.setBindingSet(bs, startTime, Instant.now());
+			}).
+			handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured", e);
+					return null;
+				} else {
+					return r;
+				}
 			});
 
 			futures.add(resultingBindingSetFuture);

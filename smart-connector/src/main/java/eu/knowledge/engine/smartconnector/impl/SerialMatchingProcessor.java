@@ -66,7 +66,15 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	CompletableFuture<AskResult> executeAskInteraction(BindingSet bindingSet) {
 		this.answerFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
-		return this.answerFuture;
+		return this.answerFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	@Override
@@ -79,7 +87,15 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		this.LOG.trace("processPost()");
 		this.reactFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
-		return this.reactFuture;
+		return this.reactFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {

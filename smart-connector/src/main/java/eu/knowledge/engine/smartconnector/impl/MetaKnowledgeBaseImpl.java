@@ -296,6 +296,14 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 							// condition that otherKnowledgeBase should NEVER be null.
 							return null;
 						}
+					}).handle((r, e) -> {
+
+						if (r == null) {
+							LOG.error("An exception has occured", e);
+							return null;
+						} else {
+							return r;
+						}
 					});
 			return future;
 		} catch (IOException e) {
@@ -478,7 +486,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
 		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-				.execute(this.fillMetaBindings());
+				.execute(this.fillMetaBindings()).handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 	}
 
 	@Override

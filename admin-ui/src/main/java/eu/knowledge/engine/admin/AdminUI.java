@@ -160,6 +160,14 @@ public class AdminUI implements KnowledgeBase {
 						} catch (Throwable e) {
 							LOG.error("{}", e);
 						}
+					}).handle((r, e) -> {
+
+						if (r == null) {
+							LOG.error("An exception has occured", e);
+							return null;
+						} else {
+							return r;
+						}
 					});
 				}
 			} catch (Throwable t) {
