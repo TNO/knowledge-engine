@@ -3,7 +3,6 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +36,7 @@ import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.PostPlan;
@@ -74,6 +74,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * data exchange.
 	 */
 	private boolean reasonerEnabled = false;
+
+	private static boolean VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT = true;
 
 	private static final Query query = QueryFactory.create(
 			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
@@ -218,6 +220,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.thenApply((b) -> {
 			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+			if (this.shouldValidateInputOutputBindings()) {
+				var validator = new BindingValidator();
+				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(), anAskMsg.getBindings(), b);
+			}
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
@@ -298,6 +304,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.thenApply(b -> {
 			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+			if (this.shouldValidateInputOutputBindings()) {
+				var validator = new BindingValidator();
+				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(), reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+			}
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);
@@ -308,6 +318,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					e.getMessage());
 		});
+	}
+
+	private boolean shouldValidateInputOutputBindings() {
+		return SmartConnectorConfig.getBoolean(
+			SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
+			VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT
+		);
 	}
 
 	@Override

@@ -141,13 +141,12 @@ public class MatchTest {
 		TriplePattern t2 = new TriplePattern("?act <type> <CommunicativeAct>");
 		TriplePattern t3 = new TriplePattern("?act <hasSatisfaction> ?sat");
 		TriplePattern t4 = new TriplePattern("?sat <type> ?satType");
-		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
 		TriplePattern t6 = new TriplePattern("?kb <hasDescription> ?description");
 		TriplePattern t7 = new TriplePattern("?req <type> ?reqType");
 		TriplePattern t8 = new TriplePattern("?ki <hasCommunicativeAct> ?act");
 		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
 		TriplePattern t10 = new TriplePattern("?act <hasRequirement> ?req");
-		TriplePattern t11 = new TriplePattern("?gp <type> <GraphPattern>");
+		TriplePattern t11 = new TriplePattern("?gp <type> ?patternType");
 		TriplePattern t12 = new TriplePattern("?ki <isMeta> ?isMeta");
 		TriplePattern t13 = new TriplePattern("?kb <hasName> ?name");
 		TriplePattern t14 = new TriplePattern("?kb <hasKnowledgeInteraction> ?ki");
@@ -155,7 +154,7 @@ public class MatchTest {
 		TriplePattern t16 = new TriplePattern("?kb <type> <KnowledgeBase>");
 
 		Set<TriplePattern> obj = new HashSet<>(
-				Arrays.asList(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
+				Arrays.asList(t1, t2, t3, t4, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
 
 		Rule r = new Rule(null, obj);
 
@@ -247,12 +246,12 @@ public class MatchTest {
 	@Test
 	public void testGPMatcher10OrderingWithinGraphPatternsShouldNotMatter() {
 		TriplePattern t1 = new TriplePattern("?ki <type> ?kiType");
-		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t5 = new TriplePattern("?gp <type> ?patternType");
 		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
 
 		TriplePattern t23 = new TriplePattern("?ki <type> ?kiType");
 		TriplePattern t24 = new TriplePattern("?gp <hasPattern> ?pattern");
-		TriplePattern t211 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t211 = new TriplePattern("?gp <type> ?patternType");
 
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t5, t9));
 
@@ -280,12 +279,12 @@ public class MatchTest {
 	@Test
 	public void testGPMatcher11VariableNamesMatter() {
 		TriplePattern t1 = new TriplePattern("?ki <type> ?kiType");
-		TriplePattern t5 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t5 = new TriplePattern("?gp <type> ?patternType");
 		TriplePattern t9 = new TriplePattern("?gp <hasPattern> ?pattern");
 
 		TriplePattern t23 = new TriplePattern("?ki <type> ?kiType");
 		TriplePattern t24 = new TriplePattern("?gp <hasPattern> ?pattern");
-		TriplePattern t211 = new TriplePattern("?ki ?patternType ?gp");
+		TriplePattern t211 = new TriplePattern("?gp <type> ?patternType");
 
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t5, t9));
 
