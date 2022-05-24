@@ -1092,11 +1092,11 @@ public class ReasoningNode {
 				coveringNodes = new HashSet<>();
 				antecedentCoverageCache.put(tp, coveringNodes);
 
-				middleloop: for (Entry<ReasoningNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
+				for (Entry<ReasoningNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
 					for (Match m : entry.getValue()) {
 						if (m.getMatchingPatterns().keySet().contains(tp)) {
 							coveringNodes.add(entry.getKey());
-							break middleloop; // where does this break from? The middle loop.
+							break; // where does this break from? The inner loop.
 						}
 					}
 				}

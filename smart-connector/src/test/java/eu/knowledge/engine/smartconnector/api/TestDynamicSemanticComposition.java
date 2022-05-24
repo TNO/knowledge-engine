@@ -136,7 +136,7 @@ public class TestDynamicSemanticComposition {
 			AskPlan askPlan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
 
 			ReasoningNode plan = askPlan.getReasoningNode();
-
+			LOG.info("\n{}", askPlan.getReasoningNode());
 			Set<TriplePattern> knowledgeGaps = plan.getKnowledgeGaps();
 			LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
 
