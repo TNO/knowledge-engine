@@ -52,9 +52,9 @@ public class TestAskAnswerRealistic {
 
         var rules = new HashSet<Rule>();
         var antecedent = new HashSet<TriplePattern>();
-        antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
+        antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
         var consequent = new HashSet<TriplePattern>();
-        consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
+        consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
         rules.add(new Rule(antecedent, consequent));
 
         kn.addKB(kb1);
@@ -226,7 +226,7 @@ public class TestAskAnswerRealistic {
                                                 kb2.getKnowledgeBaseId(),
                                                 kb4.getKnowledgeBaseId()
 
-                 )), kbIds, "The result/s should come from kb1 and kb2 and not: " + kbIds);
+                 )), kbIds, "The result/s should come from kb1, kb2 and kb4 and not: " + kbIds);
 
             assertEquals(3, bindings.size());
             
