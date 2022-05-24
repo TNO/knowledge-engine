@@ -77,22 +77,11 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
-				new TriplePattern("?id <hasCountry> \"Russia\""))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
-		
 		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
-						new TriplePattern("?id <hasLanguage> \"Russian\""))),
+						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
-		
-//		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
-//				new TriplePattern("?id <hasCountry> \"Russia\""), new TriplePattern("?id <hasLanguage> \"Russian\""))),
-//				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
-	}
-
-	public void fixKnowledgeGap() {
 		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
@@ -148,21 +137,6 @@ public class DynamicSemanticConfigurationTest {
 		// Make a plan
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		LOG.info("\n{}", root);
-
-		// Find knowledge gaps
-		Set<Set<TriplePattern>> knowledgeGaps = root.getKnowledgeGaps();
-		LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
-		assertFalse(knowledgeGaps.isEmpty());
-
-		// Fix the knowledge gap
-		fixKnowledgeGap();
-
-		// Make a new plan
-		root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		LOG.info("\n{}", root);
-		knowledgeGaps = root.getKnowledgeGaps();
-		assertTrue(knowledgeGaps.isEmpty());
-
 		BindingSet bs = new BindingSet();
 		// Start reasoning
 		BindingSet bind;

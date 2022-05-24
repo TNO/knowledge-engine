@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestDynamicSemanticComposition {
 
@@ -56,11 +57,6 @@ public class TestDynamicSemanticComposition {
 		kbHVTSearcher = new MockedKnowledgeBase("HVTSearcher");
 		kbHVTSearcher.setReasonerEnabled(true);
 		kn.addKB(kbHVTSearcher);
-		// start a knowledge base with the behaviour "Give me a target and I can supply
-		// its basic attributes"
-		kbTargetAttributeSupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
-		kbTargetAttributeSupplier.setReasonerEnabled(true);
-		kn.addKB(kbTargetAttributeSupplier);
 
 		LOG.info("Waiting for ready...");
 		kn.startAndWaitForReady();
@@ -112,10 +108,66 @@ public class TestDynamicSemanticComposition {
 			return new BindingSet();
 		});
 
+		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
+		HashSet<TriplePattern> consequent1 = new HashSet<TriplePattern>();
+		consequent1.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
+		antecedent1.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+
+		HashSet<TriplePattern> consequent2 = new HashSet<TriplePattern>();
+		consequent2.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent2 = new HashSet<TriplePattern>();
+		antecedent2.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent2.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
+
+		HashSet<TriplePattern> consequent3 = new HashSet<TriplePattern>();
+		consequent3.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent3 = new HashSet<TriplePattern>();
+		antecedent3.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
+		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+
+		Set<Rule> ruleSet = new HashSet<>();
+		ruleSet.add(new Rule(antecedent1, consequent1));
+		ruleSet.add(new Rule(antecedent2, consequent2));
+//		ruleSet.add(new Rule(antecedent3, consequent3));
+
+		kbHVTSearcher.setDomainKnowledge(ruleSet);
+		kbTargetObserver.setDomainKnowledge(ruleSet);
+
+		kn.waitForUpToDate();
+
+		// start planning ask for targets!
+		BindingSet bindings = null;
+		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
+
+		// check for knowledge gaps
+		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(plan.getReasoningNode());
+
+		LOG.info("Found gaps: " + gaps);
+		// add KB that fills the knowledge gap
+
+		// start a knowledge base with the behaviour "Give me a target and I can supply
+		// its basic attributes"
+		kbTargetAttributeSupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
+		kbTargetAttributeSupplier.setReasonerEnabled(true);
+		kn.addKB(kbTargetAttributeSupplier);
+
+		kn.startAndWaitForReady();
+		kn.waitForUpToDate();
+
 		// Patterns for the TargetAttributeSupplier
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
-		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
+		GraphPattern gp3out = new GraphPattern(prefixes,
+				"?id v1905:hasCountry ?country . ?id v1905:hasLanguage ?lang .");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
 				"reactCountry");
 		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
@@ -131,42 +183,31 @@ public class TestDynamicSemanticComposition {
 				Binding b = iter.next();
 				String id = b.get("id");
 				String country = "";
+				String language = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
 				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
 					country = "\"Russia\"";
+					language = "\"Russian\"";
 				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
 					country = "\"Holland\"";
+					language = "\"Dutch\"";
 				} else {
 					country = "\"Belgium\"";
+					language = "\"Flemish\"";
 				}
 				rb.put("country", country);
+				rb.put("lang", language);
 				resultBindings.add(rb);
 			}
 
 			LOG.info("resultBinding is {}", resultBindings);
 			return resultBindings;
 		});
-
-		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
-		HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
-		consequent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
-		HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
-		Rule r = new Rule(antecedent, consequent);
-		Set<Rule> ruleSet = new HashSet<>();
-		ruleSet.add(r);
-		kbHVTSearcher.setDomainKnowledge(ruleSet);
-		kbTargetObserver.setDomainKnowledge(ruleSet);
 		kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
 
-		kn.waitForUpToDate();
-
 		// start testing ask for targets!
-		BindingSet bindings = null;
+		bindings = null;
 		try {
 			LOG.trace("Before ask.");
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();

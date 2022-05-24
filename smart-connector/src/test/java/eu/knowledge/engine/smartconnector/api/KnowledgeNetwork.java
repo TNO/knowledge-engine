@@ -47,13 +47,15 @@ public class KnowledgeNetwork {
 	public void startAndWaitForReady() {
 
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			kb.start();
+			if (!kb.isStarted())
+				kb.start();
 		}
 
 		// wait until all smart connectors have given the 'ready' signal (and registered
 		// all their knowledge interactions).
 		LOG.debug("Waiting for ready.");
 		readyPhaser.arriveAndAwaitAdvance();
+		readyPhaser = new Phaser(1);
 		LOG.debug("Everyone is ready!");
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
