@@ -109,7 +109,7 @@ public class TestDynamicSemanticComposition {
 				Binding b = iter.next();
 				LOG.info("Incoming HVT is {}", b);
 			}
-			return null;
+			return new BindingSet();
 		});
 
 		// Patterns for the TargetAttributeSupplier
