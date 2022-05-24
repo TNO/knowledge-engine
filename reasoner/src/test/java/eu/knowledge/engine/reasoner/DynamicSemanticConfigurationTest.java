@@ -77,10 +77,18 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
+				new TriplePattern("?id <hasCountry> \"Russia\""))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
+		
 		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
-						new TriplePattern("?id <hasCountry> \"Russia\""))),
+						new TriplePattern("?id <hasLanguage> \"Russian\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
+		
+//		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
+//				new TriplePattern("?id <hasCountry> \"Russia\""), new TriplePattern("?id <hasLanguage> \"Russian\""))),
+//				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
 	}
 
@@ -88,7 +96,9 @@ public class DynamicSemanticConfigurationTest {
 		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"),
+						new TriplePattern("?id <hasLanguage> ?lang"))),
+				new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -104,15 +114,18 @@ public class DynamicSemanticConfigurationTest {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Russia\"");
+								resultBinding.put("lang", "\"Russian\"");
 							} else if (incomingB.containsKey("id")
 									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Holland\"");
+								resultBinding.put("lang", "\"Dutch\"");
 							} else {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Belgium\"");
+								resultBinding.put("lang", "\"Flemish\"");
 							}
 							newBS.add(resultBinding);
 						}
@@ -137,7 +150,7 @@ public class DynamicSemanticConfigurationTest {
 		LOG.info("\n{}", root);
 
 		// Find knowledge gaps
-		Set<TriplePattern> knowledgeGaps = root.getKnowledgeGaps();
+		Set<Set<TriplePattern>> knowledgeGaps = root.getKnowledgeGaps();
 		LOG.info("Not satisfied triple patterns: {}", knowledgeGaps);
 		assertFalse(knowledgeGaps.isEmpty());
 

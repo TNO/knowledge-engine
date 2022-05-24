@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1171,20 +1172,26 @@ public class ReasoningNode {
 	 * related by {@code and} both need to be solved to solve the gap.
 	 * 
 	 * @return returns all triples that have no matching nodes (and for which there
-	 *         are no alternatives).
+	 *         are no alternatives). Note that it returns a set of sets. Where every
+	 *         set in this set represents a single way to resolve the knowledge gaps
+	 *         present in this reasoning graph. So, {@code [[A],[B]]} means either
+	 *         triple {@code A} <i><b>OR</b></i> triple {@code B} needs be added to
+	 *         solve the gap or both, while {@code [[A,B]]} means that both
+	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
+	 *         gap.
 	 */
-	public Set<TriplePattern> getKnowledgeGaps() {
+	public Set<Set<TriplePattern>> getKnowledgeGaps() {
 
-		Set<TriplePattern> gaps = new HashSet<>();
+		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
 		Map<TriplePattern, Set<ReasoningNode>> nodeCoverage = this.findAntecedentCoverage(this.antecedentNeighbors);
 
 		// collect triple patterns that have an empty set
-		Set<TriplePattern> collectGaps, someGaps;
+		Set<Set<TriplePattern>> collectedOrGaps, someGaps;
 		for (Entry<TriplePattern, Set<ReasoningNode>> entry : nodeCoverage.entrySet()) {
 
-			collectGaps = new HashSet<>();
+			collectedOrGaps = new HashSet<>();
 			boolean foundNeighborWithoutGap = false;
 			for (ReasoningNode neighbor : entry.getValue()) {
 				// make sure neighbor has no knowledge gaps
@@ -1194,20 +1201,35 @@ public class ReasoningNode {
 					foundNeighborWithoutGap = true;
 					break;
 				}
-				collectGaps.addAll(someGaps);
+				collectedOrGaps.addAll(someGaps);
 			}
 
 			if (!foundNeighborWithoutGap) {
 				// there is a gap here, either in the current node or in a neighbor.
-				if (collectGaps.isEmpty()) {
-					gaps.add(entry.getKey());
+
+				if (collectedOrGaps.isEmpty()) {
+					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
+				}
+
+				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
+				if (existingOrGaps.isEmpty()) {
+					existingOrGaps.addAll(collectedOrGaps);
 				} else {
-					gaps.addAll(collectGaps);
+					Set<TriplePattern> newGap;
+					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
+						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
+							newGap = new HashSet<>();
+							newGap.addAll(existingOrGap);
+							newGap.addAll(collectedOrGap);
+							newExistingOrGaps.add(newGap);
+						}
+					}
+					existingOrGaps = newExistingOrGaps;
 				}
 			}
 		}
 
-		return gaps;
+		return existingOrGaps;
 	}
 
 }
