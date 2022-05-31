@@ -55,7 +55,7 @@ public class KnowledgeNetwork {
 		// all their knowledge interactions).
 		LOG.debug("Waiting for ready.");
 		readyPhaser.arriveAndAwaitAdvance();
-		readyPhaser = new Phaser(1);
+		readyPhaser = new Phaser(1); // reset the phaser
 		LOG.debug("Everyone is ready!");
 
 		// register our state check Knowledge Interaction on each Smart Connecotr

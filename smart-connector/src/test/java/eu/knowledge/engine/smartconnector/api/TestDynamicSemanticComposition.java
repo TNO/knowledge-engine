@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.impl.Util;
@@ -148,8 +149,12 @@ public class TestDynamicSemanticComposition {
 		BindingSet bindings = null;
 		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
 
+		ReasoningNode rn = plan.getReasoningNode();
+		rn.prune();
+		LOG.info("Plan: {}", rn);
+
 		// check for knowledge gaps
-		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(plan.getReasoningNode());
+		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn);
 
 		LOG.info("Found gaps: " + gaps);
 		// add KB that fills the knowledge gap
