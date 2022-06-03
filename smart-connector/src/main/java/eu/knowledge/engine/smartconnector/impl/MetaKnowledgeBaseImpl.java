@@ -144,6 +144,19 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}, true);
 	}
 
+	/**
+	 * Generate a binding set that (together with the meta graph pattern)
+	 * represents this knowledge base and its knowledge interactions.
+	 *
+	 * @param incoming If given, this method will make sure to return a binding
+	 * set that only contains bindings that 'fit on' a binding in the given
+	 * binding set by removing bindings that do not 'fit'. If null, no such
+	 * operation is performed.
+	 *
+	 * @return a binding set (or part thereof, if {@code incoming} is given) that
+	 * (together with the meta graph pattern) represents this knowledge base and
+	 * its knowledge interactions.
+	 */
 	private BindingSet fillMetaBindings(BindingSet incoming) {
 
 		// first create a RDF version of this KnowledgeBase
