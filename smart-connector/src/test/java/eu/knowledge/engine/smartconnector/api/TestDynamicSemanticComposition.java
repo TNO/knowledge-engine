@@ -32,7 +32,8 @@ public class TestDynamicSemanticComposition {
 
 	private static MockedKnowledgeBase kbTargetObserver;
 	private static MockedKnowledgeBase kbHVTSearcher;
-	private static MockedKnowledgeBase kbTargetAttributeSupplier;
+	private static MockedKnowledgeBase kbTargetCountrySupplier;
+	private static MockedKnowledgeBase kbTargetLanguageSupplier;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -161,23 +162,23 @@ public class TestDynamicSemanticComposition {
 
 		// start a knowledge base with the behaviour "Give me a target and I can supply
 		// its basic attributes"
-		kbTargetAttributeSupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
-		kbTargetAttributeSupplier.setReasonerEnabled(true);
-		kn.addKB(kbTargetAttributeSupplier);
+		kbTargetCountrySupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
+		kbTargetCountrySupplier.setReasonerEnabled(true);
+		kn.addKB(kbTargetCountrySupplier);
 
 		kn.startAndWaitForReady();
 		kn.waitForUpToDate();
 
-		// Patterns for the TargetAttributeSupplier
+		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes,
 				"?id v1905:hasCountry ?country . ?id v1905:hasLanguage ?lang .");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
 				"reactCountry");
-		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
+		kbTargetCountrySupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
 
-			LOG.info("TargetAttributeSupplier Reacting...");
+			LOG.info("TargetCountrySupplier Reacting...");
 			var argument = aReactExchangeInfo.getArgumentBindings();
 			LOG.info("Argument bindings are: {}", argument);
 			Iterator<Binding> iter = argument.iterator();
@@ -193,15 +194,48 @@ public class TestDynamicSemanticComposition {
 				rb.put("id", id);
 				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
 					country = "\"Russia\"";
-					language = "\"Russian\"";
 				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
 					country = "\"Holland\"";
-					language = "\"Dutch\"";
 				} else {
 					country = "\"Belgium\"";
-					language = "\"Flemish\"";
 				}
 				rb.put("country", country);
+				resultBindings.add(rb);
+			}
+
+			LOG.info("resultBinding is {}", resultBindings);
+			return resultBindings;
+		});
+		kbTargetCountrySupplier.setDomainKnowledge(ruleSet);
+
+		// Patterns for the TargetCountrySupplier
+		// a react pattern to get from targets to countries
+		GraphPattern gp4in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
+		GraphPattern gp4out = new GraphPattern(prefixes, "?id v1905:hasLanguage ?lang .");
+		ReactKnowledgeInteraction reactKI2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp4in, gp4out,
+				"reactCountry");
+		kbTargetLanguageSupplier.register(reactKI2, (anRKI, aReactExchangeInfo) -> {
+
+			LOG.info("TargetLanguageSupplier Reacting...");
+			var argument = aReactExchangeInfo.getArgumentBindings();
+			LOG.info("Argument bindings are: {}", argument);
+			Iterator<Binding> iter = argument.iterator();
+
+			BindingSet resultBindings = new BindingSet();
+
+			while (iter.hasNext()) {
+				Binding b = iter.next();
+				String id = b.get("id");
+				String language = "";
+				Binding rb = new Binding();
+				rb.put("id", id);
+				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
+					language = "\"Russian\"";
+				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
+					language = "\"Dutch\"";
+				} else {
+					language = "\"Flemish\"";
+				}
 				rb.put("lang", language);
 				resultBindings.add(rb);
 			}
@@ -209,7 +243,7 @@ public class TestDynamicSemanticComposition {
 			LOG.info("resultBinding is {}", resultBindings);
 			return resultBindings;
 		});
-		kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
+		kbTargetLanguageSupplier.setDomainKnowledge(ruleSet);
 
 		// start testing ask for targets!
 		bindings = null;
@@ -280,8 +314,8 @@ public class TestDynamicSemanticComposition {
 			fail("kbHVTSearcher should not be null!");
 		}
 
-		if (kbTargetAttributeSupplier != null) {
-			kbTargetAttributeSupplier.stop();
+		if (kbTargetCountrySupplier != null) {
+			kbTargetCountrySupplier.stop();
 		} else {
 			fail("kbTargetAttributeSupplier should not be null!");
 		}
