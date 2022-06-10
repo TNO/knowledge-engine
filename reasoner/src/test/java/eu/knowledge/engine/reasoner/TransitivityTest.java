@@ -1,11 +1,12 @@
 package eu.knowledge.engine.reasoner;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
@@ -51,7 +52,6 @@ public class TransitivityTest {
 		reasoner.addRule(rule);
 	}
 
-	@Ignore
 	@Test
 	public void test() {
 		Set<TriplePattern> aGoal = new HashSet<>();
@@ -60,13 +60,18 @@ public class TransitivityTest {
 		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
 		BindingSet result = null;
 
+		int nrOfExpectedBindings = 15;
+
 		System.out.println(rn);
 		while ((result = rn.continueBackward(new BindingSet())) == null) {
 			System.out.println(rn);
 			taskboard.executeScheduledTasks();
 		}
 
+		System.out.println("Size (should be " + nrOfExpectedBindings + "): " + result.size());
 		System.out.println("Result: " + result);
+		assertEquals(nrOfExpectedBindings, result.size());
+
 	}
 
 }
