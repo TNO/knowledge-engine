@@ -503,7 +503,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
 		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-				.execute(this.fillMetaBindings()).handle((r, e) -> {
+				.execute(this.fillMetaBindings(null)).handle((r, e) -> {
 
 					if (r == null) {
 						LOG.error("An exception has occured", e);
