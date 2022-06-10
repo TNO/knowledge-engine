@@ -24,55 +24,112 @@ public class Rule {
 		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
 	}
 
-	public Set<TriplePattern> antecedent;
-	public Set<TriplePattern> consequent;
+	public static class TrivialBindingSetHandler implements BindingSetHandler {
+
+		private Set<TriplePattern> consequent;
+
+		public TrivialBindingSetHandler(Set<TriplePattern> aConsequent) {
+			this.consequent = aConsequent;
+		}
+
+		@Override
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+
+			BindingSet newBS = new BindingSet();
+
+			Binding newB;
+
+			Set<Var> vars = Rule.getVars(this.consequent);
+			for (Binding b : bs) {
+				newB = new Binding();
+				for (Var v : vars) {
+					if (b.containsKey(v)) {
+						newB.put(v, b.get(v));
+					} else {
+						throw new IllegalArgumentException(
+								"Not all variables in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
+					}
+				}
+				newBS.add(newB);
+			}
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			future.complete(newBS);
+			return future;
+		}
+	}
+
+	/**
+	 * The store to which this rule belongs. A rule can only belong to a single
+	 * store.
+	 */
+	private RuleStore store;
+
+	/**
+	 * The antecedent of this rule. This set of triple patterns represents the type
+	 * of data that is required for this rule to apply.
+	 */
+	private Set<TriplePattern> antecedent;
+
+	/**
+	 * The consequent of this rule. This set of triple patterns represent the type
+	 * of data that results after applying this rule.
+	 */
+	private Set<TriplePattern> consequent;
+
+	/**
+	 * All other rules in the {@link Rule#store} whose consequents match this rule's
+	 * antecedent either fully or partially.
+	 */
+	private Map<Rule, Set<Match>> antecedentNeighbors;
+
+	/**
+	 * All other rules in the {@link Rule#store} whose antecedents match this rule's
+	 * consequent either fully or partially.
+	 */
+	private Map<Rule, Set<Match>> consequentNeighbors;
 
 	public BindingSetHandler bindingSetHandler;
 
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
+	public Rule(RuleStore aStore, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+			BindingSetHandler aBindingSetHandler) {
+
+		if (aStore == null)
+			throw new IllegalArgumentException("A rule should have a non-null rule store.");
+
+		if (anAntecedent.isEmpty() && aConsequent.isEmpty())
+			throw new IllegalArgumentException("A rule should not have both antecedent and consequent empty.");
+
+		if (anAntecedent == null || aConsequent == null)
+			throw new IllegalArgumentException("A rule should have both antecedent and consequent non-null.");
+
+		if (aBindingSetHandler == null)
+			throw new IllegalArgumentException("A rule should have a non-null bindingsethandler.");
+
+		this.store = aStore;
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 		bindingSetHandler = aBindingSetHandler;
 	}
 
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
-		this.antecedent = anAntecedent;
-		this.consequent = aConsequent;
-		bindingSetHandler = new BindingSetHandler() {
-			@Override
-			public CompletableFuture<BindingSet> handle(BindingSet bs) {
-
-				BindingSet newBS = new BindingSet();
-
-				Binding newB;
-
-				Set<Var> vars = Rule.this.getVars(Rule.this.consequent);
-				for (Binding b : bs) {
-					newB = new Binding();
-					for (Var v : vars) {
-						if (b.containsKey(v)) {
-							newB.put(v, b.get(v));
-						} else {
-							throw new IllegalArgumentException(
-									"Not all variables in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
-						}
-					}
-					newBS.add(newB);
-				}
-
-				CompletableFuture<BindingSet> future = new CompletableFuture<>();
-				future.complete(newBS);
-				return future;
-			}
-		};
+	public Rule(RuleStore aStore, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+		this(aStore, anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
 	}
 
-	public Set<Var> getVars(Set<TriplePattern> aPattern) {
+	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
 		Set<Var> vars = new HashSet<Var>();
 		for (TriplePattern t : aPattern) {
 			vars.addAll(t.getVariables());
 		}
 		return vars;
+	}
+
+	public Set<TriplePattern> getAntecedent() {
+		return this.antecedent;
+	}
+
+	public Set<TriplePattern> getConsequent() {
+		return this.consequent;
 	}
 
 	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, MatchStrategy aMatchStrategy) {
@@ -285,12 +342,12 @@ public class Rule {
 	public Set<Var> getVars() {
 
 		Set<Var> vars = new HashSet<>();
-		;
+
 		if (this.antecedent != null)
-			vars.addAll(this.getVars(this.antecedent));
+			vars.addAll(Rule.getVars(this.antecedent));
 
 		if (this.consequent != null)
-			vars.addAll(this.getVars(this.consequent));
+			vars.addAll(Rule.getVars(this.consequent));
 
 		return vars;
 	}
@@ -303,6 +360,13 @@ public class Rule {
 		result = prime * result + ((bindingSetHandler == null) ? 0 : bindingSetHandler.hashCode());
 		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
 		return result;
+	}
+
+	/**
+	 * @return The store this rule belongs to.
+	 */
+	public RuleStore getStore() {
+		return this.store;
 	}
 
 	@Override
