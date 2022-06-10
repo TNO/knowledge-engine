@@ -1,8 +1,17 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
+import javax.cache.spi.CachingProvider;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -21,7 +30,16 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
 
-	private static Map<String, Node> nodeCache = new HashMap<>();
+	static {
+		CachingProvider cachingProvider = Caching.getCachingProvider();
+		CacheManager cacheManager = cachingProvider.getCacheManager();
+		MutableConfiguration<String, Node> config = new MutableConfiguration<String, Node>()
+				.setTypes(String.class, Node.class).setStoreByValue(false)
+				.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.ONE_HOUR));
+		nodeCache = cacheManager.createCache("nodeCache", config);
+	}
+
+	private static Cache<String, Node> nodeCache;
 
 	/**
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
@@ -76,5 +94,20 @@ public class Util {
 			}
 		}
 		return m;
+	}
+
+	public static void removeRedundantBindingsAnswer(BindingSet incoming, BindingSet outgoing) {
+		if (incoming.isEmpty()) {
+			// We should not remove any bindings in this case!
+			return;
+		}
+
+		var toBeRemoved = new ArrayList<Binding>();
+		outgoing.forEach(outgoingBinding -> {
+			if (incoming.stream().allMatch(incomingBinding -> !incomingBinding.isSubBindingOf(outgoingBinding))) {
+				toBeRemoved.add(outgoingBinding);
+			}
+		});
+		outgoing.removeAll(toBeRemoved);
 	}
 }

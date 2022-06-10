@@ -74,6 +74,26 @@ public class Binding {
 		return this.map.get(aVariableName);
 	}
 
+	public boolean isSubBindingOf(Binding other) {
+		if (!other.getVariables().containsAll(this.getVariables())) {
+			return false;
+		}
+
+		return other.map.entrySet().stream().allMatch(b -> {
+			var variable = b.getKey();
+			var value = b.getValue();
+			return !this.containsKey(variable) || value.equals(this.get(variable));
+		});
+	}
+
+	public Binding keepOnly(Set<String> variables) {
+		var b = new Binding();
+		for (var a : variables) {
+			b.put(a, this.get(a));
+		}
+		return b;
+	}
+
 	public Set<String> getVariables() {
 		return this.map.keySet();
 	}
@@ -92,7 +112,7 @@ public class Binding {
 	@Override
 	public Binding clone() {
 		Binding b = new Binding();
-		for (var a : b.map.entrySet()) {
+		for (var a : this.map.entrySet()) {
 			b.put(a.getKey(), a.getValue());
 		}
 		return b;

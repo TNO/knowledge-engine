@@ -104,16 +104,26 @@ public class AdminUI implements KnowledgeBase {
 		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
 		// first define your graph pattern
-		GraphPattern gp = new GraphPattern(this.prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
-		// todo: possibly add:
-		// "?s kb:hasEndpoint ?endpoint .",
-		// "?t kb:hasData ?data .",
+		GraphPattern gp = new GraphPattern(this.prefixes,
+			"?kb rdf:type kb:KnowledgeBase .",
+			"?kb kb:hasName ?name .",
+			"?kb kb:hasDescription ?description .",
+			"?kb kb:hasKnowledgeInteraction ?ki .",
+			"?ki rdf:type ?kiType .",
+			"?ki kb:isMeta ?isMeta .",
+			"?ki kb:hasCommunicativeAct ?act .",
+			"?act rdf:type kb:CommunicativeAct .",
+			"?act kb:hasRequirement ?req .",
+			"?act kb:hasSatisfaction ?sat .",
+			"?req rdf:type ?reqType .",
+			"?sat rdf:type ?satType .",
+			"?ki kb:hasGraphPattern ?gp .",
+			"?gp rdf:type ?patternType .",
+			"?gp kb:hasPattern ?pattern ."
+		);
+		//todo: possibly add:
+		//"?s kb:hasEndpoint ?endpoint .",
+		//"?t kb:hasData ?data .",
 
 		// create the correct Knowledge Interaction
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);

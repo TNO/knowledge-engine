@@ -513,6 +513,18 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
+  /version:
+    get:
+      summary: Get version info.
+      tags:
+        - version info
+      responses:
+        '200':
+          description: Version info, currently only containing the artifact version of the KE REST server.
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
 components:
   schemas:
     SmartConnector:
@@ -747,3 +759,8 @@ components:
         you are allowed to use those prefixes in the graph pattern(s) that the 
         knowledge interaction contains. Keep in mind that the prefixes can only
         be used in your graph pattern during registration, and not within bindings.
+    VersionInfo:
+      type: object
+      properties:
+        version: 
+          type: string
