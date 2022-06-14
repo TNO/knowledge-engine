@@ -77,7 +77,7 @@ public class TaskBoardTest {
 					} else {
 						return r;
 					}
-				});;
+				});
 
 				return future;
 			}

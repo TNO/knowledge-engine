@@ -75,8 +75,7 @@ public class TaskBoard {
 
 				// TODO this assumes every node only occurs once in all tasks.
 				node.setBindingSet(bs, startTime, Instant.now());
-			}).
-			handle((r, e) -> {
+			}).handle((r, e) -> {
 
 				if (r == null) {
 					LOG.error("An exception has occured", e);
