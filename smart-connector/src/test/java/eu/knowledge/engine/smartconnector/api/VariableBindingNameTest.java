@@ -28,7 +28,7 @@ class VariableBindingNameTest {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
-		prefixes.setNsPrefix("ic", "https://www.tno.nl/energy/ontology/interconnect/");
+		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		// first add the relevant knowledge bases
