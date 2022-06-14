@@ -63,8 +63,8 @@ public class TestAskPartialMetadata {
 		kn.startAndWaitForReady();
 
 		GraphPattern gp2 = new GraphPattern(prefixes,
-				"?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase>.",
-				"?x <https://www.tno.nl/energy/ontology/interconnect#hasName> \"kb1\" ");
+				"?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase>.",
+				"?x <https://w3id.org/knowledge-engine/hasName> \"kb1\" ");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 

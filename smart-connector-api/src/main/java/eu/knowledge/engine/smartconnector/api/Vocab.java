@@ -6,9 +6,9 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 public class Vocab {
 
-	public static final String ONTOLOGY_RESOURCE_LOCATION = "/knowledgebase.ttl";
+	public static final String ONTOLOGY_RESOURCE_LOCATION = "/knowledge-engine-ontology.ttl";
 
-	public static final String ONTO_URI = "https://www.tno.nl/energy/ontology/interconnect#";
+	public static final String ONTO_URI = "https://w3id.org/knowledge-engine/";
 
 	public static final Resource KNOWLEDGE_BASE = ResourceFactory.createResource(ONTO_URI + "KnowledgeBase");
 	public static final Resource KNOWLEDGE_INTERACTION = ResourceFactory
