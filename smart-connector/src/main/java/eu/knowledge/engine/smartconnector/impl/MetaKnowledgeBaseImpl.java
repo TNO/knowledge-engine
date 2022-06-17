@@ -118,8 +118,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.addKnowledgeBase(newKb);
 			return new BindingSet();
 		}, true);
 
@@ -128,8 +128,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.updateKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.updateKnowledgeBase(changedKb);
 			return new BindingSet();
 		}, true);
 
@@ -138,8 +138,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.removeKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.removeKnowledgeBase(removedKb);
 			return new BindingSet();
 		}, true);
 	}
@@ -303,9 +303,10 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 					.thenApply(answerMsg -> {
 						try {
 							this.LOG.trace("Received message: {}", answerMsg);
-							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings());
-							assert otherKB.getId().equals(answerMsg.getFromKnowledgeBase());
-							return otherKB;
+							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), toKnowledgeBaseId);
+							if (otherKB != null) {
+								return otherKB;
+							}
 						} catch (Throwable t) {
 							this.LOG.error("The construction of other knowledge base should succeed.", t);
 							// TODO do we want to complete the future exceptionally, here? Because we have a
@@ -321,7 +322,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}
 	}
 
-	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings) {
+	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings, URI otherKnowledgeBaseId) {
 		assert !bindings.isEmpty() : "An answer meta message should always have at least a single binding.";
 
 		Model model;
@@ -486,6 +487,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			kbId = new URI(kb.getURI());
 		} catch (URISyntaxException e) {
 			LOG.error("Invalid URI for knowledge base: " + kb.getURI(), e);
+			return null;
+		}
+		if (kbId != otherKnowledgeBaseId) {
+			LOG.error("Received KB metadata about a KB from another KB! This is not allowed.");
+			return null;
 		}
 
 		return new OtherKnowledgeBase(kbId, name, description, knowledgeInteractions, null);
