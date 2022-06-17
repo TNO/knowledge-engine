@@ -304,9 +304,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						try {
 							this.LOG.trace("Received message: {}", answerMsg);
 							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), toKnowledgeBaseId);
-							if (otherKB != null) {
-								return otherKB;
-							}
+							return otherKB;
 						} catch (Throwable t) {
 							this.LOG.error("The construction of other knowledge base should succeed.", t);
 							// TODO do we want to complete the future exceptionally, here? Because we have a
