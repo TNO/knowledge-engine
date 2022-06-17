@@ -487,7 +487,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			LOG.error("Invalid URI for knowledge base: " + kb.getURI(), e);
 			return null;
 		}
-		if (kbId != otherKnowledgeBaseId) {
+		if (!kbId.equals(otherKnowledgeBaseId)) {
 			LOG.error("Received KB metadata about a KB from another KB! This is not allowed.");
 			return null;
 		}
