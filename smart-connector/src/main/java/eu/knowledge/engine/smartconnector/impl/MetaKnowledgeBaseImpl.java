@@ -118,6 +118,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.NEW_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				return null;
+			}
 			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.addKnowledgeBase(newKb);
 			return new BindingSet();
@@ -128,6 +135,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				return null;
+			}
 			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.updateKnowledgeBase(changedKb);
 			return new BindingSet();
@@ -138,6 +152,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				return null;
+			}
 			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.removeKnowledgeBase(removedKb);
 			return new BindingSet();
@@ -303,6 +324,13 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 					.thenApply(answerMsg -> {
 						try {
 							this.LOG.trace("Received message: {}", answerMsg);
+							var answeringKi = answerMsg.getFromKnowledgeInteraction();
+							var itShouldBeThis = this.knowledgeBaseStore.getMetaId(toKnowledgeBaseId, KnowledgeInteractionInfo.Type.ANSWER, null);
+							if (!answeringKi.equals(itShouldBeThis)) {
+								this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", answeringKi);
+								this.LOG.debug("Received meta bindings: {}", answerMsg.getBindings());
+								return null;
+							}
 							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), toKnowledgeBaseId);
 							return otherKB;
 						} catch (Throwable t) {
