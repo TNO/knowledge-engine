@@ -151,7 +151,7 @@ public class TestDynamicSemanticComposition {
 		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
 
 		ReasoningNode rn = plan.getReasoningNode();
-		rn.prune();
+//		rn.prune();
 		LOG.info("Plan: {}", rn);
 
 		// check for knowledge gaps
