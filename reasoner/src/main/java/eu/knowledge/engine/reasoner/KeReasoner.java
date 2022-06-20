@@ -13,10 +13,10 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 public class KeReasoner {
 
 	// rules might need an order to prevent infinite loops
-	private List<Rule> rules = new ArrayList<Rule>();
+	private RuleStore store = new RuleStore();
 
 	public void addRule(Rule rule) {
-		rules.add(rule);
+		store.addRule(rule);
 	}
 
 	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
@@ -34,12 +34,13 @@ public class KeReasoner {
 			}
 
 		});
-		ReasoningNode root = new ReasoningNode(rules, null, goalRule, aMatchStrategy, true, aTaskboard);
+		this.store.addRule(goalRule);
+		ReasoningNode root = new ReasoningNode(new ArrayList<>(this.store.getRules()), null, goalRule, aMatchStrategy,
+				true, aTaskboard);
 		return root;
 	}
 
 	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
-
 		Rule premiseRule = new Rule(new HashSet<>(), aPremise, new BindingSetHandler() {
 
 			/**
@@ -53,13 +54,14 @@ public class KeReasoner {
 			}
 		});
 
-		ReasoningNode root = new ReasoningNode(rules, null, premiseRule, aMatchStrategy, false, aTaskboard);
+		ReasoningNode root = new ReasoningNode(new ArrayList<>(this.store.getRules()), null, premiseRule,
+				aMatchStrategy, false, aTaskboard);
 
 		return root;
 	}
 
 	public List<Rule> getRules() {
-		return this.rules;
+		return new ArrayList<>(this.store.getRules());
 	}
 
 }

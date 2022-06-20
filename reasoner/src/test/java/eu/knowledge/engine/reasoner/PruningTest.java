@@ -1,8 +1,8 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,14 +10,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class PruningTest {
 
 	private static class MyBindingSetHandler implements BindingSetHandler {
@@ -45,7 +48,7 @@ public class PruningTest {
 	private Rule grandParentRule;
 	private Rule obsoleteRule;
 
-	@Before
+	@BeforeAll
 	public void init() {
 		reasoner = new KeReasoner();
 

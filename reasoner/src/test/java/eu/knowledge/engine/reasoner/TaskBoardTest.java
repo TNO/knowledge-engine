@@ -1,8 +1,9 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -11,11 +12,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TaskBoardTest {
 
@@ -39,44 +41,45 @@ public class TaskBoardTest {
 
 		TaskBoard tb = new TaskBoard();
 
-		Rule r = new Rule(new HashSet<>(), new HashSet<>(), new BindingSetHandler() {
+		Rule r = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Test>"))), new HashSet<>(),
+				new BindingSetHandler() {
 
-			@Override
-			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+					@Override
+					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
-				try {
-					Thread.sleep(250);
-				} catch (InterruptedException e1) {
-					LOG.error("{}", e1);
-				}
-
-				Callable<BindingSet> callable = new Callable<BindingSet>() {
-
-					public BindingSet call() {
 						try {
-							Thread.sleep(SLEEP_TIME_MS);
-						} catch (InterruptedException e) {
-							LOG.error("{}", e);
+							Thread.sleep(250);
+						} catch (InterruptedException e1) {
+							LOG.error("{}", e1);
 						}
-						return new BindingSet();
+
+						Callable<BindingSet> callable = new Callable<BindingSet>() {
+
+							public BindingSet call() {
+								try {
+									Thread.sleep(SLEEP_TIME_MS);
+								} catch (InterruptedException e) {
+									LOG.error("{}", e);
+								}
+								return new BindingSet();
+							}
+
+						};
+						CompletableFuture<BindingSet> future = CompletableFuture.supplyAsync(() -> {
+							try {
+								return callable.call();
+							} catch (Exception ex) {
+								throw new CompletionException(ex);
+							} // Or return default value
+						}, TaskBoardTest.this.es);
+
+						return future;
 					}
 
-				};
-				CompletableFuture<BindingSet> future = CompletableFuture.supplyAsync(() -> {
-					try {
-						return callable.call();
-					} catch (Exception ex) {
-						throw new CompletionException(ex);
-					} // Or return default value
-				}, TaskBoardTest.this.es);
+				});
 
-				return future;
-			}
-
-		});
-
-		ReasoningNode aFirstNode = new ReasoningNode(null, null, r, null, false);
-		ReasoningNode aSecondNode = new ReasoningNode(null, null, r, null, false);
+		ReasoningNode aFirstNode = new ReasoningNode(new ArrayList<>(), null, r, null, false);
+		ReasoningNode aSecondNode = new ReasoningNode(new ArrayList<>(), null, r, null, false);
 		tb.addTask(aFirstNode, new BindingSet());
 		tb.addTask(aSecondNode, new BindingSet());
 

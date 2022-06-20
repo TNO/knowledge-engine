@@ -1,7 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -11,14 +11,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class VerySimpleBackwardTest {
 
 	private KeReasoner reasoner;
@@ -57,7 +60,7 @@ public class VerySimpleBackwardTest {
 		}
 	}
 
-	@Before
+	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
@@ -72,7 +75,8 @@ public class VerySimpleBackwardTest {
 				//@formatter:on
 		}));
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),

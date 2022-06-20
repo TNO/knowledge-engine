@@ -91,11 +91,7 @@ public class Rule {
 
 	public BindingSetHandler bindingSetHandler;
 
-	public Rule(RuleStore aStore, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
-			BindingSetHandler aBindingSetHandler) {
-
-		if (aStore == null)
-			throw new IllegalArgumentException("A rule should have a non-null rule store.");
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
 
 		if (anAntecedent.isEmpty() && aConsequent.isEmpty())
 			throw new IllegalArgumentException("A rule should not have both antecedent and consequent empty.");
@@ -106,14 +102,30 @@ public class Rule {
 		if (aBindingSetHandler == null)
 			throw new IllegalArgumentException("A rule should have a non-null bindingsethandler.");
 
-		this.store = aStore;
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
+
+		this.antecedentNeighbors = new HashMap<>();
+		this.consequentNeighbors = new HashMap<>();
 		bindingSetHandler = aBindingSetHandler;
 	}
 
-	public Rule(RuleStore aStore, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
-		this(aStore, anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+		this(anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
+	}
+
+	/**
+	 * This field is filled when a rule is added to a store. A rule can only be
+	 * added to a single store.
+	 * 
+	 * @param aStore
+	 */
+	public void setStore(RuleStore aStore) {
+
+		if (this.store != null)
+			throw new IllegalArgumentException("This rule should not already have a rule store.");
+
+		this.store = aStore;
 	}
 
 	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
@@ -146,6 +158,70 @@ public class Rule {
 
 	public BindingSetHandler getBindingSetHandler() {
 		return bindingSetHandler;
+	}
+
+	/**
+	 * Calculate the antecedent neighbors of this rule. That means all the other
+	 * rules in {@code store} whose consequent matches this rule's antecedent. Note
+	 * that it also adds the same information to the neighbor.
+	 * 
+	 * @return A mapping from a neighbor rule and the way its consequent matches
+	 *         this rule's antecedent.
+	 */
+	public Map<Rule, Set<Match>> getAntecedentNeighbors() {
+		for (Rule aRule : this.store.getRules()) {
+			if (!aRule.getConsequent().isEmpty() && !this.antecedentNeighbors.containsKey(aRule)) {
+				Set<Match> someMatches = this.antecedentMatches(aRule.getConsequent(), MatchStrategy.FIND_ALL_MATCHES);
+				if (!someMatches.isEmpty()) {
+					this.antecedentNeighbors.put(aRule, someMatches);
+					aRule.setConsequentNeighbor(this, invertMatches(someMatches));
+				}
+
+			}
+		}
+		return this.antecedentNeighbors;
+	}
+
+	private void setConsequentNeighbor(Rule aRule, Set<Match> someMatches) {
+		if (!this.consequentNeighbors.containsKey(aRule)) {
+			this.consequentNeighbors.put(aRule, someMatches);
+		}
+	}
+
+	private Set<Match> invertMatches(Set<Match> someMatches) {
+		Set<Match> inverseMatches = new HashSet<>();
+		for (Match m : someMatches) {
+			inverseMatches.add(m.inverse());
+		}
+		return inverseMatches;
+	}
+
+	/**
+	 * Calculate the consequent neighbors of this rule. That means all the other
+	 * rules in {@code store} whose antecedent matches this rule's antecedent. Note
+	 * that it also adds the same information to the neighbor.
+	 * 
+	 * @return A mapping from a neighbor rule and the way its antecedent matches
+	 *         this rule's consequent.
+	 */
+	public Map<Rule, Set<Match>> getConsequentNeighbors() {
+		for (Rule aRule : this.store.getRules()) {
+			if (!aRule.getAntecedent().isEmpty() && !this.consequentNeighbors.containsKey(aRule)) {
+				Set<Match> someMatches = this.consequentMatches(aRule.getAntecedent(), MatchStrategy.FIND_ALL_MATCHES);
+				if (!someMatches.isEmpty()) {
+					this.consequentNeighbors.put(aRule, someMatches);
+					aRule.setAntecedentNeighbor(this, invertMatches(someMatches));
+				}
+			}
+		}
+		return this.consequentNeighbors;
+
+	}
+
+	private void setAntecedentNeighbor(Rule aRule, Set<Match> someMatches) {
+		if (!this.antecedentNeighbors.containsKey(aRule)) {
+			this.antecedentNeighbors.put(aRule, someMatches);
+		}
 	}
 
 	/**
@@ -396,4 +472,11 @@ public class Rule {
 		return true;
 	}
 
+	/**
+	 * Remove all the cached neighbor information.
+	 */
+	public void reset() {
+		this.antecedentNeighbors.clear();
+		this.consequentNeighbors.clear();
+	}
 }

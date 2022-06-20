@@ -1,10 +1,10 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,8 +14,10 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -23,6 +25,7 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class ForwardTest {
 
 	private static class MyBindingSetHandler implements BindingSetHandler {
@@ -53,10 +56,8 @@ public class ForwardTest {
 
 	private Rule converterRule;
 
-	@Before
+	@BeforeAll
 	public void init() {
-		reasoner = new KeReasoner();
-
 		// grandparent rule
 		Set<TriplePattern> antecedent = new HashSet<>();
 		antecedent.add(new TriplePattern("?x <isParentOf> ?y"));
@@ -113,7 +114,7 @@ public class ForwardTest {
 
 	@Test
 	public void test() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
@@ -155,7 +156,7 @@ public class ForwardTest {
 
 	@Test
 	public void testDoNotHandleEmptyBindingSets() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp = new TriplePattern("<barry> <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler() {
@@ -203,7 +204,7 @@ public class ForwardTest {
 
 	@Test
 	public void testMultipleLeafs() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler1));
@@ -254,6 +255,7 @@ public class ForwardTest {
 
 	@Test
 	public void testBackwardChainingDuringForwardChaining() {
+		reasoner = new KeReasoner();
 		TriplePattern tp = new TriplePattern("?x <isParentOf> ?z");
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
@@ -299,7 +301,7 @@ public class ForwardTest {
 
 	@Test
 	public void testNoBackwardChainingDuringForwardChainingIfFullMatch() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
@@ -355,7 +357,7 @@ public class ForwardTest {
 
 	@Test
 	public void testBackwardChainingDuringForwardChainingIfPartialMatch() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		TriplePattern tp13 = new TriplePattern("?sens <isInRoom> ?room");
@@ -411,7 +413,7 @@ public class ForwardTest {
 
 	@Test
 	public void testPublishedValuesShouldRemainAccessible() {
-
+		reasoner = new KeReasoner();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasValInC> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();

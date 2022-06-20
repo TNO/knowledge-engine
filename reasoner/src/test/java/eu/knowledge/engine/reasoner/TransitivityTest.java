@@ -1,23 +1,26 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class TransitivityTest {
 
 	private KeReasoner reasoner;
 
-	@Before
+	@BeforeAll
 	public void init() {
 		reasoner = new KeReasoner();
 

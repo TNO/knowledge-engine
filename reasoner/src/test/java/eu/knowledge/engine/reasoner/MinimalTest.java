@@ -1,30 +1,34 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class MinimalTest {
 
 	private KeReasoner reasoner;
 
-	@Before
+	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
 		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 						"a", "b"
@@ -34,7 +38,7 @@ public class MinimalTest {
 						"<sensor1>,22",
 						"<sensor2>,21",
 						//@formatter:on
-				}))));		
+				}))));
 	}
 
 	@Test
@@ -64,7 +68,7 @@ public class MinimalTest {
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
-             
+
 	}
 
 	@Test
