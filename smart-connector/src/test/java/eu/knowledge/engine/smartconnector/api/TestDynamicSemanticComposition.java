@@ -321,7 +321,15 @@ public class TestDynamicSemanticComposition {
 		if (kbTargetCountrySupplier != null) {
 			kbTargetCountrySupplier.stop();
 		} else {
-			fail("kbTargetAttributeSupplier should not be null!");
+			fail("kbTargetCountrySupplier should not be null!");
 		}
+
+		if (kbTargetLanguageSupplier != null) {
+			kbTargetLanguageSupplier.stop();
+		} else {
+			fail("kbTargetLanguageSupplier should not be null!");
+		}
+		
+		
 	}
 }
