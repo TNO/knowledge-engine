@@ -73,7 +73,7 @@ Once the Knowledge Directory is up and running, the REST server can be started. 
 | Key | Descrption |
 | --- | --- |
 | KD_URL | URL where the Knowledge Directory can be found |
-| KE_RUNTIME_EXPOSED_URL | URL where other Smart Connectors (peers) can contact this Knowledge Engine instance. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. |
+| KE_RUNTIME_EXPOSED_URL | URL where other Smart Connectors (peers) can contact this Knowledge Engine instance. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. Note that the URL should include the scheme like `http://...` or `https://...`.
 | KE_RUNTIME_PORT | Port where where this Knowledge Engine instance will listen for new peer connections |
 | KE_RUNTIME_HOSTNAME (deprecated) | Hostname where other Smart Connectors (peers) can contact this Knowledge Engine instance. This variable is superseded by (and conflicts with) KE_RUNTIME_EXPOSED_URL|
 
