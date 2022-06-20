@@ -162,12 +162,15 @@ public class TestDynamicSemanticComposition {
 
 		// start a knowledge base with the behaviour "Give me a target and I can supply
 		// its basic attributes"
-		kbTargetCountrySupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
+		kbTargetCountrySupplier = new MockedKnowledgeBase("TargetCountrySupplier");
 		kbTargetCountrySupplier.setReasonerEnabled(true);
 		kn.addKB(kbTargetCountrySupplier);
 
+		kbTargetLanguageSupplier = new MockedKnowledgeBase("TargetLanguageSupplier");
+		kbTargetLanguageSupplier.setReasonerEnabled(true);
+		kn.addKB(kbTargetLanguageSupplier);
+		
 		kn.startAndWaitForReady();
-		kn.waitForUpToDate();
 
 		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries
@@ -244,7 +247,8 @@ public class TestDynamicSemanticComposition {
 			return resultBindings;
 		});
 		kbTargetLanguageSupplier.setDomainKnowledge(ruleSet);
-
+		kn.waitForUpToDate();
+		
 		// start testing ask for targets!
 		bindings = null;
 		try {

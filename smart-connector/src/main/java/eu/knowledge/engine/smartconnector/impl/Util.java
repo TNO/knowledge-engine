@@ -2,6 +2,8 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -197,5 +199,20 @@ public class Util {
 		}
 
 		return false;
+	}
+
+	public static void removeRedundantBindingsAnswer(BindingSet incoming, BindingSet outgoing) {
+		if (incoming.isEmpty()) {
+			// We should not remove any bindings in this case!
+			return;
+		}
+
+		var toBeRemoved = new ArrayList<Binding>();
+		outgoing.forEach(outgoingBinding -> {
+			if (incoming.stream().allMatch(incomingBinding -> !incomingBinding.isSubBindingOf(outgoingBinding))) {
+				toBeRemoved.add(outgoingBinding);
+			}
+		});
+		outgoing.removeAll(toBeRemoved);
 	}
 }

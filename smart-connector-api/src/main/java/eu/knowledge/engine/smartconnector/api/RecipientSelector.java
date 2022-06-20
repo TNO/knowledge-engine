@@ -20,7 +20,7 @@ public class RecipientSelector {
 	public RecipientSelector() {
 		this.bindings = new BindingSet();
 		this.pattern = new GraphPattern(
-				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .");
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class RecipientSelector {
 		binding.put("kb", "<" + knowledgeBase.toString() + ">");
 		bindings.add(binding);
 		this.pattern = new GraphPattern(
-				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .");
 	}
 
 	/**

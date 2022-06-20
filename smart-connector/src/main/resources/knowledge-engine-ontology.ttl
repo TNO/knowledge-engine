@@ -1,17 +1,17 @@
-@prefix : <https://www.tno.nl/energy/ontology/interconnect#> .
+@prefix : <https://w3id.org/knowledge-engine/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@base <https://www.tno.nl/energy/ontology/interconnect> .
+@base <https://w3id.org/knowledge-engine> .
 
-<https://www.tno.nl/energy/ontology/interconnect> rdf:type owl:Ontology ;
-                                                   <http://purl.org/dc/terms/created> "2020-11-16T13:31:00"^^xsd:dateTime ;
-                                                   <http://purl.org/dc/terms/creator> "Barry Nouwt" ,
-                                                                                      "Han Kruiger" ,
-                                                                                      "Wilco Wijbrandi" ;
-                                                   <http://purl.org/dc/terms/title> "Knowledge Base Ontology"^^xsd:string .
+<https://w3id.org/knowledge-engine> rdf:type owl:Ontology ;
+                                     <http://purl.org/dc/terms/created> "2020-11-16T13:31:00"^^xsd:dateTime ;
+                                     <http://purl.org/dc/terms/creator> "Barry Nouwt" ,
+                                                                        "Han Kruiger" ,
+                                                                        "Wilco Wijbrandi" ;
+                                     <http://purl.org/dc/terms/title> "Knowledge Engine Ontology"^^xsd:string .
 
 #################################################################
 #    Annotation properties
@@ -33,61 +33,61 @@
 #    Object Properties
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect#consumerImplementsKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/consumerImplementsKnowledgeInteraction
 :consumerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#consumesService
+###  https://w3id.org/knowledge-engine/consumesService
 :consumesService rdf:type owl:ObjectProperty ;
                  rdfs:subPropertyOf owl:topObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasCommunicativeAct
+###  https://w3id.org/knowledge-engine/hasCommunicativeAct
 :hasCommunicativeAct rdf:type owl:ObjectProperty ;
                      rdfs:subPropertyOf owl:topObjectProperty ;
                      rdfs:domain :KnowledgeInteraction ;
                      rdfs:range :CommunicativeAct .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasGraphPattern
+###  https://w3id.org/knowledge-engine/hasGraphPattern
 :hasGraphPattern rdf:type owl:ObjectProperty ;
                  rdfs:subPropertyOf owl:topObjectProperty ;
                  rdfs:domain :KnowledgeInteraction ;
                  rdfs:range :BaseGraphPattern .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/hasKnowledgeInteraction
 :hasKnowledgeInteraction rdf:type owl:ObjectProperty ;
                          rdfs:subPropertyOf owl:topObjectProperty ;
                          rdfs:domain :KnowledgeBase ;
                          rdfs:range :KnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasPurpose
+###  https://w3id.org/knowledge-engine/hasPurpose
 :hasPurpose rdf:type owl:ObjectProperty ;
             rdfs:subPropertyOf owl:topObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasRequirement
+###  https://w3id.org/knowledge-engine/hasRequirement
 :hasRequirement rdf:type owl:ObjectProperty ;
                 rdfs:subPropertyOf :hasPurpose ;
                 owl:propertyDisjointWith :hasSatisfaction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasSatisfaction
+###  https://w3id.org/knowledge-engine/hasSatisfaction
 :hasSatisfaction rdf:type owl:ObjectProperty ;
                  rdfs:subPropertyOf :hasPurpose .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasSmartConnector
+###  https://w3id.org/knowledge-engine/hasSmartConnector
 :hasSmartConnector rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#providerImplementsKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/providerImplementsKnowledgeInteraction
 :providerImplementsKnowledgeInteraction rdf:type owl:ObjectProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#providesService
+###  https://w3id.org/knowledge-engine/providesService
 :providesService rdf:type owl:ObjectProperty .
 
 
@@ -95,51 +95,51 @@
 #    Data properties
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasData
+###  https://w3id.org/knowledge-engine/hasData
 :hasData rdf:type owl:DatatypeProperty ;
          rdfs:comment """This property bridges the gap between metadata and data. 
 
 It is not meant to be used in actual descriptions of knowledge bases. Instead, it is meant to be used in the Recipient Selector of the Developer API to indicate that the Knowledge Base wants to send a message to other Knowledge Bases with a certain property where this property is described in terms of the domain. So, for example, a Knowledge Base wants to send a message to all other Knowledge Bases that gave 24 degrees celsius as the temperature of a particular room.""" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasDescription
+###  https://w3id.org/knowledge-engine/hasDescription
 :hasDescription rdf:type owl:DatatypeProperty ;
                 rdfs:subPropertyOf owl:topDataProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasEndpoint
+###  https://w3id.org/knowledge-engine/hasEndpoint
 :hasEndpoint rdf:type owl:DatatypeProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasName
+###  https://w3id.org/knowledge-engine/hasName
 :hasName rdf:type owl:DatatypeProperty ;
          rdfs:subPropertyOf owl:topDataProperty .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#hasPattern
+###  https://w3id.org/knowledge-engine/hasPattern
 :hasPattern rdf:type owl:DatatypeProperty ;
             rdfs:domain :BaseGraphPattern ;
             rdfs:range xsd:string .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect/isMeta
-<https://www.tno.nl/energy/ontology/interconnect/isMeta> rdf:type owl:DatatypeProperty ;
-                                                         rdfs:subPropertyOf owl:topDataProperty ;
-                                                         rdfs:comment "This property indicates whether the KnowledgeInteraction it is attached to is a meta interaction that is used for internal Knowledge Engine communication, or whether it is not a meta interaction indicating that it is a capability of the actual KnowledgeBase it is attached to." .
+###  https://w3id.org/knowledge-engine/isMeta
+:isMeta rdf:type owl:DatatypeProperty ;
+        rdfs:subPropertyOf owl:topDataProperty ;
+        rdfs:comment "This property indicates whether the KnowledgeInteraction it is attached to is a meta interaction that is used for internal Knowledge Engine communication, or whether it is not a meta interaction indicating that it is a capability of the actual KnowledgeBase it is attached to." .
 
 
 #################################################################
 #    Classes
 #################################################################
 
-###  https://www.tno.nl/energy/ontology/interconnect#ActuationPurpose
+###  https://w3id.org/knowledge-engine/ActuationPurpose
 :ActuationPurpose rdf:type owl:Class ;
                   rdfs:subClassOf :Purpose ;
                   rdfs:comment """This purpose should be required when an actuation has to be done. E.g., if a UI wants to set a power limit to a subnet, it should require the ActuationPurpose.
 If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when a knowledge base can switch a lamp on or off.""" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#AnswerKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/AnswerKnowledgeInteraction
 :AnswerKnowledgeInteraction rdf:type owl:Class ;
                             rdfs:subClassOf :KnowledgeInteraction ,
                                             [ rdf:type owl:Restriction ;
@@ -150,13 +150,13 @@ If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when
                             rdfs:comment "An answer knowledge interaction is a declaration that specifies the shape of knowledge that is available in the knowledge base."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ArgumentGraphPattern
+###  https://w3id.org/knowledge-engine/ArgumentGraphPattern
 :ArgumentGraphPattern rdf:type owl:Class ;
                       rdfs:subClassOf :BaseGraphPattern ;
                       rdfs:label "Argument graph pattern" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#AskKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/AskKnowledgeInteraction
 :AskKnowledgeInteraction rdf:type owl:Class ;
                          rdfs:subClassOf :KnowledgeInteraction ,
                                          [ rdf:type owl:Restriction ;
@@ -167,7 +167,7 @@ If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when
                          rdfs:comment "An ask knowledge interaction declares the shape of knowledge that a knowledge base possibly asks its smart connector for."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#BaseGraphPattern
+###  https://w3id.org/knowledge-engine/BaseGraphPattern
 :BaseGraphPattern rdf:type owl:Class ;
                   rdfs:subClassOf [ rdf:type owl:Restriction ;
                                     owl:onProperty :hasPattern ;
@@ -178,13 +178,13 @@ If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when
                   rdfs:seeAlso "https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns"^^xsd:anyURI .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ChangedKnowledgePurpose
+###  https://w3id.org/knowledge-engine/ChangedKnowledgePurpose
 :ChangedKnowledgePurpose rdf:type owl:Class ;
                          rdfs:subClassOf :InformPurpose ;
                          rdfs:comment "The purpose is to inform (or be informed) about knowledge that is updated. (Vaguely the 'U' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#CommunicativeAct
+###  https://w3id.org/knowledge-engine/CommunicativeAct
 :CommunicativeAct rdf:type owl:Class ;
                   rdfs:subClassOf [ rdf:type owl:Restriction ;
                                     owl:onProperty :hasRequirement ;
@@ -199,25 +199,25 @@ If a Knowledge Base can enact the actuation it satisfies the purpose. E.g., when
                   rdfs:comment "The communicative act is part of a Knowledge Interaction and describes the purposes of why data is exchanged. It distinguishes between the purposes it requires and the purposes it satisfies."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ConversionPurpose
+###  https://w3id.org/knowledge-engine/ConversionPurpose
 :ConversionPurpose rdf:type owl:Class ;
                    rdfs:subClassOf :Purpose ;
                    rdfs:comment "The purpose of the knowledge interaction is to convert knowledge to a different representation. (E.g., converting Fahrenheit to Celsius.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#GraphPattern
+###  https://w3id.org/knowledge-engine/GraphPattern
 :GraphPattern rdf:type owl:Class ;
               rdfs:subClassOf :BaseGraphPattern ;
               rdfs:label "Graph pattern" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#InformPurpose
+###  https://w3id.org/knowledge-engine/InformPurpose
 :InformPurpose rdf:type owl:Class ;
                rdfs:subClassOf :Purpose ;
                rdfs:comment "The purpose is to inform or be informed about changes in (availability of) knowledge. (Vaguely CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase
+###  https://w3id.org/knowledge-engine/KnowledgeBase
 :KnowledgeBase rdf:type owl:Class ;
                rdfs:subClassOf [ rdf:type owl:Restriction ;
                                  owl:onProperty :hasKnowledgeInteraction ;
@@ -258,7 +258,7 @@ Examples include:
 - a GUI that is presented to a human to make decisions"""@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#KnowledgeInteraction
+###  https://w3id.org/knowledge-engine/KnowledgeInteraction
 :KnowledgeInteraction rdf:type owl:Class ;
                       rdfs:subClassOf [ rdf:type owl:Restriction ;
                                         owl:onProperty :hasCommunicativeAct ;
@@ -266,7 +266,7 @@ Examples include:
                                         owl:onClass :CommunicativeAct
                                       ] ,
                                       [ rdf:type owl:Restriction ;
-                                        owl:onProperty <https://www.tno.nl/energy/ontology/interconnect/isMeta> ;
+                                        owl:onProperty :isMeta ;
                                         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                                         owl:onDataRange xsd:boolean
                                       ] ,
@@ -278,20 +278,20 @@ Examples include:
                       rdfs:comment "A knowledge interaction is a declaration of how a knowledge base interacts with its smart connector."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#NewKnowledgePurpose
+###  https://w3id.org/knowledge-engine/NewKnowledgePurpose
 :NewKnowledgePurpose rdf:type owl:Class ;
                      rdfs:subClassOf :InformPurpose ;
                      rdfs:comment "The purpose is to inform (or be informed) about knowledge that is created. (Vaguely the 'C' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#PeriodicPurpose
+###  https://w3id.org/knowledge-engine/PeriodicPurpose
 :PeriodicPurpose rdf:type owl:Class ;
                  rdfs:subClassOf :Purpose ;
                  owl:disjointWith :WhenChangedPurpose ;
                  rdfs:comment "The purpose is to periodically exchange knowledge through the interaction. E.g., hourly measurements."@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#PostKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/PostKnowledgeInteraction
 :PostKnowledgeInteraction rdf:type owl:Class ;
                           rdfs:subClassOf :KnowledgeInteraction ,
                                           [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
@@ -311,12 +311,12 @@ Examples include:
                           rdfs:seeAlso :ReactKnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#Purpose
+###  https://w3id.org/knowledge-engine/Purpose
 :Purpose rdf:type owl:Class ;
          rdfs:comment "The purpose of a particular exchange of information from the perspective of a KnowledgeBase. The purpose is used to define the purposes a communicative act requires and the purposes a communicative act satisfies. These together allow the Knowledge Engine to determine whether two Knowledge Interactions match or not." .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ReactKnowledgeInteraction
+###  https://w3id.org/knowledge-engine/ReactKnowledgeInteraction
 :ReactKnowledgeInteraction rdf:type owl:Class ;
                            rdfs:subClassOf :KnowledgeInteraction ,
                                            [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
@@ -336,25 +336,25 @@ Examples include:
                            rdfs:seeAlso :PostKnowledgeInteraction .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#RemovedKnowledgePurpose
+###  https://w3id.org/knowledge-engine/RemovedKnowledgePurpose
 :RemovedKnowledgePurpose rdf:type owl:Class ;
                          rdfs:subClassOf :InformPurpose ;
                          rdfs:comment "The purpose is to inform (or be informed) about knowledge that is removed. (Vaguely the 'D' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ResultGraphPattern
+###  https://w3id.org/knowledge-engine/ResultGraphPattern
 :ResultGraphPattern rdf:type owl:Class ;
                     rdfs:subClassOf :BaseGraphPattern ;
                     rdfs:label "Result graph pattern" .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#RetrieveKnowledgePurpose
+###  https://w3id.org/knowledge-engine/RetrieveKnowledgePurpose
 :RetrieveKnowledgePurpose rdf:type owl:Class ;
                           rdfs:subClassOf :InformPurpose ;
                           rdfs:comment "The purpose is retrieving knowledge (or being retrieved). (Vaguely the 'R' in CRUD.)"@en .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#ServiceDescription
+###  https://w3id.org/knowledge-engine/ServiceDescription
 :ServiceDescription rdf:type owl:Class ;
                     rdfs:subClassOf [ rdf:type owl:Restriction ;
                                       owl:onProperty :consumerImplementsKnowledgeInteraction ;
@@ -378,7 +378,7 @@ Examples include:
                                     ] .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#SmartConnector
+###  https://w3id.org/knowledge-engine/SmartConnector
 :SmartConnector rdf:type owl:Class ;
                 rdfs:subClassOf [ rdf:type owl:Restriction ;
                                   owl:onProperty :hasEndpoint ;
@@ -387,7 +387,7 @@ Examples include:
                                 ] .
 
 
-###  https://www.tno.nl/energy/ontology/interconnect#WhenChangedPurpose
+###  https://w3id.org/knowledge-engine/WhenChangedPurpose
 :WhenChangedPurpose rdf:type owl:Class ;
                     rdfs:subClassOf :Purpose ;
                     rdfs:comment "The purpose of the knowledge exchange is to only send updates when the knowledge changes. E.g., to only send a message when a toggle is toggled."@en .
