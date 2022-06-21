@@ -176,7 +176,7 @@ public class TestDynamicSemanticComposition {
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes,
-				"?id v1905:hasCountry ?country . ?id v1905:hasLanguage ?lang .");
+				"?id v1905:hasCountry ?country .");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
 				"reactCountry");
 		kbTargetCountrySupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
@@ -192,7 +192,6 @@ public class TestDynamicSemanticComposition {
 				Binding b = iter.next();
 				String id = b.get("id");
 				String country = "";
-				String language = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
 				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
@@ -216,7 +215,7 @@ public class TestDynamicSemanticComposition {
 		GraphPattern gp4in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp4out = new GraphPattern(prefixes, "?id v1905:hasLanguage ?lang .");
 		ReactKnowledgeInteraction reactKI2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp4in, gp4out,
-				"reactCountry");
+				"reactLanguage");
 		kbTargetLanguageSupplier.register(reactKI2, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("TargetLanguageSupplier Reacting...");
