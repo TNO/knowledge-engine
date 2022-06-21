@@ -185,9 +185,9 @@ public class TestDynamicSemanticComposition {
 		availableKBs.add(kbTargetLanguageSupplier);
 
 		// add the first KB that fulfills the gap
-		for (MockedKnowledgeBase kb : availableKBs) {
+		kbs: for (MockedKnowledgeBase kb : availableKBs) {
 
-			for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
+			kis: for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
 
 				for (Set<TriplePattern> gap : gaps) {
 
@@ -198,7 +198,7 @@ public class TestDynamicSemanticComposition {
 
 					if (!matches.isEmpty()) {
 						kn.addKB(kb);
-						break;
+						break kbs;
 					}
 				}
 			}
