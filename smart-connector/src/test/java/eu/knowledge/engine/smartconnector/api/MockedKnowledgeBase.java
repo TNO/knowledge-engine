@@ -226,14 +226,14 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		all.putAll(currentAnswerKIs);
 		all.putAll(registeredAnswerKIs);
 
-		return this.currentAnswerKIs;
+		return all;
 	}
 
 	public Set<PostKnowledgeInteraction> getPostKnowledgeInteractions() {
 		Set<PostKnowledgeInteraction> all = new HashSet<>();
 		all.addAll(currentPostKIs);
 		all.addAll(registeredPostKIs);
-		return this.currentPostKIs;
+		return all;
 	}
 
 	public Map<ReactKnowledgeInteraction, ReactHandler> getReactKnowledgeInteractions() {
@@ -241,7 +241,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		all.putAll(currentReactKIs);
 		all.putAll(registeredReactKIs);
 
-		return this.currentReactKIs;
+		return all;
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
