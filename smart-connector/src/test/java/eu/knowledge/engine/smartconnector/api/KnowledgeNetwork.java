@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -40,15 +41,24 @@ public class KnowledgeNetwork {
 		knowledgeBases.add(aKB);
 	}
 
+	public void sync() {
+		this.startAndWaitForReady();
+		this.waitForUpToDate();
+	}
+
 	/**
 	 * wait until all knowledge bases are up and running and know of each other
 	 * existence.
 	 */
-	public void startAndWaitForReady() {
+	private void startAndWaitForReady() {
+
+		Set<MockedKnowledgeBase> justStartedKBs = new HashSet<>();
 
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			if (!kb.isStarted())
+			if (!kb.isStarted()) {
 				kb.start();
+				justStartedKBs.add(kb);
+			}
 		}
 
 		// wait until all smart connectors have given the 'ready' signal (and registered
@@ -78,14 +88,19 @@ public class KnowledgeNetwork {
 				"?gp kb:hasPattern ?pattern ."
 				//@formatter:on
 		);
-		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+
+		for (MockedKnowledgeBase kb : justStartedKBs) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}
+
+		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+			kb.syncKIs();
+		}
 	}
 
-	public void waitForUpToDate() {
+	private void waitForUpToDate() {
 		LOG.debug("Waiting for up to date.");
 		// manually check if every Knowledge Base is up to date
 		boolean allUpToDate = false;

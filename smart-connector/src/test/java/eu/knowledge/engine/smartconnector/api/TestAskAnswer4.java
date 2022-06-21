@@ -44,9 +44,6 @@ public class TestAskAnswer4 {
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> \"test\".");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
@@ -68,7 +65,7 @@ public class TestAskAnswer4 {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;

@@ -34,6 +34,9 @@ public class TestDynamicSemanticComposition {
 	private static MockedKnowledgeBase kbHVTSearcher;
 	private static MockedKnowledgeBase kbTargetCountrySupplier;
 	private static MockedKnowledgeBase kbTargetLanguageSupplier;
+	private static MockedKnowledgeBase kbTargetAgeSupplier;
+
+	private static KnowledgeNetwork kn;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -48,7 +51,7 @@ public class TestDynamicSemanticComposition {
 //		prefixes.setNsPrefix("tno", "https://www.tno.nl/");
 		prefixes.setNsPrefix("v1905", "https://www.tno.nl/defense/ontology/v1905/");
 
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		// start a knowledge base with the behaviour "I can supply observations of
 		// targets"
 		kbTargetObserver = new MockedKnowledgeBase("TargetObserver");
@@ -59,9 +62,6 @@ public class TestDynamicSemanticComposition {
 		kbHVTSearcher = new MockedKnowledgeBase("HVTSearcher");
 		kbHVTSearcher.setReasonerEnabled(true);
 		kn.addKB(kbHVTSearcher);
-
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
@@ -144,7 +144,7 @@ public class TestDynamicSemanticComposition {
 		kbHVTSearcher.setDomainKnowledge(ruleSet);
 		kbTargetObserver.setDomainKnowledge(ruleSet);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start planning ask for targets!
 		BindingSet bindings = null;
@@ -169,14 +169,15 @@ public class TestDynamicSemanticComposition {
 		kbTargetLanguageSupplier = new MockedKnowledgeBase("TargetLanguageSupplier");
 		kbTargetLanguageSupplier.setReasonerEnabled(true);
 		kn.addKB(kbTargetLanguageSupplier);
-		
-		kn.startAndWaitForReady();
+
+		kbTargetAgeSupplier = new MockedKnowledgeBase("TargetAgeSupplier");
+		kbTargetAgeSupplier.setReasonerEnabled(true);
+		kn.addKB(kbTargetAgeSupplier);
 
 		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
-		GraphPattern gp3out = new GraphPattern(prefixes,
-				"?id v1905:hasCountry ?country .");
+		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
 				"reactCountry");
 		kbTargetCountrySupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
@@ -246,8 +247,8 @@ public class TestDynamicSemanticComposition {
 			return resultBindings;
 		});
 		kbTargetLanguageSupplier.setDomainKnowledge(ruleSet);
-		kn.waitForUpToDate();
-		
+		kn.sync();
+
 		// start testing ask for targets!
 		bindings = null;
 		try {
@@ -328,7 +329,12 @@ public class TestDynamicSemanticComposition {
 		} else {
 			fail("kbTargetLanguageSupplier should not be null!");
 		}
-		
-		
+
+		if (kbTargetAgeSupplier != null) {
+			kbTargetAgeSupplier.stop();
+		} else {
+			fail("kbTargetAgeSupplier should not be null!");
+		}
+
 	}
 }

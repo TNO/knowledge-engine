@@ -58,13 +58,13 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -78,7 +78,10 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		gp = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AnswerKnowledgeInteraction aKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI2, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -93,7 +96,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;
