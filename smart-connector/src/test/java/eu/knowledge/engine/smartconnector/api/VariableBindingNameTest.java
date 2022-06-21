@@ -37,8 +37,6 @@ class VariableBindingNameTest {
 		kn.addKB(sensor);
 		thermostat = new MockedKnowledgeBase("thermostat");
 		kn.addKB(thermostat);
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// then register the relevant knowledge interactions
 		GraphPattern argGraphPattern1 = new GraphPattern(prefixes,
@@ -47,7 +45,7 @@ class VariableBindingNameTest {
 						+ "?obs1 sosa:observedProperty ic:Temperature . \n" + "?obs1 sosa:hasSimpleResult ?temp1 .");
 		GraphPattern resGraphPattern1 = new GraphPattern(prefixes, "?s1 ?p1 ?o1");
 		PostKnowledgeInteraction sensorPostKI = new PostKnowledgeInteraction(new CommunicativeAct(), argGraphPattern1,
-		resGraphPattern1);
+				resGraphPattern1);
 		sensor.register(sensorPostKI);
 
 		GraphPattern argGraphPattern2 = new GraphPattern(prefixes,
@@ -89,7 +87,7 @@ class VariableBindingNameTest {
 			}
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// data exchange
 

@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -15,6 +16,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -23,15 +26,16 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class DynamicSemanticConfigurationTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
+
 	private KeReasoner reasoner;
 
 	@Before
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
+		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
+				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new BindingSetHandler() {
 
 					private Table data = new Table(new String[] {
@@ -79,9 +83,11 @@ public class DynamicSemanticConfigurationTest {
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
 		reasoner.addRule(new Rule(
-				new HashSet<>(
-						Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
+						new TriplePattern("?id <hasName> ?name"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"),
+						new TriplePattern("?id <hasLanguage> ?lang"))),
+				new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -97,15 +103,18 @@ public class DynamicSemanticConfigurationTest {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Russia\"");
+								resultBinding.put("lang", "\"Russian\"");
 							} else if (incomingB.containsKey("id")
 									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Holland\"");
+								resultBinding.put("lang", "\"Dutch\"");
 							} else {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Belgium\"");
+								resultBinding.put("lang", "\"Flemish\"");
 							}
 							newBS.add(resultBinding);
 						}
@@ -125,19 +134,18 @@ public class DynamicSemanticConfigurationTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
+		// Make a plan
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		System.out.println(root);
-
+		LOG.info("\n{}", root);
 		BindingSet bs = new BindingSet();
-
+		// Start reasoning
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
+			LOG.info("\n{}", root);
 			taskboard.executeScheduledTasks();
 		}
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}

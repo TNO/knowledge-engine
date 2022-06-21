@@ -56,10 +56,6 @@ public class TestAskAnswerManyKIs {
 		kb4 = new MockedKnowledgeBase("kb4");
 		kn.addKB(kb4);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-		LOG.info("Everyone is ready!");
-
 		int count = 50;
 
 		AnswerKnowledgeInteraction[] aKIarray = new AnswerKnowledgeInteraction[count];
@@ -126,7 +122,7 @@ public class TestAskAnswerManyKIs {
 		}
 
 		LOG.info("Waiting for upToDate...");
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;

@@ -43,9 +43,6 @@ public class TestRequestMetadata {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		kn.startAndWaitForReady();
-		LOG.info("Everyone is ready!");
-
 		GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .", "?obs saref:hasTemp ?temp .");
 		PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null, false);
 		kb1.register(ki);
@@ -60,7 +57,7 @@ public class TestRequestMetadata {
 		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 		kb2.register(aKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 		LOG.info("Everyone is up-to-date!");
 
 		AskResult result = kb2.ask(aKI, new BindingSet()).get();

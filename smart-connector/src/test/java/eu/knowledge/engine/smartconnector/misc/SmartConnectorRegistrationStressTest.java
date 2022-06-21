@@ -40,8 +40,7 @@ public class SmartConnectorRegistrationStressTest {
 			LOG.info("Starting KB{}", i);
 			kn.addKB(new MockedKnowledgeBase("INITIAL-KB" + i));
 		}
-		kn.startAndWaitForReady();
-		kn.waitForUpToDate();
+		kn.sync();
 	}
 
 	@Test

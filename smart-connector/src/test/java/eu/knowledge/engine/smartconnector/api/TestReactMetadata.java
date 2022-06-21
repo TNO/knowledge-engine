@@ -52,8 +52,7 @@ public class TestReactMetadata {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
+		kn.sync();
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
 				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
@@ -117,13 +116,13 @@ public class TestReactMetadata {
 
 		});
 
-		LOG.info("Waiting for up-to-date...");
-		kn.waitForUpToDate();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
 				"?obs saref:hasTemp ?temp .");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
 		kb1.register(ki1);
+
+		LOG.info("Waiting for up-to-date...");
+		kn.sync();
 
 		LOG.info("Finished, now closing!");
 	}
