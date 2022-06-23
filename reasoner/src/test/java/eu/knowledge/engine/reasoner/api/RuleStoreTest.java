@@ -162,6 +162,7 @@ class RuleStoreTest {
 		ruleToConsequentNeighbors.put(this.produceHvtRule, new HashSet<>(Arrays.asList(this.consumeHvtNameRule)));
 		ruleToConsequentNeighbors.put(this.consumeHvtNameRule, new HashSet<>());
 
+		long start = System.nanoTime();
 		for (Rule r : rules) {
 
 			LOG.info("-------------------");
@@ -183,6 +184,8 @@ class RuleStoreTest {
 				LOG.info("\t\t\t{} -> {}", aNeighbor.getAntecedent(), aNeighbor.getConsequent());
 			}
 		}
+
+		LOG.info("Time: {} ms", ((double) (System.nanoTime() - start)) / 1000000d);
 
 		store.printGraphVizCode();
 	}
