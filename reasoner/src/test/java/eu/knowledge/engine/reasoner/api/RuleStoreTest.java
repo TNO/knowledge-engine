@@ -165,7 +165,7 @@ class RuleStoreTest {
 		for (Rule r : rules) {
 
 			LOG.info("-------------------");
-			Set<Rule> antecedentNeighbors = r.getAntecedentNeighbors().keySet();
+			Set<Rule> antecedentNeighbors = store.getAntecedentNeighbors(r).keySet();
 
 			assertEquals(ruleToAntecedentNeighbors.get(r), antecedentNeighbors);
 
@@ -175,7 +175,7 @@ class RuleStoreTest {
 
 			LOG.info("\t\t{} -> {}", r.getAntecedent(), r.getConsequent());
 
-			Set<Rule> consequentNeighbors = r.getConsequentNeighbors().keySet();
+			Set<Rule> consequentNeighbors = store.getConsequentNeighbors(r).keySet();
 
 			assertEquals(ruleToConsequentNeighbors.get(r), consequentNeighbors);
 

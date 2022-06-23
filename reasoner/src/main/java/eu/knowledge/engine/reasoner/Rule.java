@@ -60,12 +60,6 @@ public class Rule {
 	}
 
 	/**
-	 * The store to which this rule belongs. A rule can only belong to a single
-	 * store.
-	 */
-	private RuleStore store;
-
-	/**
 	 * The antecedent of this rule. This set of triple patterns represents the type
 	 * of data that is required for this rule to apply.
 	 */
@@ -76,18 +70,6 @@ public class Rule {
 	 * of data that results after applying this rule.
 	 */
 	private Set<TriplePattern> consequent;
-
-	/**
-	 * All other rules in the {@link Rule#store} whose consequents match this rule's
-	 * antecedent either fully or partially.
-	 */
-	private Map<Rule, Set<Match>> antecedentNeighbors;
-
-	/**
-	 * All other rules in the {@link Rule#store} whose antecedents match this rule's
-	 * consequent either fully or partially.
-	 */
-	private Map<Rule, Set<Match>> consequentNeighbors;
 
 	public BindingSetHandler bindingSetHandler;
 
@@ -105,27 +87,11 @@ public class Rule {
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
 
-		this.antecedentNeighbors = new HashMap<>();
-		this.consequentNeighbors = new HashMap<>();
 		bindingSetHandler = aBindingSetHandler;
 	}
 
 	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 		this(anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
-	}
-
-	/**
-	 * This field is filled when a rule is added to a store. A rule can only be
-	 * added to a single store.
-	 * 
-	 * @param aStore
-	 */
-	public void setStore(RuleStore aStore) {
-
-		if (this.store != null)
-			throw new IllegalArgumentException("This rule should not already have a rule store.");
-
-		this.store = aStore;
 	}
 
 	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
@@ -158,70 +124,6 @@ public class Rule {
 
 	public BindingSetHandler getBindingSetHandler() {
 		return bindingSetHandler;
-	}
-
-	/**
-	 * Calculate the antecedent neighbors of this rule. That means all the other
-	 * rules in {@code store} whose consequent matches this rule's antecedent. Note
-	 * that it also adds the same information to the neighbor.
-	 * 
-	 * @return A mapping from a neighbor rule and the way its consequent matches
-	 *         this rule's antecedent.
-	 */
-	public Map<Rule, Set<Match>> getAntecedentNeighbors() {
-		for (Rule aRule : this.store.getRules()) {
-			if (!aRule.getConsequent().isEmpty() && !this.antecedentNeighbors.containsKey(aRule)) {
-				Set<Match> someMatches = this.antecedentMatches(aRule.getConsequent(), MatchStrategy.FIND_ALL_MATCHES);
-				if (!someMatches.isEmpty()) {
-					this.antecedentNeighbors.put(aRule, someMatches);
-					aRule.setConsequentNeighbor(this, invertMatches(someMatches));
-				}
-
-			}
-		}
-		return this.antecedentNeighbors;
-	}
-
-	private void setConsequentNeighbor(Rule aRule, Set<Match> someMatches) {
-		if (!this.consequentNeighbors.containsKey(aRule)) {
-			this.consequentNeighbors.put(aRule, someMatches);
-		}
-	}
-
-	private Set<Match> invertMatches(Set<Match> someMatches) {
-		Set<Match> inverseMatches = new HashSet<>();
-		for (Match m : someMatches) {
-			inverseMatches.add(m.inverse());
-		}
-		return inverseMatches;
-	}
-
-	/**
-	 * Calculate the consequent neighbors of this rule. That means all the other
-	 * rules in {@code store} whose antecedent matches this rule's antecedent. Note
-	 * that it also adds the same information to the neighbor.
-	 * 
-	 * @return A mapping from a neighbor rule and the way its antecedent matches
-	 *         this rule's consequent.
-	 */
-	public Map<Rule, Set<Match>> getConsequentNeighbors() {
-		for (Rule aRule : this.store.getRules()) {
-			if (!aRule.getAntecedent().isEmpty() && !this.consequentNeighbors.containsKey(aRule)) {
-				Set<Match> someMatches = this.consequentMatches(aRule.getAntecedent(), MatchStrategy.FIND_ALL_MATCHES);
-				if (!someMatches.isEmpty()) {
-					this.consequentNeighbors.put(aRule, someMatches);
-					aRule.setAntecedentNeighbor(this, invertMatches(someMatches));
-				}
-			}
-		}
-		return this.consequentNeighbors;
-
-	}
-
-	private void setAntecedentNeighbor(Rule aRule, Set<Match> someMatches) {
-		if (!this.antecedentNeighbors.containsKey(aRule)) {
-			this.antecedentNeighbors.put(aRule, someMatches);
-		}
 	}
 
 	/**
@@ -438,13 +340,6 @@ public class Rule {
 		return result;
 	}
 
-	/**
-	 * @return The store this rule belongs to.
-	 */
-	public RuleStore getStore() {
-		return this.store;
-	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -472,11 +367,4 @@ public class Rule {
 		return true;
 	}
 
-	/**
-	 * Remove all the cached neighbor information.
-	 */
-	public void reset() {
-		this.antecedentNeighbors.clear();
-		this.consequentNeighbors.clear();
-	}
 }

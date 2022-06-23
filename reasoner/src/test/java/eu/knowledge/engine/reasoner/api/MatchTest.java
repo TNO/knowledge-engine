@@ -49,7 +49,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?v <type> <e>");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -64,7 +64,7 @@ public class MatchTest {
 		TriplePattern triple2 = new TriplePattern("?b <hasVal> ?v");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple2));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -81,7 +81,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?v <type> <e>");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -95,7 +95,7 @@ public class MatchTest {
 		TriplePattern triple = new TriplePattern("<sens1> <type> <Sensor>");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
@@ -112,7 +112,7 @@ public class MatchTest {
 		TriplePattern triple = new TriplePattern("?s ?p ?o");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 
@@ -132,7 +132,7 @@ public class MatchTest {
 		TriplePattern triple3 = new TriplePattern("?b <type> <Device>");
 		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(triple, triple2, triple3));
 
-		Rule r = new Rule(null, rhs);
+		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -159,7 +159,7 @@ public class MatchTest {
 		Set<TriplePattern> obj = new HashSet<>(
 				Arrays.asList(t1, t2, t3, t4, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
 
-		Rule r = new Rule(null, obj);
+		Rule r = new Rule(new HashSet<>(), obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 		System.out.println("Size: " + findMatchesWithConsequent.size());
@@ -181,7 +181,7 @@ public class MatchTest {
 		TriplePattern tp2_3 = new TriplePattern("?s <type> <Device>");
 		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
 
-		Rule r = new Rule(null, tp2);
+		Rule r = new Rule(new HashSet<>(), tp2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ALL_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -199,7 +199,7 @@ public class MatchTest {
 		TriplePattern tp2_3 = new TriplePattern("?s <type> <Device>");
 		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
 
-		Rule r = new Rule(null, tp2);
+		Rule r = new Rule(new HashSet<>(), tp2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 		System.out.println(findMatchesWithConsequent);
@@ -260,8 +260,8 @@ public class MatchTest {
 
 		Set<TriplePattern> obj2 = new HashSet<>(Arrays.asList(t23, t24, t211));
 
-		Rule r = new Rule(null, obj);
-		Rule r2 = new Rule(null, obj2);
+		Rule r = new Rule(new HashSet<>(), obj);
+		Rule r2 = new Rule(new HashSet<>(), obj2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
@@ -293,8 +293,8 @@ public class MatchTest {
 
 		Set<TriplePattern> obj2 = new HashSet<>(Arrays.asList(t23, t24, t211));
 
-		Rule r = new Rule(null, obj);
-		Rule r2 = new Rule(null, obj2);
+		Rule r = new Rule(new HashSet<>(), obj);
+		Rule r2 = new Rule(new HashSet<>(), obj2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
@@ -325,7 +325,7 @@ public class MatchTest {
 
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3));
 
-		Rule r = new Rule(null, obj);
+		Rule r = new Rule(new HashSet<>(), obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(
 				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.FIND_ALL_MATCHES);
@@ -413,7 +413,7 @@ public class MatchTest {
 
 			Set<TriplePattern> obj = new HashSet<>(Arrays.asList(graphPattern));
 
-			Rule r = new Rule(null, obj);
+			Rule r = new Rule(new HashSet<>(), obj);
 
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
 					MatchStrategy.FIND_ALL_MATCHES);

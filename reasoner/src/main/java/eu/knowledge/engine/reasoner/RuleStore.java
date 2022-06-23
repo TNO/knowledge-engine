@@ -7,11 +7,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -28,18 +29,18 @@ public class RuleStore {
 	/**
 	 * All the rules in this store.
 	 */
-	private Set<Rule> rules;
+	private Map<Rule, RuleNode> ruleToRuleNode;
 
 	/**
 	 * Instantiate an empty rule store.
 	 */
 	public RuleStore() {
-		rules = new HashSet<Rule>();
+		ruleToRuleNode = new HashMap<>();
 	}
 
 	public void addRule(Rule aRule) {
-		aRule.setStore(this);
-		this.rules.add(aRule);
+		RuleNode aRuleNode = new RuleNode(aRule);
+		this.ruleToRuleNode.put(aRule, aRuleNode);
 	}
 
 	/**
@@ -56,7 +57,72 @@ public class RuleStore {
 	 * @return all the rules of this store.
 	 */
 	public Set<Rule> getRules() {
-		return this.rules;
+
+		return this.ruleToRuleNode.values().stream().map(rn -> rn.getRule()).collect(Collectors.toSet());
+	}
+
+	/**
+	 * Calculate the antecedent neighbors of this rule. That means all the other
+	 * rules in {@code store} whose consequent matches this rule's antecedent. Note
+	 * that it also adds the same information to the neighbor.
+	 * 
+	 * @return A mapping from a neighbor rulenode and the way its consequent matches
+	 *         this rule's antecedent.
+	 */
+	public Map<Rule, Set<Match>> getAntecedentNeighbors(Rule aRule) {
+
+		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
+
+		for (Rule someRule : this.getRules()) {
+			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
+			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {
+				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(),
+						MatchStrategy.FIND_ALL_MATCHES);
+				if (!someMatches.isEmpty()) {
+					aRuleNode.setAntecedentNeighbor(someRule, someMatches);
+					someRuleNode.setConsequentNeighbor(aRule, invertMatches(someMatches));
+				}
+
+			}
+		}
+		return aRuleNode.getAntecedentNeighbors();
+	}
+
+	private Set<Match> invertMatches(Set<Match> someMatches) {
+		Set<Match> inverseMatches = new HashSet<>();
+		for (Match m : someMatches) {
+			inverseMatches.add(m.inverse());
+		}
+		return inverseMatches;
+	}
+
+	/**
+	 * Calculate the consequent neighbors of this rule. That means all the other
+	 * rules in {@code store} whose antecedent matches this rule's antecedent. Note
+	 * that it also adds the same information to the neighbor.<br />
+	 * 
+	 * This method is cached to improve performance.
+	 * 
+	 * @return A mapping from a neighbor rulenode and the way its antecedent matches
+	 *         this rule's consequent.
+	 */
+	public Map<Rule, Set<Match>> getConsequentNeighbors(Rule aRule) {
+		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
+
+		for (Rule someRule : this.getRules()) {
+			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
+			if (!someRule.getAntecedent().isEmpty() && !aRuleNode.getConsequentNeighbors().containsKey(someRule)) {
+				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(),
+						MatchStrategy.FIND_ALL_MATCHES);
+				if (!someMatches.isEmpty()) {
+					aRuleNode.setConsequentNeighbor(someRule, someMatches);
+					someRuleNode.setAntecedentNeighbor(aRule, invertMatches(someMatches));
+				}
+
+			}
+		}
+		return aRuleNode.getConsequentNeighbors();
+
 	}
 
 	/**
@@ -71,21 +137,21 @@ public class RuleStore {
 
 		int ruleNumber = 1;
 
-		for (Rule r : rules) {
+		for (RuleNode r : ruleToRuleNode.values()) {
 
-			String currentName = ruleToName.get(r);
+			String currentName = ruleToName.get(r.getRule());
 			if (currentName == null) {
-				currentName = /* "rule" + ruleNumber; */ generateName(r);
+				currentName = /* "rule" + ruleNumber; */ generateName(r.getRule());
 				assert !currentName.isEmpty();
 				ruleNumber++;
-				String replaceAll = toStringRule(r).replaceAll("\\\"", "\\\\\"");
+				String replaceAll = toStringRule(r.getRule()).replaceAll("\\\"", "\\\\\"");
 
 				sb.append(currentName).append("[").append("tooltip=").append("\"").append(replaceAll).append("\"")
 						.append("]").append("\n");
-				ruleToName.put(r, currentName);
+				ruleToName.put(r.getRule(), currentName);
 			}
 
-			Set<Rule> anteNeigh = r.getAntecedentNeighbors().keySet();
+			Set<Rule> anteNeigh = this.getAntecedentNeighbors(r.getRule()).keySet();
 			String neighName;
 			for (Rule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);
@@ -172,7 +238,7 @@ public class RuleStore {
 	 * the neighbor of who.
 	 */
 	public void reset() {
-		for (Rule r : this.rules) {
+		for (RuleNode r : this.ruleToRuleNode.values()) {
 			r.reset();
 		}
 	}
