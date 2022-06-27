@@ -55,7 +55,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		return future.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while sending Ask Message ", e);
 				return null;
 			} else {
 				return r;
@@ -77,7 +77,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		return future.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while sending Post Message ", e);
 				return null;
 			} else {
 				return r;
@@ -108,7 +108,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			}).handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while handling Ask Message ", e);
 					return null;
 				} else {
 					return r;
@@ -139,7 +139,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			}).handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while handling Post Message ", e);
 					return null;
 				} else {
 					return r;
@@ -162,7 +162,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while handling Answer Message ", e);
 					return null;
 				} else {
 					return r;
@@ -189,7 +189,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while handling React Message ", e);
 					return null;
 				} else {
 					return r;

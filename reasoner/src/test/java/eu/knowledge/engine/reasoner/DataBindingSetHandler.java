@@ -45,7 +45,7 @@ public class DataBindingSetHandler implements BindingSetHandler {
 		future.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while handling binding set data ", e);
 				return null;
 			} else {
 				return r;

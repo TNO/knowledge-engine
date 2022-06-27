@@ -69,7 +69,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		return this.answerFuture.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while executing Ask Interaction ", e);
 				return null;
 			} else {
 				return r;
@@ -90,7 +90,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		return this.reactFuture.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while executing Post Interaction ", e);
 				return null;
 			} else {
 				return r;

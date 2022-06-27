@@ -68,11 +68,10 @@ public class TaskBoardTest {
 					} catch (Exception ex) {
 						throw new CompletionException(ex);
 					} // Or return default value
-				}, TaskBoardTest.this.es)
-				.handle((r, e) -> {
+				}, TaskBoardTest.this.es).handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured testing timer ", e);
 						return null;
 					} else {
 						return r;

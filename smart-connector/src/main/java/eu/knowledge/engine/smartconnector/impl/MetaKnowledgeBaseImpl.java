@@ -315,7 +315,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 					}).handle((r, e) -> {
 
 						if (r == null) {
-							LOG.error("An exception has occured", e);
+							LOG.error("An exception has occured while getting Other Knowledge Base", e);
 							return null;
 						} else {
 							return r;
@@ -506,7 +506,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				.execute(this.fillMetaBindings(null)).handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured while posting new Knowledge Base ", e);
 						return null;
 					} else {
 						return r;

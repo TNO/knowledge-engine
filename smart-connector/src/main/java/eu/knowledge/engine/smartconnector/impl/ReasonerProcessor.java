@@ -308,7 +308,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while capturing binging set", e);
 					return null;
 				} else {
 					return r;
@@ -481,7 +481,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while storing binding set ", e);
 					return null;
 				} else {
 					return r;

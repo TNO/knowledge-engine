@@ -89,7 +89,7 @@ public class BackwardTest {
 						future.handle((r, e) -> {
 
 							if (r == null) {
-								LOG.error("An exception has occured", e);
+								LOG.error("An exception has occured in Celsius <-> Fahrenheit test", e);
 								return null;
 							} else {
 								return r;
@@ -123,7 +123,7 @@ public class BackwardTest {
 						future.handle((r, e) -> {
 
 							if (r == null) {
-								LOG.error("An exception has occured", e);
+								LOG.error("An exception has occured in Celsius <-> Kelvin test", e);
 								return null;
 							} else {
 								return r;
@@ -158,7 +158,7 @@ public class BackwardTest {
 						future.handle((r, e) -> {
 
 							if (r == null) {
-								LOG.error("An exception has occured", e);
+								LOG.error("An exception has occured in Fahrenheit <-> Kelvin test", e);
 								return null;
 							} else {
 								return r;

@@ -28,7 +28,7 @@ public class PostPlanImpl implements PostPlan {
 		return this.processor.executePostInteraction(someArguments).handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while executing Post Plan", e);
 				return null;
 			} else {
 				return r;

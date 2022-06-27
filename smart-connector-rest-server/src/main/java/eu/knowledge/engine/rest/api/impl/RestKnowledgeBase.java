@@ -131,7 +131,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while answering ", e);
 					return null;
 				} else {
 					return r;
@@ -169,7 +169,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while reacting ", e);
 					return null;
 				} else {
 					return r;
@@ -594,7 +594,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return askFuture.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while asking ", e);
 				return null;
 			} else {
 				return r;
@@ -628,7 +628,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return postFuture.handle((r, e) -> {
 
 			if (r == null) {
-				LOG.error("An exception has occured", e);
+				LOG.error("An exception has occured while posting ", e);
 				return null;
 			} else {
 				return r;

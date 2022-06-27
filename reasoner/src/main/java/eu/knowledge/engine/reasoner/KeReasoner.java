@@ -38,7 +38,7 @@ public class KeReasoner {
 				future.handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured on backward plan", e);
 						return null;
 					} else {
 						return r;
@@ -67,7 +67,7 @@ public class KeReasoner {
 				future.handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured on forward plan", e);
 						return null;
 					} else {
 						return r;

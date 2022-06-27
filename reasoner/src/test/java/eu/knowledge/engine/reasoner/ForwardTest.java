@@ -42,7 +42,7 @@ public class ForwardTest {
 			future.handle((r, e) -> {
 
 				if (r == null) {
-					LOG.error("An exception has occured", e);
+					LOG.error("An exception has occured while handling binding set", e);
 					return null;
 				} else {
 					return r;
@@ -116,7 +116,7 @@ public class ForwardTest {
 						future.handle((r, e) -> {
 
 							if (r == null) {
-								LOG.error("An exception has occured", e);
+								LOG.error("An exception has occured on Celsius <-> Fahrenheit test", e);
 								return null;
 							} else {
 								return r;
@@ -192,7 +192,7 @@ public class ForwardTest {
 				future.handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured on family tree test ", e);
 						return null;
 					} else {
 						return r;
@@ -473,7 +473,7 @@ public class ForwardTest {
 				future.handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured while testing are published values remained accessible ", e);
 						return null;
 					} else {
 						return r;

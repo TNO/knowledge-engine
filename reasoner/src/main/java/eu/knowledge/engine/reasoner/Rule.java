@@ -69,7 +69,7 @@ public class Rule {
 				future.handle((r, e) -> {
 
 					if (r == null) {
-						LOG.error("An exception has occured", e);
+						LOG.error("An exception has occured in Rule on BindingSetHandler", e);
 						return null;
 					} else {
 						return r;
