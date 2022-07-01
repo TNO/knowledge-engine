@@ -1,0 +1,11 @@
+?x <pred3> ?y
+->
+?x <pred2> ?y
+
+?x <pred4> ?y
+->
+?x <pred1> ?y
+
+->
+?a <pred4> ?b
+?b <pred3> ?c

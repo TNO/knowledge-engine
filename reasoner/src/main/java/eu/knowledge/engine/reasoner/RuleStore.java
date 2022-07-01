@@ -3,6 +3,9 @@
  */
 package eu.knowledge.engine.reasoner;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,6 +26,10 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
  *
  */
 public class RuleStore {
+
+	private static final String EMPTY = "";
+
+	private static final String ARROW = "->";
 
 	private static final Logger LOG = LoggerFactory.getLogger(RuleStore.class);
 
@@ -80,20 +87,12 @@ public class RuleStore {
 						MatchStrategy.FIND_ALL_MATCHES);
 				if (!someMatches.isEmpty()) {
 					aRuleNode.setAntecedentNeighbor(someRule, someMatches);
-					someRuleNode.setConsequentNeighbor(aRule, invertMatches(someMatches));
+					someRuleNode.setConsequentNeighbor(aRule, Match.invert(someMatches));
 				}
 
 			}
 		}
 		return aRuleNode.getAntecedentNeighbors();
-	}
-
-	private Set<Match> invertMatches(Set<Match> someMatches) {
-		Set<Match> inverseMatches = new HashSet<>();
-		for (Match m : someMatches) {
-			inverseMatches.add(m.inverse());
-		}
-		return inverseMatches;
 	}
 
 	/**
@@ -109,6 +108,8 @@ public class RuleStore {
 	public Map<Rule, Set<Match>> getConsequentNeighbors(Rule aRule) {
 		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
+		assert aRuleNode != null;
+
 		for (Rule someRule : this.getRules()) {
 			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getAntecedent().isEmpty() && !aRuleNode.getConsequentNeighbors().containsKey(someRule)) {
@@ -116,7 +117,7 @@ public class RuleStore {
 						MatchStrategy.FIND_ALL_MATCHES);
 				if (!someMatches.isEmpty()) {
 					aRuleNode.setConsequentNeighbor(someRule, someMatches);
-					someRuleNode.setAntecedentNeighbor(aRule, invertMatches(someMatches));
+					someRuleNode.setAntecedentNeighbor(aRule, Match.invert(someMatches));
 				}
 
 			}
@@ -126,7 +127,18 @@ public class RuleStore {
 	}
 
 	/**
+	 * Resets all the rules in this store. I.e. removes the caching related to who's
+	 * the neighbor of who.
+	 */
+	public void reset() {
+		for (RuleNode r : this.ruleToRuleNode.values()) {
+			r.reset();
+		}
+	}
+
+	/**
 	 * Prints all the rules and the connections between them in GraphViz encoding.
+	 * Use code in: {@link http://magjac.com/graphviz-visual-editor/}
 	 */
 	public void printGraphVizCode() {
 
@@ -165,7 +177,7 @@ public class RuleStore {
 					ruleToName.put(neighR, neighName);
 				}
 
-				sb.append(neighName).append("->").append(currentName).append("\n");
+				sb.append(neighName).append(ARROW).append(currentName).append("\n");
 
 			}
 		}
@@ -210,7 +222,7 @@ public class RuleStore {
 
 	private String generateName(TriplePattern tp) {
 
-		String name = "";
+		String name = EMPTY;
 		if (tp.getPredicate().toString().contains("type") && !tp.getObject().isVariable())
 			name = tp.getObject().toString();
 		else {
@@ -233,13 +245,48 @@ public class RuleStore {
 		return name;
 	}
 
-	/**
-	 * Resets all the rules in this store. I.e. removes the caching related to who's
-	 * the neighbor of who.
-	 */
-	public void reset() {
-		for (RuleNode r : this.ruleToRuleNode.values()) {
-			r.reset();
+	public void read(String testRules) throws IOException {
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(RuleStore.class.getResourceAsStream(testRules)));
+		String line;
+		Set<Rule> rules = new HashSet<>();
+		boolean isAntecedent = true;
+		Set<TriplePattern> antecedent = new HashSet<>();
+		Set<TriplePattern> consequent = new HashSet<>();
+		while ((line = br.readLine()) != null) {
+
+			String trimmedLine = line.trim();
+
+			if (trimmedLine.equals(EMPTY)) {
+				if (!antecedent.isEmpty() || !consequent.isEmpty()) {
+					// start a new rule
+					rules.add(new ReactiveRule(antecedent, consequent));
+					antecedent = new HashSet<>();
+					consequent = new HashSet<>();
+					isAntecedent = true;
+				} else {
+					// ignore
+				}
+			} else if (trimmedLine.equals(ARROW)) {
+				// toggle between antecedent to consequent
+				isAntecedent = !isAntecedent;
+			} else {
+				// triple
+				if (isAntecedent) {
+					antecedent.add(new TriplePattern(trimmedLine));
+				} else {
+					consequent.add(new TriplePattern(trimmedLine));
+				}
+			}
 		}
+		if (!antecedent.isEmpty() || !consequent.isEmpty()) {
+			// start a new rule
+			rules.add(new Rule(antecedent, consequent));
+			antecedent = new HashSet<>();
+			consequent = new HashSet<>();
+		}
+
+		this.addRules(rules);
 	}
+
 }

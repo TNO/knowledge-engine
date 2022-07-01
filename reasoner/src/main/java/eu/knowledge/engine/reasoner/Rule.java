@@ -312,6 +312,10 @@ public class Rule {
 		return matchingTriplePatterns;
 	}
 
+	public boolean isProactive() {
+		return this instanceof ProactiveRule;
+	}
+
 	@Override
 	public String toString() {
 		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
