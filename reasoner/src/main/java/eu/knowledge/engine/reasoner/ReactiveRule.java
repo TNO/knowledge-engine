@@ -23,14 +23,14 @@ public class ReactiveRule extends Rule {
 	 * 
 	 * this one is (for now) always the trivial one.
 	 */
-	private BindingSetHandler backwardBindingSetHandler;
+	public BindingSetHandler backwardBindingSetHandler;
 
-	public static class TrivialBindingSetHandler implements BindingSetHandler {
+	public static class TrivialAntecedentBindingSetHandler implements BindingSetHandler {
 
 		private Set<TriplePattern> consequent;
 
-		public TrivialBindingSetHandler(Set<TriplePattern> aConsequent) {
-			this.consequent = aConsequent;
+		public TrivialAntecedentBindingSetHandler(Set<TriplePattern> aTriplePattern) {
+			this.consequent = aTriplePattern;
 		}
 
 		@Override
@@ -60,6 +60,38 @@ public class ReactiveRule extends Rule {
 		}
 	}
 
+	public static class TrivialConsequentBindingSetHandler implements BindingSetHandler {
+
+		private Set<TriplePattern> antecedent;
+
+		public TrivialConsequentBindingSetHandler(Set<TriplePattern> aTriplePattern) {
+			this.antecedent = aTriplePattern;
+		}
+
+		@Override
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+
+			BindingSet newBS = new BindingSet();
+
+			Binding newB;
+
+			Set<Var> vars = Rule.getVars(this.antecedent);
+			for (Binding b : bs) {
+				newB = new Binding();
+				for (Var v : vars) {
+					if (b.containsKey(v)) {
+						newB.put(v, b.get(v));
+					}
+				}
+				newBS.add(newB);
+			}
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			future.complete(newBS);
+			return future;
+		}
+	}
+
 	public ReactiveRule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
 			BindingSetHandler aBindingSetHandler) {
 		super(anAntecedent, aConsequent);
@@ -68,7 +100,7 @@ public class ReactiveRule extends Rule {
 			throw new IllegalArgumentException("A rule should have a non-null bindingsethandler.");
 
 		this.forwardBindingSetHandler = aBindingSetHandler;
-		this.backwardBindingSetHandler = new TrivialBindingSetHandler(anAntecedent);
+		this.backwardBindingSetHandler = new TrivialConsequentBindingSetHandler(anAntecedent);
 	}
 
 	/**
@@ -78,7 +110,7 @@ public class ReactiveRule extends Rule {
 	 * @param aConsequent
 	 */
 	public ReactiveRule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
-		this(anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
+		this(anAntecedent, aConsequent, new TrivialAntecedentBindingSetHandler(aConsequent));
 	}
 
 	public BindingSetHandler getForwardBindingSetHandler() {

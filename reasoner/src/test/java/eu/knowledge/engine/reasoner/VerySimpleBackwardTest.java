@@ -79,7 +79,7 @@ public class VerySimpleBackwardTest {
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 	}
 

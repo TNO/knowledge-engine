@@ -75,7 +75,7 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new Rule(
+		reasoner.addRule(new ReactiveRule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));

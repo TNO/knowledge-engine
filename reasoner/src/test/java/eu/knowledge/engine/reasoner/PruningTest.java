@@ -216,7 +216,7 @@ public class PruningTest {
 		reasoner.addRule(this.isInRoomRule);
 
 		String gp = "?d <hasGPSCoordinates> ?coords";
-		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
+		ReactiveRule r = new ReactiveRule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
 		reasoner.addRule(r);
 
 		TaskBoard taskboard = new TaskBoard();

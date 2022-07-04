@@ -38,7 +38,7 @@ public class BindingTest {
 		BindingSet bs = gbs.toBindingSet();
 		System.out.println(bs);
 
-		TripleVarBindingSet gbsReturned = bs.toGraphBindingSet(aGraphPattern);
+		TripleVarBindingSet gbsReturned = bs.toTripleVarBindingSet(aGraphPattern);
 
 		System.out.println(gbsReturned);
 	}

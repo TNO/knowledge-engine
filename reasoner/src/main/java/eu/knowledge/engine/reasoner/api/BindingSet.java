@@ -34,7 +34,7 @@ public class BindingSet extends HashSet<Binding> {
 	 * @param aGraphPattern
 	 * @return
 	 */
-	public TripleVarBindingSet toGraphBindingSet(Set<TriplePattern> aGraphPattern) {
+	public TripleVarBindingSet toTripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
 		TripleVarBindingSet gbs = new TripleVarBindingSet(aGraphPattern);
 

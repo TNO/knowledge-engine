@@ -62,12 +62,30 @@ public class TripleVarBindingSet {
 		return vars;
 	}
 
+	/**
+	 * @return bindings in which not all variable instances are present.
+	 */
 	public TripleVarBindingSet getPartialBindingSet() {
 		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 		Set<TripleVar> vars = this.getTripleVars();
 		int nrOfVars = vars.size();
 		for (TripleVarBinding tvb : bindings) {
 			if (tvb.keySet().size() < nrOfVars) {
+				gbs.add(tvb);
+			}
+		}
+		return gbs;
+	}
+
+	/**
+	 * @return bindings in which all variable instances are present.
+	 */
+	public TripleVarBindingSet getFullBindingSet() {
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
+		Set<TripleVar> vars = this.getTripleVars();
+		int nrOfVars = vars.size();
+		for (TripleVarBinding tvb : bindings) {
+			if (tvb.keySet().size() == nrOfVars) {
 				gbs.add(tvb);
 			}
 		}

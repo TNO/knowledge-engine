@@ -1,5 +1,8 @@
 package eu.knowledge.engine.reasoner;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +22,10 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class Rule {
+
+	static final String EMPTY = "";
+
+	static final String ARROW = "->";
 
 	public static enum MatchStrategy {
 		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
@@ -317,6 +324,50 @@ public class Rule {
 			vars.addAll(Rule.getVars(this.consequent));
 
 		return vars;
+	}
+
+	public static List<ReactiveRule> read(String testRules) throws IOException {
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(RuleStore.class.getResourceAsStream(testRules)));
+		String line;
+		List<ReactiveRule> rules = new ArrayList<>();
+		boolean isAntecedent = true;
+		Set<TriplePattern> antecedent = new HashSet<>();
+		Set<TriplePattern> consequent = new HashSet<>();
+		while ((line = br.readLine()) != null) {
+
+			String trimmedLine = line.trim();
+
+			if (trimmedLine.equals(EMPTY)) {
+				if (!antecedent.isEmpty() || !consequent.isEmpty()) {
+					// start a new rule
+					rules.add(new ReactiveRule(antecedent, consequent));
+					antecedent = new HashSet<>();
+					consequent = new HashSet<>();
+					isAntecedent = true;
+				} else {
+					// ignore
+				}
+			} else if (trimmedLine.equals(ARROW)) {
+				// toggle between antecedent to consequent
+				isAntecedent = !isAntecedent;
+			} else {
+				// triple
+				if (isAntecedent) {
+					antecedent.add(new TriplePattern(trimmedLine));
+				} else {
+					consequent.add(new TriplePattern(trimmedLine));
+				}
+			}
+		}
+		if (!antecedent.isEmpty() || !consequent.isEmpty()) {
+			// start a new rule
+			rules.add(new ReactiveRule(antecedent, consequent));
+			antecedent = new HashSet<>();
+			consequent = new HashSet<>();
+		}
+
+		return rules;
 	}
 
 	@Override

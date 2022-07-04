@@ -53,6 +53,10 @@ public class ReasonerNode {
 		return incomingAntecedentBindingSet;
 	}
 
+	public boolean hasIncomingAntecedentBindingSet() {
+		return incomingAntecedentBindingSet != null;
+	}
+
 	public void setIncomingAntecedentBindingSet(TripleVarBindingSet incomingAntecedentBindingSet) {
 		assert !this.getRule().getAntecedent().isEmpty();
 		this.incomingAntecedentBindingSet = incomingAntecedentBindingSet;
@@ -61,6 +65,10 @@ public class ReasonerNode {
 	public TripleVarBindingSet getOutgoingAntecedentBindingSet() {
 		assert !this.getRule().getAntecedent().isEmpty();
 		return outgoingAntecedentBindingSet;
+	}
+
+	public boolean hasOutgoingAntecedentBindingSet() {
+		return outgoingAntecedentBindingSet != null;
 	}
 
 	public void setOutgoingAntecedentBindingSet(TripleVarBindingSet outgoingAntecedentBindingSet) {
@@ -73,6 +81,10 @@ public class ReasonerNode {
 		return incomingConsequentBindingSet;
 	}
 
+	public boolean hasIncomingConsequentBindingSet() {
+		return incomingConsequentBindingSet != null;
+	}
+
 	public void setIncomingConsequentBindingSet(TripleVarBindingSet incomingConsequentBindingSet) {
 		assert !this.getRule().getConsequent().isEmpty();
 		this.incomingConsequentBindingSet = incomingConsequentBindingSet;
@@ -81,6 +93,10 @@ public class ReasonerNode {
 	public TripleVarBindingSet getOutgoingConsequentBindingSet() {
 		assert !this.getRule().getConsequent().isEmpty();
 		return outgoingConsequentBindingSet;
+	}
+
+	public boolean hasOutgoingConsequentBindingSet() {
+		return outgoingConsequentBindingSet != null;
 	}
 
 	public void setOutgoingConsequentBindingSet(TripleVarBindingSet outgoingConsequentBindingSet) {
@@ -142,6 +158,11 @@ public class ReasonerNode {
 
 	public boolean hasConsequent() {
 		return !this.rule.getConsequent().isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		return "ReasonerNode [" + (rule != null ? "rule=" + rule : "") + "]";
 	}
 
 }

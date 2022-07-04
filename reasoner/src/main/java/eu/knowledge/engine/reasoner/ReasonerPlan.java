@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -29,11 +30,11 @@ public class ReasonerPlan {
 		this.start = aStartRule;
 
 		// build reasoning graph
-		createReasonerNode(aStartRule);
+		ReasonerNode startNode = createReasonerNode(aStartRule);
 
 		// prepare execution
 		this.stack = new Stack<>();
-		stack.push(this.getNode(this.start));
+		stack.push(startNode);
 	}
 
 	public ReasonerNode getNode(Rule aRule) {
@@ -46,7 +47,7 @@ public class ReasonerPlan {
 	private ReasonerNode createReasonerNode(Rule aRule) {
 
 		ReasonerNode reasonerNode;
-		if ((reasonerNode = getNode(aRule)) == null)
+		if ((reasonerNode = getNode(aRule)) != null)
 			return reasonerNode;
 
 		// build the reasoner node graph
@@ -119,13 +120,13 @@ public class ReasonerPlan {
 	 * @throws InterruptedException
 	 */
 	public void execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
-		boolean hasNext = true;
-
 		this.getNode(this.start)
-				.setOutgoingAntecedentBindingSet(aBindingSet.toGraphBindingSet(this.start.getAntecedent()));
-
-		while (hasNext) {
-			hasNext = stepBackward();
+				.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
+		int i = 0;
+		boolean finished = false;
+		while (!finished) {
+			System.out.println("Step " + ++i + ": " + this.stack.peek());
+			finished = stepBackward();
 		}
 	}
 
@@ -134,65 +135,6 @@ public class ReasonerPlan {
 	 * step can be taken, or {@code false} if no further step can be taken. This
 	 * latter can be resolved by executing some of the task on the TaskBoard.
 	 * 
-	 * each of the following steps are optional, but not all possibilities are
-	 * valid.
-	 * <table border="1">
-	 * <tr>
-	 * <th>antecedent</th>
-	 * <th>apply</th>
-	 * <th>consequent</th>
-	 * <th>remark</th>
-	 * </tr>
-	 * <tr>
-	 * <td>no</td>
-	 * <td>no</td>
-	 * <td>no</td>
-	 * <td>not possible</td>
-	 * </tr>
-	 * <tr>
-	 * <td>yes</td>
-	 * <td>no</td>
-	 * <td>no</td>
-	 * <td></td>
-	 * </tr>
-	 * <tr>
-	 * <td>yes</td>
-	 * <td>yes</td>
-	 * <td>no</td>
-	 * <td></td>
-	 * </tr>
-	 * <tr>
-	 * <td>yes</td>
-	 * <td>no</td>
-	 * <td>yes</td>
-	 * <td>not possible</td>
-	 * </tr>
-	 * <tr>
-	 * <td>yes</td>
-	 * <td>yes</td>
-	 * <td>yes</td>
-	 * <td></td>
-	 * </tr>
-	 * <tr>
-	 * <td>no</td>
-	 * <td>yes</td>
-	 * <td>no</td>
-	 * <td>not possible</td>
-	 * </tr>
-	 * <tr>
-	 * <td>no</td>
-	 * <td>no</td>
-	 * <td>yes</td>
-	 * <td></td>
-	 * </tr>
-	 * <tr>
-	 * <td>no</td>
-	 * <td>yes</td>
-	 * <td>yes</td>
-	 * <td></td>
-	 * </tr>
-	 * </table>
-	 * 
 	 * TODO rename to backward step and forward step (separate processes)
 	 * 
 	 * @return {@code true} when another step can be taken, {@code false} otherwise.
@@ -200,122 +142,90 @@ public class ReasonerPlan {
 	 * @throws InterruptedException
 	 */
 	public boolean stepBackward() throws InterruptedException, ExecutionException {
-		boolean canStepFurther = false;
 		this.current = this.stack.peek();
 
-		// check if we should propagate BindingSets or handle BindingSets
-		// (readyForPropagate):
-		// - if there is a outgoing antecedent binding set or a outgoing consequent binding set, we propagate
-		// - if there is a incoming consequent binding set, we handle
+		boolean removeCurrentFromStack = true;
 
-		TripleVarBindingSet incomingAntecedentBS;
+		if (this.current.hasAntecedent()) {
 
-		if (this.current.hasAntecedent() && !this.current.hasConsequent()) {
+			if (this.current.hasConsequent() && !this.current.hasOutgoingAntecedentBindingSet()) {
+				Rule r = this.current.getRule();
+				assert r instanceof ReactiveRule;
+				ReactiveRule rr = (ReactiveRule) r;
 
-			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
-				antecedentOnlyIncomingAntecedentBindingSetAvailable();
-			} else {
-				antecedentOnlyIncomingAntecedentBindingSetNotAvailable();
+				BindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+
+				BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet())
+						.get();
+				this.current.setOutgoingAntecedentBindingSet(
+						aBindingSet.toTripleVarBindingSet(this.current.getRule().getAntecedent()));
 			}
 
-		} else if (this.current.hasAntecedent() && this.current.hasConsequent()) {
-
-			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
-				antecedentAndConsequentIncomingAntecedentBindingSetAvailable();
-			} else {
-				antecedentAndConsequentIncomingAntecedentBindingSetNotAvailable();
-			}
-		} else if (!this.current.hasAntecedent() && this.current.hasConsequent()) {
-			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
-				consequentOnlyIncomingAntecedentBindingSetAvailable();
-			} else {
-				consequentOnlyIncomingAntecedentBindingSetNotAvailable();
-			}
-		} else {
-			throw new IllegalStateException(
-					"A rule should have either an antecedent or a consequent or both: " + this.current.getRule());
-		}
-
-		// TODO collect an incoming antecedent bindingset
-
-		// TODO apply this rule
-
-		// TODO send an outgoing consequent bindingset
-
-		return canStepFurther;
-	}
-
-	private boolean readyToPropagate(ReasonerNode aNode) {
-		return aNode.getOutgoingAntecedentBindingSet() != null || aNode.getOutgoingConsequentBindingSet() != null;
-	}
-
-	private void consequentOnlyIncomingAntecedentBindingSetNotAvailable() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void consequentOnlyIncomingAntecedentBindingSetAvailable() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void antecedentAndConsequentIncomingAntecedentBindingSetNotAvailable() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void antecedentAndConsequentIncomingAntecedentBindingSetAvailable()
-			throws InterruptedException, ExecutionException {
-		TripleVarBindingSet incomingAntecedentBS, outgoingConsequentBS;
-		// we are ready to rumble
-//		BindingSetHandler bsh = this.current.getRule().getForwardBindingSetHandler();
-		// TODO use the taskboard if available
-//		BindingSet tempBS = bsh.handle(incomingAntecedentBS.toBindingSet()).get();
-//		outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
-//		this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
-	}
-
-	private void antecedentOnlyIncomingAntecedentBindingSetAvailable() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void antecedentOnlyIncomingAntecedentBindingSetNotAvailable() {
-		TripleVarBindingSet incomingAntecedentBS, outgoingConsequentBS;
-
-		// collect all antecedent neighbor's outgoing consequent bindings
-		for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
-
-			ReasonerNode neighbor = neighborEntry.getKey();
-			Set<Match> neighborMatch = neighborEntry.getValue();
-
-			if (neighbor.getOutgoingConsequentBindingSet() != null) {
-
-			} else {
-
-			}
-
-//			TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(),
-//					neighborMatch);
-//			neighbor.setIncomingConsequentBindingSet(neighborBS);
-//			this.stack.push(neighbor);
-		}
-
-		// translate them to our incoming antecedent bindingset
-
-//		outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
-//		this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
-
-		if ((outgoingConsequentBS = this.current.getOutgoingConsequentBindingSet()) != null) {
-			TripleVarBindingSet bs = this.current.getOutgoingAntecedentBindingSet();
+			boolean allNeighborsHaveOutgoingConsequentBindingSets = true;
 			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
 				ReasonerNode neighbor = neighborEntry.getKey();
 				Set<Match> neighborMatch = neighborEntry.getValue();
-				TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(), neighborMatch);
-				neighbor.setIncomingConsequentBindingSet(neighborBS);
-				this.stack.push(neighbor);
+				TripleVarBindingSet neighborBS = this.current.getOutgoingAntecedentBindingSet()
+						.translate(neighbor.getRule().getAntecedent(), neighborMatch);
+
+				if (!neighbor.hasOutgoingConsequentBindingSet()) {
+					neighbor.setIncomingConsequentBindingSet(neighborBS);
+					this.stack.push(neighbor);
+					allNeighborsHaveOutgoingConsequentBindingSets = false;
+					removeCurrentFromStack = false;
+				} else {
+					// skip this neighbor
+				}
 			}
+
+			if (allNeighborsHaveOutgoingConsequentBindingSets) {
+				// create incoming antecedent bindingset
+				TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.current.getRule().getAntecedent());
+				for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors()
+						.entrySet()) {
+					ReasonerNode neighbor = neighborEntry.getKey();
+					Set<Match> neighborMatches = neighborEntry.getValue();
+					assert neighbor.hasOutgoingConsequentBindingSet();
+					TripleVarBindingSet neighborOutgoingConsequentBindingSet = neighbor
+							.getOutgoingConsequentBindingSet();
+
+					combinedBindings = combinedBindings.merge(neighborOutgoingConsequentBindingSet
+							.translate(this.current.getRule().getAntecedent(), neighborMatches));
+				}
+
+				this.current.setIncomingAntecedentBindingSet(combinedBindings.getFullBindingSet());
+			}
+
+			if (this.current.hasConsequent() && this.current.hasIncomingAntecedentBindingSet()) {
+				Rule r = this.current.getRule();
+				assert r instanceof ReactiveRule;
+				ReactiveRule rr = (ReactiveRule) r;
+				BindingSetHandler bsh = rr.getForwardBindingSetHandler();
+				BindingSet outgoingConsequentBindingSet = bsh
+						.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet()).get();
+				this.current.setOutgoingConsequentBindingSet(
+						outgoingConsequentBindingSet.toTripleVarBindingSet(this.current.getRule().getConsequent()));
+			}
+
+		} else {
+			Rule r = this.current.getRule();
+			assert r instanceof ReactiveRule;
+			ReactiveRule rr = (ReactiveRule) r;
+
+			BindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+			BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet()).get();
+			this.current.setOutgoingConsequentBindingSet(
+					aBindingSet.toTripleVarBindingSet(this.current.getRule().getConsequent()));
 		}
+
+		if (removeCurrentFromStack) {
+			this.stack.pop();
+		}
+		return this.stack.isEmpty();
+	}
+
+	public ReasonerNode getStartNode() {
+		return this.getNode(this.start);
 	}
 
 	public boolean stepForward() {

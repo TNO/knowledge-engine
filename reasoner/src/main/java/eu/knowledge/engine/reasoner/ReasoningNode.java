@@ -346,9 +346,9 @@ public class ReasoningNode {
 
 		TripleVarBindingSet tvbs;
 		if (this.rule.getConsequent().isEmpty())
-			tvbs = continueBackward(bindingSet.toGraphBindingSet(this.rule.getAntecedent()));
+			tvbs = continueBackward(bindingSet.toTripleVarBindingSet(this.rule.getAntecedent()));
 		else
-			tvbs = continueBackward(bindingSet.toGraphBindingSet(this.rule.getConsequent()));
+			tvbs = continueBackward(bindingSet.toTripleVarBindingSet(this.rule.getConsequent()));
 
 		if (tvbs == null)
 			return null;
@@ -456,7 +456,7 @@ public class ReasoningNode {
 
 						if (finished) {
 							combinedBindings = combinedBindings.merge(child.getForwardBindingSetToHandler()
-									.toGraphBindingSet(combinedBindings.getGraphPattern()));
+									.toTripleVarBindingSet(combinedBindings.getGraphPattern()));
 						}
 
 					}
@@ -473,7 +473,7 @@ public class ReasoningNode {
 							consequentAntecedentBindings = bindingSet; // send the consequent binding set
 						} else {
 							consequentAntecedentBindings = keepOnlyCompatiblePatternBindings(
-									bindingSet.toBindingSet().toGraphBindingSet(this.rule.getAntecedent()),
+									bindingSet.toBindingSet().toTripleVarBindingSet(this.rule.getAntecedent()),
 									combinedBindings);
 
 							consequentAntecedentBindings = keepOnlyFullGraphPatternBindings(this.rule.getAntecedent(),
@@ -492,7 +492,7 @@ public class ReasoningNode {
 								this.fromBindingSetHandlerBackward = new BindingSet();
 								this.endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
-								return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.getConsequent());
+								return this.fromBindingSetHandlerBackward.toTripleVarBindingSet(this.rule.getConsequent());
 							}
 						} else {
 
@@ -515,7 +515,7 @@ public class ReasoningNode {
 								this.endTime = Instant.now();
 								this.bcState = BC_BINDINGSET_AVAILABLE;
 							}
-							return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.getConsequent());
+							return this.fromBindingSetHandlerBackward.toTripleVarBindingSet(this.rule.getConsequent());
 
 						}
 					}
@@ -526,7 +526,7 @@ public class ReasoningNode {
 				endTime = Instant.now();
 				this.fromBindingSetHandlerBackward = new BindingSet();
 				this.bcState = BC_BINDINGSET_AVAILABLE;
-				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.getConsequent());
+				return this.fromBindingSetHandlerBackward.toTripleVarBindingSet(this.rule.getConsequent());
 			}
 
 			return null;
@@ -539,9 +539,9 @@ public class ReasoningNode {
 			// the same two variables are still correctly matched.
 			// we start however, with the naive version that does not support this.
 			if (this.rule.getConsequent().isEmpty())
-				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.getAntecedent());
+				return this.fromBindingSetHandlerBackward.toTripleVarBindingSet(this.rule.getAntecedent());
 			else
-				return this.fromBindingSetHandlerBackward.toGraphBindingSet(this.rule.getConsequent());
+				return this.fromBindingSetHandlerBackward.toTripleVarBindingSet(this.rule.getConsequent());
 		}
 	}
 
@@ -549,9 +549,9 @@ public class ReasoningNode {
 		// TODO this is not very elegant. This is caused by unclarity on the definition
 		// of a bindingset handler and which binding it should receive.
 		if (this.rule.getAntecedent().isEmpty())
-			return continueForward(bindingSet.toGraphBindingSet(this.rule.getConsequent()));
+			return continueForward(bindingSet.toTripleVarBindingSet(this.rule.getConsequent()));
 		else
-			return continueForward(bindingSet.toGraphBindingSet(this.rule.getAntecedent()));
+			return continueForward(bindingSet.toTripleVarBindingSet(this.rule.getAntecedent()));
 	}
 
 	/**
@@ -731,7 +731,7 @@ public class ReasoningNode {
 							existing = generateAdditionalTripleVarBindings(existing);
 
 						TripleVarBindingSet existing3 = existing
-								.merge(this.fromBindingSetHandlerForward.toGraphBindingSet(this.rule.getConsequent())
+								.merge(this.fromBindingSetHandlerForward.toTripleVarBindingSet(this.rule.getConsequent())
 										.translate(child.rule.getAntecedent(), invert(childMatch)));
 
 						existing = keepOnlyFullGraphPatternBindings(this.rule.getAntecedent(), existing3);

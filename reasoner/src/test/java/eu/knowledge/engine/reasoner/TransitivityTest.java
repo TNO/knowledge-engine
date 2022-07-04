@@ -31,7 +31,7 @@ public class TransitivityTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isVoorouderVan> ?z"));
-		Rule transitivity = new Rule(antecedent, consequent);
+		ReactiveRule transitivity = new ReactiveRule(antecedent, consequent);
 		reasoner.addRule(transitivity);
 
 		// data rule

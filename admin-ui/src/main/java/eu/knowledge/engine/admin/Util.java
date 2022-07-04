@@ -105,7 +105,8 @@ public class Util {
 
 	public static String getGraphPattern(Model model, Resource kiRes) {
 		Resource gpRes = kiRes.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasGraphPattern")));
-		return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
+		return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral()
+				.getLexicalForm();
 
 	}
 
@@ -113,7 +114,8 @@ public class Util {
 		Resource gpRes = kiRes
 				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasArgumentGraphPattern")));
 		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
+			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral()
+					.getLexicalForm();
 		} else {
 			return NONE;
 		}
@@ -123,7 +125,8 @@ public class Util {
 		Resource gpRes = kiRes
 				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasResultGraphPattern")));
 		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
+			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral()
+					.getLexicalForm();
 		} else {
 			return NONE;
 		}
@@ -147,7 +150,7 @@ public class Util {
 			ReasoningNode node = queue.poll();
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getBindingSetHandler();
+			BindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
 			if (bsh instanceof ReactBindingSetHandler) {

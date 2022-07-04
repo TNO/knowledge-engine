@@ -27,10 +27,6 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
  */
 public class RuleStore {
 
-	private static final String EMPTY = "";
-
-	private static final String ARROW = "->";
-
 	private static final Logger LOG = LoggerFactory.getLogger(RuleStore.class);
 
 	/**
@@ -177,7 +173,7 @@ public class RuleStore {
 					ruleToName.put(neighR, neighName);
 				}
 
-				sb.append(neighName).append(ARROW).append(currentName).append("\n");
+				sb.append(neighName).append(Rule.ARROW).append(currentName).append("\n");
 
 			}
 		}
@@ -222,7 +218,7 @@ public class RuleStore {
 
 	private String generateName(TriplePattern tp) {
 
-		String name = EMPTY;
+		String name = Rule.EMPTY;
 		if (tp.getPredicate().toString().contains("type") && !tp.getObject().isVariable())
 			name = tp.getObject().toString();
 		else {
@@ -243,50 +239,6 @@ public class RuleStore {
 		name = name.replaceAll("\\\"", "\\\\\"");
 
 		return name;
-	}
-
-	public void read(String testRules) throws IOException {
-
-		BufferedReader br = new BufferedReader(new InputStreamReader(RuleStore.class.getResourceAsStream(testRules)));
-		String line;
-		Set<Rule> rules = new HashSet<>();
-		boolean isAntecedent = true;
-		Set<TriplePattern> antecedent = new HashSet<>();
-		Set<TriplePattern> consequent = new HashSet<>();
-		while ((line = br.readLine()) != null) {
-
-			String trimmedLine = line.trim();
-
-			if (trimmedLine.equals(EMPTY)) {
-				if (!antecedent.isEmpty() || !consequent.isEmpty()) {
-					// start a new rule
-					rules.add(new ReactiveRule(antecedent, consequent));
-					antecedent = new HashSet<>();
-					consequent = new HashSet<>();
-					isAntecedent = true;
-				} else {
-					// ignore
-				}
-			} else if (trimmedLine.equals(ARROW)) {
-				// toggle between antecedent to consequent
-				isAntecedent = !isAntecedent;
-			} else {
-				// triple
-				if (isAntecedent) {
-					antecedent.add(new TriplePattern(trimmedLine));
-				} else {
-					consequent.add(new TriplePattern(trimmedLine));
-				}
-			}
-		}
-		if (!antecedent.isEmpty() || !consequent.isEmpty()) {
-			// start a new rule
-			rules.add(new Rule(antecedent, consequent));
-			antecedent = new HashSet<>();
-			consequent = new HashSet<>();
-		}
-
-		this.addRules(rules);
 	}
 
 }
