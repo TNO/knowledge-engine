@@ -41,7 +41,7 @@ public class ReasoningPlanTest {
 		ReactiveRule reactiveRule = new ReactiveRule(antecedent, consequent);
 		store.addRule(reactiveRule);
 
-		assertEquals(4, store.getRules().size());
+		assertEquals(5, store.getRules().size());
 
 		for (Rule r : store.getRules()) {
 			store.getAntecedentNeighbors(r);

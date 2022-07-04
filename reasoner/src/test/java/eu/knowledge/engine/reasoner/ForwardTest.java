@@ -50,11 +50,11 @@ public class ForwardTest {
 
 	private KeReasoner reasoner;
 
-	private Rule optionalRule;
+	private ReactiveRule optionalRule;
 
-	private Rule grandParentRule;
+	private ReactiveRule grandParentRule;
 
-	private Rule converterRule;
+	private ReactiveRule converterRule;
 
 	@BeforeAll
 	public void init() {
@@ -65,7 +65,7 @@ public class ForwardTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
-		grandParentRule = new Rule(antecedent, consequent);
+		grandParentRule = new ReactiveRule(antecedent, consequent);
 
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
@@ -81,12 +81,12 @@ public class ForwardTest {
 				// @formatter:on
 		}));
 
-		optionalRule = new Rule(new HashSet<>(),
+		optionalRule = new ReactiveRule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <isParentOf> ?b"), new TriplePattern("?a <hasName> ?n"))),
 				aBindingSetHandler);
 
-		converterRule = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
+		converterRule = new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new BindingSetHandler() {
 
 					@Override
@@ -118,7 +118,7 @@ public class ForwardTest {
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
@@ -171,7 +171,7 @@ public class ForwardTest {
 			}
 
 		};
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
@@ -207,11 +207,11 @@ public class ForwardTest {
 		reasoner = new KeReasoner();
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler1));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler1));
 
 		TriplePattern tp2 = new TriplePattern("?a <isGrandParentOf> ?b");
 		MyBindingSetHandler aBindingSetHandler2 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp2)), new HashSet<>(), aBindingSetHandler2));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp2)), new HashSet<>(), aBindingSetHandler2));
 		reasoner.addRule(this.optionalRule);
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aPremise = new HashSet<>();
@@ -260,7 +260,7 @@ public class ForwardTest {
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp, tp2)), new HashSet<>(), aBindingSetHandler));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp, tp2)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(this.optionalRule);
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
@@ -305,7 +305,8 @@ public class ForwardTest {
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+		reasoner.addRule(
+				new ReactiveRule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
 		reasoner.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
@@ -315,7 +316,7 @@ public class ForwardTest {
 
 		TriplePattern tp31 = new TriplePattern("?s <hasMeasuredValue> ?v");
 		TriplePattern tp32 = new TriplePattern("?s <type> <Sensor>");
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
+		reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "v"
@@ -363,7 +364,7 @@ public class ForwardTest {
 		TriplePattern tp13 = new TriplePattern("?sens <isInRoom> ?room");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		reasoner.addRule(
-				new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), new HashSet<>(), aBindingSetHandler1));
+				new ReactiveRule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), new HashSet<>(), aBindingSetHandler1));
 		reasoner.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
@@ -372,7 +373,7 @@ public class ForwardTest {
 		premise.add(tp22);
 
 		TriplePattern tp31 = new TriplePattern("?s <isInRoom> ?r");
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
+		reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "r"
@@ -417,7 +418,8 @@ public class ForwardTest {
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasValInC> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+		reasoner.addRule(
+				new ReactiveRule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
 
 		reasoner.addRule(this.converterRule);
 
@@ -454,8 +456,8 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		reasoner.addRule(
-				new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)), new StoreBindingSetHandler(bs)));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
+				new StoreBindingSetHandler(bs)));
 
 		TaskBoard aTaskboard = new TaskBoard();
 		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskboard);

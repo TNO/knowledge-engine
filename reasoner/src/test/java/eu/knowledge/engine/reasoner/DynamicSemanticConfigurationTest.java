@@ -32,7 +32,7 @@ public class DynamicSemanticConfigurationTest {
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
+		reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new BindingSetHandler() {
 
@@ -80,7 +80,7 @@ public class DynamicSemanticConfigurationTest {
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
-		reasoner.addRule(new Rule(
+		reasoner.addRule(new ReactiveRule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {

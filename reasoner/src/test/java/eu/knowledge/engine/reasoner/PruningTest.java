@@ -44,15 +44,15 @@ public class PruningTest {
 	}
 
 	private KeReasoner reasoner;
-	private Rule isInRoomRule;
-	private Rule grandParentRule;
-	private Rule obsoleteRule;
+	private ReactiveRule isInRoomRule;
+	private ReactiveRule grandParentRule;
+	private ReactiveRule obsoleteRule;
 
 	@BeforeAll
 	public void init() {
 		reasoner = new KeReasoner();
 
-		Rule rule = new Rule(new HashSet<>(),
+		ReactiveRule rule = new ReactiveRule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -67,7 +67,7 @@ public class PruningTest {
 				})));
 		reasoner.addRule(rule);
 
-		isInRoomRule = new Rule(new HashSet<>(),
+		isInRoomRule = new ReactiveRule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?x <type> <Sensor>"), new TriplePattern("?x <isInRoom> ?y"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -88,13 +88,13 @@ public class PruningTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
-		grandParentRule = new Rule(antecedent, consequent);
+		grandParentRule = new ReactiveRule(antecedent, consequent);
 
 		Set<TriplePattern> obsoleteAntecedent = new HashSet<>(Arrays
 				.asList(new TriplePattern("?d <hasGPSCoordinates> ?coords"), new TriplePattern("?d <type> <Device>")));
 		Set<TriplePattern> obsoleteConsequent = new HashSet<>(Arrays.asList(new TriplePattern("?d <isInRoom> ?rm")));
 
-		this.obsoleteRule = new Rule(obsoleteAntecedent, obsoleteConsequent);
+		this.obsoleteRule = new ReactiveRule(obsoleteAntecedent, obsoleteConsequent);
 
 	}
 
@@ -168,7 +168,7 @@ public class PruningTest {
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
+		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));

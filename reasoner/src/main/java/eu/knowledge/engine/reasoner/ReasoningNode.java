@@ -67,12 +67,12 @@ public class ReasoningNode {
 	 */
 	private Map<TriplePattern, Set<ReasoningNode>> antecedentCoverageCache;
 
-	private List<Rule> allRules;
+	private List<ReactiveRule> allRules;
 
 	/**
 	 * Goals are represented as rules with an antecedent without a consequent.
 	 */
-	private Rule rule;
+	private ReactiveRule rule;
 
 	/**
 	 * The backward chaining (BC) status of this reasoning node. Is the consequent
@@ -164,8 +164,8 @@ public class ReasoningNode {
 	 */
 	private TaskBoard taskboard = null;
 
-	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
-			boolean aShouldPlanBackward) {
+	public ReasoningNode(List<ReactiveRule> someRules, ReasoningNode aParent, ReactiveRule aRule,
+			MatchStrategy aMatchStrategy, boolean aShouldPlanBackward) {
 		this(someRules, aParent, aRule, aMatchStrategy, aShouldPlanBackward, null);
 	}
 
@@ -184,8 +184,8 @@ public class ReasoningNode {
 	 * @param aRule
 	 * @param aMatchStrategy
 	 */
-	public ReasoningNode(List<Rule> someRules, ReasoningNode aParent, Rule aRule, MatchStrategy aMatchStrategy,
-			boolean aShouldPlanBackward, TaskBoard aTaskboard) {
+	public ReasoningNode(List<ReactiveRule> someRules, ReasoningNode aParent, ReactiveRule aRule,
+			MatchStrategy aMatchStrategy, boolean aShouldPlanBackward, TaskBoard aTaskboard) {
 
 		this.matchStrategy = aMatchStrategy;
 		this.parent = aParent;
@@ -207,10 +207,10 @@ public class ReasoningNode {
 		if (!shouldPlanBackward) {
 			// generate consequent neighbors
 			if (!this.rule.getConsequent().isEmpty()) {
-				Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(this.rule.getConsequent(),
-						this.matchStrategy);
+				Map<ReactiveRule, Set<Match>> relevantRules = findRulesWithOverlappingAntecedents(
+						this.rule.getConsequent(), this.matchStrategy);
 				ReasoningNode child;
-				for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
+				for (Map.Entry<ReactiveRule, Set<Match>> entry : relevantRules.entrySet()) {
 
 					if ((child = this.ruleAlreadyOccurs(entry.getKey())) != null) {
 						this.loopAntecedentNeighbors.put(child, entry.getValue());
@@ -228,10 +228,10 @@ public class ReasoningNode {
 		// note that in some scenario's antecedent neighbors are also necessary in a
 		// forward scenario
 		if (!this.rule.getAntecedent().isEmpty()) {
-			Map<Rule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(this.rule.getAntecedent(),
-					this.matchStrategy);
+			Map<ReactiveRule, Set<Match>> relevantRules = findRulesWithOverlappingConsequences(
+					this.rule.getAntecedent(), this.matchStrategy);
 			ReasoningNode child;
-			for (Map.Entry<Rule, Set<Match>> entry : relevantRules.entrySet()) {
+			for (Map.Entry<ReactiveRule, Set<Match>> entry : relevantRules.entrySet()) {
 
 				// some infinite loop detection (see transitivity test)
 				ReasoningNode someNode;
@@ -308,15 +308,15 @@ public class ReasoningNode {
 			return null;
 	}
 
-	private Map<Rule, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
+	private Map<ReactiveRule, Set<Match>> findRulesWithOverlappingConsequences(Set<TriplePattern> aPattern,
 			MatchStrategy aMatchStrategy) {
 
 		assert aPattern != null;
 		assert !aPattern.isEmpty();
 
 		Set<Match> possibleMatches;
-		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
-		for (Rule r : this.allRules) {
+		Map<ReactiveRule, Set<Match>> overlappingRules = new HashMap<>();
+		for (ReactiveRule r : this.allRules) {
 			if (!(possibleMatches = r.consequentMatches(aPattern, aMatchStrategy)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
 			}
@@ -325,14 +325,14 @@ public class ReasoningNode {
 		return overlappingRules;
 	}
 
-	private Map<Rule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
+	private Map<ReactiveRule, Set<Match>> findRulesWithOverlappingAntecedents(Set<TriplePattern> aConsequentPattern,
 			MatchStrategy aMatchStrategy) {
 		assert aConsequentPattern != null;
 		assert !aConsequentPattern.isEmpty();
 
 		Set<Match> possibleMatches;
-		Map<Rule, Set<Match>> overlappingRules = new HashMap<>();
-		for (Rule r : this.allRules) {
+		Map<ReactiveRule, Set<Match>> overlappingRules = new HashMap<>();
+		for (ReactiveRule r : this.allRules) {
 
 			if (!(possibleMatches = r.antecedentMatches(aConsequentPattern, aMatchStrategy)).isEmpty()) {
 				overlappingRules.put(r, possibleMatches);
@@ -502,7 +502,7 @@ public class ReasoningNode {
 
 								try {
 									startTime = Instant.now();
-									this.fromBindingSetHandlerBackward = this.rule.getBindingSetHandler()
+									this.fromBindingSetHandlerBackward = this.rule.getForwardBindingSetHandler()
 											.handle(this.toBindingSetHandlerBackward).get();
 									endTime = Instant.now();
 									this.bcState = BC_BINDINGSET_AVAILABLE;
@@ -659,7 +659,7 @@ public class ReasoningNode {
 					} else {
 						try {
 							this.startTime = Instant.now();
-							BindingSet bindingSet2 = this.rule.getBindingSetHandler()
+							BindingSet bindingSet2 = this.rule.getForwardBindingSetHandler()
 									.handle(this.toBindingSetHandlerForward).get();
 							if (fromBindingSetHandlerForward != null) {
 								this.fromBindingSetHandlerForwardPrevious = new BindingSet(
@@ -1010,7 +1010,7 @@ public class ReasoningNode {
 		return null;
 	}
 
-	public Rule getRule() {
+	public ReactiveRule getRule() {
 		return this.rule;
 	}
 

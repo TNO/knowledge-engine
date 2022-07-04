@@ -71,9 +71,7 @@ public class Rule {
 	 */
 	private Set<TriplePattern> consequent;
 
-	public BindingSetHandler bindingSetHandler;
-
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
+	protected Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 
 		if (anAntecedent.isEmpty() && aConsequent.isEmpty())
 			throw new IllegalArgumentException("A rule should not have both antecedent and consequent empty.");
@@ -81,17 +79,8 @@ public class Rule {
 		if (anAntecedent == null || aConsequent == null)
 			throw new IllegalArgumentException("A rule should have both antecedent and consequent non-null.");
 
-		if (aBindingSetHandler == null)
-			throw new IllegalArgumentException("A rule should have a non-null bindingsethandler.");
-
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
-
-		bindingSetHandler = aBindingSetHandler;
-	}
-
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
-		this(anAntecedent, aConsequent, new TrivialBindingSetHandler(aConsequent));
 	}
 
 	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
@@ -120,10 +109,6 @@ public class Rule {
 		if (!this.antecedent.isEmpty())
 			return matches(aConsequent, this.antecedent, aMatchStrategy);
 		return new HashSet<>();
-	}
-
-	public BindingSetHandler getBindingSetHandler() {
-		return bindingSetHandler;
 	}
 
 	/**
@@ -339,7 +324,6 @@ public class Rule {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
-		result = prime * result + ((bindingSetHandler == null) ? 0 : bindingSetHandler.hashCode());
 		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
 		return result;
 	}
@@ -357,11 +341,6 @@ public class Rule {
 			if (other.antecedent != null)
 				return false;
 		} else if (!antecedent.equals(other.antecedent))
-			return false;
-		if (bindingSetHandler == null) {
-			if (other.bindingSetHandler != null)
-				return false;
-		} else if (!bindingSetHandler.equals(other.bindingSetHandler))
 			return false;
 		if (consequent == null) {
 			if (other.consequent != null)

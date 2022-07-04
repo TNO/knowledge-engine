@@ -41,8 +41,8 @@ public class TaskBoardTest {
 
 		TaskBoard tb = new TaskBoard();
 
-		Rule r = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Test>"))), new HashSet<>(),
-				new BindingSetHandler() {
+		ReactiveRule r = new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Test>"))),
+				new HashSet<>(), new BindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {

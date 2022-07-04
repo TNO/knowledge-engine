@@ -1,7 +1,6 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.ReactiveRule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -78,8 +77,8 @@ public class NotDesignedToWorkTogetherTest {
 						"?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/DimmableLamp>"),
 				new TriplePattern("?s <http://example.org/hasBrightness> \"0\"")));
 
-		Rule rule1 = new Rule(rule1ant, rule1con);
-		Rule rule2 = new Rule(rule2ant, rule2con);
+		ReactiveRule rule1 = new ReactiveRule(rule1ant, rule1con);
+		ReactiveRule rule2 = new ReactiveRule(rule2ant, rule2con);
 		appKb.setDomainKnowledge(new HashSet<>(Arrays.asList(rule1, rule2)));
 
 		ReactKnowledgeInteraction lamp1KbReact = new ReactKnowledgeInteraction(new CommunicativeAct(), lampGP, null);

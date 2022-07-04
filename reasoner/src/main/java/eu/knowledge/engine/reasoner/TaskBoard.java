@@ -51,7 +51,7 @@ public class TaskBoard {
 	public CompletableFuture<Void> executeScheduledTasks() {
 
 		CompletableFuture<BindingSet> resultingBindingSetFuture;
-		Rule rule;
+		ReactiveRule rule;
 
 		Iterator<Task> iter = tasks.iterator();
 		Set<CompletableFuture<?>> futures = new HashSet<>();
@@ -65,7 +65,7 @@ public class TaskBoard {
 			assert task.getBindingSet(node) != null;
 
 			startTime = Instant.now();
-			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
+			resultingBindingSetFuture = rule.getForwardBindingSetHandler().handle(task.getBindingSet(node));
 			resultingBindingSetFuture.thenAccept((bs) -> {
 
 				// TODO this assumes every node only occurs once in all tasks.

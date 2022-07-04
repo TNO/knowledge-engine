@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.ReactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.RuleStore;
 import eu.knowledge.engine.reasoner.Table;
@@ -42,7 +43,7 @@ class RuleStoreTest {
 
 		RuleStore store = new RuleStore();
 
-		produceTargetsRule = new Rule(new HashSet<>(), new HashSet<>(
+		produceTargetsRule = new ReactiveRule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id rdf:type <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new BindingSetHandler() {
 
@@ -86,13 +87,13 @@ class RuleStoreTest {
 				});
 		store.addRule(produceTargetsRule);
 
-		produceHvtRule = new Rule(
+		produceHvtRule = new ReactiveRule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <HighValueTarget>"))));
 		store.addRule(produceHvtRule);
 
-		produceCountryRule = new Rule(
+		produceCountryRule = new ReactiveRule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
@@ -133,7 +134,7 @@ class RuleStoreTest {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?id rdf:type <HighValueTarget>"));
 		objective.add(new TriplePattern("?id <hasName> ?name"));
-		consumeHvtNameRule = new Rule(objective, new HashSet<>(), new BindingSetHandler() {
+		consumeHvtNameRule = new ReactiveRule(objective, new HashSet<>(), new BindingSetHandler() {
 
 			public CompletableFuture<BindingSet> handle(BindingSet incomingBS) {
 

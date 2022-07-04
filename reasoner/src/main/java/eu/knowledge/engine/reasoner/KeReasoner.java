@@ -20,7 +20,7 @@ public class KeReasoner {
 	}
 
 	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
-		Rule goalRule = new Rule(aGoal, new HashSet<>(), new BindingSetHandler() {
+		ReactiveRule goalRule = new ReactiveRule(aGoal, new HashSet<>(), new BindingSetHandler() {
 
 			/**
 			 * The root node should just return the bindingset as is.
@@ -35,13 +35,21 @@ public class KeReasoner {
 
 		});
 		this.store.addRule(goalRule);
-		ReasoningNode root = new ReasoningNode(new ArrayList<>(this.store.getRules()), null, goalRule, aMatchStrategy,
-				true, aTaskboard);
+
+		Set<ReactiveRule> rules = new HashSet<>();
+
+		for (Rule r : this.store.getRules()) {
+			assert r instanceof ReactiveRule;
+			rules.add((ReactiveRule) r);
+		}
+
+		ReasoningNode root = new ReasoningNode(new ArrayList<>(rules), null, goalRule, aMatchStrategy, true,
+				aTaskboard);
 		return root;
 	}
 
 	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
-		Rule premiseRule = new Rule(new HashSet<>(), aPremise, new BindingSetHandler() {
+		ReactiveRule premiseRule = new ReactiveRule(new HashSet<>(), aPremise, new BindingSetHandler() {
 
 			/**
 			 * The root node should just return the bindingset as is.
@@ -54,8 +62,15 @@ public class KeReasoner {
 			}
 		});
 
-		ReasoningNode root = new ReasoningNode(new ArrayList<>(this.store.getRules()), null, premiseRule,
-				aMatchStrategy, false, aTaskboard);
+		Set<ReactiveRule> rules = new HashSet<>();
+
+		for (Rule r : this.store.getRules()) {
+			assert r instanceof ReactiveRule;
+			rules.add((ReactiveRule) r);
+		}
+
+		ReasoningNode root = new ReasoningNode(new ArrayList<>(rules), null, premiseRule, aMatchStrategy, false,
+				aTaskboard);
 
 		return root;
 	}

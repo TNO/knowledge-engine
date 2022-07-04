@@ -181,7 +181,7 @@ public class TestUtils {
 			ReasoningNode node = queue.poll();
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getBindingSetHandler();
+			BindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
 			if (bsh instanceof ReactBindingSetHandler) {
@@ -200,7 +200,7 @@ public class TestUtils {
 			}
 
 			for (ReasoningNode neighbor : node.getAntecedentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
+				BindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
 
 				AnswerBindingSetHandler absh2 = null;
 				ReactBindingSetHandler rbsh2 = null;
@@ -237,7 +237,7 @@ public class TestUtils {
 			}
 
 			for (ReasoningNode neighbor : node.getConsequentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
+				BindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
 
 				AnswerBindingSetHandler absh2 = null;
 				ReactBindingSetHandler rbsh2 = null;

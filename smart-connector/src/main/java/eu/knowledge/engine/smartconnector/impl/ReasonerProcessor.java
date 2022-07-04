@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.KeReasoner;
+import eu.knowledge.engine.reasoner.ReactiveRule;
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
@@ -92,7 +93,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
+				reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
 						new AnswerBindingSetHandler(kii)));
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
@@ -106,7 +107,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					resPattern = new HashSet<>(translateGraphPatternTo(resGp));
 				}
 
-				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
+				reasoner.addRule(
+						new ReactiveRule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
 			}
 
 		}
@@ -171,14 +173,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			if (pki.getResult() != null) {
 				this.captureResultBindingSetHandler = new CaptureBindingSetHandler();
-				reasoner.addRule(new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(),
+				reasoner.addRule(new ReactiveRule(translateGraphPatternTo(pki.getResult()), new HashSet<>(),
 						this.captureResultBindingSetHandler));
 			}
 
 			Set<TriplePattern> translatedGraphPattern = translateGraphPatternTo(pki.getArgument());
 
 			this.rememberIncomingBindingSetHandler = new StoreBindingSetHandler();
-			reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
+			reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
 					this.rememberIncomingBindingSetHandler));
 
 			this.rootNode = this.reasoner.forwardPlan(translatedGraphPattern,

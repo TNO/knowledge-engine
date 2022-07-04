@@ -203,60 +203,34 @@ public class ReasonerPlan {
 		boolean canStepFurther = false;
 		this.current = this.stack.peek();
 
-		TripleVarBindingSet incomingAntecedentBS, outgoingConsequentBS;
+		// check if we should propagate BindingSets or handle BindingSets
+		// (readyForPropagate):
+		// - if there is a outgoing antecedent binding set or a outgoing consequent binding set, we propagate
+		// - if there is a incoming consequent binding set, we handle
+
+		TripleVarBindingSet incomingAntecedentBS;
+
 		if (this.current.hasAntecedent() && !this.current.hasConsequent()) {
 
-			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) == null) {
-
-				// collect all antecedent neighbor's outgoing consequent bindings
-				for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors()
-						.entrySet()) {
-
-					ReasonerNode neighbor = neighborEntry.getKey();
-					Set<Match> neighborMatch = neighborEntry.getValue();
-
-					if (neighbor.getOutgoingConsequentBindingSet() != null) {
-
-					} else {
-
-					}
-
-//					TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(), neighborMatch);
-//					neighbor.setIncomingConsequentBindingSet(neighborBS);
-//					this.stack.push(neighbor);
-				}
-
-				// translate them to our incoming antecedent bindingset
-
-//				outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
-//				this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
-
-				if ((outgoingConsequentBS = this.current.getOutgoingConsequentBindingSet()) != null) {
-					TripleVarBindingSet bs = this.current.getOutgoingAntecedentBindingSet();
-					for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors()
-							.entrySet()) {
-						ReasonerNode neighbor = neighborEntry.getKey();
-						Set<Match> neighborMatch = neighborEntry.getValue();
-						TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(),
-								neighborMatch);
-						neighbor.setIncomingConsequentBindingSet(neighborBS);
-						this.stack.push(neighbor);
-					}
-				}
+			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
+				antecedentOnlyIncomingAntecedentBindingSetAvailable();
+			} else {
+				antecedentOnlyIncomingAntecedentBindingSetNotAvailable();
 			}
 
 		} else if (this.current.hasAntecedent() && this.current.hasConsequent()) {
 
 			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
-				// we are ready to rumble
-				BindingSetHandler bsh = this.current.getRule().getBindingSetHandler();
-				// TODO use the taskboard if available
-				BindingSet tempBS = bsh.handle(incomingAntecedentBS.toBindingSet()).get();
-				outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
-				this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
+				antecedentAndConsequentIncomingAntecedentBindingSetAvailable();
+			} else {
+				antecedentAndConsequentIncomingAntecedentBindingSetNotAvailable();
 			}
 		} else if (!this.current.hasAntecedent() && this.current.hasConsequent()) {
-
+			if ((incomingAntecedentBS = this.current.getIncomingAntecedentBindingSet()) != null) {
+				consequentOnlyIncomingAntecedentBindingSetAvailable();
+			} else {
+				consequentOnlyIncomingAntecedentBindingSetNotAvailable();
+			}
 		} else {
 			throw new IllegalStateException(
 					"A rule should have either an antecedent or a consequent or both: " + this.current.getRule());
@@ -269,6 +243,79 @@ public class ReasonerPlan {
 		// TODO send an outgoing consequent bindingset
 
 		return canStepFurther;
+	}
+
+	private boolean readyToPropagate(ReasonerNode aNode) {
+		return aNode.getOutgoingAntecedentBindingSet() != null || aNode.getOutgoingConsequentBindingSet() != null;
+	}
+
+	private void consequentOnlyIncomingAntecedentBindingSetNotAvailable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void consequentOnlyIncomingAntecedentBindingSetAvailable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void antecedentAndConsequentIncomingAntecedentBindingSetNotAvailable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void antecedentAndConsequentIncomingAntecedentBindingSetAvailable()
+			throws InterruptedException, ExecutionException {
+		TripleVarBindingSet incomingAntecedentBS, outgoingConsequentBS;
+		// we are ready to rumble
+//		BindingSetHandler bsh = this.current.getRule().getForwardBindingSetHandler();
+		// TODO use the taskboard if available
+//		BindingSet tempBS = bsh.handle(incomingAntecedentBS.toBindingSet()).get();
+//		outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
+//		this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
+	}
+
+	private void antecedentOnlyIncomingAntecedentBindingSetAvailable() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void antecedentOnlyIncomingAntecedentBindingSetNotAvailable() {
+		TripleVarBindingSet incomingAntecedentBS, outgoingConsequentBS;
+
+		// collect all antecedent neighbor's outgoing consequent bindings
+		for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
+
+			ReasonerNode neighbor = neighborEntry.getKey();
+			Set<Match> neighborMatch = neighborEntry.getValue();
+
+			if (neighbor.getOutgoingConsequentBindingSet() != null) {
+
+			} else {
+
+			}
+
+//			TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(),
+//					neighborMatch);
+//			neighbor.setIncomingConsequentBindingSet(neighborBS);
+//			this.stack.push(neighbor);
+		}
+
+		// translate them to our incoming antecedent bindingset
+
+//		outgoingConsequentBS = new TripleVarBindingSet(this.current.getRule().getConsequent(), tempBS);
+//		this.current.setOutgoingConsequentBindingSet(outgoingConsequentBS);
+
+		if ((outgoingConsequentBS = this.current.getOutgoingConsequentBindingSet()) != null) {
+			TripleVarBindingSet bs = this.current.getOutgoingAntecedentBindingSet();
+			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
+				ReasonerNode neighbor = neighborEntry.getKey();
+				Set<Match> neighborMatch = neighborEntry.getValue();
+				TripleVarBindingSet neighborBS = bs.translate(neighbor.getRule().getAntecedent(), neighborMatch);
+				neighbor.setIncomingConsequentBindingSet(neighborBS);
+				this.stack.push(neighbor);
+			}
+		}
 	}
 
 	public boolean stepForward() {

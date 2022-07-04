@@ -49,8 +49,8 @@ public class TransitivityTest {
 				//@formatter:on
 		}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))),
-				aBindingSetHandler);
+		ReactiveRule rule = new ReactiveRule(new HashSet<>(),
+				new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))), aBindingSetHandler);
 
 		reasoner.addRule(rule);
 	}

@@ -74,7 +74,7 @@ public class VerySimpleBackwardTest {
 				"<sensor2>,21",
 				//@formatter:on
 		}));
-		reasoner.addRule(new Rule(new HashSet<>(),
+		reasoner.addRule(new ReactiveRule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
