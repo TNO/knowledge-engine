@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class ReasonerNode {
 

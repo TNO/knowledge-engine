@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class ReasonerPlan {
 

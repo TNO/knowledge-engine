@@ -1,13 +1,9 @@
 /**
  * 
  */
-package eu.knowledge.engine.reasoner;
+package eu.knowledge.engine.reasoner.rulestore;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,6 +11,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 

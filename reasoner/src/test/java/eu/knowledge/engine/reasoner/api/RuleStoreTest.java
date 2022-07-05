@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.ReactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.RuleStore;
 import eu.knowledge.engine.reasoner.Table;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 /**
  * @author nouwtb

@@ -20,12 +20,13 @@ import org.apache.jena.sparql.core.Var;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class Rule {
 
-	static final String EMPTY = "";
+	public static final String EMPTY = "";
 
-	static final String ARROW = "->";
+	public static final String ARROW = "->";
 
 	public static enum MatchStrategy {
 		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES

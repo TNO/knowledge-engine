@@ -3,6 +3,8 @@ package eu.knowledge.engine.reasoner;
 import java.util.Collection;
 import java.util.Set;
 
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
+
 /**
  * TODO Do we need to class?
  * 

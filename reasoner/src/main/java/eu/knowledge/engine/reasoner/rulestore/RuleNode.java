@@ -1,9 +1,11 @@
-package eu.knowledge.engine.reasoner;
+package eu.knowledge.engine.reasoner.rulestore;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
 
 /**
  * This class encapsulates and stores the information about which rule matches
