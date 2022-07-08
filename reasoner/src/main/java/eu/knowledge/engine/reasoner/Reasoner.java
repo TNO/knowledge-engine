@@ -19,19 +19,19 @@ public class Reasoner {
 		store = new RuleStore();
 	}
 
-	public void addRule(Rule aRule) {
+	public void addRule(BaseRule aRule) {
 		this.store.addRule(aRule);
 	}
 
-	public void addRules(Set<Rule> someRules) {
+	public void addRules(Set<BaseRule> someRules) {
 		this.store.addRules(someRules);
 	}
 
-	public void removeRule(Rule aRule) {
+	public void removeRule(BaseRule aRule) {
 		throw new UnsupportedOperationException("Not yet implemented!");
 	}
 
-	public void removeRules(Collection<Rule> someRules) {
+	public void removeRules(Collection<BaseRule> someRules) {
 		throw new UnsupportedOperationException("Not yet implemented!");
 	}
 

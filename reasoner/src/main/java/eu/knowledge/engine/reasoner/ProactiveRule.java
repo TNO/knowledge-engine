@@ -4,10 +4,14 @@ import java.util.Set;
 
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
-public class ProactiveRule extends Rule {
+public class ProactiveRule extends BaseRule {
 
 	public ProactiveRule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 		super(anAntecedent, aConsequent);
+
+		if (!(anAntecedent.isEmpty() || aConsequent.isEmpty())) {
+			throw new IllegalArgumentException("A proactive rule should have either antecedent or consequent empty.");
+		}
 	}
 
 }

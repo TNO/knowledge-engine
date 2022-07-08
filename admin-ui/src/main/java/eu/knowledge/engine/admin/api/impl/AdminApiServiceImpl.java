@@ -35,7 +35,7 @@ import eu.knowledge.engine.admin.model.PostKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.ReactKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.SmartConnector;
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
@@ -120,7 +120,7 @@ public class AdminApiServiceImpl {
 			for (KnowledgeInteractionBase ki : sc.getKnowledgeInteractions()) {
 				if (!Boolean.valueOf(ki.getIsMeta())) {
 					ReasonerProcessor rp = new ReasonerProcessor(allRelevantKnowledgeInteractions, (MessageRouter) null,
-							new HashSet<Rule>());
+							new HashSet<BaseRule>());
 
 					ReasoningNode rn = null;
 					if (ki.getKnowledgeInteractionType().equalsIgnoreCase("AskKnowledgeInteraction")) {

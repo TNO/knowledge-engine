@@ -30,7 +30,7 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
@@ -65,7 +65,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * should take into account while orchestrating data exchange. Only available if
 	 * reasoning is enabled.
 	 */
-	private Set<Rule> additionalDomainKnowledge = new HashSet<>();
+	private Set<BaseRule> additionalDomainKnowledge = new HashSet<>();
 
 	private final LoggerProvider loggerProvider;
 
@@ -432,7 +432,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public void setDomainKnowledge(Set<Rule> someRules) {
+	public void setDomainKnowledge(Set<BaseRule> someRules) {
 		this.additionalDomainKnowledge = someRules;
 	}
 

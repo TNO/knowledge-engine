@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.ReactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TestDynamicSemanticComposition {
@@ -157,8 +157,8 @@ public class TestDynamicSemanticComposition {
 		antecedent.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
 		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
-		Rule r = new ReactiveRule(antecedent, consequent);
-		Set<Rule> ruleSet = new HashSet<>();
+		BaseRule r = new Rule(antecedent, consequent);
+		Set<BaseRule> ruleSet = new HashSet<>();
 		ruleSet.add(r);
 		kbHVTSearcher.setDomainKnowledge(ruleSet);
 		kbTargetObserver.setDomainKnowledge(ruleSet);

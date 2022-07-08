@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -30,7 +30,7 @@ public class RuleStore {
 	/**
 	 * All the rules in this store.
 	 */
-	private Map<Rule, RuleNode> ruleToRuleNode;
+	private Map<BaseRule, RuleNode> ruleToRuleNode;
 
 	/**
 	 * Instantiate an empty rule store.
@@ -39,7 +39,7 @@ public class RuleStore {
 		ruleToRuleNode = new HashMap<>();
 	}
 
-	public void addRule(Rule aRule) {
+	public void addRule(BaseRule aRule) {
 		RuleNode aRuleNode = new RuleNode(aRule);
 		this.ruleToRuleNode.put(aRule, aRuleNode);
 	}
@@ -47,9 +47,9 @@ public class RuleStore {
 	/**
 	 * @param someRules all the rules this store should contain.
 	 */
-	public void addRules(Set<Rule> someRules) {
+	public void addRules(Set<BaseRule> someRules) {
 
-		for (Rule r : someRules) {
+		for (BaseRule r : someRules) {
 			addRule(r);
 		}
 	}
@@ -57,7 +57,7 @@ public class RuleStore {
 	/**
 	 * @return all the rules of this store.
 	 */
-	public Set<Rule> getRules() {
+	public Set<BaseRule> getRules() {
 
 		return this.ruleToRuleNode.values().stream().map(rn -> rn.getRule()).collect(Collectors.toSet());
 	}
@@ -70,11 +70,11 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its consequent matches
 	 *         this rule's antecedent.
 	 */
-	public Map<Rule, Set<Match>> getAntecedentNeighbors(Rule aRule) {
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
 
 		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
-		for (Rule someRule : this.getRules()) {
+		for (BaseRule someRule : this.getRules()) {
 			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {
 				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(),
@@ -99,12 +99,12 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its antecedent matches
 	 *         this rule's consequent.
 	 */
-	public Map<Rule, Set<Match>> getConsequentNeighbors(Rule aRule) {
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
 		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
-		for (Rule someRule : this.getRules()) {
+		for (BaseRule someRule : this.getRules()) {
 			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getAntecedent().isEmpty() && !aRuleNode.getConsequentNeighbors().containsKey(someRule)) {
 				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(),
@@ -139,7 +139,7 @@ public class RuleStore {
 		StringBuilder sb = new StringBuilder();
 		sb.append("\n");
 		sb.append("digraph {").append("\n");
-		Map<Rule, String> ruleToName = new HashMap<>();
+		Map<BaseRule, String> ruleToName = new HashMap<>();
 
 		int ruleNumber = 1;
 
@@ -157,9 +157,9 @@ public class RuleStore {
 				ruleToName.put(r.getRule(), currentName);
 			}
 
-			Set<Rule> anteNeigh = this.getAntecedentNeighbors(r.getRule()).keySet();
+			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule()).keySet();
 			String neighName;
-			for (Rule neighR : anteNeigh) {
+			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);
 				if (neighName == null) {
 					neighName = /* "rule" + ruleNumber; */ generateName(neighR);
@@ -171,7 +171,7 @@ public class RuleStore {
 					ruleToName.put(neighR, neighName);
 				}
 
-				sb.append(neighName).append(Rule.ARROW).append(currentName).append("\n");
+				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("\n");
 
 			}
 		}
@@ -180,7 +180,7 @@ public class RuleStore {
 		LOG.info(sb.toString());
 	}
 
-	private String toStringRule(Rule neighR) {
+	private String toStringRule(BaseRule neighR) {
 		return neighR.getAntecedent() + " -> " + neighR.getConsequent();
 	}
 
@@ -191,7 +191,7 @@ public class RuleStore {
 	 * @param r
 	 * @return
 	 */
-	private String generateName(Rule r) {
+	private String generateName(BaseRule r) {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -216,7 +216,7 @@ public class RuleStore {
 
 	private String generateName(TriplePattern tp) {
 
-		String name = Rule.EMPTY;
+		String name = BaseRule.EMPTY;
 		if (tp.getPredicate().toString().contains("type") && !tp.getObject().isVariable())
 			name = tp.getObject().toString();
 		else {

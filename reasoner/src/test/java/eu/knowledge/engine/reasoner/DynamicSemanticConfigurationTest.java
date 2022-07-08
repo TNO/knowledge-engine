@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -32,9 +32,9 @@ public class DynamicSemanticConfigurationTest {
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(
+		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
-				new BindingSetHandler() {
+				new TransformBindingSetHandler() {
 
 					private Table data = new Table(new String[] {
 				//@formatter:off
@@ -75,15 +75,15 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new ReactiveRule(
+		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
-		reasoner.addRule(new ReactiveRule(
+		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {

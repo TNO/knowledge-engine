@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -16,12 +16,12 @@ public class KeReasoner {
 	// rules might need an order to prevent infinite loops
 	private RuleStore store = new RuleStore();
 
-	public void addRule(Rule rule) {
+	public void addRule(BaseRule rule) {
 		store.addRule(rule);
 	}
 
 	public ReasoningNode backwardPlan(Set<TriplePattern> aGoal, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
-		ReactiveRule goalRule = new ReactiveRule(aGoal, new HashSet<>(), new BindingSetHandler() {
+		Rule goalRule = new Rule(aGoal, new HashSet<>(), new TransformBindingSetHandler() {
 
 			/**
 			 * The root node should just return the bindingset as is.
@@ -37,11 +37,11 @@ public class KeReasoner {
 		});
 		this.store.addRule(goalRule);
 
-		Set<ReactiveRule> rules = new HashSet<>();
+		Set<Rule> rules = new HashSet<>();
 
-		for (Rule r : this.store.getRules()) {
-			assert r instanceof ReactiveRule;
-			rules.add((ReactiveRule) r);
+		for (BaseRule r : this.store.getRules()) {
+			assert r instanceof Rule;
+			rules.add((Rule) r);
 		}
 
 		ReasoningNode root = new ReasoningNode(new ArrayList<>(rules), null, goalRule, aMatchStrategy, true,
@@ -50,7 +50,7 @@ public class KeReasoner {
 	}
 
 	public ReasoningNode forwardPlan(Set<TriplePattern> aPremise, MatchStrategy aMatchStrategy, TaskBoard aTaskboard) {
-		ReactiveRule premiseRule = new ReactiveRule(new HashSet<>(), aPremise, new BindingSetHandler() {
+		Rule premiseRule = new Rule(new HashSet<>(), aPremise, new TransformBindingSetHandler() {
 
 			/**
 			 * The root node should just return the bindingset as is.
@@ -63,11 +63,11 @@ public class KeReasoner {
 			}
 		});
 
-		Set<ReactiveRule> rules = new HashSet<>();
+		Set<Rule> rules = new HashSet<>();
 
-		for (Rule r : this.store.getRules()) {
-			assert r instanceof ReactiveRule;
-			rules.add((ReactiveRule) r);
+		for (BaseRule r : this.store.getRules()) {
+			assert r instanceof Rule;
+			rules.add((Rule) r);
 		}
 
 		ReasoningNode root = new ReasoningNode(new ArrayList<>(rules), null, premiseRule, aMatchStrategy, false,
@@ -76,7 +76,7 @@ public class KeReasoner {
 		return root;
 	}
 
-	public List<Rule> getRules() {
+	public List<BaseRule> getRules() {
 		return new ArrayList<>(this.store.getRules());
 	}
 

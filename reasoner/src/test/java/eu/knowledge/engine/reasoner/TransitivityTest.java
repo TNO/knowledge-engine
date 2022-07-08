@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
@@ -31,7 +31,7 @@ public class TransitivityTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isVoorouderVan> ?z"));
-		ReactiveRule transitivity = new ReactiveRule(antecedent, consequent);
+		Rule transitivity = new Rule(antecedent, consequent);
 		reasoner.addRule(transitivity);
 
 		// data rule
@@ -49,7 +49,7 @@ public class TransitivityTest {
 				//@formatter:on
 		}));
 
-		ReactiveRule rule = new ReactiveRule(new HashSet<>(),
+		Rule rule = new Rule(new HashSet<>(),
 				new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))), aBindingSetHandler);
 
 		reasoner.addRule(rule);

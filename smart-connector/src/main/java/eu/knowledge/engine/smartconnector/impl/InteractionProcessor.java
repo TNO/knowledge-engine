@@ -3,7 +3,7 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -128,7 +128,7 @@ public interface InteractionProcessor {
 	 * 
 	 * @param someRules The rules to take into account.
 	 */
-	void setDomainKnowledge(Set<Rule> someRules);
+	void setDomainKnowledge(Set<BaseRule> someRules);
 
 	/**
 	 * Whether the InteractionProcessor should use reasoning to orchestrate the data

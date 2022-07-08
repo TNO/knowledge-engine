@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
 /**
@@ -51,7 +51,7 @@ public class TaskBoard {
 	public CompletableFuture<Void> executeScheduledTasks() {
 
 		CompletableFuture<BindingSet> resultingBindingSetFuture;
-		ReactiveRule rule;
+		Rule rule;
 
 		Iterator<Task> iter = tasks.iterator();
 		Set<CompletableFuture<?>> futures = new HashSet<>();
@@ -89,7 +89,7 @@ public class TaskBoard {
 		/**
 		 * The rule that is being applied for this task.
 		 */
-		private Rule rule;
+		private BaseRule rule;
 
 		public Task(ReasoningNode aNode, BindingSet aBindingSet) {
 			collectedBindingSets = new HashMap<>();
@@ -101,7 +101,7 @@ public class TaskBoard {
 			return this.collectedBindingSets.get(node);
 		}
 
-		public Rule getRule() {
+		public BaseRule getRule() {
 			return this.rule;
 		}
 

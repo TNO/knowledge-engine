@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.DataBindingSetHandler;
 import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Table;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -29,9 +29,9 @@ public class ReasoningPlanTest {
 		// load the rules
 		RuleStore store = new RuleStore();
 
-		List<ReactiveRule> someRules = Rule.read(TEST_RULES);
+		List<Rule> someRules = BaseRule.read(TEST_RULES);
 
-		ReactiveRule first = someRules.get(0);
+		Rule first = someRules.get(0);
 
 		first.backwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
@@ -44,7 +44,7 @@ public class ReasoningPlanTest {
 				//@formatter:on
 		}));
 
-		ReactiveRule second = someRules.get(1);
+		Rule second = someRules.get(1);
 		second.backwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 				"x", "y", "z"
@@ -68,7 +68,7 @@ public class ReasoningPlanTest {
 
 		assertEquals(5, store.getRules().size());
 
-		for (Rule r : store.getRules()) {
+		for (BaseRule r : store.getRules()) {
 			store.getAntecedentNeighbors(r);
 			store.getConsequentNeighbors(r);
 		}

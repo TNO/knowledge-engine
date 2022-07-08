@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -32,7 +32,7 @@ public class BackwardTest {
 	public void init() throws URISyntaxException {
 		// Initialize
 		reasoner = new KeReasoner();
-		reasoner.addRule(new ReactiveRule(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -46,7 +46,7 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?e <type> <Sensor>"), new TriplePattern("?e <hasValInF> ?f"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -60,18 +60,18 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?k <type> <Sensor>"), new TriplePattern("?k <hasValInK> ?w"))),
 				new DataBindingSetHandler(new Table(new String[] { "k", "y" },
 						new String[] { "<sensor5>,\"295.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
 								"<sensor6>,\"294.0\"^^<http://www.w3.org/2001/XMLSchema#float>" }))));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new BindingSetHandler() {
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -94,8 +94,8 @@ public class BackwardTest {
 
 				}));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInC> ?z"))), new BindingSetHandler() {
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInC> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -117,8 +117,8 @@ public class BackwardTest {
 					}
 				}));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?z"))), new BindingSetHandler() {
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -143,7 +143,7 @@ public class BackwardTest {
 					}
 				}));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {

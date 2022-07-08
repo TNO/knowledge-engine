@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.ReactiveRule;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Table;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -33,19 +33,19 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 class RuleStoreTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RuleStoreTest.class);
-	private Rule produceTargetsRule;
-	private Rule produceHvtRule;
-	private Rule produceCountryRule;
-	private Rule consumeHvtNameRule;
+	private BaseRule produceTargetsRule;
+	private BaseRule produceHvtRule;
+	private BaseRule produceCountryRule;
+	private BaseRule consumeHvtNameRule;
 
 	@Test
 	void test() {
 
 		RuleStore store = new RuleStore();
 
-		produceTargetsRule = new ReactiveRule(new HashSet<>(), new HashSet<>(
+		produceTargetsRule = new Rule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id rdf:type <Target>"), new TriplePattern("?id <hasName> ?name"))),
-				new BindingSetHandler() {
+				new TransformBindingSetHandler() {
 
 					private Table data = new Table(new String[] {
 				//@formatter:off
@@ -87,16 +87,16 @@ class RuleStoreTest {
 				});
 		store.addRule(produceTargetsRule);
 
-		produceHvtRule = new ReactiveRule(
+		produceHvtRule = new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <HighValueTarget>"))));
 		store.addRule(produceHvtRule);
 
-		produceCountryRule = new ReactiveRule(
+		produceCountryRule = new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new BindingSetHandler() {
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -134,7 +134,7 @@ class RuleStoreTest {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?id rdf:type <HighValueTarget>"));
 		objective.add(new TriplePattern("?id <hasName> ?name"));
-		consumeHvtNameRule = new ReactiveRule(objective, new HashSet<>(), new BindingSetHandler() {
+		consumeHvtNameRule = new Rule(objective, new HashSet<>(), new TransformBindingSetHandler() {
 
 			public CompletableFuture<BindingSet> handle(BindingSet incomingBS) {
 
@@ -146,9 +146,9 @@ class RuleStoreTest {
 		});
 		store.addRule(consumeHvtNameRule);
 
-		Set<Rule> rules = store.getRules();
+		Set<BaseRule> rules = store.getRules();
 
-		Map<Rule, Set<Rule>> ruleToAntecedentNeighbors = new HashMap<>();
+		Map<BaseRule, Set<BaseRule>> ruleToAntecedentNeighbors = new HashMap<>();
 		ruleToAntecedentNeighbors.put(produceTargetsRule, new HashSet<>());
 		ruleToAntecedentNeighbors.put(this.produceCountryRule, new HashSet<>(Arrays.asList(this.produceTargetsRule)));
 		ruleToAntecedentNeighbors.put(this.produceHvtRule,
@@ -156,7 +156,7 @@ class RuleStoreTest {
 		ruleToAntecedentNeighbors.put(this.consumeHvtNameRule,
 				new HashSet<>(Arrays.asList(this.produceHvtRule, this.produceTargetsRule)));
 
-		Map<Rule, Set<Rule>> ruleToConsequentNeighbors = new HashMap<>();
+		Map<BaseRule, Set<BaseRule>> ruleToConsequentNeighbors = new HashMap<>();
 		ruleToConsequentNeighbors.put(this.produceTargetsRule,
 				new HashSet<>(Arrays.asList(this.produceCountryRule, this.produceHvtRule, this.consumeHvtNameRule)));
 		ruleToConsequentNeighbors.put(this.produceCountryRule, new HashSet<>(Arrays.asList(this.produceHvtRule)));
@@ -164,24 +164,24 @@ class RuleStoreTest {
 		ruleToConsequentNeighbors.put(this.consumeHvtNameRule, new HashSet<>());
 
 		long start = System.nanoTime();
-		for (Rule r : rules) {
+		for (BaseRule r : rules) {
 
 			LOG.info("-------------------");
-			Set<Rule> antecedentNeighbors = store.getAntecedentNeighbors(r).keySet();
+			Set<BaseRule> antecedentNeighbors = store.getAntecedentNeighbors(r).keySet();
 
 			assertEquals(ruleToAntecedentNeighbors.get(r), antecedentNeighbors);
 
-			for (Rule aNeighbor : antecedentNeighbors) {
+			for (BaseRule aNeighbor : antecedentNeighbors) {
 				LOG.info("{} -> {}", aNeighbor.getAntecedent(), aNeighbor.getConsequent());
 			}
 
 			LOG.info("\t\t{} -> {}", r.getAntecedent(), r.getConsequent());
 
-			Set<Rule> consequentNeighbors = store.getConsequentNeighbors(r).keySet();
+			Set<BaseRule> consequentNeighbors = store.getConsequentNeighbors(r).keySet();
 
 			assertEquals(ruleToConsequentNeighbors.get(r), consequentNeighbors);
 
-			for (Rule aNeighbor : consequentNeighbors) {
+			for (BaseRule aNeighbor : consequentNeighbors) {
 				LOG.info("\t\t\t{} -> {}", aNeighbor.getAntecedent(), aNeighbor.getConsequent());
 			}
 		}

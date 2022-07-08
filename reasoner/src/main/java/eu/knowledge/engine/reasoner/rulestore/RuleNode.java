@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 
 /**
  * This class encapsulates and stores the information about which rule matches
@@ -18,7 +18,7 @@ import eu.knowledge.engine.reasoner.Rule;
  */
 public class RuleNode {
 
-	private Rule rule;
+	private BaseRule rule;
 
 	/**
 	 * The store to which this rule belongs. A rule can only belong to a single
@@ -30,41 +30,41 @@ public class RuleNode {
 	 * All other rules in the {@link RuleNode#store} whose consequents match this
 	 * rule's antecedent either fully or partially.
 	 */
-	private Map<Rule, Set<Match>> antecedentNeighbors;
+	private Map<BaseRule, Set<Match>> antecedentNeighbors;
 
 	/**
 	 * All other rules in the {@link RuleNode#store} whose antecedents match this
 	 * rule's consequent either fully or partially.
 	 */
-	private Map<Rule, Set<Match>> consequentNeighbors;
+	private Map<BaseRule, Set<Match>> consequentNeighbors;
 
-	public RuleNode(Rule aRule) {
+	public RuleNode(BaseRule aRule) {
 		this.rule = aRule;
 		this.antecedentNeighbors = new HashMap<>();
 		this.consequentNeighbors = new HashMap<>();
 	}
 
-	public Rule getRule() {
+	public BaseRule getRule() {
 		return this.rule;
 	}
 
-	public void setConsequentNeighbor(Rule aRule, Set<Match> someMatches) {
+	public void setConsequentNeighbor(BaseRule aRule, Set<Match> someMatches) {
 		if (!this.consequentNeighbors.containsKey(aRule)) {
 			this.consequentNeighbors.put(aRule, someMatches);
 		}
 	}
 
-	public void setAntecedentNeighbor(Rule aRule, Set<Match> someMatches) {
+	public void setAntecedentNeighbor(BaseRule aRule, Set<Match> someMatches) {
 		if (!this.antecedentNeighbors.containsKey(aRule)) {
 			this.antecedentNeighbors.put(aRule, someMatches);
 		}
 	}
 
-	public Map<Rule, Set<Match>> getConsequentNeighbors() {
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors() {
 		return this.consequentNeighbors;
 	}
 
-	public Map<Rule, Set<Match>> getAntecedentNeighbors() {
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors() {
 		return this.antecedentNeighbors;
 	}
 

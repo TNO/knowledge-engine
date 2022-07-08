@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -74,12 +74,12 @@ public class VerySimpleBackwardTest {
 				"<sensor2>,21",
 				//@formatter:on
 		}));
-		reasoner.addRule(new ReactiveRule(new HashSet<>(),
+		reasoner.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 	}
 

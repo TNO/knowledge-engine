@@ -20,7 +20,7 @@ import org.apache.jena.vocabulary.RDF;
 
 import eu.knowledge.engine.admin.model.CommunicativeAct;
 import eu.knowledge.engine.admin.model.Connection;
-import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
@@ -150,7 +150,7 @@ public class Util {
 			ReasoningNode node = queue.poll();
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
+			TransformBindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
 			if (bsh instanceof ReactBindingSetHandler) {

@@ -12,7 +12,7 @@ public class ReasonerNode {
 	/**
 	 * The rule node from which this reasoner node has been derived.
 	 */
-	private Rule rule;
+	private BaseRule rule;
 
 	/**
 	 * All possible bindingsets. Not all of them are used in every situation.
@@ -39,13 +39,13 @@ public class ReasonerNode {
 	 * 
 	 * @param aRule The rule of which to create a reasoner node.
 	 */
-	public ReasonerNode(Rule aRule) {
+	public ReasonerNode(BaseRule aRule) {
 		this.antecedentNeighbors = new HashMap<>();
 		this.consequentNeighbors = new HashMap<>();
 		this.rule = aRule;
 	}
 
-	public Rule getRule() {
+	public BaseRule getRule() {
 		return rule;
 	}
 

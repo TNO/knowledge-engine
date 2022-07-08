@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -23,7 +23,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 @TestInstance(Lifecycle.PER_CLASS)
 public class PruningTest {
 
-	private static class MyBindingSetHandler implements BindingSetHandler {
+	private static class MyBindingSetHandler implements TransformBindingSetHandler {
 
 		private BindingSet bs;
 
@@ -44,15 +44,15 @@ public class PruningTest {
 	}
 
 	private KeReasoner reasoner;
-	private ReactiveRule isInRoomRule;
-	private ReactiveRule grandParentRule;
-	private ReactiveRule obsoleteRule;
+	private Rule isInRoomRule;
+	private Rule grandParentRule;
+	private Rule obsoleteRule;
 
 	@BeforeAll
 	public void init() {
 		reasoner = new KeReasoner();
 
-		ReactiveRule rule = new ReactiveRule(new HashSet<>(),
+		Rule rule = new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -67,7 +67,7 @@ public class PruningTest {
 				})));
 		reasoner.addRule(rule);
 
-		isInRoomRule = new ReactiveRule(new HashSet<>(),
+		isInRoomRule = new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?x <type> <Sensor>"), new TriplePattern("?x <isInRoom> ?y"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -88,13 +88,13 @@ public class PruningTest {
 
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isGrandParentOf> ?z"));
-		grandParentRule = new ReactiveRule(antecedent, consequent);
+		grandParentRule = new Rule(antecedent, consequent);
 
 		Set<TriplePattern> obsoleteAntecedent = new HashSet<>(Arrays
 				.asList(new TriplePattern("?d <hasGPSCoordinates> ?coords"), new TriplePattern("?d <type> <Device>")));
 		Set<TriplePattern> obsoleteConsequent = new HashSet<>(Arrays.asList(new TriplePattern("?d <isInRoom> ?rm")));
 
-		this.obsoleteRule = new ReactiveRule(obsoleteAntecedent, obsoleteConsequent);
+		this.obsoleteRule = new Rule(obsoleteAntecedent, obsoleteConsequent);
 
 	}
 
@@ -168,7 +168,7 @@ public class PruningTest {
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new ReactiveRule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
+		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
 		reasoner.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
@@ -216,7 +216,7 @@ public class PruningTest {
 		reasoner.addRule(this.isInRoomRule);
 
 		String gp = "?d <hasGPSCoordinates> ?coords";
-		ReactiveRule r = new ReactiveRule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
+		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
 		reasoner.addRule(r);
 
 		TaskBoard taskboard = new TaskBoard();

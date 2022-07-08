@@ -19,12 +19,12 @@ import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.KeReasoner;
-import eu.knowledge.engine.reasoner.ReactiveRule;
-import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
@@ -55,7 +55,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
-	private Set<Rule> additionalDomainKnowledge;
+	private Set<BaseRule> additionalDomainKnowledge;
 	private ReasoningNode rootNode;
 	private TaskBoard taskBoard;
 
@@ -73,7 +73,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> finalBindingSetFuture;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
-			Set<Rule> someDomainKnowledge) {
+			Set<BaseRule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
 		taskBoard = new TaskBoard();
 
@@ -81,7 +81,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		reasoner = new KeReasoner();
 
-		for (Rule r : this.additionalDomainKnowledge) {
+		for (BaseRule r : this.additionalDomainKnowledge) {
 			reasoner.addRule(r);
 		}
 
@@ -93,7 +93,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
+				reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translateGraphPatternTo(gp)),
 						new AnswerBindingSetHandler(kii)));
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
@@ -108,7 +108,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 
 				reasoner.addRule(
-						new ReactiveRule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
+						new Rule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
 			}
 
 		}
@@ -173,14 +173,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			if (pki.getResult() != null) {
 				this.captureResultBindingSetHandler = new CaptureBindingSetHandler();
-				reasoner.addRule(new ReactiveRule(translateGraphPatternTo(pki.getResult()), new HashSet<>(),
+				reasoner.addRule(new Rule(translateGraphPatternTo(pki.getResult()), new HashSet<>(),
 						this.captureResultBindingSetHandler));
 			}
 
 			Set<TriplePattern> translatedGraphPattern = translateGraphPatternTo(pki.getArgument());
 
 			this.rememberIncomingBindingSetHandler = new StoreBindingSetHandler();
-			reasoner.addRule(new ReactiveRule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
+			reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(translatedGraphPattern),
 					this.rememberIncomingBindingSetHandler));
 
 			this.rootNode = this.reasoner.forwardPlan(translatedGraphPattern,
@@ -296,7 +296,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return triplePatterns;
 	}
 
-	public static class CaptureBindingSetHandler implements BindingSetHandler {
+	public static class CaptureBindingSetHandler implements TransformBindingSetHandler {
 
 		private eu.knowledge.engine.reasoner.api.BindingSet bs;
 
@@ -338,7 +338,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @author nouwtb
 	 *
 	 */
-	public class AnswerBindingSetHandler implements BindingSetHandler {
+	public class AnswerBindingSetHandler implements TransformBindingSetHandler {
 
 		private KnowledgeInteractionInfo kii;
 
@@ -398,7 +398,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @author nouwtb
 	 *
 	 */
-	public class ReactBindingSetHandler implements BindingSetHandler {
+	public class ReactBindingSetHandler implements TransformBindingSetHandler {
 
 		private KnowledgeInteractionInfo kii;
 
@@ -454,7 +454,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	}
 
-	static class StoreBindingSetHandler implements BindingSetHandler {
+	static class StoreBindingSetHandler implements TransformBindingSetHandler {
 
 		private eu.knowledge.engine.reasoner.api.BindingSet b = null;
 

@@ -20,9 +20,9 @@ import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
@@ -181,7 +181,7 @@ public class TestUtils {
 			ReasoningNode node = queue.poll();
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
+			TransformBindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
 			if (bsh instanceof ReactBindingSetHandler) {
@@ -200,7 +200,7 @@ public class TestUtils {
 			}
 
 			for (ReasoningNode neighbor : node.getAntecedentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
+				TransformBindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
 
 				AnswerBindingSetHandler absh2 = null;
 				ReactBindingSetHandler rbsh2 = null;
@@ -237,7 +237,7 @@ public class TestUtils {
 			}
 
 			for (ReasoningNode neighbor : node.getConsequentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
+				TransformBindingSetHandler bsh2 = neighbor.getRule().getForwardBindingSetHandler();
 
 				AnswerBindingSetHandler absh2 = null;
 				ReactBindingSetHandler rbsh2 = null;
@@ -296,7 +296,7 @@ public class TestUtils {
 
 			assert node != null;
 
-			Rule rule = node.getRule();
+			BaseRule rule = node.getRule();
 			boolean empty = rule.getAntecedent().isEmpty();
 
 			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
@@ -321,7 +321,7 @@ public class TestUtils {
 
 			ReasoningNode node = toExchanges.get(pair);
 
-			Rule rule = node.getRule();
+			BaseRule rule = node.getRule();
 
 			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
 					+ new URI(pair.second).getPath().substring(1) + ":" + convertGP(prefixes, rule.getAntecedent())

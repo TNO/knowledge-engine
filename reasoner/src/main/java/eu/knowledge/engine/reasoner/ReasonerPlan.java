@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -18,8 +17,8 @@ public class ReasonerPlan {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerPlan.class);
 
-	private Map<Rule, ReasonerNode> ruleToReasonerNode;
-	private Rule start;
+	private Map<BaseRule, ReasonerNode> ruleToReasonerNode;
+	private BaseRule start;
 	private ReasonerNode current;
 	private Stack<ReasonerNode> stack;
 	private RuleStore store;
@@ -38,37 +37,30 @@ public class ReasonerPlan {
 		stack.push(startNode);
 	}
 
-	public ReasonerNode getNode(Rule aRule) {
+	public ReasonerNode getNode(BaseRule aRule) {
 		return this.ruleToReasonerNode.get(aRule);
 	}
 
 	/**
 	 * recursive building of the reasonernode graph
 	 */
-	private ReasonerNode createReasonerNode(Rule aRule) {
+	private ReasonerNode createReasonerNode(BaseRule aRule) {
 
 		ReasonerNode reasonerNode;
 		if ((reasonerNode = getNode(aRule)) != null)
 			return reasonerNode;
 
 		// build the reasoner node graph
-		// we make sure only reasonernodes are added as neighbors if they are relevant
-		// to the execution. So, during execution we do not need to consider again
-		// whether to visit a particular neighbor.
 		reasonerNode = new ReasonerNode(aRule);
 		this.ruleToReasonerNode.put(aRule, reasonerNode);
-
-		// do we need to consider only antecedent neighbors, only consequent neighbors
-		// or both? First look at whether we are forward or backward chaining (this
-		// depends on the structure of the start rule).
 
 		if (isBackward()) {
 			// for now we only are interested in antecedent neighbors.
 			// TODO for looping we DO want to consider consequent neighbors as well.
 
-			for (Map.Entry<Rule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
 
-				if (entry.getKey() instanceof ReactiveRule) {
+				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addAntecedentNeighbor(createReasonerNode(entry.getKey()), entry.getValue());
 				} else {
 					LOG.trace("Skipped proactive rule: {}", entry.getKey());
@@ -77,9 +69,9 @@ public class ReasonerPlan {
 		} else {
 			// interested in both consequent and antecedent neighbors
 
-			for (Map.Entry<Rule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule).entrySet()) {
 
-				if (entry.getKey() instanceof ReactiveRule) {
+				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addConsequentNeighbor(createReasonerNode(entry.getKey()), entry.getValue());
 				} else {
 					LOG.trace("Skipped proactive rule: {}", entry.getKey());
@@ -87,9 +79,9 @@ public class ReasonerPlan {
 			}
 
 			// antecedent neighbors are relevant to propagate bindings further
-			for (Map.Entry<Rule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
 
-				if (entry.getKey() instanceof ReactiveRule) {
+				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addAntecedentNeighbor(createReasonerNode(entry.getKey()), entry.getValue());
 				} else {
 					LOG.trace("Skipped proactive rule: {}", entry.getKey());
@@ -120,15 +112,16 @@ public class ReasonerPlan {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	public void execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
+	public boolean execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
 		this.getNode(this.start)
 				.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
 		int i = 0;
-		boolean finished = false;
-		while (!finished) {
+		boolean hasNextStep = false;
+		while (!this.stack.isEmpty()) {
 			System.out.println("Step " + ++i + ": " + this.stack.peek());
-			finished = stepBackward();
+			hasNextStep = stepBackward();
 		}
+		return hasNextStep;
 	}
 
 	/**
@@ -145,16 +138,16 @@ public class ReasonerPlan {
 	public boolean stepBackward() throws InterruptedException, ExecutionException {
 		this.current = this.stack.peek();
 
+		boolean hasNextStep = true;
 		boolean removeCurrentFromStack = true;
 
 		if (this.current.hasAntecedent()) {
-
 			if (this.current.hasConsequent() && !this.current.hasOutgoingAntecedentBindingSet()) {
-				Rule r = this.current.getRule();
-				assert r instanceof ReactiveRule;
-				ReactiveRule rr = (ReactiveRule) r;
+				BaseRule r = this.current.getRule();
+				assert r instanceof Rule;
+				Rule rr = (Rule) r;
 
-				BindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+				TransformBindingSetHandler bsh = rr.getBackwardBindingSetHandler();
 
 				BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet())
 						.get();
@@ -166,11 +159,13 @@ public class ReasonerPlan {
 			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
 				ReasonerNode neighbor = neighborEntry.getKey();
 				Set<Match> neighborMatch = neighborEntry.getValue();
-				TripleVarBindingSet neighborBS = this.current.getOutgoingAntecedentBindingSet()
-						.translate(neighbor.getRule().getAntecedent(), neighborMatch);
 
 				if (!neighbor.hasOutgoingConsequentBindingSet()) {
-					neighbor.setIncomingConsequentBindingSet(neighborBS);
+					TripleVarBindingSet neighborBS = this.current.getOutgoingAntecedentBindingSet()
+							.translate(neighbor.getRule().getConsequent(), neighborMatch);
+
+					if (neighbor.hasIncomingConsequentBindingSet())
+						neighbor.setIncomingConsequentBindingSet(neighborBS);
 					this.stack.push(neighbor);
 					allNeighborsHaveOutgoingConsequentBindingSets = false;
 					removeCurrentFromStack = false;
@@ -198,10 +193,10 @@ public class ReasonerPlan {
 			}
 
 			if (this.current.hasConsequent() && this.current.hasIncomingAntecedentBindingSet()) {
-				Rule r = this.current.getRule();
-				assert r instanceof ReactiveRule;
-				ReactiveRule rr = (ReactiveRule) r;
-				BindingSetHandler bsh = rr.getForwardBindingSetHandler();
+				BaseRule r = this.current.getRule();
+				assert r instanceof Rule;
+				Rule rr = (Rule) r;
+				TransformBindingSetHandler bsh = rr.getForwardBindingSetHandler();
 				BindingSet outgoingConsequentBindingSet = bsh
 						.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet()).get();
 				this.current.setOutgoingConsequentBindingSet(
@@ -209,11 +204,13 @@ public class ReasonerPlan {
 			}
 
 		} else {
-			Rule r = this.current.getRule();
-			assert r instanceof ReactiveRule;
-			ReactiveRule rr = (ReactiveRule) r;
+			// just use the binding set handler to retrieve a binding set based on the given
+			// binding set.
+			BaseRule r = this.current.getRule();
+			assert r instanceof Rule;
+			Rule rr = (Rule) r;
 
-			BindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+			TransformBindingSetHandler bsh = rr.getBackwardBindingSetHandler();
 			BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet()).get();
 			this.current.setOutgoingConsequentBindingSet(
 					aBindingSet.toTripleVarBindingSet(this.current.getRule().getConsequent()));
@@ -222,17 +219,58 @@ public class ReasonerPlan {
 		if (removeCurrentFromStack) {
 			this.stack.pop();
 		}
-		return this.stack.isEmpty();
+		return hasNextStep;
 	}
 
 	public ReasonerNode getStartNode() {
 		return this.getNode(this.start);
 	}
 
-	public boolean stepForward() {
-		boolean canStepFurther = false;
+	public boolean stepForward() throws InterruptedException, ExecutionException {
+		boolean hasNextStep = true;
+		boolean removeCurrentFromStack = true;
 
-		return canStepFurther;
+		if (this.current.hasConsequent()) {
+			if (this.current.hasAntecedent() && !this.current.hasOutgoingConsequentBindingSet()) {
+				BaseRule r = this.current.getRule();
+				assert r instanceof Rule;
+				Rule rr = (Rule) r;
+
+				TransformBindingSetHandler bsh = rr.getForwardBindingSetHandler();
+
+				BindingSet aBindingSet = bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet())
+						.get();
+				this.current.setOutgoingConsequentBindingSet(
+						aBindingSet.toTripleVarBindingSet(this.current.getRule().getAntecedent()));
+			}
+
+			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
+				ReasonerNode neighbor = neighborEntry.getKey();
+				Set<Match> neighborMatch = neighborEntry.getValue();
+				TripleVarBindingSet neighborBS = this.current.getOutgoingConsequentBindingSet()
+						.translate(neighbor.getRule().getAntecedent(), neighborMatch);
+
+				if (neighbor.hasIncomingAntecedentBindingSet())
+					neighbor.setIncomingAntecedentBindingSet(neighborBS);
+
+				this.stack.push(neighbor);
+				removeCurrentFromStack = false;
+			}
+
+		} else {
+			// just use the binding set handler to deal with the binding set.
+			BaseRule r = this.current.getRule();
+			assert r instanceof Rule;
+			Rule rr = (Rule) r;
+
+			SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
+			bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet());
+		}
+
+		if (removeCurrentFromStack)
+			this.stack.pop();
+
+		return hasNextStep;
 	}
 
 }
