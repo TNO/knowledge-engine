@@ -70,6 +70,15 @@ public class DynamicSemanticConfigurationTest {
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 
 						return future;
@@ -119,6 +128,16 @@ public class DynamicSemanticConfigurationTest {
 							newBS.add(resultBinding);
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 						return future;
 					}

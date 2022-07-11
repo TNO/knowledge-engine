@@ -88,6 +88,16 @@ public class SmartConnectorRegistrationStressTest {
 
 		var sc = SmartConnectorBuilder.newSmartConnector(kb).create();
 
+		future.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while registering SC while many already exist ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
+
 		future.get(); // Waits for the future.
 
 		Instant afterRegistration = Instant.now();

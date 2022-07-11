@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -19,6 +21,8 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class PruningTest {
+
+	protected static final Logger LOG = LoggerFactory.getLogger(PruningTest.class);
 
 	private static class MyBindingSetHandler implements BindingSetHandler {
 
@@ -30,6 +34,16 @@ public class PruningTest {
 			this.bs = bs;
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while handling binding set", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(bs);
 			return future;
 		}
