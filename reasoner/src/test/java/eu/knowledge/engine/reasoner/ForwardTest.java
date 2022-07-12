@@ -94,7 +94,7 @@ public class ForwardTest {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
 							Float celcius = (Float) ((Node_Literal) b.get("y")).getLiteralValue();
-							bindings.append("z:" + convert(celcius) + ",x:"
+							bindings.append("z=" + convert(celcius) + ",x="
 									+ FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());

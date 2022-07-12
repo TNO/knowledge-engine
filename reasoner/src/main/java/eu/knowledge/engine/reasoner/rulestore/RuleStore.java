@@ -11,9 +11,11 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.ReasonerNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -134,10 +136,13 @@ public class RuleStore {
 	 * Prints all the rules and the connections between them in GraphViz encoding.
 	 * Use code in: {@link http://magjac.com/graphviz-visual-editor/}
 	 */
-	public void printGraphVizCode() {
+	public void printGraphVizCode(ReasonerPlan aPlan) {
+
+		String color = "red";
+		String width = "2";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("\n");
+		sb.append("Visualize on website: http://magjac.com/graphviz-visual-editor/\n");
 		sb.append("digraph {").append("\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
 
@@ -146,15 +151,27 @@ public class RuleStore {
 		for (RuleNode r : ruleToRuleNode.values()) {
 
 			String currentName = ruleToName.get(r.getRule());
+			boolean sourceInPlan = false, destInPlan = false;
 			if (currentName == null) {
 				currentName = /* "rule" + ruleNumber; */ generateName(r.getRule());
 				assert !currentName.isEmpty();
 				ruleNumber++;
 				String replaceAll = toStringRule(r.getRule()).replaceAll("\\\"", "\\\\\"");
 
-				sb.append(currentName).append("[").append("tooltip=").append("\"").append(replaceAll).append("\"")
-						.append("]").append("\n");
+				// check the colouring
+				String pen = "";
+				if (aPlan != null) {
+					ReasonerNode rn = aPlan.getNode(r.getRule());
+					if (rn != null) {
+						pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
+						sourceInPlan = true;
+					}
+				}
+
+				sb.append(currentName).append("[").append(pen).append("tooltip=").append("\"").append(replaceAll)
+						.append("\"").append("]").append("\n");
 				ruleToName.put(r.getRule(), currentName);
+
 			}
 
 			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule()).keySet();
@@ -166,12 +183,32 @@ public class RuleStore {
 					assert !neighName.isEmpty();
 					ruleNumber++;
 					String replaceAll = toStringRule(neighR).replaceAll("\\\"", "\\\\\"");
-					sb.append(neighName).append("[").append("tooltip=").append("\"").append(replaceAll).append("\"")
-							.append("]").append("\n");
+
+					// check the colouring
+					String pen = "";
+					if (aPlan != null) {
+						ReasonerNode rn = aPlan.getNode(neighR);
+						if (rn != null) {
+							pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
+							destInPlan = true;
+						}
+					}
+
+					sb.append(neighName).append("[").append(pen).append("tooltip=").append("\"").append(replaceAll)
+							.append("\"").append("]").append("\n");
 					ruleToName.put(neighR, neighName);
 				}
 
-				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("\n");
+				String pen = "";
+				if (aPlan != null) {
+					ReasonerNode s = aPlan.getNode(r.getRule());
+					ReasonerNode d = aPlan.getNode(neighR);
+					if (s != null && d != null)
+						pen = "color=\"" + color + "\", penwidth=\"" + width + "\"";
+				}
+
+				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[").append(pen).append("]")
+						.append("\n");
 
 			}
 		}

@@ -255,4 +255,37 @@ public class TripleVarBindingSet {
 	public void addAll(Set<TripleVarBinding> permutatedTVBs) {
 		this.bindings.addAll(permutatedTVBs);
 	}
+
+	/**
+	 * Only keep those bindings in {@code this} bindingset that are compatible with
+	 * the bindings in the given {@code bindingSet}.
+	 * 
+	 * @param bindingSet
+	 * @return
+	 */
+	public TripleVarBindingSet keepCompatible(TripleVarBindingSet bindingSet) {
+
+		TripleVarBindingSet newBS = new TripleVarBindingSet(this.getGraphPattern());
+
+		for (TripleVarBinding b : this.getBindings()) {
+
+			if (!bindingSet.isEmpty()) {
+				for (TripleVarBinding b2 : bindingSet.getBindings()) {
+
+					if (!b2.isEmpty()) {
+
+						if (!b.isConflicting(b2)) {
+							newBS.add(b);
+						}
+					} else {
+						newBS.add(b);
+					}
+				}
+			} else {
+				newBS.add(b);
+			}
+		}
+
+		return newBS;
+	}
 }

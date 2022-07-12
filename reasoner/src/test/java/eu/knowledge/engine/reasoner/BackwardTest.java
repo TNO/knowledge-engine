@@ -3,12 +3,16 @@ package eu.knowledge.engine.reasoner;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.xsd.impl.XSDFloat;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
@@ -22,17 +26,27 @@ import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class BackwardTest {
 
-	private KeReasoner reasoner;
+	private RuleStore store;
+	private ProactiveRule requestNonExistingDataRule;
+	private ProactiveRule converterRule;
+	private ProactiveRule moreThanOneInputBindingRule;
+	private ProactiveRule moreThanOneInputBinding2Rule;
+	private ProactiveRule twoPropsToAndFromTheSameVarsRule;
+	private ProactiveRule variableMatchesLiteralInGraphPatternRule;
+	private ProactiveRule variableAsPredicateRule;
+	private ProactiveRule variableAsPredicate2Rule;
+	private ProactiveRule allTriplesRule;
 
 	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store = new RuleStore();
+		store.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -46,7 +60,7 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?e <type> <Sensor>"), new TriplePattern("?e <hasValInF> ?f"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -60,25 +74,41 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?k <type> <Sensor>"), new TriplePattern("?k <hasValInK> ?w"))),
-				new DataBindingSetHandler(new Table(new String[] { "k", "y" },
-						new String[] { "<sensor5>,\"295.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
-								"<sensor6>,\"294.0\"^^<http://www.w3.org/2001/XMLSchema#float>" }))));
+				new DataBindingSetHandler(new Table(new String[] {
+				//@formatter:off
+						"k", "w"
+						//@formatter:on
+				}, new String[] {
+				//@formatter:off
+						"<sensor5>,\"295.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+						"<sensor6>,\"294.0\"^^<http://www.w3.org/2001/XMLSchema#float>"
+						//@formatter:on
+				}))));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInF> ?y"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?x <hasValInC> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
-							Float celcius = (Float) ((Node_Literal) b.get("y")).getLiteralValue();
-							bindings.append("z:" + convert(celcius) + ",x:"
+							Object kelvinObj = b.get("y").getLiteralValue();
+							Float celsius = null;
+							if (kelvinObj instanceof BigDecimal) {
+								celsius = (Float) ((BigDecimal) kelvinObj).floatValue();
+							} else if (kelvinObj instanceof Integer) {
+								celsius = (float) ((int) kelvinObj);
+							} else {
+								celsius = (Float) kelvinObj;
+							}
+							bindings.append("z=" + "\"" + convert(celsius)
+									+ "\"^^<http://www.w3.org/2001/XMLSchema#float>" + ",x="
 									+ FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
@@ -94,16 +124,27 @@ public class BackwardTest {
 
 				}));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInC> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
-							Float kelvin = (Float) (((Node_Literal) b.get("i")).getLiteralValue());
-							bindings.append("z:").append(convert(kelvin)).append(",x:")
-									.append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).append("|");
+
+							b.get("i").getLiteralLexicalForm();
+
+							Object kelvinObj = b.get("i").getLiteralValue();
+							Float kelvin = null;
+							if (kelvinObj instanceof BigDecimal) {
+								kelvin = (Float) ((BigDecimal) kelvinObj).floatValue();
+							} else {
+								kelvin = (Float) kelvinObj;
+							}
+							bindings.append("z=")
+									.append("\"" + convert(kelvin) + "\"^^<http://www.w3.org/2001/XMLSchema#float>")
+									.append(",x=").append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero()))
+									.append("|");
 						}
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
@@ -117,7 +158,7 @@ public class BackwardTest {
 					}
 				}));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInK> ?i"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?u <hasValInF> ?z"))), new TransformBindingSetHandler() {
 
 					@Override
@@ -125,9 +166,19 @@ public class BackwardTest {
 
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
-							Float kelvin = (Float) b.get("i").getLiteralValue();
-							bindings.append("z:").append(convertK(kelvin)).append(",u:")
-									.append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero())).append("|");
+
+							Object kelvinObj = b.get("i").getLiteralValue();
+							Float kelvin = null;
+							if (kelvinObj instanceof BigDecimal) {
+								kelvin = (Float) ((BigDecimal) kelvinObj).floatValue();
+							} else {
+								kelvin = (Float) kelvinObj;
+							}
+
+							bindings.append("z=")
+									.append("\"" + convertK(kelvin) + "\"^^<http://www.w3.org/2001/XMLSchema#float>")
+									.append(",u=").append(FmtUtils.stringForNode(b.get("u"), new PrefixMappingZero()))
+									.append("|");
 						}
 
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
@@ -143,7 +194,7 @@ public class BackwardTest {
 					}
 				}));
 
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?i <type> <Sensor>"), new TriplePattern("?i <inRoom> ?j"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -159,19 +210,80 @@ public class BackwardTest {
 						//@formatter:on
 				}))));
 
-	}
-
-	@Test
-	public void testRequestNonExistingData() {
 		// Formulate objective
-		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Device>"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		requestNonExistingDataRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(requestNonExistingDataRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		converterRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(converterRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
+		// not work
+		moreThanOneInputBindingRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(moreThanOneInputBindingRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		moreThanOneInputBinding2Rule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(moreThanOneInputBinding2Rule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		objective.add(new TriplePattern("?p <nonExistentProp> ?q"));
+		twoPropsToAndFromTheSameVarsRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(twoPropsToAndFromTheSameVarsRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> ?t"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		variableMatchesLiteralInGraphPatternRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableMatchesLiteralInGraphPatternRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p ?pred \"21.666666\"^^<http://www.w3.org/2001/XMLSchema#float>"));
+//		objective.add(new TriplePattern("?p ?pred 22"));
+		variableAsPredicateRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableAsPredicateRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p ?pred \"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>"));
+		variableAsPredicate2Rule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableAsPredicate2Rule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?s ?p ?o"));
+		allTriplesRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(allTriplesRule);
+
+	}
+
+	@Test
+	public void testRequestNonExistingData() throws InterruptedException, ExecutionException {
 
 		// Start reasoning
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+
+		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -181,12 +293,8 @@ public class BackwardTest {
 		binding2.put("q", "21");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
-
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 		System.out.println("bindings: " + bind);
 		assertTrue(isEmpty(bind));
 
@@ -200,17 +308,12 @@ public class BackwardTest {
 	}
 
 	@Test
-	public void testConverter() {
-		// Formulate objective
-		Binding b = new Binding();
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Sensor>"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-
+	public void testConverter() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
+		ReasonerPlan root = new ReasonerPlan(store, converterRule);
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		store.printGraphVizCode(root);
+
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -218,11 +321,8 @@ public class BackwardTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
@@ -230,19 +330,11 @@ public class BackwardTest {
 	}
 
 	@Test
-	public void testMoreThanOneInputBinding() {
-		// Formulate objective
-		Binding b = new Binding();
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Device>"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
-		// not work
+	public void testMoreThanOneInputBinding() throws InterruptedException, ExecutionException {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBindingRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -254,28 +346,20 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
-		assertFalse(bind.isEmpty());
+		assertFalse(isEmpty(bind));
 
 	}
 
 	@Test
-	public void testMoreThanOneInputBinding2() {
-		// Formulate objective
-		Binding b = new Binding();
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+	public void testMoreThanOneInputBinding2() throws InterruptedException, ExecutionException {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBinding2Rule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -287,11 +371,8 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
@@ -299,17 +380,11 @@ public class BackwardTest {
 	}
 
 	@Test
-	public void testTwoPropsToAndFromTheSameVars() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Device>"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-		objective.add(new TriplePattern("?p <nonExistentProp> ?q"));
+	public void testTwoPropsToAndFromTheSameVars() throws InterruptedException, ExecutionException {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, twoPropsToAndFromTheSameVarsRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -322,27 +397,19 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
-		assertTrue(bind.isEmpty());
+		assertTrue(isEmpty(bind));
 	}
 
 	@Test
-	public void testVariableMatchesLiteralInGraphPattern() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> ?t"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-
+	public void testVariableMatchesLiteralInGraphPattern() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, variableMatchesLiteralInGraphPatternRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -352,39 +419,29 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty());
 	}
 
 	@Test
-	public void testVariableAsPredicate() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Sensor>"));
-		objective.add(new TriplePattern("?p ?pred 21.66666"));
-//		objective.add(new TriplePattern("?p ?pred 22"));
-
+	public void testVariableAsPredicate() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule);
+
+		store.printGraphVizCode(root);
+
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 		System.out.println(root);
 
 		System.out.println("bindings: " + bind);
@@ -392,67 +449,31 @@ public class BackwardTest {
 	}
 
 	@Test
-	public void testVariableAsPredicate2() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Sensor>"));
-		objective.add(new TriplePattern("?p ?pred 22"));
-
+	public void testVariableAsPredicate2() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
-		System.out.println(root);
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicate2Rule);
+		store.printGraphVizCode(root);
 
 		// empty binding is necessary
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+
 		System.out.println(root);
 
 		System.out.println("bindings: " + bind);
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
 	}
 
-	/**
-	 * @Test public void testSendResultsFromOtherChildrenToNextChildren() { //
-	 *       Formulate objective Set<TriplePattern> objective = new HashSet<>();
-	 *       objective.add(new TriplePattern("?p <type> <Sensor>"));
-	 *       objective.add(new TriplePattern("?p <hasValInC> ?q"));
-	 *       objective.add(new TriplePattern("?p <inRoom> ?r"));
-	 * 
-	 *       TaskBoard taskboard = new TaskBoard();
-	 * 
-	 *       // Start reasoning ReasoningNode root =
-	 *       reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES,
-	 *       taskboard); System.out.println(root);
-	 * 
-	 *       // bindings BindingSet bs = new BindingSet(); Binding binding2 = new
-	 *       Binding(); binding2.put("?r", "<livingroom>"); bs.add(binding2);
-	 * 
-	 *       BindingSet bind; while ((bind = root.continueBackward(bs)) == null) {
-	 *       System.out.println(root); taskboard.executeScheduledTasks(); }
-	 *       System.out.println(root);
-	 * 
-	 *       System.out.println("bindings: " + bind); assertTrue(!bind.isEmpty()); }
-	 */
-
 	@Test
-	public void testAllTriples() {
-		// Formulate objective
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?s ?p ?o"));
-
+	public void testAllTriples() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ALL_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, allTriplesRule);
 		System.out.println(root);
 
 		// empty binding is necessary
@@ -460,11 +481,9 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+
 		System.out.println(root);
 
 		System.out.println("bindings: " + bind);

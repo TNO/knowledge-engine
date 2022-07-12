@@ -147,7 +147,7 @@ public class ReasonerPlan {
 				assert r instanceof Rule;
 				Rule rr = (Rule) r;
 
-				TransformBindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+				TransformBindingSetHandler bsh = rr.getInverseBindingSetHandler();
 
 				BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet())
 						.get();
@@ -164,7 +164,7 @@ public class ReasonerPlan {
 					TripleVarBindingSet neighborBS = this.current.getOutgoingAntecedentBindingSet()
 							.translate(neighbor.getRule().getConsequent(), neighborMatch);
 
-					if (neighbor.hasIncomingConsequentBindingSet())
+					if (!neighbor.hasIncomingConsequentBindingSet())
 						neighbor.setIncomingConsequentBindingSet(neighborBS);
 					this.stack.push(neighbor);
 					allNeighborsHaveOutgoingConsequentBindingSets = false;
@@ -189,14 +189,17 @@ public class ReasonerPlan {
 							.translate(this.current.getRule().getAntecedent(), neighborMatches));
 				}
 
-				this.current.setIncomingAntecedentBindingSet(combinedBindings.getFullBindingSet());
+				TripleVarBindingSet compatiblePatternBindingsOnly = combinedBindings
+						.keepCompatible(this.current.getOutgoingAntecedentBindingSet());
+
+				this.current.setIncomingAntecedentBindingSet(compatiblePatternBindingsOnly.getFullBindingSet());
 			}
 
 			if (this.current.hasConsequent() && this.current.hasIncomingAntecedentBindingSet()) {
 				BaseRule r = this.current.getRule();
 				assert r instanceof Rule;
 				Rule rr = (Rule) r;
-				TransformBindingSetHandler bsh = rr.getForwardBindingSetHandler();
+				TransformBindingSetHandler bsh = rr.getBindingSetHandler();
 				BindingSet outgoingConsequentBindingSet = bsh
 						.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet()).get();
 				this.current.setOutgoingConsequentBindingSet(
@@ -210,7 +213,7 @@ public class ReasonerPlan {
 			assert r instanceof Rule;
 			Rule rr = (Rule) r;
 
-			TransformBindingSetHandler bsh = rr.getBackwardBindingSetHandler();
+			TransformBindingSetHandler bsh = rr.getBindingSetHandler();
 			BindingSet aBindingSet = bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet()).get();
 			this.current.setOutgoingConsequentBindingSet(
 					aBindingSet.toTripleVarBindingSet(this.current.getRule().getConsequent()));
@@ -236,7 +239,7 @@ public class ReasonerPlan {
 				assert r instanceof Rule;
 				Rule rr = (Rule) r;
 
-				TransformBindingSetHandler bsh = rr.getForwardBindingSetHandler();
+				TransformBindingSetHandler bsh = rr.getBindingSetHandler();
 
 				BindingSet aBindingSet = bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet())
 						.get();

@@ -96,7 +96,8 @@ class RuleStoreTest {
 		produceCountryRule = new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new TransformBindingSetHandler() {
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))),
+				new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -188,6 +189,6 @@ class RuleStoreTest {
 
 		LOG.info("Time: {} ms", ((double) (System.nanoTime() - start)) / 1000000d);
 
-		store.printGraphVizCode();
+		store.printGraphVizCode(null);
 	}
 }

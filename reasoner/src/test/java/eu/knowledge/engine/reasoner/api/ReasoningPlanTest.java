@@ -21,7 +21,6 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 public class ReasoningPlanTest {
 
 	private static final String TEST_RULES = "/reasoningplantest.rls";
-	private static final String TEST_RULES_2 = "/reasoningplantest2.rls";
 
 	@Test
 	public void test() throws IOException, InterruptedException, ExecutionException {
@@ -33,7 +32,7 @@ public class ReasoningPlanTest {
 
 		Rule first = someRules.get(0);
 
-		first.backwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
+		first.backwardForwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 				"a", "b", "c"
 				//@formatter:on
@@ -45,7 +44,7 @@ public class ReasoningPlanTest {
 		}));
 
 		Rule second = someRules.get(1);
-		second.backwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
+		second.backwardForwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				//@formatter:off
 				"x", "y", "z"
 				//@formatter:on
@@ -73,19 +72,26 @@ public class ReasoningPlanTest {
 			store.getConsequentNeighbors(r);
 		}
 
-		store.printGraphVizCode();
+		store.printGraphVizCode(null);
 
 		ReasonerPlan plan = new ReasonerPlan(store, rule);
 
 		plan.optimize();
 
-		plan.execute(new BindingSet());
+		BindingSet aBindingSet = new BindingSet();
+
+		Binding b1 = new Binding("x", "<a1>");
+		Binding b2 = new Binding("x", "<x3>");
+		aBindingSet.add(b1);
+		aBindingSet.add(b2);
+
+		plan.execute(aBindingSet);
 
 		BindingSet bs = plan.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
-		assertEquals(5, bs.size());
-
 		System.out.println(bs);
+		assertEquals(2, bs.size());
+
 	}
 
 }

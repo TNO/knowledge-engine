@@ -10,22 +10,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class VerySimpleBackwardTest {
 
-	private KeReasoner reasoner;
+	private static final Logger LOG = LoggerFactory.getLogger(VerySimpleBackwardTest.class);
+
+	private RuleStore store;
 	private ProxyDataBindingSetHandler bindingSetHandler;
+
+	private ProactiveRule startRule;
 
 	/**
 	 * A simple proxy class that captures the incoming bindingsets so that we are
@@ -63,7 +70,7 @@ public class VerySimpleBackwardTest {
 	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasoner();
+		store = new RuleStore();
 		bindingSetHandler = new ProxyDataBindingSetHandler(new Table(new String[] {
 		//@formatter:off
 				"a", "b"
@@ -74,13 +81,20 @@ public class VerySimpleBackwardTest {
 				"<sensor2>,21",
 				//@formatter:on
 		}));
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store.addRule(new Rule(
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
+
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+
+		startRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(startRule);
 	}
 
 	@Test
@@ -112,12 +126,9 @@ public class VerySimpleBackwardTest {
 	private void doReasoning(TaskBoard aTaskBoard) {
 		// Formulate objective
 		Binding b = new Binding();
-		Set<TriplePattern> objective = new HashSet<>();
-		objective.add(new TriplePattern("?p <type> <Device>"));
-		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskBoard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
+		store.printGraphVizCode(null);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -126,13 +137,12 @@ public class VerySimpleBackwardTest {
 		binding2.put("q", "22");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-
-			if (aTaskBoard != null)
-				aTaskBoard.executeScheduledTasks();
+		try {
+			root.execute(bs);
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.info("{}", e);
 		}
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());

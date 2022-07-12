@@ -502,7 +502,7 @@ public class ReasoningNode {
 
 								try {
 									startTime = Instant.now();
-									this.fromBindingSetHandlerBackward = this.rule.getForwardBindingSetHandler()
+									this.fromBindingSetHandlerBackward = this.rule.getBindingSetHandler()
 											.handle(this.toBindingSetHandlerBackward).get();
 									endTime = Instant.now();
 									this.bcState = BC_BINDINGSET_AVAILABLE;
@@ -659,7 +659,7 @@ public class ReasoningNode {
 					} else {
 						try {
 							this.startTime = Instant.now();
-							BindingSet bindingSet2 = this.rule.getForwardBindingSetHandler()
+							BindingSet bindingSet2 = this.rule.getBindingSetHandler()
 									.handle(this.toBindingSetHandlerForward).get();
 							if (fromBindingSetHandlerForward != null) {
 								this.fromBindingSetHandlerForwardPrevious = new BindingSet(

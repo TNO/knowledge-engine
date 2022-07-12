@@ -28,7 +28,7 @@ public class Util {
 		for (String entry : entries) {
 
 			if (!entry.isEmpty()) {
-				String[] keyVal = entry.split(":");
+				String[] keyVal = entry.split("=");
 				b.put(keyVal[varIdx], keyVal[valIdx]);
 			}
 		}

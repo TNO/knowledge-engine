@@ -150,7 +150,7 @@ public class Util {
 			ReasoningNode node = queue.poll();
 
 			String currentActor = null;
-			TransformBindingSetHandler bsh = node.getRule().getForwardBindingSetHandler();
+			TransformBindingSetHandler bsh = node.getRule().getBindingSetHandler();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
 			if (bsh instanceof ReactBindingSetHandler) {

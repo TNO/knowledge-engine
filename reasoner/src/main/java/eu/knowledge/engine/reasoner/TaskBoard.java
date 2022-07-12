@@ -65,7 +65,7 @@ public class TaskBoard {
 			assert task.getBindingSet(node) != null;
 
 			startTime = Instant.now();
-			resultingBindingSetFuture = rule.getForwardBindingSetHandler().handle(task.getBindingSet(node));
+			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
 			resultingBindingSetFuture.thenAccept((bs) -> {
 
 				// TODO this assumes every node only occurs once in all tasks.
