@@ -72,8 +72,6 @@ public class Thermostat {
 		kn.addKB(thermostat);
 		heating = new MockedKnowledgeBase("heatingSource");
 		kn.addKB(heating);
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// then register the relevant knowledge interactions
 		GraphPattern obsGraphPattern = new GraphPattern(prefixes,
@@ -142,7 +140,7 @@ public class Thermostat {
 				return null;
 			}
 		});
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start the data exchange
 

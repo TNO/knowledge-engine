@@ -40,8 +40,7 @@ public class SmartConnectorRegistrationStressTest {
 			LOG.info("Starting KB{}", i);
 			kn.addKB(new MockedKnowledgeBase("INITIAL-KB" + i));
 		}
-		kn.startAndWaitForReady();
-		kn.waitForUpToDate();
+		kn.sync();
 	}
 
 	@Test
@@ -88,6 +87,16 @@ public class SmartConnectorRegistrationStressTest {
 		};
 
 		var sc = SmartConnectorBuilder.newSmartConnector(kb).create();
+
+		future.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while registering SC while many already exist ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 
 		future.get(); // Waits for the future.
 

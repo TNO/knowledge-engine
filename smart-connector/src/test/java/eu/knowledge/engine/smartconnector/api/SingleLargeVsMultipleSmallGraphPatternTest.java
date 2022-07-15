@@ -39,8 +39,6 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 		kn1.addKB(kb2);
 		kb2.setReasonerEnabled(true);
 
-		kn1.startAndWaitForReady();
-
 		// prepare large binding
 		final BindingSet bs = new BindingSet();
 		Binding b1;
@@ -75,7 +73,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 			return bs;
 		});
 
-		kn1.waitForUpToDate();
+		kn1.sync();
 
 		long start = System.nanoTime();
 		AskResult ar = kb1.ask(askKI, new BindingSet()).get();
@@ -98,8 +96,6 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 		MockedKnowledgeBase kb2 = new MockedKnowledgeBase("KB2");
 		kn2.addKB(kb2);
 		kb2.setReasonerEnabled(true);
-
-		kn2.startAndWaitForReady();
 
 		// prepare large binding
 		final BindingSet bs1 = new BindingSet();
@@ -149,7 +145,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 			return bs2;
 		});
 
-		kn2.waitForUpToDate();
+		kn2.sync();
 
 		long start = System.nanoTime();
 		AskResult ar = kb1.ask(askKI, new BindingSet()).get();
