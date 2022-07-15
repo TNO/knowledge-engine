@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -24,22 +25,19 @@ import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ForwardTest {
 
-	private static class MyBindingSetHandler implements TransformBindingSetHandler {
+	private static class MyBindingSetHandler implements SinkBindingSetHandler {
 
 		private BindingSet bs;
 
 		@Override
-		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+		public void handle(BindingSet bs) {
 
 			this.bs = bs;
-
-			CompletableFuture<BindingSet> future = new CompletableFuture<>();
-			future.complete(bs);
-			return future;
 		}
 
 		public BindingSet getBindingSet() {
@@ -48,7 +46,7 @@ public class ForwardTest {
 
 	}
 
-	private KeReasoner reasoner;
+	private RuleStore store;
 
 	private Rule optionalRule;
 
@@ -113,19 +111,22 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void test() {
-		reasoner = new KeReasoner();
+	public void test() throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), aBindingSetHandler));
+		store.addRule(grandParentRule);
+
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
-		TaskBoard taskboard = new TaskBoard();
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
+		store.addRule(aStartRule);
 
-		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		TaskBoard taskboard = new TaskBoard();
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
 		System.out.println(rn);
 
@@ -144,10 +145,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());
@@ -155,28 +153,26 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testDoNotHandleEmptyBindingSets() {
-		reasoner = new KeReasoner();
+	public void testDoNotHandleEmptyBindingSets() throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp = new TriplePattern("<barry> <isGrandParentOf> ?z");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler() {
 
 			@Override
-			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+			public void handle(BindingSet bs) {
 				fail("An empty bindingset should not be handled.");
-
-				CompletableFuture<BindingSet> future = new CompletableFuture<>();
-				future.complete(new BindingSet());
-				return future;
 			}
 
 		};
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler));
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), aBindingSetHandler));
+		store.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
+		store.addRule(aStartRule);
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
 		System.out.println(rn);
 
@@ -193,33 +189,32 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
 	}
 
 	@Test
-	public void testMultipleLeafs() {
-		reasoner = new KeReasoner();
+	public void testMultipleLeafs() throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp = new TriplePattern("?x <isGrandParentOf> ?z");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), new HashSet<>(), aBindingSetHandler1));
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp)), aBindingSetHandler1));
 
 		TriplePattern tp2 = new TriplePattern("?a <isGrandParentOf> ?b");
 		MyBindingSetHandler aBindingSetHandler2 = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp2)), new HashSet<>(), aBindingSetHandler2));
-		reasoner.addRule(this.optionalRule);
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp2)), aBindingSetHandler2));
+		store.addRule(this.optionalRule);
+		store.addRule(grandParentRule);
 		Set<TriplePattern> aPremise = new HashSet<>();
 		aPremise.add(new TriplePattern("?x <isParentOf> ?y"));
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasoningNode rn = reasoner.forwardPlan(aPremise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aPremise);
+		store.addRule(aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
 		BindingSet bs = new BindingSet();
 
@@ -236,12 +231,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			System.out.println(taskboard);
-			System.out.println();
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		assertTrue(aBindingSetHandler2.getBindingSet() != null);
 		assertTrue(aBindingSetHandler1.getBindingSet() != null);
@@ -254,21 +244,23 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testBackwardChainingDuringForwardChaining() {
-		reasoner = new KeReasoner();
+	public void testBackwardChainingDuringForwardChaining() throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp = new TriplePattern("?x <isParentOf> ?z");
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp, tp2)), new HashSet<>(), aBindingSetHandler));
-		reasoner.addRule(this.optionalRule);
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp, tp2)), aBindingSetHandler));
+		store.addRule(this.optionalRule);
+		store.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard /* null */);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
+		store.addRule(aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
 		System.out.println(rn);
 
@@ -287,12 +279,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			System.out.println(taskboard);
-			System.out.println();
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());
@@ -300,14 +287,14 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testNoBackwardChainingDuringForwardChainingIfFullMatch() {
-		reasoner = new KeReasoner();
+	public void testNoBackwardChainingDuringForwardChainingIfFullMatch()
+			throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(
-				new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), aBindingSetHandler1));
+		store.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
@@ -316,7 +303,7 @@ public class ForwardTest {
 
 		TriplePattern tp31 = new TriplePattern("?s <hasMeasuredValue> ?v");
 		TriplePattern tp32 = new TriplePattern("?s <type> <Sensor>");
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
+		store.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "v"
@@ -330,7 +317,9 @@ public class ForwardTest {
 				}))));
 
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 		System.out.println(rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
@@ -343,12 +332,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			System.out.println(taskboard);
-			System.out.println();
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -357,15 +341,15 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testBackwardChainingDuringForwardChainingIfPartialMatch() {
-		reasoner = new KeReasoner();
+	public void testBackwardChainingDuringForwardChainingIfPartialMatch()
+			throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		TriplePattern tp13 = new TriplePattern("?sens <isInRoom> ?room");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(
-				new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), new HashSet<>(), aBindingSetHandler1));
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), aBindingSetHandler1));
+		store.addRule(grandParentRule);
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
@@ -373,7 +357,7 @@ public class ForwardTest {
 		premise.add(tp22);
 
 		TriplePattern tp31 = new TriplePattern("?s <isInRoom> ?r");
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
+		store.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "r"
@@ -387,7 +371,9 @@ public class ForwardTest {
 				}))));
 
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 		System.out.println(rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
@@ -400,12 +386,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			System.out.println(taskboard);
-			System.out.println();
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -413,15 +394,14 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testPublishedValuesShouldRemainAccessible() {
-		reasoner = new KeReasoner();
+	public void testPublishedValuesShouldRemainAccessible() throws InterruptedException, ExecutionException {
+		store = new RuleStore();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
 		TriplePattern tp12 = new TriplePattern("?sens <hasValInC> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
-		reasoner.addRule(
-				new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), new HashSet<>(), aBindingSetHandler1));
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), aBindingSetHandler1));
 
-		reasoner.addRule(this.converterRule);
+		store.addRule(this.converterRule);
 
 		TriplePattern tp31 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp32 = new TriplePattern("?sensor <hasValInF> ?value");
@@ -456,19 +436,17 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
-				new StoreBindingSetHandler(bs)));
+		store.addRule(
+				new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)), new StoreBindingSetHandler(bs)));
 
 		TaskBoard aTaskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.forwardPlan(premise, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskboard);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
 		System.out.println(rn);
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			System.out.println(aTaskboard);
-			System.out.println();
-			aTaskboard.executeScheduledTasks();
-		}
+
+		rn.execute(bs);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 

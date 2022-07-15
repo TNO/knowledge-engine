@@ -100,7 +100,10 @@ public class ReasonerPlan {
 
 	public void optimize() {
 		// TODO prune is a bit different because we are working with a graph (instead of
-		// a tree).
+		// a tree). Note though, that we cannot just look at the shortest path, because
+		// some rules are special (i.e. have custom bindingsethandlers) and thus might
+		// behave logically unexpected. So, we have to keep that in mind when
+		// optimizing.
 	}
 
 	/**
@@ -113,13 +116,28 @@ public class ReasonerPlan {
 	 * @throws InterruptedException
 	 */
 	public boolean execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
-		this.getNode(this.start)
-				.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
+
+		assert this.start.isProactive();
+
+		boolean backward;
+		if (this.start.getConsequent().isEmpty()) {
+			this.getNode(this.start)
+					.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
+			backward = true;
+		} else {
+			this.getNode(this.start)
+					.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
+			backward = false;
+		}
+
 		int i = 0;
 		boolean hasNextStep = false;
 		while (!this.stack.isEmpty()) {
 			System.out.println("Step " + ++i + ": " + this.stack.peek());
-			hasNextStep = stepBackward();
+			if (backward)
+				hasNextStep = stepBackward();
+			else
+				hasNextStep = stepForward();
 		}
 		return hasNextStep;
 	}
@@ -230,6 +248,7 @@ public class ReasonerPlan {
 	}
 
 	public boolean stepForward() throws InterruptedException, ExecutionException {
+		this.current = this.stack.peek();
 		boolean hasNextStep = true;
 		boolean removeCurrentFromStack = true;
 
@@ -247,13 +266,13 @@ public class ReasonerPlan {
 						aBindingSet.toTripleVarBindingSet(this.current.getRule().getAntecedent()));
 			}
 
-			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getAntecedentNeighbors().entrySet()) {
+			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getConsequentNeighbors().entrySet()) {
 				ReasonerNode neighbor = neighborEntry.getKey();
 				Set<Match> neighborMatch = neighborEntry.getValue();
 				TripleVarBindingSet neighborBS = this.current.getOutgoingConsequentBindingSet()
 						.translate(neighbor.getRule().getAntecedent(), neighborMatch);
 
-				if (neighbor.hasIncomingAntecedentBindingSet())
+				if (!neighbor.hasIncomingAntecedentBindingSet())
 					neighbor.setIncomingAntecedentBindingSet(neighborBS);
 
 				this.stack.push(neighbor);
