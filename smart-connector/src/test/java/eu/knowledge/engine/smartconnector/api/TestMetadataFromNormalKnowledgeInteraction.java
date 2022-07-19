@@ -33,7 +33,7 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 		LOG.info("Before everyone is ready!");
-		kn.startAndWaitForReady();
+		kn.sync();
 		LOG.info("Everyone is ready!");
 
 		// start registering
@@ -81,7 +81,7 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 		LOG.info("Everyone is up-to-date!");
 
 		// start exchanging
