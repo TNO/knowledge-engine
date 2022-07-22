@@ -107,7 +107,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				}
 			}).handle((r, e) -> {
 
-				if (r == null) {
+				if (r == null && e != null) {
 					LOG.error("An exception has occured while handling Ask Message ", e);
 					return null;
 				} else {
@@ -138,7 +138,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				}
 			}).handle((r, e) -> {
 
-				if (r == null) {
+				if (r == null && e != null) {
 					LOG.error("An exception has occured while handling Post Message ", e);
 					return null;
 				} else {

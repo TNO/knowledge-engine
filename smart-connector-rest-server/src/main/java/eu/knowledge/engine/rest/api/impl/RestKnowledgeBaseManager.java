@@ -89,7 +89,7 @@ public class RestKnowledgeBaseManager {
 		LOG.info("Added KB {}", scModel.getKnowledgeBaseId());
 		return f.handle((r, e) -> {
 
-			if (r == null) {
+			if (r == null && e != null) {
 				LOG.error("An exception has occured while creating KB ", e);
 				return null;
 			} else {
