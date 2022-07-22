@@ -172,7 +172,7 @@ public class AdminUI implements KnowledgeBase {
 						}
 					}).handle((r, e) -> {
 
-						if (r == null) {
+						if (r == null && e != null) {
 							LOG.error("An exception has occured while retrieving other Knowledge Bases info", e);
 							return null;
 						} else {
