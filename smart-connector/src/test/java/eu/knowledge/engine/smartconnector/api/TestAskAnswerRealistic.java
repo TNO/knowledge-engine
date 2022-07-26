@@ -30,6 +30,7 @@ public class TestAskAnswerRealistic {
 	private static MockedKnowledgeBase kb2;
 	private static MockedKnowledgeBase kb3;
     private static MockedKnowledgeBase kb4;
+    private static MockedKnowledgeBase kb5;
 
     @BeforeAll
     public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -49,18 +50,26 @@ public class TestAskAnswerRealistic {
         kb3.setReasonerEnabled(true);
         kb4 = new MockedKnowledgeBase("kb4");
         kb4.setReasonerEnabled(true);
+        kb5 = new MockedKnowledgeBase("kb5");
+        kb5.setReasonerEnabled(true);
+
 
         var rules = new HashSet<Rule>();
         var antecedent = new HashSet<TriplePattern>();
         antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
         var consequent = new HashSet<TriplePattern>();
         consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
+
+        antecedent.add(new TriplePattern("?c <https://saref.etsi.org/saref4bldg/Building> ?d"));
+        consequent.add(new TriplePattern("?c <https://saref.etsi.org/saref4bldg/House> ?d"));
+
         rules.add(new Rule(antecedent, consequent));
 
         kn.addKB(kb1);
         kn.addKB(kb2);
         kn.addKB(kb3);
         kn.addKB(kb4);
+        kn.addKB(kb5);
 
         LOG.info("Waiting for everyone to be ready...");
         kn.startAndWaitForReady();
@@ -70,6 +79,7 @@ public class TestAskAnswerRealistic {
         kb2.setDomainKnowledge(rules);
         kb3.setDomainKnowledge(rules);
         kb4.setDomainKnowledge(rules);
+        kb5.setDomainKnowledge(rules);
 
         GraphPattern gp1 = new GraphPattern("?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
          + "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ." 
@@ -186,9 +196,48 @@ public class TestAskAnswerRealistic {
             bindingSet.add(binding);
             return bindingSet;
          });
+
+         GraphPattern gp5 = new GraphPattern("?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+         + "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ." 
+         + "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
+         + "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . " 
+         + "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ." 
+         + "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ." 
+         + "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ." 
+         + "?building <http://ontology.tno.nl/building#communityID> ?communityID ." 
+         + "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ." 
+         + "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ." 
+         + "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ." 
+         + "?buildingDevice <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingDevice> ." 
+         + "?buildingDevice <http://tno.io/PowerLimit#hasContractualPowerLimit> ?powerSubscribed .");
+
+
+        AnswerKnowledgeInteraction aKI5 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp5);
+        kb5.register(aKI5, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+            assertTrue(
+                anAnswerExchangeInfo.getIncomingBindings().isEmpty() 
+                    || anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+                    "Should not have bindings in this bindings set");
+
+            BindingSet bindingSet = new BindingSet();
+            Binding binding = new Binding();
+            binding.put("building", "<https://www.tno.nl/example/building>");
+            binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing>");
+            binding.put("zipCode", "<https://www.tno.nl/example/zipCode>");
+            binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
+            binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider>");
+            binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager>");
+            binding.put("communityID", "<https://www.tno.nl/example/communityID>");
+            binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace>");
+            binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice>");
+            binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed>");
+
+            bindingSet.add(binding);
+            return bindingSet;
+        });
         
 
-        GraphPattern gp3 = new GraphPattern("?gebouw <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ." 
+        GraphPattern gp3 = new GraphPattern("?gebouw <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/House> ." 
          + "?gebouw <http://ontology.tno.nl/building#LocatedIn> ?ruimtelijkDing ." 
          + "?ruimtelijkDing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ." 
          + "?ruimtelijkDing <http://www.geonames.org/ontology#postalCode> ?postcode . " 
@@ -224,11 +273,12 @@ public class TestAskAnswerRealistic {
              assertEquals(
                  new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(),
                                                 kb2.getKnowledgeBaseId(),
-                                                kb4.getKnowledgeBaseId()
+                                                kb4.getKnowledgeBaseId(),
+                                                kb5.getKnowledgeBaseId()
 
-                 )), kbIds, "The result/s should come from kb1, kb2 and kb4 and not: " + kbIds);
+                 )), kbIds, "The result/s should come from kb1, kb2, kb4 and kb5 not: " + kbIds);
 
-            assertEquals(3, bindings.size());
+            assertEquals(4, bindings.size());
             
             for (Binding b : bindings) {
                 assertTrue(b.containsKey("gebouw"));
@@ -274,6 +324,12 @@ public class TestAskAnswerRealistic {
             kb4.stop();
         } else {
             fail("KB4 should not be null!");
+        }
+
+        if (kb5 != null) {
+            kb5.stop();
+        } else {
+            fail("KB5 should not be null");
         }
     }
     
