@@ -117,6 +117,17 @@ public class TestUtils {
 		return KE_PREFIX + value;
 	}
 
+	/**
+	 * Output the text required to generate a sequence diagram via
+	 * <a href="https://www.sequencediagram.org/">sequencediagram.org</a>.
+	 * 
+	 * @param proactiveKB
+	 * @param kiType
+	 * @param gp
+	 * @param rn
+	 * @param prefixes
+	 * @throws URISyntaxException
+	 */
 	public static void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasoningNode rn,
 			PrefixMapping prefixes) throws URISyntaxException {
 

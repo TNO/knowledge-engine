@@ -38,19 +38,17 @@ public class TestAskAnswerBindingValidity {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		final AtomicBoolean wasInAnswerHandler = new AtomicBoolean(false);
 		GraphPattern gp1 = new GraphPattern(prefixes, "?city ex:capitalOf ?country.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().iterator().next().get("country").equals("<https://example.org/france>"));
+			assertTrue(anAnswerExchangeInfo.getIncomingBindings().iterator().next().get("country")
+					.equals("<https://example.org/france>"));
 			wasInAnswerHandler.set(true);
 
 			// even though the incoming binding asks for the capital of france, we're
 			// answering with the capital of germany anyway (wrong!)
-			
+
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("city", "<https://example.org/berlin>");
@@ -63,7 +61,7 @@ public class TestAskAnswerBindingValidity {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;

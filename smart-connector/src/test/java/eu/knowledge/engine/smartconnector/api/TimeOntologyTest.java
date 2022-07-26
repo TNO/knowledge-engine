@@ -40,8 +40,6 @@ public class TimeOntologyTest {
 		kn.addKB(this.app);
 		kn.addKB(this.time);
 
-		kn.startAndWaitForReady();
-
 		// add KIs
 		GraphPattern cGp1 = new GraphPattern(this.prefixes, "?meeting rdf:type ex:Meeting .\n"
 				+ "?meeting ex:hasTopic ?subject .\n" + "?meeting ex:startAt ?start .\n" + "?meeting ex:endAT ?end .\n"
@@ -247,7 +245,7 @@ public class TimeOntologyTest {
 			return bs;
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		AskResult ar = app.ask(aAskKI, new BindingSet()).get();
 

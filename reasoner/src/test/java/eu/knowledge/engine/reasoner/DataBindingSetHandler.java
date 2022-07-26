@@ -4,10 +4,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public class DataBindingSetHandler implements BindingSetHandler {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DataBindingSetHandler.class);
+
 	private Table data;
 
 	public DataBindingSetHandler(Table someData) {
@@ -35,6 +41,16 @@ public class DataBindingSetHandler implements BindingSetHandler {
 		}
 
 		var future = new CompletableFuture<BindingSet>();
+
+		future.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while handling binding set data ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 		future.complete(newBS);
 		return future;
 	}

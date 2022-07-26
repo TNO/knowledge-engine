@@ -24,7 +24,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TestAskAnswerRealistic {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);
 
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -72,7 +72,7 @@ public class TestAskAnswerRealistic {
         kn.addKB(kb5);
 
         LOG.info("Waiting for everyone to be ready...");
-        kn.startAndWaitForReady();
+        kn.sync();
         LOG.info("Everyone is ready!");
 
         kb1.setDomainKnowledge(rules);
@@ -253,7 +253,7 @@ public class TestAskAnswerRealistic {
          AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp3);
          kb3.register(askKI);
          LOG.info("Waiting until everyone is up to date!");
-         kn.waitForUpToDate();
+         kn.sync();
          LOG.info("Everyone is up to date!");
 
          BindingSet bindings = null;

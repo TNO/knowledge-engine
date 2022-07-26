@@ -13,12 +13,16 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class Rule {
+
+	private static final Logger LOG = LoggerFactory.getLogger(Rule.class);
 
 	public static enum MatchStrategy {
 		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
@@ -61,6 +65,16 @@ public class Rule {
 				}
 
 				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured in Rule on BindingSetHandler", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(newBS);
 				return future;
 			}

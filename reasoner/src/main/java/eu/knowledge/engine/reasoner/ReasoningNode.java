@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1126,7 +1127,8 @@ public class ReasoningNode {
 			Map<ReasoningNode, Set<Match>> someAntecedentNeighbors) {
 		if (this.antecedentCoverageCache == null) {
 			antecedentCoverageCache = new HashMap<>();
-			// TODO find the coverage
+
+			// find the coverage
 			Set<ReasoningNode> coveringNodes;
 			for (TriplePattern tp : this.rule.antecedent) {
 				coveringNodes = new HashSet<>();
@@ -1136,7 +1138,7 @@ public class ReasoningNode {
 					for (Match m : entry.getValue()) {
 						if (m.getMatchingPatterns().keySet().contains(tp)) {
 							coveringNodes.add(entry.getKey());
-							break; // where does this break from?
+							break; // where does this break from? The inner loop.
 						}
 					}
 				}
@@ -1196,5 +1198,7 @@ public class ReasoningNode {
 			this.antecedentCoverageCache = null;
 		}
 	}
+
+
 
 }
