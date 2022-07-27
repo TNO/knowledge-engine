@@ -55,13 +55,15 @@ public class TestAskAnswerRealistic {
 
 
         var rules = new HashSet<Rule>();
+
         var antecedent = new HashSet<TriplePattern>();
-        antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
         var consequent = new HashSet<TriplePattern>();
+
+        antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
         consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
 
-        antecedent.add(new TriplePattern("?c <https://saref.etsi.org/saref4bldg/Building> ?d"));
-        consequent.add(new TriplePattern("?c <https://saref.etsi.org/saref4bldg/House> ?d"));
+        antecedent.add(new TriplePattern("?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building>"));
+        consequent.add(new TriplePattern("?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/House>"));
 
         rules.add(new Rule(antecedent, consequent));
 
