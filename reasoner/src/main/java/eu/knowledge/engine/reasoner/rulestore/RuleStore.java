@@ -73,9 +73,10 @@ public class RuleStore {
 	 *         this rule's antecedent.
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-
 		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
+		assert aRuleNode != null;
+		
 		for (BaseRule someRule : this.getRules()) {
 			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {

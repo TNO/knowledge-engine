@@ -139,9 +139,9 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 
 		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rn);
+		System.out.println(rp);
 
 		BindingSet bs = new BindingSet();
 
@@ -158,7 +158,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		rp.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());

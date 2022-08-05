@@ -263,20 +263,23 @@ public class ReasonerPlan {
 				BindingSet aBindingSet = bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet())
 						.get();
 				this.current.setOutgoingConsequentBindingSet(
-						aBindingSet.toTripleVarBindingSet(this.current.getRule().getAntecedent()));
+						aBindingSet.toTripleVarBindingSet(this.current.getRule().getConsequent()));
 			}
 
 			for (Map.Entry<ReasonerNode, Set<Match>> neighborEntry : this.current.getConsequentNeighbors().entrySet()) {
 				ReasonerNode neighbor = neighborEntry.getKey();
 				Set<Match> neighborMatch = neighborEntry.getValue();
 				TripleVarBindingSet neighborBS = this.current.getOutgoingConsequentBindingSet()
-						.translate(neighbor.getRule().getAntecedent(), neighborMatch);
+						.translate(neighbor.getRule().getAntecedent(), Match.invert(neighborMatch));
 
-				if (!neighbor.hasIncomingAntecedentBindingSet())
-					neighbor.setIncomingAntecedentBindingSet(neighborBS);
+				neighborBS = neighborBS.merge(neighborBS);
 
-				this.stack.push(neighbor);
-				removeCurrentFromStack = false;
+				if (!neighbor.hasIncomingAntecedentBindingSet()) {
+					neighbor.setIncomingAntecedentBindingSet(neighborBS.getFullBindingSet());
+					removeCurrentFromStack = false;
+					this.stack.push(neighbor);
+				}
+
 			}
 
 		} else {
@@ -286,7 +289,7 @@ public class ReasonerPlan {
 			Rule rr = (Rule) r;
 
 			SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
-			bsh.handle(this.current.getIncomingConsequentBindingSet().toBindingSet());
+			bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet());
 		}
 
 		if (removeCurrentFromStack)
