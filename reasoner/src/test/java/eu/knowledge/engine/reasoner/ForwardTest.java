@@ -19,8 +19,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -29,6 +30,8 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ForwardTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ForwardTest.class);
 
 	private static class MyBindingSetHandler implements SinkBindingSetHandler {
 
@@ -98,6 +101,16 @@ public class ForwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured on Celsius <-> Fahrenheit test", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -420,6 +433,17 @@ public class ForwardTest {
 			@Override
 			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured while testing are published values remained accessible ",
+								e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(this.b);
 				return future;
 			}

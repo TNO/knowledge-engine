@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -93,6 +95,8 @@ public class Rule extends BaseRule {
 		}
 	}
 
+	private static final Logger LOG = LoggerFactory.getLogger(Rule.class);
+
 	public static class ConsequentToAntecedentBindingSetHandler implements TransformBindingSetHandler {
 
 		private Set<TriplePattern> antecedent;
@@ -159,7 +163,9 @@ public class Rule extends BaseRule {
 	 * @param aConsequent
 	 */
 	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+
 		this(anAntecedent, aConsequent, new AntecedentToConsequentBindingSetHandler(aConsequent));
+
 	}
 
 	public TransformBindingSetHandler getBindingSetHandler() {

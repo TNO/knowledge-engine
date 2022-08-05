@@ -10,10 +10,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -24,6 +27,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 public class PruningTest {
 
 	private static class MyBindingSetHandler implements TransformBindingSetHandler {
+	protected static final Logger LOG = LoggerFactory.getLogger(PruningTest.class);
 
 		private BindingSet bs;
 
@@ -33,6 +37,16 @@ public class PruningTest {
 			this.bs = bs;
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while handling binding set", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(bs);
 			return future;
 		}

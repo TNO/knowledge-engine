@@ -41,8 +41,8 @@ public class TaskBoardTest {
 
 		TaskBoard tb = new TaskBoard();
 
-		Rule r = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Test>"))),
-				new HashSet<>(), new TransformBindingSetHandler() {
+		Rule r = new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Test>"))), new HashSet<>(),
+				new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -71,11 +71,17 @@ public class TaskBoardTest {
 							} catch (Exception ex) {
 								throw new CompletionException(ex);
 							} // Or return default value
-						}, TaskBoardTest.this.es);
+						}, TaskBoardTest.this.es).handle((r, e) -> {
 
+							if (r == null) {
+								LOG.error("An exception has occured testing timer ", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						return future;
 					}
-
 				});
 
 		ReasoningNode aFirstNode = new ReasoningNode(new ArrayList<>(), null, r, null, false);

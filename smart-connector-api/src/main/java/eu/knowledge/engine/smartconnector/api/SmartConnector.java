@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Rule;
 
 public interface SmartConnector {
 
@@ -271,7 +271,7 @@ public interface SmartConnector {
 	 * 
 	 * @param someRules The rules to take into account.
 	 */
-	void setDomainKnowledge(Set<BaseRule> someDomainKnowledge);
+	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
 
 	/**
 	 * Sets the reasoner enabled property of this Smart Connector to true or false.

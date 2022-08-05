@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -184,7 +184,7 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 	}
 
 	@Override
-	public void setDomainKnowledge(Set<BaseRule> someDomainKnowledge) {
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
 		// do nothing
 	}
 

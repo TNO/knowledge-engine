@@ -52,8 +52,6 @@ public class NotDesignedToWorkTogetherTest {
 
 		final CountDownLatch latch = new CountDownLatch(2);
 
-		kn.startAndWaitForReady();
-
 		GraphPattern lampGP = new GraphPattern(prefixes, "?l rdf:type ex:OnOffLamp .", "?l ex:isOn ?o .");
 		PostKnowledgeInteraction appKbPost = new PostKnowledgeInteraction(new CommunicativeAct(), lampGP, null);
 		appKb.register(appKbPost);
@@ -112,7 +110,7 @@ public class NotDesignedToWorkTogetherTest {
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		BindingSet argument = new BindingSet();
 		Binding binding = new Binding();

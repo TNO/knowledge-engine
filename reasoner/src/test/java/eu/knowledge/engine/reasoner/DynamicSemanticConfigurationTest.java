@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -25,6 +28,8 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class DynamicSemanticConfigurationTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
 
 	private KeReasoner reasoner;
 
@@ -68,6 +73,15 @@ public class DynamicSemanticConfigurationTest {
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
 
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 
 						return future;
@@ -83,7 +97,9 @@ public class DynamicSemanticConfigurationTest {
 		reasoner.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))), new TransformBindingSetHandler() {
+
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))),
+				new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -99,19 +115,32 @@ public class DynamicSemanticConfigurationTest {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Russia\"");
+								resultBinding.put("lang", "\"Russian\"");
 							} else if (incomingB.containsKey("id")
 									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Holland\"");
+								resultBinding.put("lang", "\"Dutch\"");
 							} else {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Belgium\"");
+								resultBinding.put("lang", "\"Flemish\"");
 							}
 							newBS.add(resultBinding);
 						}
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(newBS);
 						return future;
 					}
@@ -127,19 +156,18 @@ public class DynamicSemanticConfigurationTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		// Start reasoning
+		// Make a plan
 		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		System.out.println(root);
-
+		LOG.info("\n{}", root);
 		BindingSet bs = new BindingSet();
-
+		// Start reasoning
 		BindingSet bind;
 		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
+			LOG.info("\n{}", root);
 			taskboard.executeScheduledTasks();
 		}
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}

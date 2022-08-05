@@ -55,7 +55,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
-	private Set<BaseRule> additionalDomainKnowledge;
+	private Set<Rule> additionalDomainKnowledge;
 	private ReasoningNode rootNode;
 	private TaskBoard taskBoard;
 
@@ -73,7 +73,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> finalBindingSetFuture;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
-			Set<BaseRule> someDomainKnowledge) {
+			Set<Rule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
 		taskBoard = new TaskBoard();
 
@@ -107,8 +107,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					resPattern = new HashSet<>(translateGraphPatternTo(resGp));
 				}
 
-				reasoner.addRule(
-						new Rule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
+				reasoner.addRule(new Rule(translateGraphPatternTo(argGp), resPattern, new ReactBindingSetHandler(kii)));
 			}
 
 		}
@@ -306,6 +305,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			this.bs = bs;
 			var future = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while capturing binging set", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 			return future;
 		}
@@ -469,6 +478,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
 				eu.knowledge.engine.reasoner.api.BindingSet bs) {
 			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> future = new CompletableFuture<>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while storing binding set ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(this.b);
 			return future;
 		}

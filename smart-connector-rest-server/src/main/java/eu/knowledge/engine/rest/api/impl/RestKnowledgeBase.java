@@ -128,7 +128,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionType.ANSWER, bindings, anAnswerExchangeInfo.getAskingKnowledgeBaseId(), future);
 
 			tryProcessHandleRequestElseEnqueue(hr);
-			return future;
+			return future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while answering ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 		}
 
 		/**
@@ -158,7 +166,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionType.REACT, bindings, aReactExchangeInfo.getPostingKnowledgeBaseId(), future);
 
 			tryProcessHandleRequestElseEnqueue(hr);
-			return future;
+			return future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while reacting ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 		}
 
 		/**
@@ -575,7 +591,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// method to handle it.
 		var askFuture = this.sc.ask((AskKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
-		return askFuture;
+		return askFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while asking ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	public CompletableFuture<eu.knowledge.engine.smartconnector.api.PostResult> post(String kiId,
@@ -601,7 +625,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// method to handle it.
 		var postFuture = this.sc.post((PostKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
-		return postFuture;
+		return postFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while posting ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	private BindingSet listToBindingSet(List<Map<String, String>> listBindings) {

@@ -7,11 +7,16 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class KeReasoner {
+
+	private static final Logger LOG = LoggerFactory.getLogger(KeReasoner.class);
 
 	// rules might need an order to prevent infinite loops
 	private RuleStore store = new RuleStore();
@@ -30,6 +35,16 @@ public class KeReasoner {
 			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
 				CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured on backward plan", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(bs);
 				return future;
 			}
@@ -58,6 +73,16 @@ public class KeReasoner {
 			@Override
 			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 				CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured on forward plan", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(bs);
 				return future;
 			}

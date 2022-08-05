@@ -16,10 +16,14 @@ import org.apache.jena.datatypes.xsd.impl.XSDFloat;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -41,6 +45,8 @@ public class BackwardTest {
 	private ProactiveRule variableAsPredicateRule;
 	private ProactiveRule variableAsPredicate2Rule;
 	private ProactiveRule allTriplesRule;
+
+	private static final Logger LOG = LoggerFactory.getLogger(BackwardTest.class);
 
 	@BeforeAll
 	public void init() throws URISyntaxException {
@@ -114,6 +120,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured in Celsius <-> Fahrenheit test", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -149,6 +165,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured in Celsius <-> Kelvin test", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -184,6 +210,16 @@ public class BackwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured in Fahrenheit <-> Kelvin test", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 
