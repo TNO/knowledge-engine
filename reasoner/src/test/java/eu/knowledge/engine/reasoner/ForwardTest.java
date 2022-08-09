@@ -185,9 +185,9 @@ public class ForwardTest {
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
 		store.addRule(aStartRule);
 		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rn);
+		System.out.println(rp);
 
 		BindingSet bs = new BindingSet();
 
@@ -202,7 +202,7 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		rp.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
@@ -265,7 +265,7 @@ public class ForwardTest {
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
 		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp, tp2)), aBindingSetHandler));
 		store.addRule(this.optionalRule);
-		store.addRule(grandParentRule);
+//		store.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
@@ -292,11 +292,13 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
+		this.store.printGraphVizCode(rn);
+
 		rn.execute(bs);
 
-		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
+		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 	}
 
 	@Test
@@ -459,7 +461,6 @@ public class ForwardTest {
 				"<sens1>,\"69.0\"^^<http://www.w3.org/2001/XMLSchema#float>"
 				// @formatter:on
 		}).getData());
-
 		store.addRule(
 				new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)), new StoreBindingSetHandler(bs)));
 

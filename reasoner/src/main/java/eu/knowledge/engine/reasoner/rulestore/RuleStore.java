@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerNode;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -76,7 +77,7 @@ public class RuleStore {
 		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
-		
+
 		for (BaseRule someRule : this.getRules()) {
 			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {
@@ -169,8 +170,13 @@ public class RuleStore {
 					}
 				}
 
-				sb.append(currentName).append("[").append(pen).append("tooltip=").append("\"").append(replaceAll)
-						.append("\"").append("]").append("\n");
+				String shape = "shape=\"circle\"";
+				if (r.getRule() instanceof ProactiveRule) {
+					shape = "shape=\"doublecircle\"";
+				}
+
+				sb.append(currentName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
+						.append(replaceAll).append("\"").append("]").append("\n");
 				ruleToName.put(r.getRule(), currentName);
 
 			}

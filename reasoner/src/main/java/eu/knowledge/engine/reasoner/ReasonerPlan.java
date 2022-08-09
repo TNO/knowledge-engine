@@ -68,7 +68,6 @@ public class ReasonerPlan {
 			}
 		} else {
 			// interested in both consequent and antecedent neighbors
-
 			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule).entrySet()) {
 
 				if (entry.getKey() instanceof Rule) {
@@ -78,7 +77,8 @@ public class ReasonerPlan {
 				}
 			}
 
-			// antecedent neighbors are relevant to propagate bindings further
+			// antecedent neighbors to propagate bindings further via backward chaining
+			
 			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
 
 				if (entry.getKey() instanceof Rule) {
@@ -254,6 +254,9 @@ public class ReasonerPlan {
 
 		if (this.current.hasConsequent()) {
 			if (this.current.hasAntecedent() && !this.current.hasOutgoingConsequentBindingSet()) {
+
+				// TODO maybe retrieve additional bindingsets via backward chaining?
+
 				BaseRule r = this.current.getRule();
 				assert r instanceof Rule;
 				Rule rr = (Rule) r;
@@ -288,8 +291,11 @@ public class ReasonerPlan {
 			assert r instanceof Rule;
 			Rule rr = (Rule) r;
 
-			SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
-			bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet());
+			TripleVarBindingSet aBindingSet = this.current.getIncomingAntecedentBindingSet();
+			if (!aBindingSet.isEmpty() && aBindingSet.getBindings().iterator().hasNext()) {
+				SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
+				bsh.handle(this.current.getIncomingAntecedentBindingSet().toBindingSet());
+			}
 		}
 
 		if (removeCurrentFromStack)
