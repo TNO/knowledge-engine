@@ -15,7 +15,7 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerNode;
+import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
@@ -33,7 +33,7 @@ public class RuleStore {
 	/**
 	 * All the rules in this store.
 	 */
-	private Map<BaseRule, RuleNode> ruleToRuleNode;
+	private Map<BaseRule, MatchNode> ruleToRuleNode;
 
 	/**
 	 * Instantiate an empty rule store.
@@ -43,7 +43,7 @@ public class RuleStore {
 	}
 
 	public void addRule(BaseRule aRule) {
-		RuleNode aRuleNode = new RuleNode(aRule);
+		MatchNode aRuleNode = new MatchNode(aRule);
 		this.ruleToRuleNode.put(aRule, aRuleNode);
 	}
 
@@ -74,18 +74,18 @@ public class RuleStore {
 	 *         this rule's antecedent.
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
+		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
 		for (BaseRule someRule : this.getRules()) {
-			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
+			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {
 				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(),
 						MatchStrategy.FIND_ALL_MATCHES);
 				if (!someMatches.isEmpty()) {
 					aRuleNode.setAntecedentNeighbor(someRule, someMatches);
-					someRuleNode.setConsequentNeighbor(aRule, Match.invert(someMatches));
+					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches));
 				}
 
 			}
@@ -104,18 +104,18 @@ public class RuleStore {
 	 *         this rule's consequent.
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
-		RuleNode aRuleNode = this.ruleToRuleNode.get(aRule);
+		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
 		for (BaseRule someRule : this.getRules()) {
-			RuleNode someRuleNode = this.ruleToRuleNode.get(someRule);
+			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
 			if (!someRule.getAntecedent().isEmpty() && !aRuleNode.getConsequentNeighbors().containsKey(someRule)) {
 				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(),
 						MatchStrategy.FIND_ALL_MATCHES);
 				if (!someMatches.isEmpty()) {
 					aRuleNode.setConsequentNeighbor(someRule, someMatches);
-					someRuleNode.setAntecedentNeighbor(aRule, Match.invert(someMatches));
+					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches));
 				}
 
 			}
@@ -129,7 +129,7 @@ public class RuleStore {
 	 * the neighbor of who.
 	 */
 	public void reset() {
-		for (RuleNode r : this.ruleToRuleNode.values()) {
+		for (MatchNode r : this.ruleToRuleNode.values()) {
 			r.reset();
 		}
 	}
@@ -150,7 +150,7 @@ public class RuleStore {
 
 		int ruleNumber = 1;
 
-		for (RuleNode r : ruleToRuleNode.values()) {
+		for (MatchNode r : ruleToRuleNode.values()) {
 
 			String currentName = ruleToName.get(r.getRule());
 			boolean sourceInPlan = false, destInPlan = false;
@@ -163,7 +163,7 @@ public class RuleStore {
 				// check the colouring
 				String pen = "";
 				if (aPlan != null) {
-					ReasonerNode rn = aPlan.getNode(r.getRule());
+					RuleNode rn = aPlan.getNode(r.getRule());
 					if (rn != null) {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
 						sourceInPlan = true;
@@ -194,7 +194,7 @@ public class RuleStore {
 					// check the colouring
 					String pen = "";
 					if (aPlan != null) {
-						ReasonerNode rn = aPlan.getNode(neighR);
+						RuleNode rn = aPlan.getNode(neighR);
 						if (rn != null) {
 							pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
 							destInPlan = true;
@@ -208,8 +208,8 @@ public class RuleStore {
 
 				String pen = "";
 				if (aPlan != null) {
-					ReasonerNode s = aPlan.getNode(r.getRule());
-					ReasonerNode d = aPlan.getNode(neighR);
+					RuleNode s = aPlan.getNode(r.getRule());
+					RuleNode d = aPlan.getNode(neighR);
 					if (s != null && d != null)
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\"";
 				}

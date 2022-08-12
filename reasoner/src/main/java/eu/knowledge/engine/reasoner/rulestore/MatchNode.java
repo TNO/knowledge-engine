@@ -16,7 +16,7 @@ import eu.knowledge.engine.reasoner.BaseRule;
  * @author nouwtb
  *
  */
-public class RuleNode {
+public class MatchNode {
 
 	private BaseRule rule;
 
@@ -27,18 +27,18 @@ public class RuleNode {
 	private RuleStore store;
 
 	/**
-	 * All other rules in the {@link RuleNode#store} whose consequents match this
+	 * All other rules in the {@link MatchNode#store} whose consequents match this
 	 * rule's antecedent either fully or partially.
 	 */
 	private Map<BaseRule, Set<Match>> antecedentNeighbors;
 
 	/**
-	 * All other rules in the {@link RuleNode#store} whose antecedents match this
+	 * All other rules in the {@link MatchNode#store} whose antecedents match this
 	 * rule's consequent either fully or partially.
 	 */
 	private Map<BaseRule, Set<Match>> consequentNeighbors;
 
-	public RuleNode(BaseRule aRule) {
+	public MatchNode(BaseRule aRule) {
 		this.rule = aRule;
 		this.antecedentNeighbors = new HashMap<>();
 		this.consequentNeighbors = new HashMap<>();

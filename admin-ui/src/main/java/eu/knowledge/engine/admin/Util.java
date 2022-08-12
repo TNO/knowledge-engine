@@ -20,8 +20,8 @@ import org.apache.jena.vocabulary.RDF;
 
 import eu.knowledge.engine.admin.model.CommunicativeAct;
 import eu.knowledge.engine.admin.model.Connection;
-import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;

@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.KeReasoner;
-import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.TaskBoard;

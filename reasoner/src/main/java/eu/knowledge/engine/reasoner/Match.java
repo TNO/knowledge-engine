@@ -206,7 +206,7 @@ public class Match {
 		return new Match(newMatchingPatterns, invertedMap);
 	}
 
-	public static Set<Match> invert(Set<Match> someMatches) {
+	public static Set<Match> invertAll(Set<Match> someMatches) {
 		Set<Match> inverseMatches = new HashSet<>();
 		for (Match m : someMatches) {
 			inverseMatches.add(m.inverse());
