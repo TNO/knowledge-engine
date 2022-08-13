@@ -320,6 +320,9 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule);
+
+		store.printGraphVizCode(root);
+
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();

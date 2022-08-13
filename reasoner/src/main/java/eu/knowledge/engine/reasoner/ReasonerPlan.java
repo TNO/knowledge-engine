@@ -20,8 +20,18 @@ public class ReasonerPlan {
 	private Map<BaseRule, RuleNode> ruleToReasonerNode;
 	private ProactiveRule start;
 
+	/**
+	 * Keeps track of the path through the graph and allows us to retrieve
+	 * information about which nodes lie on our path to the startnode. This is
+	 * helpful while reasoning backward while forward (to propagate data) and while
+	 * reasoning forward while backward (in case of loops). The closer a node is to
+	 * the start of the list, the most recent it was visited. TODO does this really
+	 * need to be a linkedlist? Do we need to insert a lot of items in the middle
+	 * and at the start? I think we can just use an arraylist for this.
+	 */
 	private LinkedList<RuleNode> stack;
 	private RuleStore store;
+	private Map<RuleNode, RuleNode> parentMap;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
 
@@ -29,6 +39,7 @@ public class ReasonerPlan {
 		this.store = aStore;
 		assert aStore.getRules().contains(aStartRule);
 		this.start = aStartRule;
+		this.parentMap = new HashMap<>();
 
 		// build reasoning graph
 		RuleNode startNode = createOrGetReasonerNode(aStartRule);
@@ -99,11 +110,13 @@ public class ReasonerPlan {
 	}
 
 	public void optimize() {
-		// TODO prune is a bit different because we are working with a graph (instead of
-		// a tree). Note though, that we cannot just look at the shortest path, because
-		// some rules are special (i.e. have custom bindingsethandlers) and thus might
-		// behave logically unexpected. So, we have to keep that in mind when
-		// optimizing.
+		/*
+		 * TODO prune is a bit different because we are working with a graph (instead of
+		 * a tree). Note though, that we cannot just look at the shortest path, because
+		 * some rules are special (i.e. have custom bindingsethandlers) and thus might
+		 * behave logically unexpected. So, we have to keep that in mind when
+		 * optimizing.
+		 */
 	}
 
 	/**
@@ -119,109 +132,150 @@ public class ReasonerPlan {
 
 		assert this.start.isProactive();
 
-		boolean backward;
 		if (this.start.getConsequent().isEmpty()) {
 			this.getNode(this.start)
 					.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
-			backward = true;
 		} else {
 			this.getNode(this.start)
 					.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
-			backward = false;
 		}
 
 		int i = 0;
 		boolean hasNextStep = false;
 		while (!this.stack.isEmpty()) {
 			System.out.println("Step " + ++i + ": " + this.stack.peek());
-			if (backward)
-				hasNextStep = stepBackward();
-			else
-				hasNextStep = stepForward();
+			step();
 		}
 		return hasNextStep;
 	}
 
 	/**
-	 * Takes a step in the reasoning process and returns {@code true} if another
-	 * step can be taken, or {@code false} if no further step can be taken. This
-	 * latter can be resolved by executing some of the task on the TaskBoard.
+	 * The step logic consists of 3 parts:
+	 * <ul>
+	 * <li>from consequent to antecedent (backward only)</li>
+	 * <li>push/pull bindingsets to/from antecedent neighbors</li>
+	 * <li>from</li>
+	 * </ul>
+	 * Going backward and forward have an overlapping logic only it occurs either at
+	 * the end of the step (in case of backward) or at the start of the step (in
+	 * case of forward).
 	 * 
-	 * TODO rename to backward step and forward step (separate processes)
-	 * 
-	 * @return {@code true} when another step can be taken, {@code false} otherwise.
-	 * @throws ExecutionException
 	 * @throws InterruptedException
+	 * @throws ExecutionException
 	 */
-	public boolean stepBackward() throws InterruptedException, ExecutionException {
+	public void step() throws InterruptedException, ExecutionException {
+		boolean removeCurrentFromStack = true;
 		RuleNode current = this.stack.peek();
 
-		boolean hasNextStep = true;
-		boolean removeCurrentFromStack = true;
+		RuleNode previous = null;
+		if (this.stack.size() > 1)
+			previous = this.parentMap.get(current);
+
+		// determine our direction
+		boolean forward = isForward(current, previous);
+
+		if (!forward) {
+			if (current.hasAntecedent() && current.hasConsequent()) {
+				// from consequent to antecedent (only when backward)
+				if (!current.hasOutgoingAntecedentBindingSet()) {
+					assert current.hasIncomingConsequentBindingSet();
+					current.applyBindingSetHandlerFromConsequentToAntecedent();
+					assert current.hasOutgoingAntecedentBindingSet();
+				}
+			} else if (!current.hasAntecedent() && current.hasConsequent()) {
+				// just use the binding set handler to retrieve a binding set based on the given
+				// binding set.
+				assert current.hasConsequent();
+				assert current.hasIncomingConsequentBindingSet();
+				assert !forward;
+				if (!current.hasOutgoingConsequentBindingSet()) {
+					current.applyBindingSetHandlerFromConsequentToConsequent();
+				}
+			} else if (current.hasAntecedent() && !current.hasConsequent()) {
+				assert current.equals(this.getNode(this.start));
+			} else
+				assert false;
+		}
 
 		if (current.hasAntecedent()) {
-			if (current.hasConsequent() && !current.hasOutgoingAntecedentBindingSet()) {
-				current.applyBindingSetHandlerFromConsequentToAntecedent();
+
+			if (!current.hasIncomingAntecedentBindingSet()) {
+				// push/pull bindingsets to/from antecedents (always)
+				TripleVarBindingSet aBindingSet;
+				if (forward) {
+					aBindingSet = previous.getOutgoingConsequentBindingSet();
+				} else {
+					aBindingSet = current.getOutgoingAntecedentBindingSet();
+				}
+				Set<RuleNode> antecedentNeighbors = current.contactAntecedentNeighbors2(aBindingSet);
+
+				for (RuleNode rn : antecedentNeighbors) {
+					this.stack.push(rn);
+					this.parentMap.put(rn, current);
+				}
+
+				if (!antecedentNeighbors.isEmpty())
+					removeCurrentFromStack = false;
+				else {
+					// create incoming antecedent bindingset
+					current.collectIncomingAntecedentBindingSet();
+				}
 			}
 
-			Set<RuleNode> neighbors = current.contactAntecedentNeighbors(current.getAntecedentNeighbors());
-
-			this.stack.addAll(0, neighbors);
-
-			if (neighbors.isEmpty()) {
-				// create incoming antecedent bindingset
-				current.collectIncomingAntecedentBindingSet();
-			} else
-				removeCurrentFromStack = false;
-
-			if (current.hasConsequent() && current.hasIncomingAntecedentBindingSet()) {
-				current.applyBindingSetHandlerFromAntecedentToConsequent();
+			// from antecedent to consequent (always)
+			if (current.hasConsequent()) {
+				if (current.hasIncomingAntecedentBindingSet() && !current.hasOutgoingConsequentBindingSet()) {
+					current.applyBindingSetHandlerFromAntecedentToConsequent();
+				}
+			} else {
+				// just use the binding set handler to deal with the binding set.
+				// TODO see if we can remove this {@code forward} variable from this if.
+				if (forward && current.hasIncomingAntecedentBindingSet()) {
+					current.applyBindingSetHandlerToAntecedent();
+				}
 			}
-
-		} else {
-			// just use the binding set handler to retrieve a binding set based on the given
-			// binding set.
-			current.applyBindingSetHandlerFromConsequentToConsequent();
-
 		}
 
-		if (removeCurrentFromStack) {
-			this.stack.pop();
-		}
-		return hasNextStep;
-	}
+		if (forward) {
+			if (current.hasConsequent()) {
+				// activate consequent neighbors
+				assert current.hasOutgoingConsequentBindingSet();
+				// if we activate neighbors, we do not remove current
+				Set<RuleNode> neighbors = current.contactConsequentNeighbors(current.getConsequentNeighbors());
 
-	public boolean stepForward() throws InterruptedException, ExecutionException {
-		RuleNode current = this.stack.peek();
-		boolean hasNextStep = true;
-		boolean removeCurrentFromStack = true;
-		RuleNode parent = null;
-		if (this.stack.size() > 1)
-			parent = this.stack.get(1);
+				for (RuleNode rn : neighbors) {
+					this.stack.push(rn);
+					this.parentMap.put(rn, current);
+				}
 
-		// TODO retrieve additional bindingsets via backward chaining?
-		if (current.hasConsequent()) {
-			if (current.hasAntecedent() && !current.hasOutgoingConsequentBindingSet()) {
-
-				current.applyBindingSetHandlerFromAntecedentToConsequent();
+				if (!neighbors.isEmpty())
+					removeCurrentFromStack = false;
 			}
-
-			Set<RuleNode> neighbors = current.contactConsequentNeighbors(current.getConsequentNeighbors());
-
-			if (!neighbors.isEmpty())
-				removeCurrentFromStack = false;
-
-			this.stack.addAll(0, neighbors);
-
-		} else {
-			// just use the binding set handler to deal with the binding set.
-			current.applyBindingSetHandlerToAntecedent();
 		}
 
 		if (removeCurrentFromStack)
 			this.stack.pop();
+	}
 
-		return hasNextStep;
+	public boolean isForward(RuleNode current, RuleNode previous) {
+		boolean toConsequent = true;
+		if (current.hasAntecedent() && current.hasConsequent()) {
+			// determine based on previous node
+			if (current.getConsequentNeighbors().containsKey(previous)) {
+				toConsequent = false;
+			}
+
+		} else if (current.hasAntecedent() && !current.hasConsequent()) {
+			if (current.equals(this.getNode(this.start))) {
+				toConsequent = false;
+			}
+		} else if (!current.hasAntecedent() && current.hasConsequent()) {
+			if (!current.equals(this.getNode(this.start))) {
+				toConsequent = false;
+			}
+		} else
+			assert false;
+		return toConsequent;
 	}
 
 	public RuleNode getStartNode() {

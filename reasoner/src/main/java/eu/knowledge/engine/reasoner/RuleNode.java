@@ -150,12 +150,9 @@ public class RuleNode {
 
 		TripleVarBindingSet aBindingSet = this.getIncomingAntecedentBindingSet();
 
-		if (!isEmpty(aBindingSet)) {
-
-			BindingSet outgoingConsequentBindingSet = bsh.handle(aBindingSet.toBindingSet()).get();
-			this.setOutgoingConsequentBindingSet(
-					outgoingConsequentBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
-		}
+		BindingSet outgoingConsequentBindingSet = bsh.handle(aBindingSet.toBindingSet()).get();
+		this.setOutgoingConsequentBindingSet(
+				outgoingConsequentBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
 	}
 
 	public Set<RuleNode> contactConsequentNeighbors(Map<RuleNode, Set<Match>> someConsequentNeighbors) {
@@ -189,6 +186,27 @@ public class RuleNode {
 			if (!neighbor.hasOutgoingConsequentBindingSet()) {
 				TripleVarBindingSet neighborBS = this.getOutgoingAntecedentBindingSet()
 						.translate(neighbor.getRule().getConsequent(), neighborMatch);
+
+				if (!neighbor.hasIncomingConsequentBindingSet())
+					neighbor.setIncomingConsequentBindingSet(neighborBS);
+				neighbors.add(neighbor);
+			} else {
+				// skip this neighbor
+			}
+		}
+		return neighbors;
+	}
+
+	public Set<RuleNode> contactAntecedentNeighbors2(TripleVarBindingSet aBindingSet) {
+
+		Set<RuleNode> neighbors = new HashSet<>();
+		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
+			RuleNode neighbor = neighborEntry.getKey();
+			Set<Match> neighborMatch = neighborEntry.getValue();
+
+			if (!neighbor.hasOutgoingConsequentBindingSet()) {
+				TripleVarBindingSet neighborBS = aBindingSet.translate(neighbor.getRule().getConsequent(),
+						Match.invertAll(neighborMatch));
 
 				if (!neighbor.hasIncomingConsequentBindingSet())
 					neighbor.setIncomingConsequentBindingSet(neighborBS);
