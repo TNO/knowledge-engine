@@ -20,10 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
-import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Table;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 /**
@@ -135,16 +136,7 @@ class RuleStoreTest {
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?id rdf:type <HighValueTarget>"));
 		objective.add(new TriplePattern("?id <hasName> ?name"));
-		consumeHvtNameRule = new Rule(objective, new HashSet<>(), new TransformBindingSetHandler() {
-
-			public CompletableFuture<BindingSet> handle(BindingSet incomingBS) {
-
-				LOG.info("receives {}", incomingBS);
-				CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
-				future.complete(new BindingSet());
-				return future;
-			}
-		});
+		consumeHvtNameRule = new ProactiveRule(objective, new HashSet<>());
 		store.addRule(consumeHvtNameRule);
 
 		Set<BaseRule> rules = store.getRules();

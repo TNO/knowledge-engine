@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,12 +22,13 @@ import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class PruningTest {
 
 	private static class MyBindingSetHandler implements TransformBindingSetHandler {
-	protected static final Logger LOG = LoggerFactory.getLogger(PruningTest.class);
+		protected static final Logger LOG = LoggerFactory.getLogger(PruningTest.class);
 
 		private BindingSet bs;
 
@@ -57,14 +58,14 @@ public class PruningTest {
 
 	}
 
-	private KeReasoner reasoner;
+	private RuleStore store;
 	private Rule isInRoomRule;
 	private Rule grandParentRule;
 	private Rule obsoleteRule;
 
 	@BeforeAll
 	public void init() {
-		reasoner = new KeReasoner();
+		store = new RuleStore();
 
 		Rule rule = new Rule(new HashSet<>(),
 				new HashSet<>(
@@ -79,7 +80,7 @@ public class PruningTest {
 						"<sensor2>,\"21.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
 						//@formatter:on
 				})));
-		reasoner.addRule(rule);
+		store.addRule(rule);
 
 		isInRoomRule = new Rule(new HashSet<>(),
 				new HashSet<>(
@@ -113,37 +114,37 @@ public class PruningTest {
 	}
 
 	@Test
-	public void testBackwardSingleChild() {
+	public void testBackwardSingleChild() throws InterruptedException, ExecutionException {
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 		objective.add(new TriplePattern("?p <isInRoom> ?r"));
 
+		ProactiveRule startRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(startRule);
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		System.out.println(root);
 
-		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
-				.findAntecedentCoverage(root.getAntecedentNeighbors());
+//		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
+//				.findAntecedentCoverage(root.getAntecedentNeighbors());
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertTrue(bind.isEmpty());
 	}
 
 	@Test
-	public void testBackwardMultipleChildren() {
+	public void testBackwardMultipleChildren() throws InterruptedException, ExecutionException {
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
@@ -151,45 +152,47 @@ public class PruningTest {
 		objective.add(new TriplePattern("?p <isInRoom> ?r"));
 		objective.add(new TriplePattern("?p <hasOwner> ?r")); // knowledge gap
 
-		reasoner.addRule(this.isInRoomRule);
+		store.addRule(this.isInRoomRule);
+
+		ProactiveRule startRule = new ProactiveRule(objective, new HashSet<>());
 
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		System.out.println(root);
 
-		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
-				.findAntecedentCoverage(root.getAntecedentNeighbors());
+//		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
+//				.findAntecedentCoverage(root.getAntecedentNeighbors());
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertTrue(bind.isEmpty());
 	}
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 
 		TriplePattern tp1 = new TriplePattern("?x <isGrandParentOf> ?z");
 		TriplePattern tp2 = new TriplePattern("?x <hasName> ?n");
 
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler();
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
-		reasoner.addRule(grandParentRule);
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp1, tp2)), new HashSet<>(), aBindingSetHandler));
+		store.addRule(grandParentRule);
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isParentOf> ?y"));
 
+		ProactiveRule startRule = new ProactiveRule(new HashSet<>(), aGoal);
+		store.addRule(startRule);
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasoningNode rn = reasoner.forwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan rn = new ReasonerPlan(store, startRule);
 
 		System.out.println(rn);
 
@@ -208,17 +211,14 @@ public class PruningTest {
 				// @formatter:on
 		}).getData());
 
-		while (!rn.continueForward(bs)) {
-			System.out.println(rn);
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(bs);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNull(aBindingSetHandler.getBindingSet());
 	}
 
 	@Test
-	public void testBackwardPrune() {
+	public void testBackwardPrune() throws InterruptedException, ExecutionException {
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
@@ -226,39 +226,40 @@ public class PruningTest {
 		objective.add(new TriplePattern("?p <isInRoom> ?r"));
 //		objective.add(new TriplePattern("?p <hasOwner> ?o")); //knowledge gap
 
-		reasoner.addRule(this.obsoleteRule); // should be removed
-		reasoner.addRule(this.isInRoomRule);
+		store.addRule(this.obsoleteRule); // should be removed
+		store.addRule(this.isInRoomRule);
 
 		String gp = "?d <hasGPSCoordinates> ?coords";
 		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(gp))));
-		reasoner.addRule(r);
+		store.addRule(r);
 
 		TaskBoard taskboard = new TaskBoard();
 
+		ProactiveRule startRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(startRule);
+
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		System.out.println("Before prune");
 		System.out.println(root);
 
 //		Map<TriplePattern, Set<ReasoningNode>> findAntecedentCoverage = root
 //				.findAntecedentCoverage(root.getAntecedentNeighbors());
 
-		root.prune();
+//		root.prune();
 
 		System.out.println("After prune");
 		System.out.println(root);
 
-		assertTrue(root.isAntecedentFullyCovered());
+//		assertTrue(root.isAntecedentFullyCovered());
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());

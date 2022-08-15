@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -21,23 +21,24 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class DynamicSemanticConfigurationTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
 
-	private KeReasoner reasoner;
+	private RuleStore ruleStore;
 
 	@BeforeAll
 	public void init() throws URISyntaxException {
+		ruleStore = new RuleStore();
+
 		// Initialize
-		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
+		ruleStore.addRule(new Rule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
 				new TransformBindingSetHandler() {
 
@@ -89,12 +90,12 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new Rule(
+		ruleStore.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
-		reasoner.addRule(new Rule(
+		ruleStore.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
 
@@ -148,7 +149,7 @@ public class DynamicSemanticConfigurationTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?id <type> <HighValueTarget>"));
@@ -156,16 +157,16 @@ public class DynamicSemanticConfigurationTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
+		ProactiveRule aRule = new ProactiveRule(objective, new HashSet<>());
+		ruleStore.addRule(aRule);
+
 		// Make a plan
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(this.ruleStore, aRule);
 		LOG.info("\n{}", root);
 		BindingSet bs = new BindingSet();
 		// Start reasoning
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			LOG.info("\n{}", root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());

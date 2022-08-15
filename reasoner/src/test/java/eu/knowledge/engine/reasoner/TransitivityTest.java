@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -14,15 +16,16 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class TransitivityTest {
 
-	private KeReasoner reasoner;
+	private RuleStore store;
 
 	@BeforeAll
 	public void init() {
-		reasoner = new KeReasoner();
+		store = new RuleStore();
 
 		// transitivity rule
 		Set<TriplePattern> antecedent = new HashSet<>();
@@ -32,7 +35,7 @@ public class TransitivityTest {
 		Set<TriplePattern> consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isVoorouderVan> ?z"));
 		Rule transitivity = new Rule(antecedent, consequent);
-		reasoner.addRule(transitivity);
+		store.addRule(transitivity);
 
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
@@ -49,32 +52,39 @@ public class TransitivityTest {
 				//@formatter:on
 		}));
 
-		Rule rule = new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))), aBindingSetHandler);
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))),
+				aBindingSetHandler);
 
-		reasoner.addRule(rule);
+		store.addRule(rule);
 	}
 
+	@Disabled // TODO not yet implemented
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isVoorouderVan> ?y"));
+
+		ProactiveRule startRule = new ProactiveRule(aGoal, new HashSet<>());
+
+		store.addRule(startRule);
+
 		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan rn = new ReasonerPlan(store, startRule);
+
+		this.store.printGraphVizCode(rn);
+
 		BindingSet result = null;
 
 		int nrOfExpectedBindings = 15;
 
 		System.out.println(rn);
-		while ((result = rn.continueBackward(new BindingSet())) == null) {
-			System.out.println(rn);
-			taskboard.executeScheduledTasks();
-		}
+		rn.execute(new BindingSet());
+
+		result = rn.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("Size (should be " + nrOfExpectedBindings + "): " + result.size());
 		System.out.println("Result: " + result);
 		assertEquals(nrOfExpectedBindings, result.size());
-
 	}
 
 }

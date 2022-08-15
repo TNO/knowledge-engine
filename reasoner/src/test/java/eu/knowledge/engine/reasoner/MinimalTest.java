@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,17 +17,18 @@ import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MinimalTest {
 
-	private KeReasoner reasoner;
+	private RuleStore store;
 
 	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(),
+		store = new RuleStore();
+		store.addRule(new Rule(new HashSet<>(),
 				new HashSet<>(
 						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				new DataBindingSetHandler(new Table(new String[] {
@@ -42,17 +44,19 @@ public class MinimalTest {
 	}
 
 	@Test
-	public void testConverter() {
+	public void testConverter() throws InterruptedException, ExecutionException {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
+		ProactiveRule startRule = new ProactiveRule(objective, new HashSet<>());
+		this.store.addRule(startRule);
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(this.store, startRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -60,11 +64,9 @@ public class MinimalTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
@@ -72,17 +74,19 @@ public class MinimalTest {
 	}
 
 	@Test
-	public void testConverterVariableType() {
+	public void testConverterVariableType() throws InterruptedException, ExecutionException {
 		// Formulate objective
 		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> ?t"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
-
 		TaskBoard taskboard = new TaskBoard();
 
+		ProactiveRule startRule = new ProactiveRule(objective, new HashSet<>());
+		this.store.addRule(startRule);
+
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -90,11 +94,9 @@ public class MinimalTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-			taskboard.executeScheduledTasks();
-		}
+		root.execute(bs);
+
+		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
 		assertFalse(bind.isEmpty());
