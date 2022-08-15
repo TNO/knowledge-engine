@@ -209,12 +209,11 @@ public class ReasonerPlan {
 					Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
 							current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
-//					Set<Match> previousMatches = current.getAntecedentNeighbors().get(previous);
 					aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
 				} else {
 					aBindingSet = current.getOutgoingAntecedentBindingSet();
 				}
-				Set<RuleNode> antecedentNeighbors = current.contactAntecedentNeighbors2(aBindingSet);
+				Set<RuleNode> antecedentNeighbors = current.contactAntecedentNeighbors(aBindingSet);
 
 				for (RuleNode rn : antecedentNeighbors) {
 					this.stack.push(rn);
@@ -231,7 +230,6 @@ public class ReasonerPlan {
 						Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
 								current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
-//						Set<Match> previousMatches = current.getAntecedentNeighbors().get(previous);
 						aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
 					} else {
 						aBindingSet = current.getOutgoingAntecedentBindingSet();
@@ -258,17 +256,18 @@ public class ReasonerPlan {
 		if (forward) {
 			if (current.hasConsequent()) {
 				// activate consequent neighbors
-				assert current.hasOutgoingConsequentBindingSet();
-				// if we activate neighbors, we do not remove current
-				Set<RuleNode> neighbors = current.contactConsequentNeighbors(current.getConsequentNeighbors());
+				if (current.hasOutgoingConsequentBindingSet()) {
+					// if we activate neighbors, we do not remove current
+					Set<RuleNode> neighbors = current.contactConsequentNeighbors(current.getConsequentNeighbors());
 
-				for (RuleNode rn : neighbors) {
-					this.stack.push(rn);
-					this.parentMap.put(rn, current);
+					for (RuleNode rn : neighbors) {
+						this.stack.push(rn);
+						this.parentMap.put(rn, current);
+					}
+
+					if (!neighbors.isEmpty())
+						removeCurrentFromStack = false;
 				}
-
-				if (!neighbors.isEmpty())
-					removeCurrentFromStack = false;
 			}
 		}
 

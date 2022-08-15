@@ -6,13 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node_Concrete;
-import org.apache.jena.sparql.core.Var;
-
 import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVar;
-import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -182,28 +176,7 @@ public class RuleNode {
 		return neighbors;
 	}
 
-	public Set<RuleNode> contactAntecedentNeighbors(Map<RuleNode, Set<Match>> someAntecedentNeighbors) {
-
-		Set<RuleNode> neighbors = new HashSet<>();
-		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : someAntecedentNeighbors.entrySet()) {
-			RuleNode neighbor = neighborEntry.getKey();
-			Set<Match> neighborMatch = neighborEntry.getValue();
-
-			if (!neighbor.hasOutgoingConsequentBindingSet()) {
-				TripleVarBindingSet neighborBS = this.getOutgoingAntecedentBindingSet()
-						.translate(neighbor.getRule().getConsequent(), neighborMatch);
-
-				if (!neighbor.hasIncomingConsequentBindingSet())
-					neighbor.setIncomingConsequentBindingSet(neighborBS);
-				neighbors.add(neighbor);
-			} else {
-				// skip this neighbor
-			}
-		}
-		return neighbors;
-	}
-
-	public Set<RuleNode> contactAntecedentNeighbors2(TripleVarBindingSet aBindingSet) {
+	public Set<RuleNode> contactAntecedentNeighbors(TripleVarBindingSet aBindingSet) {
 
 		Set<RuleNode> neighbors = new HashSet<>();
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
@@ -267,6 +240,8 @@ public class RuleNode {
 			combinedBindings = combinedBindings.merge(
 					neighborOutgoingConsequentBindingSet.translate(this.getRule().getAntecedent(), neighborMatches));
 		}
+
+		combinedBindings = combinedBindings.merge(combinedBindings);
 
 		TripleVarBindingSet compatiblePatternBindingsOnly = combinedBindings.keepCompatible(aBindingSet);
 

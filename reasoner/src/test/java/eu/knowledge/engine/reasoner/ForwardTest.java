@@ -229,6 +229,8 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
+		store.printGraphVizCode(rn);
+
 		BindingSet bs = new BindingSet();
 
 		bs.addAll(new Table(new String[] {
