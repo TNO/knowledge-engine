@@ -6,7 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.jena.graph.Node_Concrete;
+import org.apache.jena.sparql.core.Var;
+
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -168,7 +174,7 @@ public class RuleNode {
 			neighborBS = neighborBS.merge(neighborBS);
 
 			if (!neighbor.hasIncomingAntecedentBindingSet()) {
-				neighbor.setIncomingAntecedentBindingSet(neighborBS.getFullBindingSet());
+//				neighbor.setIncomingAntecedentBindingSet(neighborBS);
 				neighbors.add(neighbor);
 			}
 
@@ -240,7 +246,16 @@ public class RuleNode {
 		}
 	}
 
-	public void collectIncomingAntecedentBindingSet() {
+	/**
+	 * Collect the bindingsets from antecedent neighbors and make sure they are
+	 * compatible with the incoming bindingset. This is either the outgoing
+	 * antecedent bindingset (in case of backward chaining) or the outgoing
+	 * consequent bindingset of our parent neighbor (in case of backward while
+	 * forward chaining)
+	 * 
+	 * @param aBindingSet
+	 */
+	public void collectIncomingAntecedentBindingSet(TripleVarBindingSet aBindingSet) {
 
 		TripleVarBindingSet combinedBindings = new TripleVarBindingSet(this.getRule().getAntecedent());
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
@@ -253,10 +268,7 @@ public class RuleNode {
 					neighborOutgoingConsequentBindingSet.translate(this.getRule().getAntecedent(), neighborMatches));
 		}
 
-		// TODO can we remove this validation because we guarantee (by incoming/outgoing
-		// binding validation) that they are always compatible.
-		TripleVarBindingSet compatiblePatternBindingsOnly = combinedBindings
-				.keepCompatible(this.getOutgoingAntecedentBindingSet());
+		TripleVarBindingSet compatiblePatternBindingsOnly = combinedBindings.keepCompatible(aBindingSet);
 
 		this.setIncomingAntecedentBindingSet(compatiblePatternBindingsOnly.getFullBindingSet());
 

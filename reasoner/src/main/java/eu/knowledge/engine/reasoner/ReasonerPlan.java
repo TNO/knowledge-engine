@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -204,6 +205,12 @@ public class ReasonerPlan {
 				TripleVarBindingSet aBindingSet;
 				if (forward) {
 					aBindingSet = previous.getOutgoingConsequentBindingSet();
+
+					Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
+							current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+//					Set<Match> previousMatches = current.getAntecedentNeighbors().get(previous);
+					aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
 				} else {
 					aBindingSet = current.getOutgoingAntecedentBindingSet();
 				}
@@ -218,7 +225,19 @@ public class ReasonerPlan {
 					removeCurrentFromStack = false;
 				else {
 					// create incoming antecedent bindingset
-					current.collectIncomingAntecedentBindingSet();
+					if (forward) {
+						aBindingSet = previous.getOutgoingConsequentBindingSet();
+
+						Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
+								current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+//						Set<Match> previousMatches = current.getAntecedentNeighbors().get(previous);
+						aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
+					} else {
+						aBindingSet = current.getOutgoingAntecedentBindingSet();
+					}
+
+					current.collectIncomingAntecedentBindingSet(aBindingSet);
 				}
 			}
 

@@ -335,6 +335,9 @@ public class ForwardTest {
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.printGraphVizCode(rn);
+
 		System.out.println(rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {

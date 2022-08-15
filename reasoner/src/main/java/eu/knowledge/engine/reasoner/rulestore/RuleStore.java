@@ -201,8 +201,13 @@ public class RuleStore {
 						}
 					}
 
-					sb.append(neighName).append("[").append(pen).append("tooltip=").append("\"").append(replaceAll)
-							.append("\"").append("]").append("\n");
+					String shape = "shape=\"circle\"";
+					if (neighR instanceof ProactiveRule) {
+						shape = "shape=\"doublecircle\"";
+					}
+
+					sb.append(neighName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
+							.append(replaceAll).append("\"").append("]").append("\n");
 					ruleToName.put(neighR, neighName);
 				}
 
@@ -255,7 +260,7 @@ public class RuleStore {
 				sb.deleteCharAt(sb.length() - 1);
 		}
 
-		return "\"" + sb.toString() + "\"";
+		return "\"" + sb.toString() + /*"(" + r.hashCode() + */"\"";
 	}
 
 	private String generateName(TriplePattern tp) {
