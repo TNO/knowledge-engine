@@ -231,7 +231,7 @@ public class TestAskAnswerRealistic {
 
             BindingSet bindingSet = new BindingSet();
             Binding binding = new Binding();
-            binding.put("building", "<https://www.tno.nl/example/building>");
+            binding.put("building", "<https://www.tno.nl/example/house>");
             binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing>");
             binding.put("zipCode", "<https://www.tno.nl/example/zipCode>");
             binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
@@ -277,7 +277,7 @@ public class TestAskAnswerRealistic {
             binding.put("energyClass", "<https://www.tno.nl/example/energyClass>");
             binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider>");
             binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager>");
-            binding.put("communityID", "<https://www.tno.nl/example/communityID>");
+            binding.put("communityID", "<https://www.tno.nl/example/ID>");
             binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace>");
             binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice>");
             binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed>");
