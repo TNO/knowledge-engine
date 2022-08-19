@@ -136,7 +136,7 @@ public class RuleStore {
 
 	/**
 	 * Prints all the rules and the connections between them in GraphViz encoding.
-	 * Use code in: {@link http://magjac.com/graphviz-visual-editor/}
+	 * Use code in: {@link http://viz-js.com/}
 	 */
 	public void printGraphVizCode(ReasonerPlan aPlan) {
 
@@ -144,7 +144,7 @@ public class RuleStore {
 		String width = "2";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("Visualize on website: http://magjac.com/graphviz-visual-editor/\n");
+		sb.append("Visualize on website: http://viz-js.com/\n");
 		sb.append("digraph {").append("\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
 
