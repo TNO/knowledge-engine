@@ -1,3 +1,5 @@
+*Note: This is experimental software, and should not be considered production-ready!*
+
 # Knowledge Engine
 
 ## Components
