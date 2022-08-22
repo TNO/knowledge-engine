@@ -205,8 +205,6 @@ public class RuleNode {
 	public Set<RuleNode> prepareAntecedentNeighbors(TripleVarBindingSet aBindingSet) {
 		Set<RuleNode> neighbors = new HashSet<>();
 
-		boolean allNeighborsReady = true;
-
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
 			RuleNode neighbor = neighborEntry.getKey();
 			Set<Match> neighborMatch = neighborEntry.getValue();
@@ -222,17 +220,9 @@ public class RuleNode {
 			} else {
 				// skip this neighbor
 			}
-
-			if (!neighbor.isReady()) {
-				allNeighborsReady = false;
-			}
 		}
 
-		if (neighbors.isEmpty() && !allNeighborsReady) {
-			return null;
-		} else {
-			return neighbors;
-		}
+		return neighbors;
 	}
 
 	public boolean isReady() {
