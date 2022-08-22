@@ -20,6 +20,7 @@ public class ReasonerPlan {
 
 	private Map<BaseRule, RuleNode> ruleToReasonerNode;
 	private ProactiveRule start;
+	private TaskBoard taskboard;
 
 	/**
 	 * Keeps track of the path through the graph and allows us to retrieve
@@ -34,10 +35,11 @@ public class ReasonerPlan {
 	private RuleStore store;
 	private Map<RuleNode, RuleNode> parentMap;
 
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard) {
 
 		this.ruleToReasonerNode = new HashMap<>();
 		this.store = aStore;
+		this.taskboard = aTaskBoard;
 		assert aStore.getRules().contains(aStartRule);
 		this.start = aStartRule;
 		this.parentMap = new HashMap<>();
@@ -48,6 +50,11 @@ public class ReasonerPlan {
 		// prepare execution
 		this.stack = new LinkedList<>();
 		stack.push(startNode);
+	}
+
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
+		this(aStore, aStartRule, null);
+
 	}
 
 	public RuleNode getNode(BaseRule aRule) {
@@ -129,7 +136,7 @@ public class ReasonerPlan {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	public boolean execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
+	public void execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
 
 		assert this.start.isProactive();
 
@@ -142,12 +149,10 @@ public class ReasonerPlan {
 		}
 
 		int i = 0;
-		boolean hasNextStep = false;
 		while (!this.stack.isEmpty()) {
 			System.out.println("Step " + ++i + ": " + this.stack.peek());
 			step();
 		}
-		return hasNextStep;
 	}
 
 	/**
@@ -190,7 +195,7 @@ public class ReasonerPlan {
 				assert current.hasIncomingConsequentBindingSet();
 				assert !forward;
 				if (!current.hasOutgoingConsequentBindingSet()) {
-					current.applyBindingSetHandlerFromConsequentToConsequent();
+					current.applyBindingSetHandlerFromConsequentToConsequent(this.taskboard);
 				}
 			} else if (current.hasAntecedent() && !current.hasConsequent()) {
 				assert current.equals(this.getNode(this.start));
@@ -213,7 +218,7 @@ public class ReasonerPlan {
 				} else {
 					aBindingSet = current.getOutgoingAntecedentBindingSet();
 				}
-				Set<RuleNode> antecedentNeighbors = current.contactAntecedentNeighbors(aBindingSet);
+				Set<RuleNode> antecedentNeighbors = current.prepareAntecedentNeighbors(aBindingSet);
 
 				for (RuleNode rn : antecedentNeighbors) {
 					this.stack.push(rn);
@@ -242,13 +247,13 @@ public class ReasonerPlan {
 			// from antecedent to consequent (always)
 			if (current.hasConsequent()) {
 				if (current.hasIncomingAntecedentBindingSet() && !current.hasOutgoingConsequentBindingSet()) {
-					current.applyBindingSetHandlerFromAntecedentToConsequent();
+					current.applyBindingSetHandlerFromAntecedentToConsequent(this.taskboard);
 				}
 			} else {
 				// just use the binding set handler to deal with the binding set.
 				// TODO see if we can remove this {@code forward} variable from this if.
 				if (forward && current.hasIncomingAntecedentBindingSet()) {
-					current.applyBindingSetHandlerToAntecedent();
+					current.applyBindingSetHandlerToAntecedent(this.taskboard);
 				}
 			}
 		}
@@ -258,7 +263,7 @@ public class ReasonerPlan {
 				// activate consequent neighbors
 				if (current.hasOutgoingConsequentBindingSet()) {
 					// if we activate neighbors, we do not remove current
-					Set<RuleNode> neighbors = current.contactConsequentNeighbors(current.getConsequentNeighbors());
+					Set<RuleNode> neighbors = current.prepareConsequentNeighbors(current.getConsequentNeighbors());
 
 					for (RuleNode rn : neighbors) {
 						this.stack.push(rn);

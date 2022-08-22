@@ -127,7 +127,7 @@ public class VerySimpleBackwardTest {
 		// Formulate objective
 		Binding b = new Binding();
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(store, startRule);
+		ReasonerPlan root = new ReasonerPlan(store, startRule, null);
 		store.printGraphVizCode(null);
 		System.out.println(root);
 
@@ -138,7 +138,10 @@ public class VerySimpleBackwardTest {
 		bs.add(binding2);
 
 		try {
-			root.execute(bs);
+			do {
+				root.execute(bs);
+				aTaskBoard.executeScheduledTasks().get();
+			} while (aTaskBoard != null && !aTaskBoard.tasks.isEmpty());
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.info("{}", e);
 		}

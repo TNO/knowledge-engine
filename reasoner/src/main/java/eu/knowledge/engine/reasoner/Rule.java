@@ -97,6 +97,19 @@ public class Rule extends BaseRule {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Rule.class);
 
+	/**
+	 * This default bindingsethandler copies the values for any variables that occur
+	 * both in the consequent and the antecedent to the antecedent bindingset. TODO
+	 * In the future we could allow these to be customized as well which would allow
+	 * us to for example transform degrees Celsius to degrees Fahrenheit when the
+	 * actual rule transform Fahrenheit to Celsius. This means that this bindingset
+	 * represents the inverse of applying this rule and this can be useful if
+	 * incoming bindingsets contain degrees celsius and instead of ignoring these,
+	 * we can transform them into degrees Fahrenheit.
+	 * 
+	 * @author nouwtb
+	 *
+	 */
 	public static class ConsequentToAntecedentBindingSetHandler implements TransformBindingSetHandler {
 
 		private Set<TriplePattern> antecedent;

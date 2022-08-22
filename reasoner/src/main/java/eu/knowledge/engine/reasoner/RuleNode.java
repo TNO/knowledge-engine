@@ -38,6 +38,13 @@ public class RuleNode {
 	private Map<RuleNode, Set<Match>> consequentNeighbors;
 
 	/**
+	 * Indicates whether this rule is currently being applied. It is necessary in
+	 * case of using the taskboard to know our task is already on the taskboard, but
+	 * the task iteself is not yet executed.
+	 */
+	private boolean isReady = false;
+
+	/**
 	 * Create a new ReasonerNode for the rule of the given {@code aRule}.
 	 * 
 	 * @param aRule The rule of which to create a reasoner node.
@@ -131,6 +138,14 @@ public class RuleNode {
 		return consequentNeighbors;
 	}
 
+	/**
+	 * For now we do not make these 'inverse' bindingsethandlers via the taskboard,
+	 * because we do not really want to use them yet. They are only here to maintain
+	 * a consistent and elegant structure.
+	 * 
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
 	public void applyBindingSetHandlerFromConsequentToAntecedent() throws InterruptedException, ExecutionException {
 		BaseRule r = this.getRule();
 		assert r instanceof Rule;
@@ -142,7 +157,8 @@ public class RuleNode {
 		this.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.getRule().getAntecedent()));
 	}
 
-	public void applyBindingSetHandlerFromAntecedentToConsequent() throws InterruptedException, ExecutionException {
+	public void applyBindingSetHandlerFromAntecedentToConsequent(TaskBoard aTaskBoard)
+			throws InterruptedException, ExecutionException {
 		BaseRule r = this.getRule();
 		assert r instanceof Rule;
 		Rule rr = (Rule) r;
@@ -150,12 +166,17 @@ public class RuleNode {
 
 		TripleVarBindingSet aBindingSet = this.getIncomingAntecedentBindingSet();
 
-		BindingSet outgoingConsequentBindingSet = bsh.handle(aBindingSet.toBindingSet()).get();
-		this.setOutgoingConsequentBindingSet(
-				outgoingConsequentBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
+		if (aTaskBoard != null) {
+			aTaskBoard.addTask(this, aBindingSet.toBindingSet());
+		} else {
+			BindingSet outgoingConsequentBindingSet = bsh.handle(aBindingSet.toBindingSet()).get();
+			this.setOutgoingConsequentBindingSet(
+					outgoingConsequentBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
+			this.isReady = true;
+		}
 	}
 
-	public Set<RuleNode> contactConsequentNeighbors(Map<RuleNode, Set<Match>> someConsequentNeighbors) {
+	public Set<RuleNode> prepareConsequentNeighbors(Map<RuleNode, Set<Match>> someConsequentNeighbors) {
 		Set<RuleNode> neighbors = new HashSet<>();
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : someConsequentNeighbors.entrySet()) {
 			RuleNode neighbor = neighborEntry.getKey();
@@ -176,9 +197,16 @@ public class RuleNode {
 		return neighbors;
 	}
 
-	public Set<RuleNode> contactAntecedentNeighbors(TripleVarBindingSet aBindingSet) {
-
+	/**
+	 * 
+	 * @param aBindingSet
+	 * @return a set of neighbors that still need to be processed.
+	 */
+	public Set<RuleNode> prepareAntecedentNeighbors(TripleVarBindingSet aBindingSet) {
 		Set<RuleNode> neighbors = new HashSet<>();
+
+		boolean allNeighborsReady = true;
+
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
 			RuleNode neighbor = neighborEntry.getKey();
 			Set<Match> neighborMatch = neighborEntry.getValue();
@@ -189,25 +217,47 @@ public class RuleNode {
 
 				if (!neighbor.hasIncomingConsequentBindingSet())
 					neighbor.setIncomingConsequentBindingSet(neighborBS);
+
 				neighbors.add(neighbor);
 			} else {
 				// skip this neighbor
 			}
+
+			if (!neighbor.isReady()) {
+				allNeighborsReady = false;
+			}
 		}
-		return neighbors;
+
+		if (neighbors.isEmpty() && !allNeighborsReady) {
+			return null;
+		} else {
+			return neighbors;
+		}
 	}
 
-	public void applyBindingSetHandlerFromConsequentToConsequent() throws InterruptedException, ExecutionException {
+	public boolean isReady() {
+		return this.isReady;
+	}
+
+	public void applyBindingSetHandlerFromConsequentToConsequent(TaskBoard aTaskBoard)
+			throws InterruptedException, ExecutionException {
 		BaseRule r = this.getRule();
 		assert r instanceof Rule;
 		Rule rr = (Rule) r;
 
 		TransformBindingSetHandler bsh = rr.getBindingSetHandler();
-		BindingSet aBindingSet = bsh.handle(this.getIncomingConsequentBindingSet().toBindingSet()).get();
-		this.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
+
+		BindingSet bindingSet = this.getIncomingConsequentBindingSet().toBindingSet();
+		if (aTaskBoard != null) {
+			aTaskBoard.addTask(this, bindingSet);
+		} else {
+			BindingSet aBindingSet = bsh.handle(bindingSet).get();
+			this.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
+			this.isReady = true;
+		}
 	}
 
-	public void applyBindingSetHandlerToAntecedent() {
+	public void applyBindingSetHandlerToAntecedent(TaskBoard aTaskBoard) {
 		BaseRule r = this.getRule();
 		assert r instanceof Rule;
 		Rule rr = (Rule) r;
@@ -215,7 +265,13 @@ public class RuleNode {
 		TripleVarBindingSet aBindingSet = this.getIncomingAntecedentBindingSet();
 		if (!isEmpty(aBindingSet)) {
 			SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
-			bsh.handle(aBindingSet.toBindingSet());
+			if (aTaskBoard != null) {
+				aTaskBoard.addVoidTask(this, aBindingSet.toBindingSet());
+			} else {
+				bsh.handle(aBindingSet.toBindingSet());
+				this.isReady = true;
+
+			}
 		}
 	}
 
@@ -252,6 +308,21 @@ public class RuleNode {
 	private boolean isEmpty(TripleVarBindingSet aBindingSet) {
 		return aBindingSet.isEmpty()
 				|| (aBindingSet.getBindings().size() == 1 && !aBindingSet.getBindings().iterator().hasNext());
+	}
+
+	/**
+	 * This methods sets the given bindingset (from the TaskBoard) in the correct
+	 * TripleVarBindingSet of this RuleNode. Can the RuleNode determine solely based
+	 * on the structure where it needs to be put? Probably not, certainly because
+	 * there are inverse bindingsethandlers as well, but we'll ignore those for now.
+	 * 
+	 * @param aBindingSet
+	 */
+	public void setBindingSet(BindingSet aBindingSet) {
+
+		// TODO in the future we might need to make this method more complex.
+		this.outgoingConsequentBindingSet = aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent());
+		this.isReady = true;
 	}
 
 	@Override

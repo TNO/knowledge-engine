@@ -486,7 +486,7 @@ public class ReasoningNode {
 						if (this.taskboard != null) {
 							if (this.rule.getAntecedent().isEmpty() || !this.toBindingSetHandlerBackward.isEmpty()) {
 
-								this.taskboard.addTask(this, this.toBindingSetHandlerBackward);
+//								this.taskboard.addTask(this, this.toBindingSetHandlerBackward);
 								this.bcState = BC_BINDINGSET_REQUESTED;
 							} else {
 								this.startTime = Instant.now();
@@ -655,7 +655,7 @@ public class ReasoningNode {
 					this.toBindingSetHandlerForward = resultAntecedentBindings;
 
 					if (this.taskboard != null) {
-						this.taskboard.addTask(this, this.toBindingSetHandlerForward);
+//						this.taskboard.addTask(this, this.toBindingSetHandlerForward);
 						this.fcState = FC_BINDINGSET_REQUESTED;
 					} else {
 						try {

@@ -1,6 +1,5 @@
 package eu.knowledge.engine.reasoner;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,7 +10,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
 /**
@@ -41,7 +39,15 @@ public class TaskBoard {
 	 * @param aNode
 	 * @param aBindingSet
 	 */
-	public void addTask(ReasoningNode aNode, BindingSet aBindingSet) {
+	public void addTask(RuleNode aNode, BindingSet aBindingSet) {
+		tasks.add(new Task(aNode, aBindingSet));
+	}
+
+	/**
+	 * Add a task that does not result in a bindingset.
+	 * 
+	 */
+	public void addVoidTask(RuleNode aNode, BindingSet aBindingSet) {
 		tasks.add(new Task(aNode, aBindingSet));
 	}
 
@@ -60,20 +66,21 @@ public class TaskBoard {
 		Iterator<Task> iter = tasks.iterator();
 		Set<CompletableFuture<?>> futures = new HashSet<>();
 		while (iter.hasNext()) {
-			final Instant startTime;
 			Task task = iter.next();
-			final ReasoningNode node = task.getNodes().iterator().next();
+			final RuleNode node = task.getNodes().iterator().next();
 			assert node != null;
-			rule = node.getRule();
+			assert node
+					.getRule() instanceof Rule : "A rule node of a task should always be a Rule, i.e. non-ProactiveRule.";
+			rule = (Rule) node.getRule();
 			assert rule != null;
+
 			assert task.getBindingSet(node) != null;
 
-			startTime = Instant.now();
 			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
 			resultingBindingSetFuture.thenAccept((bs) -> {
 
 				// TODO this assumes every node only occurs once in all tasks.
-				node.setBindingSet(bs, startTime, Instant.now());
+				node.setBindingSet(bs);
 			}).handle((r, e) -> {
 
 				if (r == null && e != null) {
@@ -96,20 +103,30 @@ public class TaskBoard {
 		 * Contains all the bindingSets that were merged into a single one to be handled
 		 * as a single task.
 		 */
-		private Map<ReasoningNode, BindingSet> collectedBindingSets;
+		private Map<RuleNode, BindingSet> collectedBindingSets;
 
 		/**
 		 * The rule that is being applied for this task.
 		 */
 		private BaseRule rule;
 
-		public Task(ReasoningNode aNode, BindingSet aBindingSet) {
+		/**
+		 * Whether this task results in a bindingset or it is void.
+		 */
+		private boolean hasResult;
+
+		public Task(RuleNode aNode, BindingSet aBindingSet) {
+			this(aNode, aBindingSet, true);
+		}
+
+		public Task(RuleNode aNode, BindingSet aBindingSet, boolean aHasResult) {
 			collectedBindingSets = new HashMap<>();
 			collectedBindingSets.put(aNode, aBindingSet);
 			rule = aNode.getRule();
+			hasResult = aHasResult;
 		}
 
-		public BindingSet getBindingSet(ReasoningNode node) {
+		public BindingSet getBindingSet(RuleNode node) {
 			return this.collectedBindingSets.get(node);
 		}
 
@@ -117,11 +134,15 @@ public class TaskBoard {
 			return this.rule;
 		}
 
-		public void mergeWith(ReasoningNode aNode, BindingSet aBindingSet) {
+		public boolean hasResult() {
+			return this.hasResult;
+		}
+
+		public void mergeWith(RuleNode aNode, BindingSet aBindingSet) {
 
 		}
 
-		public Set<ReasoningNode> getNodes() {
+		public Set<RuleNode> getNodes() {
 			return this.collectedBindingSets.keySet();
 		}
 
