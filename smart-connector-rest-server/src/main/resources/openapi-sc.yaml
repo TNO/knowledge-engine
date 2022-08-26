@@ -379,7 +379,8 @@ paths:
               recipient and bindingset:
                 value:
                   recipientSelector:
-                    singleKnowledgeBase: http://www.tno.nl/kb2
+                    knowledgeBases:
+                      - http://www.tno.nl/kb2
                   bindingSet:
                     - p: <http://www.tno.nl/s1>
                       q: <http://www.tno.nl/p1>
