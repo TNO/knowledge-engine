@@ -39,6 +39,7 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineRuntimeException;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -123,9 +124,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			if (!postingKi.equals(itShouldBeThis)) {
 				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
 				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
-				return null;
-				// TODO: Once exception is handled correctly, we should throw it here, instead of returning null.
-				// throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
 			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.addKnowledgeBase(newKb);
@@ -142,9 +141,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			if (!postingKi.equals(itShouldBeThis)) {
 				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
 				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
-				return null;
-				// TODO: Once exception is handled correctly, we should throw it here, instead of returning null.
-				// throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
 			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.updateKnowledgeBase(changedKb);
@@ -161,9 +158,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			if (!postingKi.equals(itShouldBeThis)) {
 				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
 				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
-				return null;
-				// TODO: Once exception is handled correctly, we should throw it here, instead of returning null.
-				// throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
 			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.removeKnowledgeBase(removedKb);
@@ -335,9 +330,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 							if (!answeringKi.equals(itShouldBeThis)) {
 								this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", answeringKi);
 								this.LOG.debug("Received meta bindings: {}", answerMsg.getBindings());
-								return null;
-								// TODO: Once exception is handled correctly, we should throw it here, instead of returning null.
-								// throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+								throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
 							}
 							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), toKnowledgeBaseId);
 							return otherKB;
