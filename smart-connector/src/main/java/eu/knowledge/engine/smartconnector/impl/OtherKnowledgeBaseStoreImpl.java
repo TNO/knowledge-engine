@@ -72,7 +72,7 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 							}
 						}).handle((r, e) -> {
 
-							if (r == null) {
+							if (r == null && e != null) {
 								LOG.error("An exception has occured while adding an other Knowledge Base ", e);
 								return null;
 							} else {

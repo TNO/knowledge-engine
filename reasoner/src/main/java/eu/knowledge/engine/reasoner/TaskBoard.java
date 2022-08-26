@@ -77,7 +77,7 @@ public class TaskBoard {
 				node.setBindingSet(bs, startTime, Instant.now());
 			}).handle((r, e) -> {
 
-				if (r == null) {
+				if (r == null && e != null) {
 					LOG.error("An exception has occured while executing scheduled tasks ", e);
 					return null;
 				} else {

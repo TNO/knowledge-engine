@@ -90,7 +90,7 @@ public class SmartConnectorRegistrationStressTest {
 
 		future.handle((r, e) -> {
 
-			if (r == null) {
+			if (r == null && e != null) {
 				LOG.error("An exception has occured while registering SC while many already exist ", e);
 				return null;
 			} else {
