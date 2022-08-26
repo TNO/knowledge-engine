@@ -39,15 +39,15 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		// start registering
 		var prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
+		prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
 		var metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
-				"?gp kb:hasPattern ?pattern ."
+				"?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .",
+				"?kb ke:hasDescription ?description .", "?kb ke:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .", "?ki ke:isMeta ?isMeta .", "?ki ke:hasCommunicativeAct ?act .",
+				"?act rdf:type ke:CommunicativeAct .", "?act ke:hasRequirement ?req .",
+				"?act ke:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
+				"?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
+				"?gp ke:hasPattern ?pattern ."
 		);
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(
 			new CommunicativeAct(
