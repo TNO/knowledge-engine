@@ -42,7 +42,7 @@ public class RuleNode {
 	 * case of using the taskboard to know our task is already on the taskboard, but
 	 * the task iteself is not yet executed.
 	 */
-	private boolean isReady = false;
+	private boolean waitingForTaskBoard = false;
 
 	/**
 	 * Create a new ReasonerNode for the rule of the given {@code aRule}.
@@ -116,7 +116,6 @@ public class RuleNode {
 	}
 
 	public Map<RuleNode, Set<Match>> getAntecedentNeighbors() {
-		assert !this.getRule().getAntecedent().isEmpty();
 		return antecedentNeighbors;
 	}
 
@@ -134,7 +133,6 @@ public class RuleNode {
 	}
 
 	public Map<RuleNode, Set<Match>> getConsequentNeighbors() {
-		assert !this.getRule().getConsequent().isEmpty();
 		return consequentNeighbors;
 	}
 
@@ -168,11 +166,11 @@ public class RuleNode {
 
 		if (aTaskBoard != null) {
 			aTaskBoard.addTask(this, aBindingSet.toBindingSet());
+			this.waitingForTaskBoard = true;
 		} else {
 			BindingSet outgoingConsequentBindingSet = bsh.handle(aBindingSet.toBindingSet()).get();
 			this.setOutgoingConsequentBindingSet(
 					outgoingConsequentBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
-			this.isReady = true;
 		}
 	}
 
@@ -188,8 +186,9 @@ public class RuleNode {
 			// cases)?
 			neighborBS = neighborBS.merge(neighborBS);
 
-			if (!neighbor.hasIncomingAntecedentBindingSet()) {
-//				neighbor.setIncomingAntecedentBindingSet(neighborBS);
+			// TODO !neighbor.isWaitingForTaskBoard(true) is too coarse, it returns false
+			// when no taskboard is being used at all.
+			if (!neighbor.hasIncomingAntecedentBindingSet() || !neighbor.isWaitingForTaskBoard(true)) {
 				neighbors.add(neighbor);
 			}
 
@@ -205,11 +204,13 @@ public class RuleNode {
 	public Set<RuleNode> prepareAntecedentNeighbors(TripleVarBindingSet aBindingSet) {
 		Set<RuleNode> neighbors = new HashSet<>();
 
+		boolean anyNeighborWaitingForTaskboard = false;
+
 		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
 			RuleNode neighbor = neighborEntry.getKey();
 			Set<Match> neighborMatch = neighborEntry.getValue();
 
-			if (!neighbor.hasOutgoingConsequentBindingSet()) {
+			if (!neighbor.hasOutgoingConsequentBindingSet() && !neighbor.isWaitingForTaskBoard(false)) {
 				TripleVarBindingSet neighborBS = aBindingSet.translate(neighbor.getRule().getConsequent(),
 						Match.invertAll(neighborMatch));
 
@@ -217,16 +218,39 @@ public class RuleNode {
 					neighbor.setIncomingConsequentBindingSet(neighborBS);
 
 				neighbors.add(neighbor);
+			}
+			
+			if (!neighbor.hasOutgoingConsequentBindingSet() && neighbor.isWaitingForTaskBoard(false)) {
+				anyNeighborWaitingForTaskboard = true;
 			} else {
 				// skip this neighbor
 			}
 		}
 
-		return neighbors;
+		if (neighbors.isEmpty() && anyNeighborWaitingForTaskboard) {
+			return null;
+		} else {
+			return neighbors;
+		}
 	}
 
-	public boolean isReady() {
-		return this.isReady;
+	// TODO this fails with loops
+	public boolean isWaitingForTaskBoard(boolean forward) {
+		boolean isWaiting = false;
+
+		isWaiting |= this.waitingForTaskBoard;
+		Set<RuleNode> neighbors;
+		if (!forward) {
+			neighbors = this.getAntecedentNeighbors().keySet();
+		} else {
+			neighbors = this.getConsequentNeighbors().keySet();
+		}
+
+		for (RuleNode rn : neighbors) {
+			isWaiting |= rn.isWaitingForTaskBoard(forward);
+		}
+
+		return isWaiting;
 	}
 
 	public void applyBindingSetHandlerFromConsequentToConsequent(TaskBoard aTaskBoard)
@@ -240,10 +264,10 @@ public class RuleNode {
 		BindingSet bindingSet = this.getIncomingConsequentBindingSet().toBindingSet();
 		if (aTaskBoard != null) {
 			aTaskBoard.addTask(this, bindingSet);
+			this.waitingForTaskBoard = true;
 		} else {
 			BindingSet aBindingSet = bsh.handle(bindingSet).get();
 			this.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent()));
-			this.isReady = true;
 		}
 	}
 
@@ -257,9 +281,9 @@ public class RuleNode {
 			SinkBindingSetHandler bsh = rr.getSinkBindingSetHandler();
 			if (aTaskBoard != null) {
 				aTaskBoard.addVoidTask(this, aBindingSet.toBindingSet());
+				this.waitingForTaskBoard = true;
 			} else {
 				bsh.handle(aBindingSet.toBindingSet());
-				this.isReady = true;
 
 			}
 		}
@@ -306,13 +330,18 @@ public class RuleNode {
 	 * on the structure where it needs to be put? Probably not, certainly because
 	 * there are inverse bindingsethandlers as well, but we'll ignore those for now.
 	 * 
-	 * @param aBindingSet
+	 * This method also changes the state of this RuleNode to no longer waiting for
+	 * the taskboard.
+	 * 
+	 * @param aBindingSet Either the resulting bindingset or {@code null} if there
+	 *                    is not resulting bindingset.
 	 */
 	public void setBindingSet(BindingSet aBindingSet) {
 
 		// TODO in the future we might need to make this method more complex.
-		this.outgoingConsequentBindingSet = aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent());
-		this.isReady = true;
+		if (aBindingSet != null)
+			this.outgoingConsequentBindingSet = aBindingSet.toTripleVarBindingSet(this.getRule().getConsequent());
+		this.setWaitingForTaskBoard(false);
 	}
 
 	@Override
@@ -351,6 +380,11 @@ public class RuleNode {
 	@Override
 	public String toString() {
 		return "ReasonerNode [" + (rule != null ? "rule=" + rule : "") + "]";
+	}
+
+	public void setWaitingForTaskBoard(boolean aWaitingForTaskBoard) {
+		waitingForTaskBoard = aWaitingForTaskBoard;
+
 	}
 
 }

@@ -319,7 +319,7 @@ public class BackwardTest {
 		// Start reasoning
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule);
+		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule, taskboard);
 
 		store.printGraphVizCode(root);
 
@@ -332,7 +332,10 @@ public class BackwardTest {
 		binding2.put("q", "21");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 		System.out.println("bindings: " + bind);
 		assertTrue(isEmpty(bind));
@@ -349,7 +352,7 @@ public class BackwardTest {
 	@Test
 	public void testConverter() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan root = new ReasonerPlan(store, converterRule);
+		ReasonerPlan root = new ReasonerPlan(store, converterRule, taskboard);
 
 		store.printGraphVizCode(root);
 
@@ -360,7 +363,10 @@ public class BackwardTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
@@ -373,7 +379,7 @@ public class BackwardTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBindingRule);
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBindingRule, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -385,7 +391,10 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
@@ -398,7 +407,7 @@ public class BackwardTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBinding2Rule);
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBinding2Rule, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -410,7 +419,10 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
@@ -423,7 +435,7 @@ public class BackwardTest {
 
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, twoPropsToAndFromTheSameVarsRule);
+		ReasonerPlan root = new ReasonerPlan(store, twoPropsToAndFromTheSameVarsRule, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -436,7 +448,10 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
@@ -448,7 +463,7 @@ public class BackwardTest {
 	public void testVariableMatchesLiteralInGraphPattern() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, variableMatchesLiteralInGraphPatternRule);
+		ReasonerPlan root = new ReasonerPlan(store, variableMatchesLiteralInGraphPatternRule, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -458,7 +473,10 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);
@@ -469,7 +487,7 @@ public class BackwardTest {
 	public void testVariableAsPredicate() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule);
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule, taskboard);
 
 		store.printGraphVizCode(root);
 
@@ -479,7 +497,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 		System.out.println(root);
 
@@ -491,7 +512,7 @@ public class BackwardTest {
 	public void testVariableAsPredicate2() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicate2Rule);
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicate2Rule, taskboard);
 		store.printGraphVizCode(root);
 
 		// empty binding is necessary
@@ -499,7 +520,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println(root);
@@ -512,7 +536,7 @@ public class BackwardTest {
 	public void testAllTriples() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan root = new ReasonerPlan(store, allTriplesRule);
+		ReasonerPlan root = new ReasonerPlan(store, allTriplesRule, taskboard);
 		System.out.println(root);
 
 		// empty binding is necessary
@@ -520,7 +544,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		do {
+			taskboard.executeScheduledTasks().get();
+			root.execute(bs);
+		} while (taskboard != null && !taskboard.tasks.isEmpty());
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println(root);

@@ -48,7 +48,7 @@ public class TaskBoard {
 	 * 
 	 */
 	public void addVoidTask(RuleNode aNode, BindingSet aBindingSet) {
-		tasks.add(new Task(aNode, aBindingSet));
+		tasks.add(new Task(aNode, aBindingSet, false));
 	}
 
 	/**
@@ -60,7 +60,9 @@ public class TaskBoard {
 	 */
 	public CompletableFuture<Void> executeScheduledTasks() {
 
+		CompletableFuture<?> future;
 		CompletableFuture<BindingSet> resultingBindingSetFuture;
+		CompletableFuture<Void> voidBindingSetFuture;
 		Rule rule;
 
 		Iterator<Task> iter = tasks.iterator();
@@ -76,12 +78,23 @@ public class TaskBoard {
 
 			assert task.getBindingSet(node) != null;
 
-			resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
-			resultingBindingSetFuture.thenAccept((bs) -> {
+			if (task.hasResult()) {
+				resultingBindingSetFuture = rule.getBindingSetHandler().handle(task.getBindingSet(node));
+				resultingBindingSetFuture.thenAccept((bs) -> {
+					// TODO this assumes every node only occurs once in all tasks.
 
-				// TODO this assumes every node only occurs once in all tasks.
-				node.setBindingSet(bs);
-			}).handle((r, e) -> {
+					node.setBindingSet(bs);
+				});
+				future = resultingBindingSetFuture;
+			} else {
+				voidBindingSetFuture = rule.getSinkBindingSetHandler().handle(task.getBindingSet(node));
+				voidBindingSetFuture.thenAccept((v) -> {
+					node.setWaitingForTaskBoard(false);
+				});
+				future = voidBindingSetFuture;
+			}
+
+			future.handle((r, e) -> {
 
 				if (r == null && e != null) {
 					LOG.error("An exception has occured while executing scheduled tasks ", e);
@@ -91,7 +104,7 @@ public class TaskBoard {
 				}
 			});
 
-			futures.add(resultingBindingSetFuture);
+			futures.add(future);
 
 			iter.remove();
 		}

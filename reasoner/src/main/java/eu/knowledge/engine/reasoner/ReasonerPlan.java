@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +36,8 @@ public class ReasonerPlan {
 	private RuleStore store;
 	private Map<RuleNode, RuleNode> parentMap;
 
+	private Set<RuleNode> visited;
+
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard) {
 
 		this.ruleToReasonerNode = new HashMap<>();
@@ -49,7 +52,7 @@ public class ReasonerPlan {
 
 		// prepare execution
 		this.stack = new LinkedList<>();
-		stack.push(startNode);
+		this.visited = new HashSet<>();
 	}
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
@@ -136,23 +139,28 @@ public class ReasonerPlan {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	public void execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
+	public boolean execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
 
 		assert this.start.isProactive();
+		RuleNode startNode = this.getNode(this.start);
+		stack.push(startNode);
+		visited.clear();
 
 		if (this.start.getConsequent().isEmpty()) {
-			this.getNode(this.start)
-					.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
+			startNode.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
 		} else {
-			this.getNode(this.start)
-					.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
+			startNode.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
 		}
 
+		boolean finished = true, stepFinished;
 		int i = 0;
 		while (!this.stack.isEmpty()) {
-			System.out.println("Step " + ++i + ": " + this.stack.peek());
-			step();
+			System.out.print("Step " + ++i + ": " + this.stack.peek());
+			stepFinished = step();
+			System.out.println("(" + stepFinished + ")");
+			finished &= stepFinished;
 		}
+		return finished;
 	}
 
 	/**
@@ -169,9 +177,12 @@ public class ReasonerPlan {
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public void step() throws InterruptedException, ExecutionException {
+	public boolean step() throws InterruptedException, ExecutionException {
+		boolean finished = false;
 		boolean removeCurrentFromStack = true;
 		RuleNode current = this.stack.peek();
+
+		this.visited.add(current);
 
 		RuleNode previous = null;
 		if (this.stack.size() > 1)
@@ -206,6 +217,7 @@ public class ReasonerPlan {
 		if (current.hasAntecedent()) {
 
 			if (!current.hasIncomingAntecedentBindingSet()) {
+				current.setWaitingForTaskBoard(false);
 				// push/pull bindingsets to/from antecedents (always)
 				TripleVarBindingSet aBindingSet;
 				if (forward) {
@@ -220,27 +232,34 @@ public class ReasonerPlan {
 				}
 				Set<RuleNode> antecedentNeighbors = current.prepareAntecedentNeighbors(aBindingSet);
 
-				for (RuleNode rn : antecedentNeighbors) {
-					this.stack.push(rn);
-					this.parentMap.put(rn, current);
-				}
+				if (antecedentNeighbors != null) {
 
-				if (!antecedentNeighbors.isEmpty())
-					removeCurrentFromStack = false;
-				else {
-					// create incoming antecedent bindingset
-					if (forward) {
-						aBindingSet = previous.getOutgoingConsequentBindingSet();
-
-						Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
-								current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
-
-						aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
-					} else {
-						aBindingSet = current.getOutgoingAntecedentBindingSet();
+					int i = 0;
+					for (RuleNode rn : antecedentNeighbors) {
+						if (!visited.contains(rn)) {
+							i++;
+							this.stack.push(rn);
+							this.parentMap.put(rn, current);
+						}
 					}
 
-					current.collectIncomingAntecedentBindingSet(aBindingSet);
+					if (i > 0)
+						removeCurrentFromStack = false;
+					else {
+						// create incoming antecedent bindingset
+						if (forward) {
+							aBindingSet = previous.getOutgoingConsequentBindingSet();
+
+							Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
+									current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+							aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
+						} else {
+							aBindingSet = current.getOutgoingAntecedentBindingSet();
+						}
+
+						current.collectIncomingAntecedentBindingSet(aBindingSet);
+					}
 				}
 			}
 
@@ -265,12 +284,16 @@ public class ReasonerPlan {
 					// if we activate neighbors, we do not remove current
 					Set<RuleNode> neighbors = current.prepareConsequentNeighbors(current.getConsequentNeighbors());
 
+					int i = 0;
 					for (RuleNode rn : neighbors) {
-						this.stack.push(rn);
-						this.parentMap.put(rn, current);
+						if (!visited.contains(rn)) {
+							i++;
+							this.stack.push(rn);
+							this.parentMap.put(rn, current);
+						}
 					}
 
-					if (!neighbors.isEmpty())
+					if (i > 0)
 						removeCurrentFromStack = false;
 				}
 			}
@@ -278,6 +301,13 @@ public class ReasonerPlan {
 
 		if (removeCurrentFromStack)
 			this.stack.pop();
+
+		if (forward && (!current.hasConsequent() || current.hasOutgoingConsequentBindingSet()))
+			finished = true;
+		else if (!forward && (!current.hasAntecedent() || current.hasIncomingAntecedentBindingSet()))
+			finished = true;
+
+		return finished;
 	}
 
 	public boolean isForward(RuleNode current, RuleNode previous) {

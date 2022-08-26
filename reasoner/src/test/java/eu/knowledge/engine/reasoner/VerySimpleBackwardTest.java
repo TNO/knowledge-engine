@@ -141,8 +141,8 @@ public class VerySimpleBackwardTest {
 
 			if (aTaskBoard != null) {
 				do {
-					root.execute(bs);
 					aTaskBoard.executeScheduledTasks().get();
+					root.execute(bs);
 				} while (aTaskBoard != null && !aTaskBoard.tasks.isEmpty());
 			} else {
 				root.execute(bs);

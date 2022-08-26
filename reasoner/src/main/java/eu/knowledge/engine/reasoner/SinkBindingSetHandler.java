@@ -1,9 +1,11 @@
 package eu.knowledge.engine.reasoner;
 
+import java.util.concurrent.CompletableFuture;
+
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public interface SinkBindingSetHandler extends BindingSetHandler {
 
-	void handle(BindingSet aBindingSet);
+	public CompletableFuture<Void> handle(BindingSet aBindingSet);
 
 }

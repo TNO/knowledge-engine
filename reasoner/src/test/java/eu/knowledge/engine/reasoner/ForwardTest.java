@@ -38,9 +38,12 @@ public class ForwardTest {
 		private BindingSet bs;
 
 		@Override
-		public void handle(BindingSet bs) {
+		public CompletableFuture<Void> handle(BindingSet bs) {
 
 			this.bs = bs;
+			CompletableFuture<Void> future = new CompletableFuture<>();
+			future.complete((Void) null);
+			return future;
 		}
 
 		public BindingSet getBindingSet() {
@@ -139,7 +142,9 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 
 		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rp = new ReasonerPlan(store, aStartRule, taskboard);
+
+		store.printGraphVizCode(rp);
 
 		System.out.println(rp);
 
@@ -158,7 +163,11 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rp.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rp.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNotNull(aBindingSetHandler.getBindingSet());
@@ -173,8 +182,12 @@ public class ForwardTest {
 		MyBindingSetHandler aBindingSetHandler = new MyBindingSetHandler() {
 
 			@Override
-			public void handle(BindingSet bs) {
+			public CompletableFuture<Void> handle(BindingSet bs) {
 				fail("An empty bindingset should not be handled.");
+
+				CompletableFuture<Void> future = new CompletableFuture<>();
+				future.complete((Void) null);
+				return future;
 			}
 
 		};
@@ -185,7 +198,7 @@ public class ForwardTest {
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
 		store.addRule(aStartRule);
 		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rp = new ReasonerPlan(store, aStartRule, taskboard);
 
 		System.out.println(rp);
 
@@ -202,7 +215,11 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rp.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rp.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
@@ -227,7 +244,7 @@ public class ForwardTest {
 
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aPremise);
 		store.addRule(aStartRule);
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 
 		store.printGraphVizCode(rn);
 
@@ -246,7 +263,11 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rn.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		assertTrue(aBindingSetHandler2.getBindingSet() != null);
 		assertTrue(aBindingSetHandler1.getBindingSet() != null);
@@ -275,7 +296,7 @@ public class ForwardTest {
 
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), aGoal);
 		store.addRule(aStartRule);
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 
 		System.out.println(rn);
 
@@ -296,7 +317,11 @@ public class ForwardTest {
 
 		this.store.printGraphVizCode(rn);
 
-		rn.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rn.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		assertNotNull(aBindingSetHandler.getBindingSet());
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
@@ -336,7 +361,7 @@ public class ForwardTest {
 		TaskBoard taskboard = new TaskBoard();
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
 		store.addRule(aStartRule);
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 
 		store.printGraphVizCode(rn);
 
@@ -352,7 +377,11 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rn.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -393,7 +422,7 @@ public class ForwardTest {
 		TaskBoard taskboard = new TaskBoard();
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
 		store.addRule(aStartRule);
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 		System.out.println(rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
@@ -406,7 +435,11 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rn.execute(bs);
+			taskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -472,11 +505,15 @@ public class ForwardTest {
 		TaskBoard aTaskboard = new TaskBoard();
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
 		store.addRule(aStartRule);
-		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, aTaskboard);
 
 		System.out.println(rn);
 
-		rn.execute(bs);
+		boolean finished = true;
+		do {
+			finished = rn.execute(bs);
+			aTaskboard.executeScheduledTasks().get();
+		} while (!finished);
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 
