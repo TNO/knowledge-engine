@@ -29,8 +29,12 @@ public interface AnswerHandler {
 	 */
 	public default CompletableFuture<BindingSet> answerAsync(AnswerKnowledgeInteraction anAKI, AnswerExchangeInfo anAnswerExchangeInfo) {
 		CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
-		BindingSet bs = this.answer(anAKI, anAnswerExchangeInfo);
-		future.complete(bs);
+		try {
+			BindingSet bs = this.answer(anAKI, anAnswerExchangeInfo);
+			future.complete(bs);
+		} catch (Exception e) {
+			future.completeExceptionally(e);
+		}
 		return future;
 	}
 
