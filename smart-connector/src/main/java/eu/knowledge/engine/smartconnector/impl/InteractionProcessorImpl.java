@@ -185,13 +185,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			for (Binding b : bs) {
 				assert (b.containsKey("kb"));
 				String kbId = b.get("kb");
-				queryString += "(" + kbId + "),";
+				queryString += "(" + kbId + ")";
 			}
 		} else {
-			queryString += "(UNDEF),";
+			queryString += "(UNDEF)";
 		}
 
-		queryString = queryString.substring(0, queryString.length() - 1);
 		queryString += " }";
 		return queryString;
 	}
