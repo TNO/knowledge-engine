@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -128,6 +130,16 @@ public class ReasonerPlan {
 		 * behave logically unexpected. So, we have to keep that in mind when
 		 * optimizing.
 		 */
+
+		Set<RuleNode> removedNodes = this.getStartNode().prune();
+
+		// also remove nodes that were removed from our cache.
+		Iterator<Map.Entry<BaseRule, RuleNode>> iter = this.ruleToReasonerNode.entrySet().iterator();
+		while (iter.hasNext()) {
+			if (removedNodes.contains(iter.next().getValue())) {
+				iter.remove();
+			}
+		}
 	}
 
 	/**
@@ -155,9 +167,8 @@ public class ReasonerPlan {
 		boolean finished = true, stepFinished;
 		int i = 0;
 		while (!this.stack.isEmpty()) {
-			System.out.print("Step " + ++i + ": " + this.stack.peek());
+			LOG.info("Step {}: {}", ++i, this.stack.peek());
 			stepFinished = step();
-			System.out.println("(" + stepFinished + ")");
 			finished &= stepFinished;
 		}
 		return finished;
@@ -302,7 +313,8 @@ public class ReasonerPlan {
 		if (removeCurrentFromStack)
 			this.stack.pop();
 
-		if (forward && (!current.hasConsequent() || current.hasOutgoingConsequentBindingSet()))
+		if (forward && (!current.hasAntecedent() || current.hasIncomingAntecedentBindingSet())
+				&& (!current.hasConsequent() || current.hasOutgoingConsequentBindingSet()))
 			finished = true;
 		else if (!forward && (!current.hasAntecedent() || current.hasIncomingAntecedentBindingSet()))
 			finished = true;

@@ -2,11 +2,14 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -219,7 +222,7 @@ public class RuleNode {
 
 				neighbors.add(neighbor);
 			}
-			
+
 			if (!neighbor.hasOutgoingConsequentBindingSet() && neighbor.isWaitingForTaskBoard(false)) {
 				anyNeighborWaitingForTaskboard = true;
 			} else {
@@ -319,6 +322,88 @@ public class RuleNode {
 
 	}
 
+	public Map<TriplePattern, Set<RuleNode>> findAntecedentCoverage(Map<RuleNode, Set<Match>> someAntecedentNeighbors) {
+		var antecedentCoverageCache = new HashMap<TriplePattern, Set<RuleNode>>();
+
+		// find the coverage
+		Set<RuleNode> coveringNodes;
+		for (TriplePattern tp : this.rule.getAntecedent()) {
+			coveringNodes = new HashSet<>();
+			antecedentCoverageCache.put(tp, coveringNodes);
+
+			for (Entry<RuleNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
+				for (Match m : entry.getValue()) {
+					if (m.getMatchingPatterns().values().contains(tp)) {
+						coveringNodes.add(entry.getKey());
+						break; // where does this break from? The inner loop.
+					}
+				}
+			}
+
+		}
+		return antecedentCoverageCache;
+	}
+
+	/**
+	 * Check all children and remove the ones of which the antecedent is not fully
+	 * covered.
+	 */
+	public Set<RuleNode> prune() {
+
+		Set<RuleNode> removedNodes = new HashSet<>();
+		Iterator<Entry<RuleNode, Set<Match>>> entryIter = this.getAntecedentNeighbors().entrySet().iterator();
+		while (entryIter.hasNext()) {
+			Entry<RuleNode, Set<Match>> entry = entryIter.next();
+			removedNodes.addAll(entry.getKey().prune());
+			if (!entry.getKey().isAntecedentFullyCovered()) {
+				entryIter.remove();
+				removedNodes.addAll(entry.getKey().getDirectAndIndirectNeighbors());
+				removedNodes.add(entry.getKey());
+
+			}
+		}
+		return removedNodes;
+	}
+
+	private Set<RuleNode> getDirectAndIndirectNeighbors() {
+		Set<RuleNode> children = new HashSet<>(this.getAntecedentNeighbors().keySet());
+
+		for (RuleNode rn : children) {
+			children.addAll(rn.getDirectAndIndirectNeighbors());
+		}
+
+		return children;
+	}
+
+	public boolean isAntecedentFullyCovered() {
+		boolean isFullyCovered = true;
+
+		Map<RuleNode, Set<Match>> someAntecedentNeighbors = new HashMap<>(this.getAntecedentNeighbors());
+
+//		if (!this.shouldPlanBackward && this.parent != null) {
+//			Set<Match> parentMatches = this.rule.antecedentMatches(this.parent.rule.getConsequent(),
+//					this.matchStrategy);
+//
+//			Set<Match> inversedParentMatches = new HashSet<>();
+//			for (Match m : parentMatches) {
+//				inversedParentMatches.add(m.inverse());
+//			}
+//
+//			someAntecedentNeighbors.put(this.parent, inversedParentMatches);
+//		}
+
+		Map<TriplePattern, Set<RuleNode>> nodeCoverage = this.findAntecedentCoverage(someAntecedentNeighbors);
+
+		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
+			if (entry.getValue().isEmpty()) {
+				isFullyCovered = false;
+				break;
+			}
+		}
+		return isFullyCovered;
+
+	}
+
 	private boolean isEmpty(TripleVarBindingSet aBindingSet) {
 		return aBindingSet.isEmpty()
 				|| (aBindingSet.getBindings().size() == 1 && !aBindingSet.getBindings().iterator().hasNext());
@@ -379,7 +464,7 @@ public class RuleNode {
 
 	@Override
 	public String toString() {
-		return "ReasonerNode [" + (rule != null ? "rule=" + rule : "") + "]";
+		return "RuleNode [" + (rule != null ? "rule=" + rule : "") + "]";
 	}
 
 	public void setWaitingForTaskBoard(boolean aWaitingForTaskBoard) {
