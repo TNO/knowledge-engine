@@ -168,8 +168,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					return r;
 				}
 			});
-			future.complete(answerMessage);
 			LOG.debug("Received AnswerMessage: {}", answerMessage);
+			future.complete(answerMessage);
 		}
 	}
 
@@ -195,8 +195,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					return r;
 				}
 			});
-			future.complete(reactMessage);
 			LOG.debug("Received ReactMessage: {}", reactMessage);
+			future.complete(reactMessage);
 		}
 	}
 

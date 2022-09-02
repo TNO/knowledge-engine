@@ -1,6 +1,5 @@
 package eu.knowledge.engine.reasoner;
 
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -172,13 +171,21 @@ public class ReasonerPlan {
 			startNode.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
 		}
 
-		boolean finished = true, stepFinished;
+		Map<RuleNode, Boolean> nodeFinished = new HashMap<>();
+		boolean stepFinished;
 		int i = 0;
 		while (!this.stack.isEmpty()) {
-			LOG.info("Step {}: {}", ++i, this.stack.peek().getRule());
+			RuleNode currentNode = this.stack.peek();
+			LOG.info("Step {}: {}", ++i, currentNode.getRule());
 			stepFinished = step();
-			finished &= stepFinished;
+			nodeFinished.put(currentNode, stepFinished);
 		}
+
+		boolean finished = true;
+		for (Map.Entry<RuleNode, Boolean> entry : nodeFinished.entrySet()) {
+			finished &= entry.getValue();
+		}
+
 		return finished;
 	}
 

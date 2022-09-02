@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -111,23 +112,37 @@ public class KnowledgeNetwork {
 			count++;
 			LOG.info("Checking up to date knowledge bases.");
 			allUpToDate = true;
+			Map<MockedKnowledgeBase, Boolean> upToDate = new HashMap<>();
 			boolean kbUpToDate;
 			for (MockedKnowledgeBase kb : this.knowledgeBases) {
-				LOG.info("Before isUpToDate");
 				kbUpToDate = kb.isUpToDate(this.knowledgeInteractionMetadata.get(kb), this.knowledgeBases);
-				LOG.info("After isUpToDate");
 				allUpToDate &= kbUpToDate;
+				upToDate.put(kb, kbUpToDate);
 				if (kbUpToDate) {
-					LOG.info("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
+					LOG.debug("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
 				}
 			}
 			try {
+				LOG.info("KBs up to date? {}", getUpToDateInfo(upToDate));
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				LOG.error("An error occured while waiting for up-to-date.", e);
 			}
 		}
 		LOG.info("Everyone is up to date after {} rounds!", count);
+	}
+
+	private String getUpToDateInfo(Map<MockedKnowledgeBase, Boolean> upToDate) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("(");
+		for (Map.Entry<MockedKnowledgeBase, Boolean> entry : upToDate.entrySet()) {
+			sb.append(entry.getKey().getKnowledgeBaseName()).append("=").append(entry.getValue());
+			sb.append(",");
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	/**

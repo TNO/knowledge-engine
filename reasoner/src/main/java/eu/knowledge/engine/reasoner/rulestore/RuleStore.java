@@ -199,7 +199,8 @@ public class RuleStore {
 
 			}
 
-			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule()).keySet();
+			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule(),
+					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.FIND_ONLY_FULL_MATCHES).keySet();
 			String neighName;
 			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);

@@ -513,6 +513,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
+		this.getSC().setReasonerEnabled(this.reasonerEnabled);
 
 	}
 

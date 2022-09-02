@@ -162,7 +162,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		try {
 			isComplete = this.reasonerPlan.execute(incomingBS);
 			LOG.debug("ask:\n{}", this.reasonerPlan);
-			if (this.taskBoard != null)
+			if (this.taskBoard != null) {
 				this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 					LOG.debug("All tasks finished.");
 					if (isComplete) {
@@ -175,6 +175,15 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					LOG.error(msg, t);
 					return null;
 				});
+			} else {
+				if (isComplete) {
+					eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getStartNode()
+							.getIncomingAntecedentBindingSet().toBindingSet();
+					this.finalBindingSetFuture.complete(bs);
+				} else {
+					continueReasoningBackward(incomingBS);
+				}
+			}
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error(msg, e);
 		}
@@ -221,8 +230,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
 		this.reasonerPlan.optimize();
 
-		this.reasonerPlan.getStore().printGraphVizCode(this.reasonerPlan);
-
 		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -238,7 +245,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		try {
 			isComplete = this.reasonerPlan.execute(incomingBS);
 			LOG.debug("post:\n{}", this.reasonerPlan);
-			if (this.taskBoard != null)
+			if (this.taskBoard != null) {
 				this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 					if (isComplete) {
 						eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
@@ -254,6 +261,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					LOG.error(msg, t);
 					return null;
 				});
+			} else {
+				if (isComplete) {
+					eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
+					if (aBindingSetHandler != null) {
+						resultBS = aBindingSetHandler.getBindingSet();
+					}
+					this.finalBindingSetFuture.complete(resultBS);
+				} else {
+					continueReasoningForward(incomingBS, aBindingSetHandler);
+				}
+			}
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error(msg, e);
 		}

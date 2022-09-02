@@ -390,6 +390,7 @@ public class BaseRule {
 		int result = 1;
 		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
 		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -411,6 +412,11 @@ public class BaseRule {
 			if (other.consequent != null)
 				return false;
 		} else if (!consequent.equals(other.consequent))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}
