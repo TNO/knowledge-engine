@@ -150,6 +150,34 @@ public class TestAskRecipientSelector {
 			assertEquals(bind.get("y"), "<https://www.tno.nl/example/c>");
 			LOG.info("Binding: {}", bind);
 
+			// Recipient Selector is multiple KBs (kb1 & kb3).
+			result = kb2.ask(
+				askKI,
+				new RecipientSelector(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())),
+				new BindingSet()
+			).get();
+			bindings = result.getBindings();
+			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+					.collect(Collectors.toSet());
+
+			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
+					"The result should come from kb1 and kb3 only and not: " + kbIds);
+
+			assertEquals(2, bindings.size());
+
+			assertTrue(bindings.stream()
+				.allMatch(b ->
+					(b.get("x").equals("<https://www.tno.nl/example/a>") || b.get("x").equals("<https://www.tno.nl/example/d>"))
+					&& (b.get("y").equals("<https://www.tno.nl/example/c>") || b.get("y").equals("<https://www.tno.nl/example/e>"))
+				)
+			);
+			assertTrue(bindings.stream()
+				.anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/a>") && b.get("y").equals("<https://www.tno.nl/example/c>"))
+			);
+			assertTrue(bindings.stream()
+				.anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/d>") && b.get("y").equals("<https://www.tno.nl/example/e>"))
+			);
+
 			// Recipient Selector asks all Knowledge Bases (kb1, kb3, kb4).
 
 			result = kb2.ask(askKI, new RecipientSelector(), new BindingSet()).get();

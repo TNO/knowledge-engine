@@ -186,13 +186,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			for (Binding b : bs) {
 				assert (b.containsKey("kb"));
 				String kbId = b.get("kb");
-				queryString += "(" + kbId + "),";
+				queryString += "(" + kbId + ")";
 			}
 		} else {
-			queryString += "(UNDEF),";
+			queryString += "(UNDEF)";
 		}
 
-		queryString = queryString.substring(0, queryString.length() - 1);
 		queryString += " }";
 		return queryString;
 	}
@@ -230,7 +229,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering a msg: {}", e);
+			LOG.error("An error occurred while answering a msg: ", e);
 			LOG.debug("The error occured while answering this message: {}", anAskMsg);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
@@ -315,8 +314,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering a msg: {}", e);
-			LOG.debug("The error occured while answering this message: {}", aPostMsg);
+			LOG.error("An error occurred while reacting to a message:", e);
+			LOG.debug("The error occured while reacting to this message: {}", aPostMsg);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					e.getMessage());
