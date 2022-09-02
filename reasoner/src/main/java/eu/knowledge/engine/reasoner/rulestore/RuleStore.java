@@ -3,6 +3,7 @@
  */
 package eu.knowledge.engine.reasoner.rulestore;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -15,8 +16,8 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -27,6 +28,8 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
  *
  */
 public class RuleStore {
+
+	private static final int MAX_STR_LENGTH = 50;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RuleStore.class);
 
@@ -66,6 +69,13 @@ public class RuleStore {
 	}
 
 	/**
+	 * @see #getAntecedentNeighbors(BaseRule, MatchStrategy)
+	 */
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
+		return this.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+	}
+
+	/**
 	 * Calculate the antecedent neighbors of this rule. That means all the other
 	 * rules in {@code store} whose consequent matches this rule's antecedent. Note
 	 * that it also adds the same information to the neighbor.
@@ -73,24 +83,32 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its consequent matches
 	 *         this rule's antecedent.
 	 */
-	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
 		for (BaseRule someRule : this.getRules()) {
 			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getConsequent().isEmpty() && !aRuleNode.getAntecedentNeighbors().containsKey(someRule)) {
-				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(),
-						MatchStrategy.FIND_ALL_MATCHES);
+			if (!someRule.getConsequent().isEmpty()
+					&& !aRuleNode.getAntecedentNeighbors(aStrategy).containsKey(someRule)) {
+				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(), aStrategy);
 				if (!someMatches.isEmpty()) {
-					aRuleNode.setAntecedentNeighbor(someRule, someMatches);
-					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches));
+					aRuleNode.setAntecedentNeighbor(someRule, someMatches, aStrategy);
+					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
 				}
 
 			}
 		}
-		return aRuleNode.getAntecedentNeighbors();
+		return aRuleNode.getAntecedentNeighbors(aStrategy);
+	}
+
+	/**
+	 * @see #getConsequentNeighbors(BaseRule, MatchStrategy)
+	 */
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
+		return this.getConsequentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+
 	}
 
 	/**
@@ -103,24 +121,24 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its antecedent matches
 	 *         this rule's consequent.
 	 */
-	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
 		for (BaseRule someRule : this.getRules()) {
 			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getAntecedent().isEmpty() && !aRuleNode.getConsequentNeighbors().containsKey(someRule)) {
-				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(),
-						MatchStrategy.FIND_ALL_MATCHES);
+			if (!someRule.getAntecedent().isEmpty()
+					&& !aRuleNode.getConsequentNeighbors(aStrategy).containsKey(someRule)) {
+				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(), aStrategy);
 				if (!someMatches.isEmpty()) {
-					aRuleNode.setConsequentNeighbor(someRule, someMatches);
-					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches));
+					aRuleNode.setConsequentNeighbor(someRule, someMatches, aStrategy);
+					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
 				}
 
 			}
 		}
-		return aRuleNode.getConsequentNeighbors();
+		return aRuleNode.getConsequentNeighbors(aStrategy);
 
 	}
 
@@ -233,6 +251,17 @@ public class RuleStore {
 		return neighR.getAntecedent() + " -> " + neighR.getConsequent();
 	}
 
+	private String trimAtLength(String aString, int aLength) {
+
+		String newString = aString.substring(0, Math.min(aString.length(), aLength));
+
+		if (newString.length() < aString.length()) {
+			newString = newString + "...";
+		}
+
+		return newString;
+	}
+
 	/**
 	 * Generates a shorter name for a rule while still being reasonably
 	 * recognizable.
@@ -250,7 +279,9 @@ public class RuleStore {
 			}
 		}
 
-		sb.append("->\\n");
+		String antecedent = trimAtLength(sb.toString(), MAX_STR_LENGTH);
+
+		sb = new StringBuilder();
 
 		if (!r.getConsequent().isEmpty()) {
 			for (TriplePattern tp : r.getConsequent()) {
@@ -260,21 +291,42 @@ public class RuleStore {
 				sb.deleteCharAt(sb.length() - 1);
 		}
 
-		return "\"" + sb.toString() + /*"(" + r.hashCode() + */"\"";
+		String consequent = trimAtLength(sb.toString(), MAX_STR_LENGTH);
+
+		return "\"" + Integer.toHexString(r.hashCode()) + "\\n" + antecedent + "->\\n" + consequent + "\"";
 	}
 
 	private String generateName(TriplePattern tp) {
 
 		String name = BaseRule.EMPTY;
 		if (tp.getPredicate().toString().contains("type") && !tp.getObject().isVariable())
-			name = tp.getObject().toString();
+			if (tp.getObject().isLiteral())
+				name += tp.getObject().toString() + " ";
+			else {
+				URI uri = URI.create(tp.getObject().getURI());
+				name += uriToString(uri);
+			}
 		else {
 			if (!tp.getSubject().isVariable())
-				name = tp.getSubject().toString() + " ";
-			if (!tp.getPredicate().isVariable())
-				name += tp.getPredicate().toString() + " ";
-			if (!tp.getObject().isVariable())
-				name += tp.getObject().toString() + " ";
+
+				if (tp.getSubject().isLiteral())
+					name += tp.getSubject().toString() + " ";
+				else {
+					URI uri = URI.create(tp.getSubject().getURI());
+					name += uriToString(uri);
+				}
+			if (!tp.getPredicate().isVariable()) {
+				URI uri = URI.create(tp.getPredicate().getURI());
+				name += uriToString(uri);
+			}
+			if (!tp.getObject().isVariable()) {
+				if (tp.getObject().isLiteral())
+					name += tp.getObject().toString() + " ";
+				else {
+					URI uri = URI.create(tp.getObject().getURI());
+					name += uriToString(uri);
+				}
+			}
 		}
 
 		if (name.endsWith(" "))
@@ -286,6 +338,17 @@ public class RuleStore {
 		name = name.replaceAll("\\\"", "\\\\\"");
 
 		return name;
+	}
+
+	private String uriToString(URI uri) {
+
+		String text;
+		if (uri.getFragment() == null || uri.getFragment().isEmpty()) {
+			String[] segments = uri.getPath().split("/");
+			text = segments[segments.length - 1] + " ";
+		} else
+			text = uri.getFragment();
+		return text;
 	}
 
 }

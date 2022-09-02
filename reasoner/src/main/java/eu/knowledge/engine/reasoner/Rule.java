@@ -169,6 +169,22 @@ public class Rule extends BaseRule {
 		this(new HashSet<>(), aConsequent, aBindingSetHandler);
 	}
 
+	public Rule(String aName, Set<TriplePattern> anAntecedent, SinkBindingSetHandler aSinkBindingSetHandler) {
+		this(anAntecedent, aSinkBindingSetHandler);
+		this.setName(aName);
+	}
+
+	public Rule(String aName, Set<TriplePattern> aConsequent, TransformBindingSetHandler aBindingSetHandler) {
+		this(aConsequent, aBindingSetHandler);
+		this.setName(aName);
+	}
+
+	public Rule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+			TransformBindingSetHandler aBindingSetHandler) {
+		this(anAntecedent, aConsequent, aBindingSetHandler);
+		this.setName(aName);
+	}
+
 	/**
 	 * Create a rule with a default bindingset handler.
 	 * 

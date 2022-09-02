@@ -2,7 +2,7 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 
 /**
  * This class reprsents a plan for executing a post knowledge interaction.
@@ -28,6 +28,6 @@ public interface PostPlan {
 	 * @return A ReasoningNode with additional information, or {@code null} if the
 	 *         reasoner was disabled.
 	 */
-	public ReasoningNode getReasoningNode();
+	public ReasonerPlan getReasonerPlan();
 
 }

@@ -2,7 +2,7 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 
 /**
  * This class contains the plan of the Smart Connector for executing a
@@ -26,8 +26,8 @@ public interface AskPlan {
 	 * Get detailed information about the plan including other KBs involved and
 	 * mappings, etc.
 	 * 
-	 * @return A reasoning node that forms the reasoning graph, or {@code null} if
+	 * @return A reasoner plan that forms the reasoning graph, or {@code null} if
 	 *         reasoning was disabled.
 	 */
-	public ReasoningNode getReasoningNode();
+	public ReasonerPlan getReasonerPlan();
 }

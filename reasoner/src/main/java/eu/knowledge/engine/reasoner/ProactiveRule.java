@@ -13,5 +13,11 @@ public class ProactiveRule extends BaseRule {
 			throw new IllegalArgumentException("A proactive rule should have either antecedent or consequent empty.");
 		}
 	}
+	
+	public ProactiveRule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent)
+	{
+		this(anAntecedent, aConsequent);
+		this.setName(aName);
+	}
 
 }

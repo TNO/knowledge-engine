@@ -365,7 +365,7 @@ public class ForwardTest {
 
 		store.printGraphVizCode(rn);
 
-		System.out.println(rn);
+		LOG.info("\n{}", rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
 				// @formatter:off
@@ -377,13 +377,14 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		boolean finished = true;
-		do {
-			finished = rn.execute(bs);
+		while (!rn.execute(bs)) {
 			taskboard.executeScheduledTasks().get();
-		} while (!finished);
+		}
+		taskboard.executeScheduledTasks().get();
 
-		System.out.println(aBindingSetHandler1.getBindingSet());
+		LOG.info("\n{}", rn);
+
+		LOG.info("BindingSet: {}", aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 
 		assertEquals(1, aBindingSetHandler1.getBindingSet().size());

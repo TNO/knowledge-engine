@@ -1,9 +1,8 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,7 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
@@ -127,21 +128,20 @@ public class Util {
 	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
 	 *         gap.
 	 */
-	public static Set<Set<TriplePattern>> getKnowledgeGaps(ReasoningNode root) {
+	public static Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
 
 		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
-		Map<TriplePattern, Set<ReasoningNode>> nodeCoverage = root
-				.findAntecedentCoverage(root.getAntecedentNeighbors());
+		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan.findAntecedentCoverage(plan.getAntecedentNeighbors());
 
 		// collect triple patterns that have an empty set
 		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
-		for (Entry<TriplePattern, Set<ReasoningNode>> entry : nodeCoverage.entrySet()) {
+		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
 
 			collectedOrGaps = new HashSet<>();
 			boolean foundNeighborWithoutGap = false;
-			for (ReasoningNode neighbor : entry.getValue()) {
+			for (RuleNode neighbor : entry.getValue()) {
 				// make sure neighbor has no knowledge gaps
 
 				// knowledge engine specific code. We ignore meta knowledge interactions when
@@ -186,9 +186,11 @@ public class Util {
 		return existingOrGaps;
 	}
 
-	private static boolean isMetaKI(ReasoningNode neighbor) {
+	private static boolean isMetaKI(RuleNode neighbor) {
 
-		BindingSetHandler bsh = neighbor.getRule().getBindingSetHandler();
+		assert neighbor.getRule() instanceof Rule;
+
+		BindingSetHandler bsh = ((Rule) neighbor.getRule()).getBindingSetHandler();
 
 		if (bsh instanceof ReactBindingSetHandler) {
 			ReactBindingSetHandler rbsh = (ReactBindingSetHandler) bsh;
@@ -215,4 +217,5 @@ public class Util {
 		});
 		outgoing.removeAll(toBeRemoved);
 	}
+
 }

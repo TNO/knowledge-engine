@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -24,6 +24,7 @@ public class ReasonerPlan {
 	private Map<BaseRule, RuleNode> ruleToReasonerNode;
 	private ProactiveRule start;
 	private TaskBoard taskboard;
+	private MatchStrategy strategy;
 
 	/**
 	 * Keeps track of the path through the graph and allows us to retrieve
@@ -40,7 +41,7 @@ public class ReasonerPlan {
 
 	private Set<RuleNode> visited;
 
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard) {
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard, MatchStrategy aStrategy) {
 
 		this.ruleToReasonerNode = new HashMap<>();
 		this.store = aStore;
@@ -48,6 +49,7 @@ public class ReasonerPlan {
 		assert aStore.getRules().contains(aStartRule);
 		this.start = aStartRule;
 		this.parentMap = new HashMap<>();
+		this.strategy = aStrategy;
 
 		// build reasoning graph
 		RuleNode startNode = createOrGetReasonerNode(aStartRule);
@@ -58,8 +60,11 @@ public class ReasonerPlan {
 	}
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
-		this(aStore, aStartRule, null);
+		this(aStore, aStartRule, null, MatchStrategy.FIND_ALL_MATCHES);
+	}
 
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard) {
+		this(aStore, aStartRule, aTaskBoard, MatchStrategy.FIND_ALL_MATCHES);
 	}
 
 	public RuleNode getNode(BaseRule aRule) {
@@ -83,7 +88,8 @@ public class ReasonerPlan {
 			// for now we only are interested in antecedent neighbors.
 			// TODO for looping we DO want to consider consequent neighbors as well.
 
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule, this.strategy)
+					.entrySet()) {
 
 				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addAntecedentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
@@ -93,7 +99,8 @@ public class ReasonerPlan {
 			}
 		} else {
 			// interested in both consequent and antecedent neighbors
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule, this.strategy)
+					.entrySet()) {
 
 				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addConsequentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
@@ -103,7 +110,8 @@ public class ReasonerPlan {
 			}
 
 			// antecedent neighbors to propagate bindings further via backward chaining
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule).entrySet()) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule, this.strategy)
+					.entrySet()) {
 
 				if (entry.getKey() instanceof Rule) {
 					reasonerNode.addAntecedentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
@@ -167,7 +175,7 @@ public class ReasonerPlan {
 		boolean finished = true, stepFinished;
 		int i = 0;
 		while (!this.stack.isEmpty()) {
-			LOG.info("Step {}: {}", ++i, this.stack.peek());
+			LOG.info("Step {}: {}", ++i, this.stack.peek().getRule());
 			stepFinished = step();
 			finished &= stepFinished;
 		}
@@ -234,8 +242,15 @@ public class ReasonerPlan {
 				if (forward) {
 					aBindingSet = previous.getOutgoingConsequentBindingSet();
 
+					MatchStrategy strat;
+					if (this.strategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+						strat = MatchStrategy.FIND_ONLY_FULL_MATCHES;
+					} else {
+						strat = MatchStrategy.FIND_ONLY_BIGGEST_MATCHES;
+					}
+
 					Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
-							current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+							current.getRule().getAntecedent(), strat);
 
 					aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
 				} else {
@@ -261,8 +276,15 @@ public class ReasonerPlan {
 						if (forward) {
 							aBindingSet = previous.getOutgoingConsequentBindingSet();
 
+							MatchStrategy strat;
+							if (this.strategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+								strat = MatchStrategy.FIND_ONLY_FULL_MATCHES;
+							} else {
+								strat = MatchStrategy.FIND_ONLY_BIGGEST_MATCHES;
+							}
+
 							Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
-									current.getRule().getAntecedent(), MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+									current.getRule().getAntecedent(), strat);
 
 							aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
 						} else {
@@ -322,6 +344,10 @@ public class ReasonerPlan {
 		return finished;
 	}
 
+	public RuleStore getStore() {
+		return this.store;
+	}
+
 	public boolean isForward(RuleNode current, RuleNode previous) {
 		boolean toConsequent = true;
 		if (current.hasAntecedent() && current.hasConsequent()) {
@@ -347,4 +373,11 @@ public class ReasonerPlan {
 		return this.getNode(this.start);
 	}
 
+	public MatchStrategy getMatchStrategy() {
+		return this.strategy;
+	}
+
+	public String toString() {
+		return this.getStartNode().toString();
+	}
 }

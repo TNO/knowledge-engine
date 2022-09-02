@@ -464,7 +464,60 @@ public class RuleNode {
 
 	@Override
 	public String toString() {
-		return "RuleNode [" + (rule != null ? "rule=" + rule : "") + "]";
+		if (this.getRule() instanceof ProactiveRule) {
+			if (this.hasAntecedent()) {
+				return this.toString(0, false);
+			} else if (this.hasConsequent()) {
+				return this.toString(0, true);
+			} else
+				assert false;
+
+		} else
+			return this.toString(0, false);
+		return this.getRule().toString();
+	}
+
+	public String toString(int tabIndex, boolean isForward) {
+
+		StringBuilder sb = new StringBuilder();
+
+		// print yourself
+		if (isForward ? this.hasAntecedent() : this.hasConsequent()) {
+			if (isForward ? this.hasIncomingAntecedentBindingSet() : this.hasOutgoingConsequentBindingSet())
+				sb.append(isForward ? this.getIncomingAntecedentBindingSet().toString()
+						: this.getOutgoingConsequentBindingSet().toBindingSet());
+			else
+				sb.append(isForward ? this.rule.getAntecedent() : this.rule.getConsequent());
+		}
+
+		sb.append(isForward ? "->" : "<-");
+
+		if (isForward ? this.hasConsequent() : this.hasAntecedent()) {
+
+			if (isForward ? this.hasOutgoingConsequentBindingSet() : this.hasIncomingAntecedentBindingSet())
+				sb.append(isForward ? this.getOutgoingConsequentBindingSet() : this.getIncomingAntecedentBindingSet());
+			else
+				sb.append(isForward ? this.rule.getConsequent() : this.rule.getAntecedent());
+
+		}
+
+		sb.append("\n");
+		if (!isForward)
+			for (RuleNode neighbor : this.getAntecedentNeighbors().keySet()) {
+				for (int i = 0; i < tabIndex + 1; i++)
+					sb.append("\t");
+
+				sb.append(neighbor.toString(tabIndex + 1, isForward));
+			}
+		else
+			for (RuleNode neighbor : this.getConsequentNeighbors().keySet()) {
+				for (int i = 0; i < tabIndex + 1; i++)
+					sb.append("\t");
+
+				sb.append(neighbor.toString(tabIndex + 1, isForward));
+			}
+
+		return sb.toString();
 	}
 
 	public void setWaitingForTaskBoard(boolean aWaitingForTaskBoard) {

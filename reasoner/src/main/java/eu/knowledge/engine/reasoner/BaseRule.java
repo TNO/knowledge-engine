@@ -79,6 +79,14 @@ public class BaseRule {
 	 */
 	private Set<TriplePattern> consequent;
 
+	private String name = "Rule";
+
+	protected BaseRule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+		this(anAntecedent, aConsequent);
+		assert aName != null;
+		this.name = aName;
+	}
+
 	protected BaseRule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 
 		if (anAntecedent == null || aConsequent == null)
@@ -137,7 +145,7 @@ public class BaseRule {
 
 		long start = System.currentTimeMillis();
 
-		List<Match> allMatches = new LinkedList<>();
+		List<Match> allMatches = new ArrayList<>();
 
 		// first find all triples in the consequent that match each triple in the
 		// antecedent
@@ -311,7 +319,7 @@ public class BaseRule {
 
 	@Override
 	public String toString() {
-		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
+		return this.name + " [antecedent=" + antecedent + ", consequent=" + consequent + "]";
 	}
 
 	public Set<Var> getVars() {
@@ -369,6 +377,11 @@ public class BaseRule {
 		}
 
 		return rules;
+	}
+
+	protected void setName(String aName) {
+		assert aName != null;
+		this.name = aName;
 	}
 
 	@Override

@@ -1,11 +1,9 @@
 package eu.knowledge.engine.admin;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -20,12 +18,15 @@ import org.apache.jena.vocabulary.RDF;
 
 import eu.knowledge.engine.admin.model.CommunicativeAct;
 import eu.knowledge.engine.admin.model.Connection;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.RuleNode;
+import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactVoidBindingSetHandler;
 
 public class Util {
 
@@ -136,33 +137,49 @@ public class Util {
 		return r.getProperty(m.getProperty(propertyURI)).getObject().toString();
 	}
 
-	public static List<Connection> createConnectionObjects(ReasoningNode rn) {
+	public static List<Connection> createConnectionObjects(RuleNode rn) {
 
 		System.out.println(rn.toString());
 
-		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
+		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);
 
 		Set<String> actors = new HashSet<>();
 
 		while (!queue.isEmpty()) {
 
-			ReasoningNode node = queue.poll();
+			RuleNode node = queue.poll();
 
 			String currentActor = null;
-			TransformBindingSetHandler bsh = node.getRule().getBindingSetHandler();
-			ReactBindingSetHandler rbsh = null;
-			AnswerBindingSetHandler absh = null;
-			if (bsh instanceof ReactBindingSetHandler) {
-				rbsh = (ReactBindingSetHandler) bsh;
-				currentActor = rbsh.getKnowledgeInteractionInfo().getId().toString();
-				actors.add(currentActor);
-			} else if (bsh instanceof AnswerBindingSetHandler) {
-				absh = (AnswerBindingSetHandler) bsh;
-				currentActor = absh.getKnowledgeInteractionInfo().getId().toString();
-				actors.add(currentActor);
-			}
 
+			if (!(node.getRule() instanceof ProactiveRule)) {
+
+				Rule rule = (Rule) node.getRule();
+				BindingSetHandler bsh = rule.getBindingSetHandler();
+
+				if (bsh != null) {
+					ReactBindingSetHandler rbsh = null;
+					AnswerBindingSetHandler absh = null;
+					if (bsh instanceof ReactBindingSetHandler) {
+						rbsh = (ReactBindingSetHandler) bsh;
+						currentActor = rbsh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					} else if (bsh instanceof AnswerBindingSetHandler) {
+						absh = (AnswerBindingSetHandler) bsh;
+						currentActor = absh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					}
+				} else {
+					assert rule.getConsequent().isEmpty();
+					SinkBindingSetHandler sbsh = rule.getSinkBindingSetHandler();
+					ReactVoidBindingSetHandler rvbsh = null;
+					if (sbsh instanceof ReactVoidBindingSetHandler) {
+						rvbsh = (ReactVoidBindingSetHandler) sbsh;
+						currentActor = rvbsh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					}
+				}
+			}
 			queue.addAll(node.getAntecedentNeighbors().keySet());
 			queue.addAll(node.getConsequentNeighbors().keySet());
 		}
