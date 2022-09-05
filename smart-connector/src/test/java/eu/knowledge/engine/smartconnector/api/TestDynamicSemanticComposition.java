@@ -118,8 +118,8 @@ public class TestDynamicSemanticComposition {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-					result.getReasonerPlan(), prefixes);
+//			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
+//					result.getReasonerPlan(), prefixes);
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -388,74 +388,6 @@ public class TestDynamicSemanticComposition {
 		});
 
 		kbTargetCountrySupplier.setDomainKnowledge(ruleSet);
-
-		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
-		HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
-		consequent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
-		HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
-		Rule r = new Rule(antecedent, consequent);
-		Set<Rule> ruleSet = new HashSet<>();
-		ruleSet.add(r);
-		kbHVTSearcher.setDomainKnowledge(ruleSet);
-		kbTargetObserver.setDomainKnowledge(ruleSet);
-
-		// start testing ask for targets!
-		BindingSet bindings = null;
-		try {
-			LOG.trace("Before ask.");
-			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
-			bindings = result.getBindings();
-			LOG.trace("After ask.");
-			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-					result.getReasonerPlan(), prefixes);
-		} catch (InterruptedException | ExecutionException e) {
-			fail();
-		} catch (URISyntaxException e) {
-			fail();
-		}
-
-		Iterator<Binding> iter = bindings.iterator();
-		LOG.info("Result bindings are: {}", bindings);
-
-		assertTrue(iter.hasNext(), "there should be at least 1 binding");
-		Binding b = iter.next();
-
-		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
-//		assertEquals("\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>", b.get("name"), "Binding of 'name' is incorrect.");
-		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
-
-		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
-
-		// start testing post of targets!
-		BindingSet bindingSet = new BindingSet();
-		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/example/target1>");
-//		binding.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
-		binding.put("name", "\"Bla\"");
-		bindingSet.add(binding);
-
-		try {
-			LOG.info("Before post!");
-			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
-			PostResult result = aPlan.execute(bindingSet).get();
-			bindings = result.getBindings();
-			iter = bindings.iterator();
-			assertFalse(iter.hasNext(), "there should be no bindings");
-			LOG.info("After post!");
-
-//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
-
-			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
-					postKI.getArgument(), result.getReasonerPlan(), prefixes);
-		} catch (Exception e) {
-			LOG.error("Error", e);
-		}
 
 	}
 

@@ -484,7 +484,7 @@ public class RuleNode {
 		// print yourself
 		if (isForward ? this.hasAntecedent() : this.hasConsequent()) {
 			if (isForward ? this.hasIncomingAntecedentBindingSet() : this.hasOutgoingConsequentBindingSet())
-				sb.append(isForward ? this.getIncomingAntecedentBindingSet().toString()
+				sb.append(isForward ? this.getIncomingAntecedentBindingSet().toBindingSet()
 						: this.getOutgoingConsequentBindingSet().toBindingSet());
 			else
 				sb.append(isForward ? this.rule.getAntecedent() : this.rule.getConsequent());
@@ -495,7 +495,8 @@ public class RuleNode {
 		if (isForward ? this.hasConsequent() : this.hasAntecedent()) {
 
 			if (isForward ? this.hasOutgoingConsequentBindingSet() : this.hasIncomingAntecedentBindingSet())
-				sb.append(isForward ? this.getOutgoingConsequentBindingSet() : this.getIncomingAntecedentBindingSet());
+				sb.append(isForward ? this.getOutgoingConsequentBindingSet().toBindingSet()
+						: this.getIncomingAntecedentBindingSet().toBindingSet());
 			else
 				sb.append(isForward ? this.rule.getConsequent() : this.rule.getAntecedent());
 

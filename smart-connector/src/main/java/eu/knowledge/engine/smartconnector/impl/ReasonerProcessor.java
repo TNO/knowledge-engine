@@ -77,7 +77,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
 			Set<Rule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
-//		taskBoard = new TaskBoard();
+		taskBoard = new TaskBoard();
 
 		this.additionalDomainKnowledge = someDomainKnowledge;
 
