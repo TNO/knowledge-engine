@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk/openjdk11:jre
 
 ARG JAR_FILE=target/*-with-dependencies.jar
 
