@@ -363,10 +363,9 @@ public class BackwardTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		do {
+		while (root.execute2(bs)) {
 			taskboard.executeScheduledTasks().get();
-			root.execute(bs);
-		} while (taskboard != null && !taskboard.tasks.isEmpty());
+		}
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
 		System.out.println("bindings: " + bind);

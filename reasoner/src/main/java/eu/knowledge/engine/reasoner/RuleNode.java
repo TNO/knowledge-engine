@@ -274,6 +274,24 @@ public class RuleNode {
 		}
 	}
 
+	public boolean contactAntecedentNeighbors(TripleVarBindingSet aBindingSet, boolean forward) {
+
+		boolean allHaveContributed = true;
+		// set neighbor's incoming consequent bindingset
+		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
+			RuleNode neighbor = neighborEntry.getKey();
+			Set<Match> neighborMatch = neighborEntry.getValue();
+
+			if (!neighbor.hasOutgoingConsequentBindingSet()) {
+				allHaveContributed = false;
+				TripleVarBindingSet neighborBS = aBindingSet.translate(neighbor.getRule().getConsequent(),
+						Match.invertAll(neighborMatch));
+				neighbor.mergeIncomingConsequentBindingSet(neighborBS, forward);
+			}
+		}
+		return allHaveContributed;
+	}
+
 	public void applyBindingSetHandlerToAntecedent(TaskBoard aTaskBoard) {
 		BaseRule r = this.getRule();
 		assert r instanceof Rule;
@@ -526,4 +544,88 @@ public class RuleNode {
 
 	}
 
+	public TripleVarBindingSet collectIncomingAntecedentBindingSet2(TripleVarBindingSet aBindingSet) {
+		TripleVarBindingSet combinedBindings = null;
+		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getAntecedentNeighbors().entrySet()) {
+			RuleNode neighbor = neighborEntry.getKey();
+			Set<Match> neighborMatch = neighborEntry.getValue();
+
+			if (!neighbor.hasOutgoingConsequentBindingSet()) {
+				TripleVarBindingSet neighborBS = aBindingSet.translate(neighbor.getRule().getConsequent(),
+						Match.invertAll(neighborMatch));
+
+				if (!neighbor.hasIncomingConsequentBindingSet())
+					neighbor.setIncomingConsequentBindingSet(neighborBS);
+
+			} else {
+				combinedBindings = new TripleVarBindingSet(this.getRule().getAntecedent());
+				TripleVarBindingSet neighborOutgoingConsequentBindingSet = neighbor.getOutgoingConsequentBindingSet();
+
+				combinedBindings = combinedBindings.merge(
+						neighborOutgoingConsequentBindingSet.translate(this.getRule().getAntecedent(), neighborMatch));
+			}
+		}
+		return combinedBindings;
+	}
+
+	public void pushOutgoingConsequentBindingSet(TripleVarBindingSet outgoingConsequentBS) {
+		for (Map.Entry<RuleNode, Set<Match>> neighborEntry : this.getConsequentNeighbors().entrySet()) {
+			RuleNode neighbor = neighborEntry.getKey();
+			Set<Match> neighborMatches = neighborEntry.getValue();
+
+			TripleVarBindingSet neighborBS = outgoingConsequentBS.translate(neighbor.getRule().getAntecedent(),
+					Match.invertAll(neighborMatches));
+			neighbor.setIncomingAntecedentBindingSet(neighborBS);
+		}
+
+	}
+
+	/**
+	 * @param otherOne
+	 * @return {@code true} if merge actually changed something, {@code false}
+	 *         otherwise.
+	 */
+	public boolean mergeIncomingConsequentBindingSet(TripleVarBindingSet otherOne, boolean onlyKeepCompatible) {
+		var bs = mergeBindingSets(this.getIncomingConsequentBindingSet(), otherOne);
+		if (bs != null) {
+			if (onlyKeepCompatible)
+				bs = bs.keepCompatible(this.getIncomingConsequentBindingSet());
+			this.setIncomingConsequentBindingSet(bs);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param otherOne
+	 * @return {@code true} if merge actually changed something, {@code false}
+	 *         otherwise.
+	 */
+	public boolean mergeIncomingAntecedentBindingSet(TripleVarBindingSet otherOne, boolean onlyKeepCompatible) {
+		var bs = mergeBindingSets(this.incomingConsequentBindingSet, otherOne);
+		if (bs != null) {
+			if (onlyKeepCompatible)
+				bs = bs.keepCompatible(this.getIncomingConsequentBindingSet());
+			this.setIncomingAntecedentBindingSet(bs);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Merges two bindingsets and returns {@code null} if nothing has changed.
+	 * 
+	 * @param existingOne
+	 * @param otherOne
+	 * @return
+	 */
+	public TripleVarBindingSet mergeBindingSets(TripleVarBindingSet existingOne, TripleVarBindingSet otherOne) {
+		TripleVarBindingSet newOne = existingOne.merge(otherOne);
+		if (existingOne.equals(newOne)) {
+			return null;
+		} else
+			return newOne;
+	}
 }

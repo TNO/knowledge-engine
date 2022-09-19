@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -56,7 +55,7 @@ public class MinimalTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(this.store, startRule);
+		ReasonerPlan root = new ReasonerPlan(this.store, startRule, taskboard);
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -64,7 +63,9 @@ public class MinimalTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		while (root.execute2(bs)) {
+			taskboard.executeScheduledTasks().get();
+		}
 
 		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
 
