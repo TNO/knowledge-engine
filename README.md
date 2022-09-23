@@ -101,14 +101,13 @@ These are instructions on what to do when we release a new version of the knowle
 	- openapi-sc.yaml version
 	- this readme.md file
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
-3. `mvn deploy` (for this you need `Deploy-Token` configured in your Maven's `settings.xml`)
+3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
 4. Build and push the new docker images:
-	- `docker build ./smart-connector-rest-dist -t docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.3`
-	- `docker build ./knowledge-directory -t docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.3`
-	- `docker build ./admin-ui -t docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.1.3`
-	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.3`
-	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.3`
-	- `docker push docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.1.3`
+```bash
+docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.3 --push
+docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.3 --push
+docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.1.3 --push
+```
 5. Prepare the next SNAPSHOT version and make a commit for that too.
 
 ## Running the REST server in Docker
