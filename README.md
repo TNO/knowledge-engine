@@ -110,14 +110,12 @@ docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/
 ```
 5. Prepare the next SNAPSHOT version and make a commit for that too.
 
-## Running the REST server in Docker
+## Running with Docker
 
-To build and run a Docker image for the REST server, do the following:
+To run a smart connector with a REST server, do the following:
 
 ```bash
-# Build the project, and place the dependencies in the target directories.
-# (Skip the tests.)
-mvn install -DskipTests
-
-docker-compose up
+docker run --rm -p 8280:8280 ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
 ```
+
+You can now use the REST API on port 8280 with base URL: `http://localhost:8280/rest`
