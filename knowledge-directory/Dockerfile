@@ -1,4 +1,7 @@
 FROM adoptopenjdk/openjdk11:jre
+LABEL org.opencontainers.image.source https://github.com/tno/knowledge-engine
+LABEL org.opencontainers.image.description="Knowledge Engine: Knowledge Directory"
+LABEL org.opencontainers.image.licenses=Apache-2.0
 
 ARG JAR_FILE=target/*-with-dependencies.jar
 
