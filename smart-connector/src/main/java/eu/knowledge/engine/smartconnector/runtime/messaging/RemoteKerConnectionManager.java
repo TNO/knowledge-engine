@@ -65,9 +65,12 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		var now = new Date();
 		
-		if (knowledgeDirectoryUpdateCooldownEnds == null || now.getTime() > knowledgeDirectoryUpdateCooldownEnds.getTime()) {
-			// Cooldown already ended: do it right away.
-			queryKnowledgeDirectory();
+		if (knowledgeDirectoryUpdateCooldownEnds == null) {
+			// Cooldown already ended: schedule it on the KeRuntime right away.
+			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
+				queryKnowledgeDirectory();
+				this.scheduledKnowledgeDirectoryQueryFuture = null;
+			}, 0, TimeUnit.MILLISECONDS);
 		} else {
 			// Cooldown not yet ended: schedule to update when the cooldown ends.
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
@@ -80,6 +83,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private synchronized void queryKnowledgeDirectory() {
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails;
 		try {
+			LOG.info("Querying Knowledge Directory for new peers");
 			kerConnectionDetails = messageDispatcher
 				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
 			// Check if there are new KERs
