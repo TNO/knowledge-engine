@@ -23,9 +23,9 @@ def kb_1():
     log.info(f"registering KB...")
     kb = client.register(
         KnowledgeBaseRegistrationRequest(
-            id="https://example.org/kb1",
-            name="KB1",
-            description="KB1 description",
+            id=f"{KB_ID}",
+            name=f"{KB_NAME}",
+            description=f"{KB_NAME}",
         )
     )
     log.info(f"KB registered!")
