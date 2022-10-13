@@ -16,7 +16,7 @@ The Knowledge Engine project consists of the following Maven modules:
 - `examples`
 	- A selection of examples of how the Java developer API is used.
 - `admin-ui`
-	- A (for now) command line tool that can be used as an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
+	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
 
 ## How to use the REST API
 Assuming there is a REST API instance running at a known host, you can use these instructions to help you get started with making a client for it.
