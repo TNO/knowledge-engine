@@ -63,7 +63,7 @@ public class MinimalTest {
 //		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		while (root.execute2(bs)) {
+		while (root.execute(bs)) {
 			taskboard.executeScheduledTasks().get();
 		}
 
