@@ -4,13 +4,13 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner2.AntecedentSide;
+import eu.knowledge.engine.reasoner2.AntSide;
 
 /**
  * @author nouwtb
  *
  */
-public class LogicalSinkReasoningNode extends SinkReasoningNode {
+public class ActiveAntRuleNode extends AntRuleNode {
 
 	public void flush() {
 		// TODO Auto-generated method stub

@@ -6,7 +6,7 @@ package eu.knowledge.engine.reasoner2;
 import java.util.Set;
 
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner2.reasoningnode.ReasoningNode;
+import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
 
 /**
  * @author nouwtb
@@ -14,14 +14,14 @@ import eu.knowledge.engine.reasoner2.reasoningnode.ReasoningNode;
  */
 public class BackwardAction {
 
-	private ReasoningNode startNode;
-	private Set<ReasoningNode> visitedFilterBS;
-	private Set<ReasoningNode> readyResultBS;
+	private RuleNode startNode;
+	private Set<RuleNode> visitedFilterBS;
+	private Set<RuleNode> readyResultBS;
 	// private Set<TaskBoard.Task> tasksOnBoard;
 	private TripleVarBindingSet readyResultBindingSet;
-	private ReasoningNode currentNode;
+	private RuleNode currentNode;
 
-	public BackwardAction(ReasoningNode aStartNode) {
+	public BackwardAction(RuleNode aStartNode) {
 
 	}
 

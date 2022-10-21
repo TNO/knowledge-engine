@@ -9,7 +9,7 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  * @author nouwtb
  *
  */
-public interface ConsequentSide {
+public interface ConsSide {
 
 	public void addFilterBindingSetInput(TripleVarBindingSet bs);
 

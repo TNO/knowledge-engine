@@ -1,8 +1,20 @@
+/**
+ * 
+ */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
-public class StubSourceReasoningNode extends SourceReasoningNode {
+/**
+ * @author nouwtb
+ *
+ */
+public class ActiveConsRuleNode extends ConsRuleNode {
+
+	public void query() {
+		// TODO Manually-generated method stub
+
+	}
 
 	@Override
 	public void addFilterBindingSetInput(TripleVarBindingSet bs) {

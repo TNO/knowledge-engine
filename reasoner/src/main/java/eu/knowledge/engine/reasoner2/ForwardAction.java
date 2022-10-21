@@ -5,7 +5,7 @@ package eu.knowledge.engine.reasoner2;
 
 import java.util.Set;
 
-import eu.knowledge.engine.reasoner2.reasoningnode.ReasoningNode;
+import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
 
 /**
  * @author nouwtb
@@ -13,9 +13,9 @@ import eu.knowledge.engine.reasoner2.reasoningnode.ReasoningNode;
  */
 public class ForwardAction {
 
-	private ReasoningNode startNode;
-	private Set<ReasoningNode> visited;
-	private Set<ReasoningNode> changed;
+	private RuleNode startNode;
+	private Set<RuleNode> visited;
+	private Set<RuleNode> changed;
 
 	public ForwardAction() {
 

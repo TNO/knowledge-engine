@@ -9,7 +9,7 @@ import eu.knowledge.engine.reasoner.BaseRule;
  * @author nouwtb
  *
  */
-public abstract class ReasoningNode {
+public abstract class RuleNode {
 
 	private BaseRule rule;
 	private boolean executeViaTaskboard;
@@ -21,5 +21,7 @@ public abstract class ReasoningNode {
 	public boolean getExecuteViaTaskboard() {
 		return executeViaTaskboard;
 	}
+
+	public abstract boolean isPartOfLoop();
 
 }
