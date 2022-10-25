@@ -3,6 +3,8 @@ package eu.knowledge.engine.admin;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -12,9 +14,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.SimpleSelector;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.update.UpdateAction;
+import org.apache.jena.update.UpdateFactory;
+import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +31,8 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
+import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
+import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
@@ -39,18 +48,30 @@ public class AdminUI implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
-	private static final int SLEEPTIME = 5;
+	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp kb:hasPattern ?pattern .";
+
 	private final SmartConnector sc;
 	private final PrefixMapping prefixes;
 	private volatile boolean connected = false;
 	private ScheduledFuture<?> future;
 	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
+	// used for getting initial knowledge about other KBs
 	private AskKnowledgeInteraction aKI;
+	// used triggered when new knowledge about other KBs is available
+	private ReactKnowledgeInteraction rKINew;
+	// used triggered when knowledge about other KBs changed
+	private ReactKnowledgeInteraction rKIChanged;
+	// used triggered when knowledge about other KBs is deleted
+	private ReactKnowledgeInteraction rKIRemoved;
+
 	private static AdminUI instance;
 	private static boolean continuousLog = true;
 	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
 
 	private Model model;
+
+	private GraphPattern metaGraphPattern;
 
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
@@ -63,6 +84,7 @@ public class AdminUI implements KnowledgeBase {
 		this.prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		this.prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
+		this.metaGraphPattern = new GraphPattern(this.prefixes, META_GRAPH_PATTERN_STR);
 		// create a new Smart Connector for this Admin UI
 		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 
@@ -104,38 +126,94 @@ public class AdminUI implements KnowledgeBase {
 		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
 		// first define your graph pattern
-		GraphPattern gp = new GraphPattern(this.prefixes,
-			"?kb rdf:type kb:KnowledgeBase .",
-			"?kb kb:hasName ?name .",
-			"?kb kb:hasDescription ?description .",
-			"?kb kb:hasKnowledgeInteraction ?ki .",
-			"?ki rdf:type ?kiType .",
-			"?ki kb:isMeta ?isMeta .",
-			"?ki kb:hasCommunicativeAct ?act .",
-			"?act rdf:type kb:CommunicativeAct .",
-			"?act kb:hasRequirement ?req .",
-			"?act kb:hasSatisfaction ?sat .",
-			"?req rdf:type ?reqType .",
-			"?sat rdf:type ?satType .",
-			"?ki kb:hasGraphPattern ?gp .",
-			"?gp rdf:type ?patternType .",
-			"?gp kb:hasPattern ?pattern ."
-		);
+
 		//todo: possibly add:
 		//"?s kb:hasEndpoint ?endpoint .",
 		//"?t kb:hasData ?data .",
 
-		// create the correct Knowledge Interaction
-		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
+		// create the correct Knowledge Interactions
+		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true);
+		this.rKINew = new ReactKnowledgeInteraction(
+			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+			this.metaGraphPattern, null
+		);
+		this.rKIChanged = new ReactKnowledgeInteraction(
+			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+			this.metaGraphPattern, null
+		);
+		this.rKIRemoved = new ReactKnowledgeInteraction(
+			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+			this.metaGraphPattern, null
+		);
 
-		// register the knowledge interaction with the smart connector.
+		// register the knowledge interactions with the smart connector.
 		this.sc.register(this.aKI);
+		this.sc.register(this.rKINew, (rki, ei) -> this.handleNewKnowledgeBaseKnowledge(ei));
+		this.sc.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBaseKnowledge(ei));
+		this.sc.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBaseKnowledge(ei));
 
 		this.connected = true;
 
 		// todo: use ad-hoc route/function for API to get data instead of polling
 		// job that regularly retrieves and prints all available knowledge bases.
-		this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
+		this.future = this.executorService.schedule(new AskRunnable(), 0, TimeUnit.SECONDS);
+		// this.future = this.executorService.scheduleWithFixedDelay(new AskRunnable(), 0, SLEEPTIME, TimeUnit.SECONDS);
+	}
+
+	public BindingSet handleNewKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+		try {
+			Model model = eu.knowledge.engine.smartconnector.impl.Util
+									.generateModel(AdminUI.this.aKI.getPattern(), ei.getArgumentBindings());
+			model.setNsPrefixes(AdminUI.this.prefixes);
+
+			// this we can simply add to our model
+			AdminUI.this.model.add(model);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return new BindingSet();
+	}
+	
+	public BindingSet handleChangedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+		try {
+			Model model = eu.knowledge.engine.smartconnector.impl.Util
+									.generateModel(AdminUI.this.aKI.getPattern(), ei.getArgumentBindings());
+			model.setNsPrefixes(AdminUI.this.prefixes);
+			
+			// this is a little more complex... we have to:
+			// - extract the knowledge base that this message is about
+			// - delete all old data about that knowledge base
+			// - insert the *new* data about that knowledge base
+
+			Resource kb = model.query(new SimpleSelector(null, RDF.type, Vocab.KNOWLEDGE_BASE)).listSubjects().next();
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			UpdateRequest updateRequest = UpdateFactory.create(query);
+			UpdateAction.execute(updateRequest, AdminUI.this.model);
+
+			AdminUI.this.model.add(model);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return new BindingSet();
+	}
+	public BindingSet handleRemovedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+		try {
+			Model model = eu.knowledge.engine.smartconnector.impl.Util
+									.generateModel(AdminUI.this.aKI.getPattern(), ei.getArgumentBindings());
+			model.setNsPrefixes(AdminUI.this.prefixes);
+
+			// this is also a little complex... we have to:
+			// - extract the knowledge base that this message is about
+			// - delete all old data about that knowledge base
+
+			Resource kb = model.query(new SimpleSelector(null, RDF.type, Vocab.KNOWLEDGE_BASE)).listSubjects().next();
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			UpdateRequest updateRequest = UpdateFactory.create(query);
+			UpdateAction.execute(updateRequest, AdminUI.this.model);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return new BindingSet();
 	}
 
 	/**
