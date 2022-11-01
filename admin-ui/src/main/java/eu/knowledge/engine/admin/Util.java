@@ -103,26 +103,29 @@ public class Util {
 	}
 
 	public static String getGraphPattern(Model model, Resource kiRes) {
-		Resource gpRes = kiRes.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("ke:hasGraphPattern")));
-		return gpRes.getProperty(model.getProperty(model.expandPrefix("ke:hasPattern"))).getObject().asLiteral().getLexicalForm();
-
+		Resource gpRes = kiRes.getPropertyResourceValue(Vocab.HAS_GP);
+		return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 	}
 
 	public static String getArgument(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("ke:hasArgumentGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("ke:hasPattern"))).getObject().asLiteral().getLexicalForm();
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP)
+			.mapWith(s -> s.getObject().asResource())
+			.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.ARGUMENT_GRAPH_PATTERN));
+		if (gpRess.hasNext()) {
+			var gpRes = gpRess.next();
+			return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 		} else {
 			return NONE;
 		}
 	}
 
 	public static String getResult(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("ke:hasResultGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("ke:hasPattern"))).getObject().asLiteral().getLexicalForm();
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP)
+				.mapWith(s -> s.getObject().asResource())
+				.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.RESULT_GRAPH_PATTERN));
+		if (gpRess.hasNext()) {
+			var gpRes = gpRess.next();
+			return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 		} else {
 			return NONE;
 		}
