@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -43,7 +44,7 @@ public class AdminUI implements KnowledgeBase {
 
 	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type ke:KnowledgeBase . ?kb ke:hasName ?name . ?kb ke:hasDescription ?description . ?kb ke:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki ke:isMeta ?isMeta . ?ki ke:hasCommunicativeAct ?act . ?act rdf:type ke:CommunicativeAct . ?act ke:hasRequirement ?req . ?act ke:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki ke:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp ke:hasPattern ?pattern .";
 
-	private final SmartConnector sc;
+	private SmartConnector sc;
 	private final PrefixMapping prefixes;
 
 	// used for getting initial knowledge about other KBs
@@ -57,7 +58,7 @@ public class AdminUI implements KnowledgeBase {
 
 	private static AdminUI instance;
 	private static boolean continuousLog = true;
-	private static String knowledgeBaseId = "https://www.tno.nl/energie/interconnect/adminui-" + Math.random();
+	private static String knowledgeBaseId = "https://knowledge-engine.eu/adminui-" + UUID.randomUUID();
 
 	private Model model;
 
@@ -75,7 +76,7 @@ public class AdminUI implements KnowledgeBase {
 
 		this.metaGraphPattern = new GraphPattern(this.prefixes, META_GRAPH_PATTERN_STR);
 		// create a new Smart Connector for this Admin UI
-		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+		SmartConnectorBuilder.newSmartConnector(this).create();
 
 		// we wait for the Smart Connector to be ready, before registering our Knowledge
 		// Interactions and starting the Ask job.
@@ -111,6 +112,7 @@ public class AdminUI implements KnowledgeBase {
 
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
+		this.sc = aSC;
 
 		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
