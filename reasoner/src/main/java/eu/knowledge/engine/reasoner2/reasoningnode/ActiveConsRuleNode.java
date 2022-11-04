@@ -17,13 +17,37 @@ public class ActiveConsRuleNode extends ConsRuleNode {
 	}
 
 	@Override
-	public void addFilterBindingSetInput(TripleVarBindingSet bs) {
+	public void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void sendResultBindingSetOutput(TripleVarBindingSet bs) {
+	public TripleVarBindingSet getFBOutput() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void applyRule() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void transformFilterBS() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public TripleVarBindingSet getRBOutput() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
 		// TODO Auto-generated method stub
 
 	}

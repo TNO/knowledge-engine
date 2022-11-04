@@ -4,6 +4,7 @@
 package eu.knowledge.engine.reasoner2;
 
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
 
 /**
  * @author nouwtb
@@ -11,7 +12,7 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  */
 public interface ConsSide {
 
-	public void addFilterBindingSetInput(TripleVarBindingSet bs);
+	public void addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
 
-	public void sendResultBindingSetOutput(TripleVarBindingSet bs);
+	public TripleVarBindingSet getResultBindingSetOutput();
 }
