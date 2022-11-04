@@ -1,0 +1,85 @@
+# baseURI: https://w3id.org/knowledge-engine/devices/
+# imports: https://saref.etsi.org/core/v3.1.1/
+# imports: https://w3id.org/knowledge-engine
+# prefix: ke-devices
+
+@prefix ke: <https://w3id.org/knowledge-engine/> .
+@prefix ke-devices: <https://w3id.org/knowledge-engine/devices/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix saref: <https://saref.etsi.org/core/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ke-devices:
+  a owl:Ontology ;
+  owl:imports <https://saref.etsi.org/core/v3.1.1/> ;
+  owl:imports <https://w3id.org/knowledge-engine> ;
+  owl:versionInfo "Created with TopBraid Composer" ;
+.
+ke-devices:DeviceAccessChange
+  a owl:Class ;
+  rdfs:comment "An instance of this class signifies a change in the access policy of a device. The linked device (hasResource) is now accessible OR no longer accessible by the linked consumer (hasConsumer)." ;
+  rdfs:label "Device access change" ;
+  rdfs:subClassOf owl:Thing ;
+.
+ke-devices:DeviceUseIntent
+  a owl:Class ;
+  rdfs:comment "An instance of this class declares an intention to use devices that support the specified function(s) linked with useFunction." ;
+  rdfs:label "Device use intent" ;
+  rdfs:subClassOf owl:Thing ;
+.
+ke-devices:hasAccessTo
+  a owl:ObjectProperty ;
+  rdfs:comment "This property declares that the Knowledge Base (subject) has access to the device (object), meaning that the device should process incoming requests from the subject Knowledge Base." ;
+  rdfs:domain ke:KnowledgeBase ;
+  rdfs:label "has access to" ;
+  rdfs:range saref:Device ;
+.
+ke-devices:hasConsumer
+  a owl:ObjectProperty ;
+  rdfs:comment "Attaching a Knowledge Base to a Device Access Change with this property, means that the new policy will be enforced for the Knowledge Base in question. Meaning that the Knowledge Base may or may not consume a given resource afther the Device Access Change has been enforced." ;
+  rdfs:domain ke-devices:DeviceAccessChange ;
+  rdfs:label "has consumer" ;
+  rdfs:range ke:KnowledgeBase ;
+.
+ke-devices:hasDeviceUseIntent
+  a owl:ObjectProperty ;
+  rdfs:comment "This property is used to express that a Knowledge Base has an intention to use devices of some kind. The intention can be further specified with :useFunction to only express intention to use devices that support specific Functions." ;
+  rdfs:domain ke:KnowledgeBase ;
+  rdfs:label "has device use intent" ;
+  rdfs:range ke-devices:DeviceUseIntent ;
+.
+ke-devices:hasRegistrationURI
+  a owl:DatatypeProperty ;
+  rdfs:domain ke:KnowledgeBase ;
+  rdfs:label "has registration URI" ;
+  rdfs:range xsd:anyURI ;
+.
+ke-devices:hasResource
+  a owl:ObjectProperty ;
+  rdfs:comment "This property states the resource (a device) that is being protected by a policy." ;
+  rdfs:domain ke-devices:DeviceAccessChange ;
+  rdfs:label "has resource" ;
+  rdfs:range saref:Device ;
+.
+ke-devices:isRepresentedBy
+  a owl:ObjectProperty ;
+  rdfs:comment "This object property denotes that the subject (the device) is represented in the Knowledge Engine network by the object (a Knowledge Base)" ;
+  rdfs:domain saref:Device ;
+  rdfs:label "is represented by" ;
+  rdfs:range ke:KnowledgeBase ;
+.
+ke-devices:newAccessStatus
+  a owl:DatatypeProperty ;
+  rdfs:comment "This data property denotes whether or not the new policy should give access (true) or deny access (false)." ;
+  rdfs:domain ke-devices:DeviceAccessChange ;
+  rdfs:label "new access status" ;
+  rdfs:range xsd:boolean ;
+.
+ke-devices:useFunction
+  a owl:ObjectProperty ;
+  rdfs:comment "This object property declares that an intention requires the use of the linked function." ;
+  rdfs:label "use function" ;
+  rdfs:range saref:Function ;
+.
