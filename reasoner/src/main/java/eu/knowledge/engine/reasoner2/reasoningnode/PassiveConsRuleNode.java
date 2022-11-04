@@ -1,5 +1,8 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.Set;
+
+import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 public class PassiveConsRuleNode extends ConsRuleNode {
@@ -44,6 +47,36 @@ public class PassiveConsRuleNode extends ConsRuleNode {
 	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void addConsequentNeighbour(RuleNode neighbour, Set<Match> matches) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Set<RuleNode> getConsequentNeighbours() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<RuleNode> getAllNeighbours() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean readyForTransformFilter() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean readyForApplyRule() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

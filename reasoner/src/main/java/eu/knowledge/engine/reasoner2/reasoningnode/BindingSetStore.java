@@ -1,6 +1,3 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.Map;

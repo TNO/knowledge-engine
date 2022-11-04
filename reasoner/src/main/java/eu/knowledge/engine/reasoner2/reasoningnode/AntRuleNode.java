@@ -1,6 +1,3 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.Map;
@@ -25,6 +22,17 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	 * rule's antecedent either fully or partially.
 	 */
 	private Map<RuleNode, Set<Match>> antecedentNeighbors;
+
+	@Override
+	public Set<RuleNode> getAntecedentNeighbours() {
+		return this.antecedentNeighbors.keySet();
+	}
+	
+	
+	@Override
+	public Set<RuleNode> getAllNeighbours() {
+		return this.antecedentNeighbors.keySet();
+	}
 
 	@Override
 	public boolean isPartOfLoop() {

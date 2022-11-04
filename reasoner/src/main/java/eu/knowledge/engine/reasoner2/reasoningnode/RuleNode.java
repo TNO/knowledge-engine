@@ -3,6 +3,8 @@
  */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.Set;
+
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
@@ -19,6 +21,8 @@ public abstract class RuleNode {
 		return rule;
 	}
 
+	public abstract Set<RuleNode> getAllNeighbours();
+
 	public boolean getExecuteViaTaskboard() {
 		return executeViaTaskboard;
 	}
@@ -31,10 +35,13 @@ public abstract class RuleNode {
 
 	public abstract void applyRule();
 
+	public abstract boolean readyForTransformFilter();
 	public abstract void transformFilterBS();
 
 	public abstract TripleVarBindingSet getRBOutput();
 
 	public abstract void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet);
+
+  public abstract boolean readyForApplyRule();
 
 }
