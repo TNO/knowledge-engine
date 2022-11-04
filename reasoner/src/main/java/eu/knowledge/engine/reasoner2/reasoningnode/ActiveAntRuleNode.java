@@ -1,9 +1,9 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
-import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Rule;
 
 /**
  * @author nouwtb
@@ -11,67 +11,34 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  */
 public class ActiveAntRuleNode extends AntRuleNode {
 
-	public void flush() {
-		// TODO Auto-generated method stub
-
-	}
-
-
-	@Override
-	public void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-		
+	public ActiveAntRuleNode(BaseRule aRule) {
+		super(aRule);
 	}
 
 	@Override
-	public TripleVarBindingSet getFBOutput() {
-		// TODO Auto-generated method stub
-		return null;
+	public boolean readyForTransformFilter() {
+		return false;
+	}
+	
+	@Override
+	public void transformFilterBS() {
+		assert false;
+	}
+
+	@Override
+	public boolean readyForApplyRule() {
+		return this.resultBindingSetInput.haveAllNeighborsContributed();
 	}
 
 	@Override
 	public void applyRule() {
-		// TODO Auto-generated method stub
-		
+		assert this.getRule() instanceof Rule;
+		var handler = ((Rule) this.getRule()).getSinkBindingSetHandler();
+		try {
+			handler.handle(this.resultBindingSetInput.get().toBindingSet()).get();
+		} catch (InterruptedException | ExecutionException e) {
+			// TODO
+			e.printStackTrace();
+		}
 	}
-
-	@Override
-	public void transformFilterBS() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public TripleVarBindingSet getRBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void addAntecedentNeighbour(RuleNode neighbour, Set<Match> matches) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public boolean readyForTransformFilter() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-
-	@Override
-	public boolean readyForApplyRule() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2;
 
 import java.util.Set;
@@ -19,7 +16,5 @@ public interface ConsSide {
 
 	public Set<RuleNode> getConsequentNeighbours();
 
-	public void addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
-
-	public TripleVarBindingSet getResultBindingSetOutput();
+	public boolean addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
 }

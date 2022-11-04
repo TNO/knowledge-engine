@@ -1,6 +1,3 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.Set;
@@ -17,6 +14,10 @@ public abstract class RuleNode {
 	private BaseRule rule;
 	private boolean executeViaTaskboard;
 
+	public RuleNode(BaseRule aRule) {
+		this.rule = aRule;
+	}
+
 	public BaseRule getRule() {
 		return rule;
 	}
@@ -27,21 +28,12 @@ public abstract class RuleNode {
 		return executeViaTaskboard;
 	}
 
-	public abstract boolean isPartOfLoop();
-
-	public abstract void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet);
-
-	public abstract TripleVarBindingSet getFBOutput();
-
 	public abstract void applyRule();
+  public abstract boolean readyForApplyRule();
+	public abstract TripleVarBindingSet getResultBindingSetOutput();
 
 	public abstract boolean readyForTransformFilter();
 	public abstract void transformFilterBS();
-
-	public abstract TripleVarBindingSet getRBOutput();
-
-	public abstract void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet);
-
-  public abstract boolean readyForApplyRule();
+	public abstract TripleVarBindingSet getFilterBindingSetOutput();
 
 }

@@ -1,12 +1,6 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
-import java.util.Set;
-
-import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.BaseRule;
 
 /**
  * @author nouwtb
@@ -14,58 +8,27 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  */
 public class PassiveAntRuleNode extends AntRuleNode {
 
-	@Override
-	public void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getFBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void applyRule() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void transformFilterBS() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getRBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addAntecedentNeighbour(RuleNode neighbour, Set<Match> matches) {
-		// TODO Auto-generated method stub
-		
+	public PassiveAntRuleNode(BaseRule aRule) {
+		super(aRule);
 	}
 
 	@Override
 	public boolean readyForTransformFilter() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
+	public void transformFilterBS() {
+		assert false;
+	}
+
+	@Override
 	public boolean readyForApplyRule() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
+	public void applyRule() {
+		assert false;
+	}
 }

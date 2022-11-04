@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +18,7 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 public class BindingSetStore {
 
 	private Set<RuleNode> neighbors;
-	private Map<RuleNode, TripleVarBindingSet> neighborBindingSet;
+	private Map<RuleNode, TripleVarBindingSet> neighborBindingSet = new HashMap<>();
 	private Set<TriplePattern> graphPattern;
 
 	public BindingSetStore(Set<TriplePattern> aGraphPattern, Set<RuleNode> someNeighbors) {

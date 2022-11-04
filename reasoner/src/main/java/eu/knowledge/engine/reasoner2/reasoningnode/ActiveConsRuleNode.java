@@ -1,12 +1,9 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
-import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Rule;
 
 /**
  * @author nouwtb
@@ -14,75 +11,36 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  */
 public class ActiveConsRuleNode extends ConsRuleNode {
 
-	public void query() {
-		// TODO Manually-generated method stub
-
-	}
-
-	@Override
-	public void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getFBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void applyRule() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void transformFilterBS() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getRBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addConsequentNeighbour(RuleNode neighbour, Set<Match> matches) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Set<RuleNode> getConsequentNeighbours() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<RuleNode> getAllNeighbours() {
-		// TODO Auto-generated method stub
-		return null;
+	public ActiveConsRuleNode(BaseRule aRule) {
+		super(aRule);
 	}
 
 	@Override
 	public boolean readyForTransformFilter() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
+	}
+
+	@Override
+	public void transformFilterBS() {
+		assert this.readyForTransformFilter();
 	}
 
 	@Override
 	public boolean readyForApplyRule() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.filterBindingSetInput.haveAllNeighborsContributed();
 	}
 
+	@Override
+	public void applyRule() {
+		assert this.readyForApplyRule();
+		assert this.getRule() instanceof Rule;
+		var handler = ((Rule) this.getRule()).getBindingSetHandler();
+		try {
+			var result = handler.handle(this.filterBindingSetInput.get().toBindingSet()).get();
+			this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
+		} catch (InterruptedException | ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

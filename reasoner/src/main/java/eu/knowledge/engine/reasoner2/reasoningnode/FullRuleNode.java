@@ -1,13 +1,14 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner2.AntSide;
 import eu.knowledge.engine.reasoner2.ConsSide;
@@ -18,18 +19,28 @@ import eu.knowledge.engine.reasoner2.ConsSide;
  */
 public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
-	private Map<RuleNode, Set<Match>> antecedentNeighbours;
-	private Map<RuleNode, Set<Match>> consequentNeighbours;
+	private BindingSetStore resultBindingSetInput;
+	private BindingSetStore filterBindingSetInput;
+	private TripleVarBindingSet resultBindingSetOutput;
+	private TripleVarBindingSet filterBindingSetOutput;
+
+	public FullRuleNode(BaseRule aRule) {
+		super(aRule);
+		this.resultBindingSetInput = new BindingSetStore(aRule.getAntecedent(), this.antecedentNeighbours.keySet());
+		this.filterBindingSetInput = new BindingSetStore(aRule.getConsequent(), this.consequentNeighbours.keySet());
+	}
+
+	private Map<RuleNode, Set<Match>> antecedentNeighbours = new HashMap<>();
+	private Map<RuleNode, Set<Match>> consequentNeighbours = new HashMap<>();
 
 	@Override
 	public void addConsequentNeighbour(RuleNode neighbour, Set<Match> matches) {
-		// TODO Auto-generated method stub
-		
+		this.consequentNeighbours.put(neighbour, matches);
 	}
 
 	@Override
 	public void addAntecedentNeighbour(RuleNode neighbour, Set<Match> matches) {
-		// TODO Auto-generated method stub	
+		this.antecedentNeighbours.put(neighbour, matches);
 	}
 
 	@Override
@@ -42,82 +53,6 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		return this.antecedentNeighbours.keySet();
 	}
 
-	public void convertResultBindingSet() {
-		// TODO Manually-generated method stub
-
-	}
-
-	public void convertFilterBindingSet() {
-		// TODO Manually-generated method stub
-
-	}
-
-	@Override
-	public boolean isPartOfLoop() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getResultBindingSetOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getFilterBindingSetOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addRBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getFBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void applyRule() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void transformFilterBS() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public TripleVarBindingSet getRBOutput() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addFDBInput(RuleNode aRuleNode, TripleVarBindingSet aBindingSet) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override
 	public Set<RuleNode> getAllNeighbours() {
 		Set<RuleNode> result = new HashSet<>();
@@ -127,16 +62,62 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 		return result;
 	}
+	
+	@Override
+	public boolean addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
+		return this.filterBindingSetInput.add(aNeighbor, bs);
+	}
+	
+	@Override
+	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
+		return this.resultBindingSetInput.add(aNeighbor, bs);
+	}
+	
+	@Override
+	public TripleVarBindingSet getFilterBindingSetOutput() {
+		return this.filterBindingSetOutput;
+	}	
+
+	@Override
+	public TripleVarBindingSet getResultBindingSetOutput() {
+		return this.resultBindingSetOutput;
+	}
 
 	@Override
 	public boolean readyForTransformFilter() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.filterBindingSetInput.haveAllNeighborsContributed();
+	}
+
+	@Override
+	public void transformFilterBS() {
+		assert this.readyForTransformFilter();
+		assert this.getRule() instanceof Rule;
+		var handler = ((Rule) this.getRule()).getInverseBindingSetHandler();
+		try {
+			var result = handler.handle(this.filterBindingSetInput.get().toBindingSet()).get();
+			this.filterBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getAntecedent());
+		} catch (InterruptedException | ExecutionException e) {
+			// TODO
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public boolean readyForApplyRule() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.resultBindingSetInput.haveAllNeighborsContributed();
+	}
+
+	@Override
+	public void applyRule() {
+		assert this.readyForApplyRule();
+		assert this.getRule() instanceof Rule;
+		var handler = ((Rule) this.getRule()).getBindingSetHandler();
+		try {
+			var result = handler.handle(this.resultBindingSetInput.get().toBindingSet()).get();
+			this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
+		} catch (InterruptedException | ExecutionException e) {
+			// TODO
+			e.printStackTrace();
+		}
 	}
 }

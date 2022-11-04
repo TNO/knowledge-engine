@@ -1,6 +1,3 @@
-/**
- * 
- */
 package eu.knowledge.engine.reasoner2;
 
 import java.util.Set;
@@ -19,8 +16,6 @@ public interface AntSide {
 
 	public Set<RuleNode> getAntecedentNeighbours();
 
-	public void addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
-
-	public TripleVarBindingSet getFilterBindingSetOutput();
+	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
 
 }
