@@ -5,11 +5,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -35,8 +38,15 @@ public class ReasonerPlan {
     this.ruleToRuleNode = new HashMap<>();
   }
   
-  public void execute(BindingSet bindingSet) {
+  public BindingSet execute(BindingSet bindingSet) {
     RuleNode startNode = createOrGetReasonerNode(this.start);
+
+    if (this.isBackward()) {
+      assert startNode instanceof PassiveAntRuleNode;
+      ((PassiveAntRuleNode) startNode).setFilterBindingSetOutput(bindingSet);
+    } else {
+      throw new NotImplementedException();
+    }
 
     // TODO: Deque
     Stack<RuleNode> stack = new Stack<>();
@@ -69,8 +79,10 @@ public class ReasonerPlan {
         TripleVarBindingSet toBeFilterPropagated = current.getFilterBindingSetOutput();
         if (toBeFilterPropagated != null) {
           assert current instanceof AntSide;
-          ((AntSide) current).getAntecedentNeighbours().forEach(n -> {
-            boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, toBeFilterPropagated);
+          ((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
+            // TODO: Invertion hell?
+            var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(), Match.invertAll(matches));
+            boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, translated);
             if (itChanged) {
               changed.add(n);
             }
@@ -80,8 +92,10 @@ public class ReasonerPlan {
         TripleVarBindingSet toBeResultPropagated = current.getResultBindingSetOutput();
         if (toBeResultPropagated != null) {
           assert current instanceof ConsSide;
-          ((ConsSide) current).getConsequentNeighbours().forEach(n -> {
-            boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, toBeResultPropagated);
+          ((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
+            // TODO: Invertion hell?
+            var translated = toBeResultPropagated.translate(n.getRule().getConsequent(), Match.invertAll(matches));
+            boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
             if (itChanged) {
               changed.add(n);
             }
@@ -91,6 +105,14 @@ public class ReasonerPlan {
         visited.add(current);
       }
     } while (!changed.isEmpty());
+
+    // TODO: Dit is gek
+    if (this.isBackward()) {
+      assert startNode instanceof PassiveAntRuleNode;
+      return ((PassiveAntRuleNode) startNode).getResultBindingSetInput();
+    } else {
+      throw new NotImplementedException();
+    }
   }
 
   public RuleNode newNode(BaseRule rule) {
@@ -144,8 +166,10 @@ public class ReasonerPlan {
           assert newNode instanceof ConsSide;
           ((AntSide) reasonerNode).addAntecedentNeighbour(newNode, matches);
 
+
+          var inverseMatches = Match.invertAll(matches);
           // TODO: Validate with Barry if we can use the same `matches` object here
-          ((ConsSide) newNode).addConsequentNeighbour(reasonerNode, matches);
+          ((ConsSide) newNode).addConsequentNeighbour(reasonerNode, inverseMatches);
 				} else {
 					LOG.trace("Skipped proactive rule: {}", rule);
 				}
@@ -157,9 +181,10 @@ public class ReasonerPlan {
           assert reasonerNode instanceof ConsSide;
           var newNode = createOrGetReasonerNode(rule);
           ((ConsSide) reasonerNode).addConsequentNeighbour(newNode, matches);
-
+          
+          var inverseMatches = Match.invertAll(matches);
           // TODO: Validate with Barry if we can use the same `matches` object here
-          ((AntSide) newNode).addAntecedentNeighbour(reasonerNode, matches);
+          ((AntSide) newNode).addAntecedentNeighbour(reasonerNode, inverseMatches);
 				} else {
 					LOG.trace("Skipped proactive rule: {}", rule);
 				}
@@ -174,7 +199,8 @@ public class ReasonerPlan {
           ((AntSide) reasonerNode).addAntecedentNeighbour(newNode, matches);
 
           // TODO: Validate with Barry if we can use the same `matches` object here
-          ((ConsSide) newNode).addConsequentNeighbour(reasonerNode, matches);
+          var inverseMatches = Match.invertAll(matches);
+          ((ConsSide) newNode).addConsequentNeighbour(reasonerNode, inverseMatches);
 				} else {
 					LOG.trace("Skipped proactive rule: {}", rule);
 				}

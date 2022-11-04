@@ -36,13 +36,13 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	}
 
 	@Override
-	public Set<RuleNode> getConsequentNeighbours() {
-		return this.consequentNeighbours.keySet();
+	public Map<RuleNode, Set<Match>> getConsequentNeighbours() {
+		return this.consequentNeighbours;
 	}
 
 	@Override
 	public Set<RuleNode> getAllNeighbours() {
-		return this.getConsequentNeighbours();
+		return this.getConsequentNeighbours().keySet();
 	}
 
 	@Override

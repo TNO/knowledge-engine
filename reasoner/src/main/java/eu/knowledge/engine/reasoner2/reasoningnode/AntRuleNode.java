@@ -22,7 +22,8 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	}
 
 	protected BindingSetStore resultBindingSetInput;
-	private TripleVarBindingSet filterBindingSetOutput;
+
+	protected TripleVarBindingSet filterBindingSetOutput;
 
 	/**
 	 * All relevant rules from the {@link RuleStore} whose consequents match this
@@ -36,13 +37,13 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	}
 
 	@Override
-	public Set<RuleNode> getAntecedentNeighbours() {
-		return this.antecedentNeighbours.keySet();
+	public Map<RuleNode, Set<Match>> getAntecedentNeighbours() {
+		return this.antecedentNeighbours;
 	}
 	
 	@Override
 	public Set<RuleNode> getAllNeighbours() {
-		return this.getAntecedentNeighbours();
+		return this.getAntecedentNeighbours().keySet();
 	}
 
 	@Override

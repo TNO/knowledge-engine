@@ -17,9 +17,9 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  */
 public class BindingSetStore {
 
-	private Set<RuleNode> neighbors;
-	private Map<RuleNode, TripleVarBindingSet> neighborBindingSet = new HashMap<>();
-	private Set<TriplePattern> graphPattern;
+	private final Set<RuleNode> neighbors;
+	private final Map<RuleNode, TripleVarBindingSet> neighborBindingSet = new HashMap<>();
+	private final Set<TriplePattern> graphPattern;
 
 	public BindingSetStore(Set<TriplePattern> aGraphPattern, Set<RuleNode> someNeighbors) {
 		this.graphPattern = aGraphPattern;
@@ -40,7 +40,7 @@ public class BindingSetStore {
 		assert aBindingSet != null;
 		assert neighbors.contains(aNeighbor);
 
-		TripleVarBindingSet previousBindingSet = neighborBindingSet.put(aNeighbor, aBindingSet);
+		TripleVarBindingSet previousBindingSet = this.neighborBindingSet.put(aNeighbor, aBindingSet);
 
 		return previousBindingSet == null || !previousBindingSet.equals(aBindingSet);
 	}

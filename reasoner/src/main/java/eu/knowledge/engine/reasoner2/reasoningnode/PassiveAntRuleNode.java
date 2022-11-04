@@ -1,6 +1,8 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 /**
  * @author nouwtb
@@ -10,6 +12,14 @@ public class PassiveAntRuleNode extends AntRuleNode {
 
 	public PassiveAntRuleNode(BaseRule aRule) {
 		super(aRule);
+	}
+
+	public BindingSet getResultBindingSetInput() {
+		return this.resultBindingSetInput.get().toBindingSet();
+	}
+
+	public void setFilterBindingSetOutput(BindingSet bs) {
+		this.filterBindingSetOutput = new TripleVarBindingSet(this.getRule().getAntecedent(), bs);
 	}
 
 	@Override

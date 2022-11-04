@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner2;
 
+import java.util.Map;
 import java.util.Set;
 
 import eu.knowledge.engine.reasoner.Match;
@@ -14,7 +15,7 @@ public interface AntSide {
 
 	public void addAntecedentNeighbour(RuleNode neighbour, Set<Match> matches);
 
-	public Set<RuleNode> getAntecedentNeighbours();
+	public Map<RuleNode, Set<Match>> getAntecedentNeighbours();
 
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs);
 

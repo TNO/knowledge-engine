@@ -100,15 +100,15 @@ public class VerySimpleBackwardTest {
 	@Test
 	public void doReasoning() {
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(store, startRule);
-		System.out.println(root);
+		ReasonerPlan plan = new ReasonerPlan(store, startRule);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		binding2.put("p", "<sensor1>");
 		binding2.put("q", "22");
 		bs.add(binding2);
-		root.execute(bs);
+		var result = plan.execute(bs);
+		System.out.println(result);
 	}
 
 }

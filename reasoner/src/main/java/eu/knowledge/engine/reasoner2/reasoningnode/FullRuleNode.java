@@ -44,21 +44,21 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	}
 
 	@Override
-	public Set<RuleNode> getConsequentNeighbours() {
-		return this.consequentNeighbours.keySet();
+	public Map<RuleNode, Set<Match>> getConsequentNeighbours() {
+		return this.consequentNeighbours;
 	}
 	
 	@Override
-	public Set<RuleNode> getAntecedentNeighbours() {
-		return this.antecedentNeighbours.keySet();
+	public Map<RuleNode, Set<Match>> getAntecedentNeighbours() {
+		return this.antecedentNeighbours;
 	}
 
 	@Override
 	public Set<RuleNode> getAllNeighbours() {
 		Set<RuleNode> result = new HashSet<>();
 
-		result.addAll(this.getAntecedentNeighbours());
-		result.addAll(this.getConsequentNeighbours());
+		result.addAll(this.getAntecedentNeighbours().keySet());
+		result.addAll(this.getConsequentNeighbours().keySet());
 
 		return result;
 	}
