@@ -113,7 +113,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getBindingSetHandler();
 		try {
-			var result = handler.handle(this.resultBindingSetInput.get().toBindingSet()).get();
+			var result = handler.handle(this.resultBindingSetInput.get().getFullBindingSet().toBindingSet()).get();
 			this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
 		} catch (InterruptedException | ExecutionException e) {
 			// TODO

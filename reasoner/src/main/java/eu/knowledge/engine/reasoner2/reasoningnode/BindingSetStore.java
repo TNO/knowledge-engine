@@ -59,6 +59,10 @@ public class BindingSetStore {
 		for (TripleVarBindingSet bs : this.neighborBindingSet.values()) {
 			combinedBS = combinedBS.merge(bs);
 		}
-		return combinedBS;
+
+		// NOTE: we merge the bindings with themselves here (when the bindings
+		// 'leave' the store), but it may be better to do it when they enter the
+		// store, or when they get translated/matched.
+		return combinedBS.merge(combinedBS);
 	}
 }

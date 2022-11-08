@@ -35,7 +35,7 @@ public class ActiveAntRuleNode extends AntRuleNode {
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getSinkBindingSetHandler();
 		try {
-			handler.handle(this.resultBindingSetInput.get().toBindingSet()).get();
+			handler.handle(this.resultBindingSetInput.get().getFullBindingSet().toBindingSet()).get();
 		} catch (InterruptedException | ExecutionException e) {
 			// TODO
 			e.printStackTrace();

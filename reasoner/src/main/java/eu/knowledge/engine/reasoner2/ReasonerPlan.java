@@ -45,7 +45,8 @@ public class ReasonerPlan {
       assert startNode instanceof PassiveAntRuleNode;
       ((PassiveAntRuleNode) startNode).setFilterBindingSetOutput(bindingSet);
     } else {
-      throw new NotImplementedException();
+      assert startNode instanceof PassiveConsRuleNode;
+      ((PassiveConsRuleNode) startNode).setResultBindingOutput(bindingSet);
     }
 
     // TODO: Deque
@@ -111,7 +112,7 @@ public class ReasonerPlan {
       assert startNode instanceof PassiveAntRuleNode;
       return ((PassiveAntRuleNode) startNode).getResultBindingSetInput();
     } else {
-      throw new NotImplementedException();
+      return null;
     }
   }
 

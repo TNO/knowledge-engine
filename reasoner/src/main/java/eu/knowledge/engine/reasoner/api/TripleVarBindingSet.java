@@ -86,6 +86,7 @@ public class TripleVarBindingSet {
 		int nrOfVars = vars.size();
 		for (TripleVarBinding tvb : bindings) {
 			if (tvb.keySet().size() == nrOfVars) {
+				assert tvb.getTripleVars().equals(this.getTripleVars());
 				gbs.add(tvb);
 			}
 		}

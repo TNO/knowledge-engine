@@ -15,7 +15,7 @@ public class PassiveAntRuleNode extends AntRuleNode {
 	}
 
 	public BindingSet getResultBindingSetInput() {
-		return this.resultBindingSetInput.get().toBindingSet();
+		return this.resultBindingSetInput.get().getFullBindingSet().toBindingSet();
 	}
 
 	public void setFilterBindingSetOutput(BindingSet bs) {
