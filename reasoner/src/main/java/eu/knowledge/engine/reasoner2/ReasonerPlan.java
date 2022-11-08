@@ -1,13 +1,11 @@
 package eu.knowledge.engine.reasoner2;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +34,15 @@ public class ReasonerPlan {
     this.store = aStore;
     this.start = aStartRule;
     this.ruleToRuleNode = new HashMap<>();
+    createOrGetReasonerNode(this.start);
+  }
+
+  public RuleNode getStartNode() {
+    return this.ruleToRuleNode.get(this.start);
   }
   
   public BindingSet execute(BindingSet bindingSet) {
-    RuleNode startNode = createOrGetReasonerNode(this.start);
+    RuleNode startNode = this.getStartNode();
 
     if (this.isBackward()) {
       assert startNode instanceof PassiveAntRuleNode;
@@ -49,8 +52,7 @@ public class ReasonerPlan {
       ((PassiveConsRuleNode) startNode).setResultBindingOutput(bindingSet);
     }
 
-    // TODO: Deque
-    Stack<RuleNode> stack = new Stack<>();
+    Deque<RuleNode> stack = new ArrayDeque<>();
     Set<RuleNode> visited = new HashSet<>();
     Set<RuleNode> changed = new HashSet<>();
 
