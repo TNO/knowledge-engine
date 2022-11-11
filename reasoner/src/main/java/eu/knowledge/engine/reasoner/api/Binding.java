@@ -34,6 +34,11 @@ public class Binding extends HashMap<Var, Node_Concrete> {
 		super(b);
 	}
 
+	public Binding(Map<String, String> map) {
+		this();
+		this.putMap(map);
+	}
+
 	public boolean containsKey(String variable) {
 		return this.containsKey(Var.alloc(variable));
 	}

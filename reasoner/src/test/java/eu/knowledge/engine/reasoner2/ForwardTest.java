@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner2;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -99,8 +98,12 @@ public class ForwardTest {
 
 		rp.execute(bs);
 
-		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
-		assertNotNull(aBindingSetHandler.getBindingSet());
-		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
+		assertEquals(BindingSet.fromStringData(new Table(new String[] {
+			"x", "z"
+		}, new String[] {
+			"<janny>,<fenna>",
+			"<barry>,<benno>",
+			"<fenna>,<loes>",
+		}).getData()), aBindingSetHandler.getBindingSet());
 	}
 }

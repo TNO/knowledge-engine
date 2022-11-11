@@ -26,6 +26,12 @@ public class BindingSet extends HashSet<Binding> {
 		}
 	}
 
+	public static BindingSet fromStringData(Collection<Map<String, String>> bindings) {
+		BindingSet bs = new BindingSet();
+		bindings.forEach(b -> bs.add(new Binding(b)));
+		return bs;
+	}
+
 	/**
 	 * Extend the bindingset into a graph bindingset. It will contain the same
 	 * amount of bindings, but variable keys are now accompanied by the Triple in
