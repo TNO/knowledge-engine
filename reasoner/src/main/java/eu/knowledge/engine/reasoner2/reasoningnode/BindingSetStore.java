@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,11 +50,22 @@ public class BindingSetStore {
 		return this.neighborBindingSet.keySet().containsAll(neighbors);
 	}
 
+	// TODO: It feels ugly to do this.
+	public boolean haveAllNeighborsContributedExcept(RuleNode node) {
+		var allNeighboursWithException = new HashSet<>();
+		allNeighboursWithException.addAll(neighbors);
+		allNeighboursWithException.remove(node);
+		return this.neighborBindingSet.keySet().containsAll(allNeighboursWithException);
+	}
+
 	/**
 	 * @return the bindingset with the combined bindingset of all neighbors.
 	 */
 	public TripleVarBindingSet get() {
-		assert haveAllNeighborsContributed();
+		// TODO: Can a similar assertion be made? (Changed the class so that the
+		// result is also gettable when all neighbours except a specific one
+		// contributed)
+		// assert haveAllNeighborsContributed();
 
 		TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
 		for (TripleVarBindingSet bs : this.neighborBindingSet.values()) {
