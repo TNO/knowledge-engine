@@ -106,7 +106,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	@Override
 	public boolean readyForApplyRule() {
 		// TODO: This (the "Except" part) was needed to make transitivity work, but not sure if it is correct
-		return this.filterBindingSetInput.haveAllNeighborsContributedExcept(this);
+		return this.resultBindingSetInput.haveAllNeighborsContributedExcept(this);
 	}
 
 	@Override
