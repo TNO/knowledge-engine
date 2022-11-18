@@ -1,0 +1,54 @@
+@prefix dc:   <http://purl.org/dc/elements/1.1/> .
+@prefix ke:   <https://w3id.org/knowledge-engine/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/example-knowledge-base/interaction/thing-answer/act/req>
+        rdf:type  ke:InformPurpose .
+
+<https://example.org/example-knowledge-base>
+        rdf:type                    ke:KnowledgeBase ;
+        ke:hasDescription           "This database contains example data." ;
+        ke:hasKnowledgeInteraction  <https://example.org/example-knowledge-base/interaction/thing-answer> , <https://example.org/example-knowledge-base/interaction/thing-react> ;
+        ke:hasName                  "Example knowledge base" .
+
+<https://example.org/example-knowledge-base/interaction/thing-react>
+        rdf:type                ke:ReactKnowledgeInteraction ;
+        ke:hasCommunicativeAct  <https://example.org/example-knowledge-base/interaction/thing-react/act> ;
+        ke:hasGraphPattern      <https://example.org/example-knowledge-base/interaction/thing-react/argumentgp> ;
+        ke:isMeta               false .
+
+<https://example.org/example-knowledge-base/interaction/thing-answer/act/sat>
+        rdf:type  ke:InformPurpose .
+
+<https://example.org/example-knowledge-base/interaction/thing-react/act>
+        rdf:type            ke:CommunicativeAct ;
+        ke:hasRequirement   <https://example.org/example-knowledge-base/interaction/thing-react/act/req> ;
+        ke:hasSatisfaction  <https://example.org/example-knowledge-base/interaction/thing-react/act/sat> .
+
+<https://example.org/example-knowledge-base/interaction/thing-answer/act>
+        rdf:type            ke:CommunicativeAct ;
+        ke:hasRequirement   <https://example.org/example-knowledge-base/interaction/thing-answer/act/req> ;
+        ke:hasSatisfaction  <https://example.org/example-knowledge-base/interaction/thing-answer/act/sat> .
+
+<https://example.org/example-knowledge-base/interaction/thing-react/act/req>
+        rdf:type  ke:InformPurpose .
+
+<https://example.org/example-knowledge-base/interaction/thing-react/argumentgp>
+        rdf:type       ke:ArgumentGraphPattern ;
+        ke:hasPattern  "?a <http://example.org/becomesRelatedTo> ?b ." .
+
+<https://example.org/example-knowledge-base/interaction/thing-answer/gp>
+        rdf:type       ke:GraphPattern ;
+        ke:hasPattern  "?a <http://example.org/isRelatedTo> ?b ." .
+
+<https://example.org/example-knowledge-base/interaction/thing-react/act/sat>
+        rdf:type  ke:InformPurpose .
+
+<https://example.org/example-knowledge-base/interaction/thing-answer>
+        rdf:type                ke:AnswerKnowledgeInteraction ;
+        ke:hasCommunicativeAct  <https://example.org/example-knowledge-base/interaction/thing-answer/act> ;
+        ke:hasGraphPattern      <https://example.org/example-knowledge-base/interaction/thing-answer/gp> ;
+        ke:isMeta               false .

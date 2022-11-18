@@ -39,6 +39,7 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineRuntimeException;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -118,8 +119,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.addKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.NEW_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+			}
+			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.addKnowledgeBase(newKb);
 			return new BindingSet();
 		}, true);
 
@@ -128,8 +136,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.updateKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+			}
+			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.updateKnowledgeBase(changedKb);
 			return new BindingSet();
 		}, true);
 
@@ -138,8 +153,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, true, true);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
-			this.otherKnowledgeBaseStore.removeKnowledgeBase(
-					this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings()));
+			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
+			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(), KnowledgeInteractionInfo.Type.POST, Vocab.REMOVED_KNOWLEDGE_PURPOSE);
+			if (!postingKi.equals(itShouldBeThis)) {
+				this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", postingKi);
+				this.LOG.debug("Received meta bindings: {}", aReactExchangeInfo.getArgumentBindings());
+				throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+			}
+			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(), aReactExchangeInfo.getPostingKnowledgeBaseId());
+			this.otherKnowledgeBaseStore.removeKnowledgeBase(removedKb);
 			return new BindingSet();
 		}, true);
 	}
@@ -303,14 +325,28 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 					.thenApply(answerMsg -> {
 						try {
 							this.LOG.trace("Received message: {}", answerMsg);
-							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings());
-							assert otherKB.getId().equals(answerMsg.getFromKnowledgeBase());
+							var answeringKi = answerMsg.getFromKnowledgeInteraction();
+							var itShouldBeThis = this.knowledgeBaseStore.getMetaId(toKnowledgeBaseId, KnowledgeInteractionInfo.Type.ANSWER, null);
+							if (!answeringKi.equals(itShouldBeThis)) {
+								this.LOG.error("Received meta bindings from non-meta (or incorrect meta) KI {}", answeringKi);
+								this.LOG.debug("Received meta bindings: {}", answerMsg.getBindings());
+								throw new KnowledgeEngineRuntimeException("Received meta bindings from non-meta (or incorrect meta) KI.");
+							}
+							var otherKB = this.constructOtherKnowledgeBaseFromBindingSet(answerMsg.getBindings(), toKnowledgeBaseId);
 							return otherKB;
 						} catch (Throwable t) {
 							this.LOG.error("The construction of other knowledge base should succeed.", t);
 							// TODO do we want to complete the future exceptionally, here? Because we have a
 							// condition that otherKnowledgeBase should NEVER be null.
 							return null;
+						}
+					}).handle((r, e) -> {
+
+						if (r == null) {
+							LOG.error("An exception has occured while getting Other Knowledge Base", e);
+							return null;
+						} else {
+							return r;
 						}
 					});
 			return future;
@@ -321,7 +357,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		}
 	}
 
-	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings) {
+	private OtherKnowledgeBase constructOtherKnowledgeBaseFromBindingSet(BindingSet bindings, URI otherKnowledgeBaseId) {
 		assert !bindings.isEmpty() : "An answer meta message should always have at least a single binding.";
 
 		Model model;
@@ -486,6 +522,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			kbId = new URI(kb.getURI());
 		} catch (URISyntaxException e) {
 			LOG.error("Invalid URI for knowledge base: " + kb.getURI(), e);
+			return null;
+		}
+		if (!kbId.equals(otherKnowledgeBaseId)) {
+			LOG.error("Received KB metadata about a KB from another KB! This is not allowed.");
+			return null;
 		}
 
 		return new OtherKnowledgeBase(kbId, name, description, knowledgeInteractions, null);
@@ -495,7 +536,15 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
 		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-				.execute(this.fillMetaBindings(null));
+				.execute(this.fillMetaBindings(null)).handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured while posting new Knowledge Base ", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 	}
 
 	@Override

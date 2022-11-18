@@ -304,6 +304,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			this.bs = bs;
 			var future = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while capturing binging set", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 			return future;
 		}
@@ -467,6 +477,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
 				eu.knowledge.engine.reasoner.api.BindingSet bs) {
 			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> future = new CompletableFuture<>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while storing binding set ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(this.b);
 			return future;
 		}

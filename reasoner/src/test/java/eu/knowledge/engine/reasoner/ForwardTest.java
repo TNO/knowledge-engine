@@ -16,6 +16,8 @@ import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -25,6 +27,7 @@ import eu.knowledge.engine.reasoner.api.Util;
 
 public class ForwardTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(ForwardTest.class);
 	private static class MyBindingSetHandler implements BindingSetHandler {
 
 		private BindingSet bs;
@@ -35,6 +38,16 @@ public class ForwardTest {
 			this.bs = bs;
 
 			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while handling binding set", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 			future.complete(bs);
 			return future;
 		}
@@ -99,6 +112,16 @@ public class ForwardTest {
 						BindingSet bindingSet = Util.toBindingSet(bindings.toString());
 
 						CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+						future.handle((r, e) -> {
+
+							if (r == null) {
+								LOG.error("An exception has occured on Celsius <-> Fahrenheit test", e);
+								return null;
+							} else {
+								return r;
+							}
+						});
 						future.complete(bindingSet);
 						return future;
 					}
@@ -165,6 +188,16 @@ public class ForwardTest {
 				fail("An empty bindingset should not be handled.");
 
 				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured on family tree test ", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(new BindingSet());
 				return future;
 			}
@@ -436,6 +469,16 @@ public class ForwardTest {
 			@Override
 			public CompletableFuture<BindingSet> handle(BindingSet bs) {
 				CompletableFuture<BindingSet> future = new CompletableFuture<>();
+
+				future.handle((r, e) -> {
+
+					if (r == null) {
+						LOG.error("An exception has occured while testing are published values remained accessible ", e);
+						return null;
+					} else {
+						return r;
+					}
+				});
 				future.complete(this.b);
 				return future;
 			}

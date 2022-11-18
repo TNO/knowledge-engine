@@ -2,29 +2,65 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.1.1
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.1.3
 
-  # These two services are separate Knowledge Engine runtime, which can host
+  # These services are seperate Knowledge Engine runtime, which can host
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port
   # number than the ones configured below. It is still the default 8280.
   runtime-1:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.1
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
     environment: 
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
-    ports:
-      - 8280:8280
   runtime-2:
-    image: docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.1.1
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
     environment: 
-      KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
-      KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
-    ports:
-      - 8281:8280
+  runtime-3:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
+    environment: 
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
+      KD_URL: http://knowledge-directory:8282
   
-  # The example script is a JavaScript/TypeScript application that sets up a KB
-  # in each runtime, and lets them exchange knowledge.
-  knowledge-exchange-script:
-    build: ./knowledge-exchange-script
+  # These Knowledge Bases use the different runtimes, and exchange data with eachother.
+  kb1:
+    build: ./asking_kb
+    environment:
+      KE_URL: http://runtime-1:8280/rest
+      KB_ID: http://example.org/kb1
+  kb2:
+    build: ./answering_kb
+    environment:
+      KE_URL: http://runtime-2:8280/rest
+      KB_ID: http://example.org/kb2
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Math>",
+            "b": "<http://example.org/Science>"
+          },
+          {
+            "a": "<http://example.org/Books>",
+            "b": "<http://example.org/Magazines>"
+          }
+        ]
+  kb3:
+    build: ./answering_kb
+    environment:
+      KE_URL: http://runtime-3:8280/rest
+      KB_ID: http://example.org/kb3
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Music>",
+            "b": "<http://example.org/Songs>"
+          },
+          {
+            "a": "<http://example.org/Red>",
+            "b": "<http://example.org/Blue>"
+          }
+        ]

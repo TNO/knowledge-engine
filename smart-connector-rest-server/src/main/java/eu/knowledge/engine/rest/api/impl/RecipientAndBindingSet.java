@@ -2,6 +2,7 @@ package eu.knowledge.engine.rest.api.impl;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -63,18 +64,36 @@ public class RecipientAndBindingSet {
 	private RecipientSelector parseRecipientSelectorJson(JsonNode recipientSelector) {
 
 		RecipientSelector recipient = null;
-		if (recipientSelector.isObject() && recipientSelector.has("singleKnowledgeBase")) {
-
-			JsonNode singleKB = recipientSelector.get("singleKnowledgeBase");
-
-			if (singleKB.isTextual()) {
-				recipient = new RecipientSelector(URI.create(singleKB.asText()));
+		if (recipientSelector.isObject()) {
+			if (recipientSelector.has("singleKnowledgeBase")) {
+				JsonNode singleKB = recipientSelector.get("singleKnowledgeBase");
+				if (singleKB.isTextual()) {
+					recipient = new RecipientSelector(URI.create(singleKB.asText()));
+				} else {
+					throw new IllegalArgumentException("singleKnowledgeBase key should lead to a JSON String.");
+				}
+			} else if (recipientSelector.has("knowledgeBases")) {
+				JsonNode knowledgeBases = recipientSelector.get("knowledgeBases");
+				if (knowledgeBases.isArray()) {
+					List<URI> recipientUris = new ArrayList<>();
+					knowledgeBases.elements().forEachRemaining(receivingKbNode -> {
+						if (receivingKbNode.isTextual()) {
+							recipientUris.add(URI.create(receivingKbNode.asText()));
+						} else {
+							throw new IllegalArgumentException("Elements in in the 'knowledgeBases' array in RecipientSelector should be JSON Strings.");
+						}
+					});
+					recipient = new RecipientSelector(recipientUris);
+				} else {
+					throw new IllegalArgumentException("'knowledgeBases' property in RecipientSelector should be a JSON Array.");
+				}
 			} else {
-				throw new IllegalArgumentException("singleKnowledgeBase key should lead to a JSON String.");
+				throw new IllegalArgumentException(
+					"RecipientSelector should be a JSON Object with a 'knowledgeBases' or 'singleKnowledgeBase' (deprecated) property.");	
 			}
 		} else {
 			throw new IllegalArgumentException(
-					"RecipientSelector should be a JSON Object with a singleKnowledgeBase key.");
+					"RecipientSelector should be a JSON Object.");
 		}
 
 		return recipient;

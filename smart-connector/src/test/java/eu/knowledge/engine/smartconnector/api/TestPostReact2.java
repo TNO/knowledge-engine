@@ -46,9 +46,6 @@ public class TestPostReact2 {
 		kn.addKB(kb2);
 		kb3 = new MockedKnowledgeBase("kb3");
 		kn.addKB(kb3);
-		LOG.info("Before everyone is ready!");
-		kn.startAndWaitForReady();
-		LOG.info("Everyone is ready!");
 
 		// start registering
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
@@ -94,7 +91,7 @@ public class TestPostReact2 {
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 		LOG.info("Everyone is up-to-date!");
 
 		// start exchanging

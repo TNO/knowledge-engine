@@ -7,32 +7,32 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.syntax.ElementPathBlock;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ReasoningNode;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestDynamicSemanticComposition {
 
@@ -40,40 +40,233 @@ public class TestDynamicSemanticComposition {
 
 	private static MockedKnowledgeBase kbTargetObserver;
 	private static MockedKnowledgeBase kbHVTSearcher;
-	private static MockedKnowledgeBase kbTargetAttributeSupplier;
+	private static MockedKnowledgeBase kbTargetCountrySupplier;
+	private static MockedKnowledgeBase kbTargetLanguageSupplier;
+	private static MockedKnowledgeBase kbTargetAgeSupplier;
+
+	private static KnowledgeNetwork kn;
+
+	private static PrefixMappingMem prefixes;
+
+	private AskKnowledgeInteraction askKI;
+	private PostKnowledgeInteraction postKI;
+
+	private static Set<Rule> ruleSet;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
-	}
 
-	@Test
-	public void testAskAnswer() throws InterruptedException, URISyntaxException {
-
-		PrefixMappingMem prefixes = new PrefixMappingMem();
+		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 //		prefixes.setNsPrefix("tno", "https://www.tno.nl/");
 		prefixes.setNsPrefix("v1905", "https://www.tno.nl/defense/ontology/v1905/");
 
-		var kn = new KnowledgeNetwork();
-		// start a knowledge base with the behaviour "I can supply observations of
-		// targets"
-		kbTargetObserver = new MockedKnowledgeBase("TargetObserver");
-		kbTargetObserver.setReasonerEnabled(true);
+		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
+		HashSet<TriplePattern> consequent1 = new HashSet<TriplePattern>();
+		consequent1.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
+		antecedent1.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+
+		HashSet<TriplePattern> consequent2 = new HashSet<TriplePattern>();
+		consequent2.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent2 = new HashSet<TriplePattern>();
+		antecedent2.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent2.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
+
+		HashSet<TriplePattern> consequent3 = new HashSet<TriplePattern>();
+		consequent3.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+		HashSet<TriplePattern> antecedent3 = new HashSet<TriplePattern>();
+		antecedent3.add(new TriplePattern(
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
+		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
+		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+
+		ruleSet = new HashSet<>();
+		ruleSet.add(new Rule(antecedent1, consequent1));
+		ruleSet.add(new Rule(antecedent2, consequent2));
+//		ruleSet.add(new Rule(antecedent3, consequent3));
+
+	}
+
+	@Test
+	public void testAskAnswer() throws InterruptedException, URISyntaxException {
+
+		setupNetwork();
+
+		// start planning ask for targets!
+		BindingSet bindings = null;
+		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
+		ReasoningNode rn = plan.getReasoningNode();
+		LOG.info("Plan: {}", rn);
+		// check for knowledge gaps
+		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn);
+		LOG.info("Found gaps: " + gaps);
+
+		// add KB that fills the knowledge gap
+		updateNetwork(gaps);
+
+		// start testing ask for targets!
+		bindings = null;
+		try {
+			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
+			bindings = result.getBindings();
+			// try to generate JSON tree.
+			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
+					result.getReasoningNode(), prefixes);
+		} catch (InterruptedException | ExecutionException e) {
+			fail();
+		}
+
+		Iterator<Binding> iter = bindings.iterator();
+		LOG.info("Result bindings are: {}", bindings);
+
+		assertTrue(iter.hasNext(), "there should be at least 1 binding");
+		Binding b = iter.next();
+
+		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
+		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
+
+		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
+
+		// start testing post of targets!
+		BindingSet bindingSet = new BindingSet();
+		Binding binding = new Binding();
+		binding.put("id", "<https://www.tno.nl/example/target1>");
+		binding.put("name", "\"Bla\"");
+		bindingSet.add(binding);
+
+		try {
+			LOG.info("Before post!");
+			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
+			PostResult result = aPlan.execute(bindingSet).get();
+			bindings = result.getBindings();
+			iter = bindings.iterator();
+			assertFalse(iter.hasNext(), "there should be no bindings");
+			LOG.info("After post!");
+
+//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
+
+			// try to generate JSON tree.
+			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
+					postKI.getArgument(), result.getReasoningNode(), prefixes);
+		} catch (Exception e) {
+			LOG.error("Error", e);
+		}
+	}
+
+	private void setupNetwork() {
+
+		instantiateHVTSearcherKB();
+		instantiateObserverKB();
+
+		kn = new KnowledgeNetwork();
 		kn.addKB(kbTargetObserver);
+		kn.addKB(kbHVTSearcher);
+
+		kn.sync();
+	}
+
+	private void updateNetwork(Set<Set<TriplePattern>> gaps) {
+
+		instantiateTargetCountrySupplierKB();
+		instantiateTargetLanguageSupplierKB();
+		instantiateTargetAgeSupplierKB();
+
+		List<MockedKnowledgeBase> availableKBs = new ArrayList<>();
+		availableKBs.add(kbTargetAgeSupplier);
+		availableKBs.add(kbTargetCountrySupplier);
+		availableKBs.add(kbTargetLanguageSupplier);
+
+		// add the first KB that fulfills the gap
+		kbs: for (MockedKnowledgeBase kb : availableKBs) {
+
+			kis: for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
+
+				for (Set<TriplePattern> gap : gaps) {
+
+					Rule r = new Rule(translateGraphPatternTo(ki.getArgument()),
+							translateGraphPatternTo(ki.getResult()));
+
+					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+					if (!matches.isEmpty()) {
+						kn.addKB(kb);
+						break kbs;
+					}
+				}
+			}
+		}
+
+//		kn.addKB(kbTargetCountrySupplier);
+//		kn.addKB(kbTargetLanguageSupplier);
+//		kn.addKB(kbTargetAgeSupplier);
+
+		kn.sync();
+	}
+
+	private Set<TriplePattern> translateGraphPatternTo(GraphPattern pattern) {
+
+		TriplePattern tp;
+		TriplePath triplePath;
+		String triple;
+		ElementPathBlock epb = pattern.getGraphPattern();
+		Iterator<TriplePath> iter = epb.patternElts();
+
+		Set<TriplePattern> triplePatterns = new HashSet<TriplePattern>();
+
+		while (iter.hasNext()) {
+
+			triplePath = iter.next();
+
+			triple = FmtUtils.stringForTriple(triplePath.asTriple(), new PrefixMappingZero());
+
+			tp = new TriplePattern(triple);
+			triplePatterns.add(tp);
+		}
+
+		return triplePatterns;
+	}
+
+	public void instantiateHVTSearcherKB() {
 		// start a knowledge base with the behaviour "I am interested in high-value
 		// targets"
 		kbHVTSearcher = new MockedKnowledgeBase("HVTSearcher");
 		kbHVTSearcher.setReasonerEnabled(true);
-		kn.addKB(kbHVTSearcher);
-		// start a knowledge base with the behaviour "Give me a target and I can supply
-		// its basic attributes"
-		kbTargetAttributeSupplier = new MockedKnowledgeBase("TargetAttributeSupplier");
-		kbTargetAttributeSupplier.setReasonerEnabled(true);
-		kn.addKB(kbTargetAttributeSupplier);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
+		// Patterns for the HVTSearcher
+		// a pattern to ask for High Value Target searches
+		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
+		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
+		kbHVTSearcher.register(this.askKI);
+		// a pattern to react to incoming new High Value Targets
+		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
+		kbHVTSearcher.register(reactKIsearcher, (anRKI, aReactExchangeInfo) -> {
+
+			LOG.info("HVT Searcher reacting to incoming HVTs...");
+			var argument = aReactExchangeInfo.getArgumentBindings();
+			Iterator<Binding> iter = argument.iterator();
+			while (iter.hasNext()) {
+				Binding b = iter.next();
+				LOG.info("Incoming HVT is {}", b);
+			}
+			return new BindingSet();
+		});
+
+		kbHVTSearcher.setDomainKnowledge(ruleSet);
+	}
+
+	public void instantiateObserverKB() {
+		// start a knowledge base with the behaviour "I can supply observations of
+		// targets"
+		kbTargetObserver = new MockedKnowledgeBase("TargetObserver");
+		kbTargetObserver.setReasonerEnabled(true);
 
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
@@ -99,38 +292,74 @@ public class TestDynamicSemanticComposition {
 			return bindingSet;
 		});
 		// and a post pattern to publish newly observed Targets
-		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null,
-				"postTargets");
-		kbTargetObserver.register(postKI);
+		this.postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null, "postTargets");
+		kbTargetObserver.register(this.postKI);
 
-		// Patterns for the HVTSearcher
-		// a pattern to ask for High Value Target searches
-		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
-		kbHVTSearcher.register(askKI);
-		// a pattern to react to incoming new High Value Targets
-		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
-		kbHVTSearcher.register(reactKIsearcher, (anRKI, aReactExchangeInfo) -> {
+		kbTargetObserver.setDomainKnowledge(ruleSet);
+	}
 
-			LOG.info("HVT Searcher reacting to incoming HVTs...");
+	public void instantiateTargetLanguageSupplierKB() {
+		kbTargetLanguageSupplier = new MockedKnowledgeBase("TargetLanguageSupplier");
+		kbTargetLanguageSupplier.setReasonerEnabled(true);
+
+		// Patterns for the TargetLanguageSupplier
+		// a react pattern to get from targets to language
+		GraphPattern gp4in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
+		GraphPattern gp4out = new GraphPattern(prefixes, "?id v1905:hasLanguage ?lang .");
+		ReactKnowledgeInteraction reactKI2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp4in, gp4out,
+				"reactLanguage");
+		kbTargetLanguageSupplier.register(reactKI2, (anRKI, aReactExchangeInfo) -> {
+
+			LOG.info("TargetLanguageSupplier Reacting...");
 			var argument = aReactExchangeInfo.getArgumentBindings();
+			LOG.info("Argument bindings are: {}", argument);
 			Iterator<Binding> iter = argument.iterator();
+
+			BindingSet resultBindings = new BindingSet();
+
 			while (iter.hasNext()) {
 				Binding b = iter.next();
-				LOG.info("Incoming HVT is {}", b);
+				String id = b.get("id");
+				String language = "";
+				Binding rb = new Binding();
+				rb.put("id", id);
+				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
+					language = "\"Russian\"";
+				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
+					language = "\"Dutch\"";
+				} else {
+					language = "\"Flemish\"";
+				}
+				rb.put("lang", language);
+				resultBindings.add(rb);
 			}
-			return null;
-		});
 
-		// Patterns for the TargetAttributeSupplier
+			LOG.info("resultBinding is {}", resultBindings);
+			return resultBindings;
+		});
+		kbTargetLanguageSupplier.setDomainKnowledge(ruleSet);
+	}
+
+	public void instantiateTargetAgeSupplierKB() {
+		kbTargetAgeSupplier = new MockedKnowledgeBase("TargetAgeSupplier");
+		kbTargetAgeSupplier.setReasonerEnabled(true);
+	}
+
+	public void instantiateTargetCountrySupplierKB() {
+		// start a knowledge base with the behaviour "Give me a target and I can supply
+		// its basic attributes"
+		kbTargetCountrySupplier = new MockedKnowledgeBase("TargetCountrySupplier");
+		kbTargetCountrySupplier.setReasonerEnabled(true);
+
+		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries
 		GraphPattern gp3in = new GraphPattern(prefixes, "?id rdf:type v1905:Target . ?id v1905:hasName ?name .");
 		GraphPattern gp3out = new GraphPattern(prefixes, "?id v1905:hasCountry ?country .");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3in, gp3out,
 				"reactCountry");
-		kbTargetAttributeSupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
+		kbTargetCountrySupplier.register(reactKI, (anRKI, aReactExchangeInfo) -> {
 
-			LOG.info("TargetAttributeSupplier Reacting...");
+			LOG.info("TargetCountrySupplier Reacting...");
 			var argument = aReactExchangeInfo.getArgumentBindings();
 			LOG.info("Argument bindings are: {}", argument);
 			Iterator<Binding> iter = argument.iterator();
@@ -157,97 +386,12 @@ public class TestDynamicSemanticComposition {
 			LOG.info("resultBinding is {}", resultBindings);
 			return resultBindings;
 		});
-
-		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
-		HashSet<TriplePattern> consequent = new HashSet<TriplePattern>();
-		consequent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
-		HashSet<TriplePattern> antecedent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
-		Rule r = new Rule(antecedent, consequent);
-		Set<Rule> ruleSet = new HashSet<>();
-		ruleSet.add(r);
-		kbHVTSearcher.setDomainKnowledge(ruleSet);
-		kbTargetObserver.setDomainKnowledge(ruleSet);
-		kbTargetAttributeSupplier.setDomainKnowledge(ruleSet);
-
-		kn.waitForUpToDate();
-
-		// start testing ask for targets!
-		BindingSet bindings = null;
-		try {
-			LOG.trace("Before ask.");
-			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
-			bindings = result.getBindings();
-			LOG.trace("After ask.");
-			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-					result.getReasoningNode(), prefixes);
-		} catch (InterruptedException | ExecutionException e) {
-			fail();
-		}
-
-		Iterator<Binding> iter = bindings.iterator();
-		LOG.info("Result bindings are: {}", bindings);
-
-		assertTrue(iter.hasNext(), "there should be at least 1 binding");
-		Binding b = iter.next();
-
-		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
-//		assertEquals("\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>", b.get("name"), "Binding of 'name' is incorrect.");
-		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
-
-		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
-
-		// start testing post of targets!
-		BindingSet bindingSet = new BindingSet();
-		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/example/target1>");
-//		binding.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
-		binding.put("name", "\"Bla\"");
-		bindingSet.add(binding);
-
-		try {
-			LOG.info("Before post!");
-			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
-			PostResult result = aPlan.execute(bindingSet).get();
-			bindings = result.getBindings();
-			iter = bindings.iterator();
-			assertFalse(iter.hasNext(), "there should be no bindings");
-			LOG.info("After post!");
-
-//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
-
-			// try to generate JSON tree.
-			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
-					postKI.getArgument(), result.getReasoningNode(), prefixes);
-		} catch (Exception e) {
-			LOG.error("Error", e);
-		}
-
+		kbTargetCountrySupplier.setDomainKnowledge(ruleSet);
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestDynamicSemanticComposition.class.getSimpleName());
-		if (kbTargetObserver != null) {
-			kbTargetObserver.stop();
-		} else {
-			fail("kbTargetObserver should not be null!");
-		}
-
-		if (kbHVTSearcher != null) {
-			kbHVTSearcher.stop();
-		} else {
-			fail("kbHVTSearcher should not be null!");
-		}
-
-		if (kbTargetAttributeSupplier != null) {
-			kbTargetAttributeSupplier.stop();
-		} else {
-			fail("kbTargetAttributeSupplier should not be null!");
-		}
+		kn.stop().get();
 	}
 }

@@ -63,13 +63,13 @@ public class TestAskRecipientSelector {
 		kb4 = new MockedKnowledgeBase("kb4");
 		kn.addKB(kb4);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -83,7 +83,10 @@ public class TestAskRecipientSelector {
 		GraphPattern gp3 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 		kb3.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -97,7 +100,10 @@ public class TestAskRecipientSelector {
 		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g.");
 		AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
 		kb4.register(aKI4, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty() || anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0, "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -112,7 +118,7 @@ public class TestAskRecipientSelector {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;
@@ -144,8 +150,36 @@ public class TestAskRecipientSelector {
 			assertEquals(bind.get("y"), "<https://www.tno.nl/example/c>");
 			LOG.info("Binding: {}", bind);
 
-			//Recipient Selector asks all Knowledge Bases (kb1, kb3, kb4).
-			
+			// Recipient Selector is multiple KBs (kb1 & kb3).
+			result = kb2.ask(
+				askKI,
+				new RecipientSelector(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())),
+				new BindingSet()
+			).get();
+			bindings = result.getBindings();
+			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+					.collect(Collectors.toSet());
+
+			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
+					"The result should come from kb1 and kb3 only and not: " + kbIds);
+
+			assertEquals(2, bindings.size());
+
+			assertTrue(bindings.stream()
+				.allMatch(b ->
+					(b.get("x").equals("<https://www.tno.nl/example/a>") || b.get("x").equals("<https://www.tno.nl/example/d>"))
+					&& (b.get("y").equals("<https://www.tno.nl/example/c>") || b.get("y").equals("<https://www.tno.nl/example/e>"))
+				)
+			);
+			assertTrue(bindings.stream()
+				.anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/a>") && b.get("y").equals("<https://www.tno.nl/example/c>"))
+			);
+			assertTrue(bindings.stream()
+				.anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/d>") && b.get("y").equals("<https://www.tno.nl/example/e>"))
+			);
+
+			// Recipient Selector asks all Knowledge Bases (kb1, kb3, kb4).
+
 			result = kb2.ask(askKI, new RecipientSelector(), new BindingSet()).get();
 			bindings = result.getBindings();
 			LOG.trace("After ask.");

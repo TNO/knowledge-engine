@@ -61,10 +61,6 @@ public class TestAskAnswer3 {
 		kb4 = new MockedKnowledgeBase("kb4");
 		kn.addKB(kb4);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-		LOG.info("Everyone is ready!");
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
@@ -120,7 +116,7 @@ public class TestAskAnswer3 {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 		LOG.info("Waiting until everyone is up-to-date!");
-		kn.waitForUpToDate();
+		kn.sync();
 		LOG.info("Everyone is up-to-date!");
 
 		// start testing!
@@ -131,7 +127,7 @@ public class TestAskAnswer3 {
 			result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
-			
+
 			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 

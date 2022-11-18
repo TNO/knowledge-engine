@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 1.1.2-SNAPSHOT
+  version: 1.1.4-SNAPSHOT
   
 paths:
   /sc:
@@ -308,7 +308,9 @@ paths:
               recipient and bindingset:
                 value:
                   recipientSelector:
-                    singleKnowledgeBase: http://www.tno.nl/kb2
+                    knowledgeBases:
+                      - http://www.tno.nl/kb2
+                      - http://www.tno.nl/kb3
                   bindingSet:
                     - p: <http://www.tno.nl/s1>
                       q: <http://www.tno.nl/p1>
@@ -377,7 +379,8 @@ paths:
               recipient and bindingset:
                 value:
                   recipientSelector:
-                    singleKnowledgeBase: http://www.tno.nl/kb2
+                    knowledgeBases:
+                      - http://www.tno.nl/kb2
                   bindingSet:
                     - p: <http://www.tno.nl/s1>
                       q: <http://www.tno.nl/p1>
@@ -569,8 +572,18 @@ components:
           $ref: '#/components/schemas/BindingSet'
     RecipientSelector:
       type: object
+      description: Include a RecipientSelector with your message to ensure it only arrives at the specified Knowledge Base(s).
       properties:
-        "singleKnowledgeBase": 
+        knowledgeBases:
+          type: array
+          minItems: 1
+          description: List of Knowledge Base IDs, specifying the Knowledge Bases that can receive the message. No other Knowledge Bases will receive t
+          items:
+            type: string
+        singleKnowledgeBase:
+          deprecated: true
+          description: >
+            Knowledge Base ID of the recipient. Deprecated: Please use the `knowledgeBases` property with a list of length 1 instead.
           type: string
     ResponseMessage:
       type: object

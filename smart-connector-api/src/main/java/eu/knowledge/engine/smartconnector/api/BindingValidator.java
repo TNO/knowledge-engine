@@ -120,7 +120,7 @@ public class BindingValidator {
 		// this one is different, because only the variables that occur in both the
 		// argument and result patterns have to 'fit'.
 
-		if (resultPattern == null && outgoing.size() > 0) {
+		if (resultPattern == null && outgoing != null && outgoing.size() > 0) {
 			throw new IllegalArgumentException("Cannot have outgoing bindings when result pattern is null.");
 		} else if (resultPattern != null) {
 			var overlappingVariables = argumentPattern.getVariables();
