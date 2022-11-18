@@ -34,3 +34,5 @@ build/
 .vscode/launch.json
 .vscode/
 /.metadata/
+
+.DS_Store
