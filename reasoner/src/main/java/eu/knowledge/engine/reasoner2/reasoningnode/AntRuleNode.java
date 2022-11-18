@@ -40,7 +40,7 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	public Map<RuleNode, Set<Match>> getAntecedentNeighbours() {
 		return this.antecedentNeighbours;
 	}
-	
+
 	@Override
 	public Set<RuleNode> getAllNeighbours() {
 		return this.getAntecedentNeighbours().keySet();
@@ -49,7 +49,11 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	@Override
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet aBindingSet) {
 		assert (antecedentNeighbours.keySet().contains(aNeighbor));
-		return this.resultBindingSetInput.add(aNeighbor, aBindingSet);
+		TripleVarBindingSet filteredBS = aBindingSet;
+		if (this.filterBindingSetOutput != null) {
+			filteredBS = aBindingSet.keepCompatible(this.filterBindingSetOutput);
+		}
+		return this.resultBindingSetInput.add(aNeighbor, filteredBS);
 	}
 
 	@Override

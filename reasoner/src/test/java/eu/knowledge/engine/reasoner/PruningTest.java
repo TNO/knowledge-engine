@@ -131,8 +131,6 @@ public class PruningTest {
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(store, startRule, taskboard);
 
-		store.printGraphVizCode(root);
-
 		var coverage = root.getStartNode().findAntecedentCoverage(root.getStartNode().getAntecedentNeighbors());
 
 		assertFalse(coverage.get(t1).isEmpty());
@@ -172,8 +170,6 @@ public class PruningTest {
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(store, startRule, taskboard);
 
-		store.printGraphVizCode(root);
-
 		var coverage = root.getStartNode().findAntecedentCoverage(root.getStartNode().getAntecedentNeighbors());
 
 		assertTrue(coverage.get(t4).isEmpty());
@@ -211,8 +207,6 @@ public class PruningTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		ReasonerPlan rn = new ReasonerPlan(store, startRule, null);
-
-		store.printGraphVizCode(rn);
 
 		BindingSet bs = new BindingSet();
 
@@ -261,12 +255,10 @@ public class PruningTest {
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		LOG.info("Before prune");
-		store.printGraphVizCode(root);
 
 		root.optimize();
 
 		LOG.info("After prune");
-		store.printGraphVizCode(root);
 
 		assertTrue(root.getStartNode().isAntecedentFullyCovered());
 

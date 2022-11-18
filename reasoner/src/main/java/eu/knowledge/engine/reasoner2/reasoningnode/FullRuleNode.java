@@ -47,7 +47,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public Map<RuleNode, Set<Match>> getConsequentNeighbours() {
 		return this.consequentNeighbours;
 	}
-	
+
 	@Override
 	public Map<RuleNode, Set<Match>> getAntecedentNeighbours() {
 		return this.antecedentNeighbours;
@@ -62,21 +62,27 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 		return result;
 	}
-	
+
 	@Override
 	public boolean addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
 		return this.filterBindingSetInput.add(aNeighbor, bs);
 	}
-	
+
 	@Override
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
-		return this.resultBindingSetInput.add(aNeighbor, bs);
+
+		TripleVarBindingSet filteredBS = bs;
+		if (this.filterBindingSetOutput != null) {
+			filteredBS = bs.keepCompatible(this.filterBindingSetOutput);
+		}
+
+		return this.resultBindingSetInput.add(aNeighbor, filteredBS);
 	}
-	
+
 	@Override
 	public TripleVarBindingSet getFilterBindingSetOutput() {
 		return this.filterBindingSetOutput;
-	}	
+	}
 
 	@Override
 	public TripleVarBindingSet getResultBindingSetOutput() {
@@ -85,7 +91,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 	@Override
 	public boolean readyForTransformFilter() {
-		// TODO: This (the "Except" part) was needed to make transitivity work, but not sure if it is correct
+		// TODO: This (the "Except" part) was needed to make transitivity work, but not
+		// sure if it is correct
 		return this.filterBindingSetInput.haveAllNeighborsContributedExcept(this);
 	}
 
@@ -105,7 +112,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 	@Override
 	public boolean readyForApplyRule() {
-		// TODO: This (the "Except" part) was needed to make transitivity work, but not sure if it is correct
+		// TODO: This (the "Except" part) was needed to make transitivity work, but not
+		// sure if it is correct
 		return this.resultBindingSetInput.haveAllNeighborsContributedExcept(this);
 	}
 

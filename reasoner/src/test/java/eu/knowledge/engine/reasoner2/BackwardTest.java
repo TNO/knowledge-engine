@@ -319,10 +319,30 @@ public class BackwardTest {
 	@Test
 	public void testRequestNonExistingData() throws InterruptedException, ExecutionException {
 
+		RuleStore aStore = new RuleStore();
+		aStore.addRule(requestNonExistingDataRule);
+		aStore.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
+		aStore.addRule(new Rule(new HashSet<>(),
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+				new DataBindingSetHandler(new Table(new String[] {
+				//@formatter:off
+						"a", "b"
+						//@formatter:on
+				}, new String[] {
+				//@formatter:off
+						"<sensor1>,\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+						"<sensor2>,\"21.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+						//@formatter:on
+				}))));
+
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule);
+		ReasonerPlan root = new ReasonerPlan(aStore, requestNonExistingDataRule);
 
 		System.out.println(root);
+
+		aStore.printGraphVizCode(root);
 
 		BindingSet bs = new BindingSet();
 

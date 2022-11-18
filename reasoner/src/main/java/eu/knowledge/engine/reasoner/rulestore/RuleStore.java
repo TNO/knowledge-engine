@@ -16,9 +16,9 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
-import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner2.ReasonerPlan;
+import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
 
 /**
  * The rule store contains all the rules that are to be considered by the
@@ -181,7 +181,7 @@ public class RuleStore {
 				// check the colouring
 				String pen = "";
 				if (aPlan != null) {
-					RuleNode rn = aPlan.getNode(r.getRule());
+					RuleNode rn = aPlan.getRuleNodeForRule(r.getRule());
 					if (rn != null) {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
 						sourceInPlan = true;
@@ -213,7 +213,7 @@ public class RuleStore {
 					// check the colouring
 					String pen = "";
 					if (aPlan != null) {
-						RuleNode rn = aPlan.getNode(neighR);
+						RuleNode rn = aPlan.getRuleNodeForRule(neighR);
 						if (rn != null) {
 							pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
 							destInPlan = true;
@@ -232,8 +232,8 @@ public class RuleStore {
 
 				String pen = "";
 				if (aPlan != null) {
-					RuleNode s = aPlan.getNode(r.getRule());
-					RuleNode d = aPlan.getNode(neighR);
+					RuleNode s = aPlan.getRuleNodeForRule(r.getRule());
+					RuleNode d = aPlan.getRuleNodeForRule(neighR);
 					if (s != null && d != null)
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\"";
 				}

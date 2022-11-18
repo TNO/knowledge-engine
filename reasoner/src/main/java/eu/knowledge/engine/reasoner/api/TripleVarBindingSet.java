@@ -49,6 +49,8 @@ public class TripleVarBindingSet {
 	}
 
 	public void add(TripleVarBinding aTripleVarBinding) {
+		// TODO check if the triple pattern in the triplevar is actually present in our
+		// graph pattern.
 		this.bindings.add(aTripleVarBinding);
 	}
 

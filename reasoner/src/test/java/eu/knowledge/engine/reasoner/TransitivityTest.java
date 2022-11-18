@@ -71,8 +71,6 @@ public class TransitivityTest {
 		TaskBoard taskboard = new TaskBoard();
 		ReasonerPlan rn = new ReasonerPlan(store, startRule);
 
-		this.store.printGraphVizCode(rn);
-
 		BindingSet result = null;
 
 		int nrOfExpectedBindings = 15;

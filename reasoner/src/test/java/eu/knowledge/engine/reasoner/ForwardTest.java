@@ -144,7 +144,6 @@ public class ForwardTest {
 		TaskBoard taskboard = new TaskBoard();
 		ReasonerPlan rp = new ReasonerPlan(store, aStartRule, taskboard);
 
-		store.printGraphVizCode(rp);
 
 		System.out.println(rp);
 
@@ -246,7 +245,6 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 
-		store.printGraphVizCode(rn);
 
 		BindingSet bs = new BindingSet();
 
@@ -315,7 +313,6 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		this.store.printGraphVizCode(rn);
 
 		boolean finished = true;
 		do {
@@ -363,7 +360,6 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule, taskboard);
 
-		store.printGraphVizCode(rn);
 
 		LOG.info("\n{}", rn);
 		BindingSet bs = new BindingSet();

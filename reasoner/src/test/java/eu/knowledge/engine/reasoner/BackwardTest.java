@@ -321,8 +321,6 @@ public class BackwardTest {
 
 		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule, taskboard);
 
-		store.printGraphVizCode(root);
-
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -353,8 +351,6 @@ public class BackwardTest {
 	public void testConverter() throws InterruptedException, ExecutionException {
 		TaskBoard taskboard = new TaskBoard();
 		ReasonerPlan root = new ReasonerPlan(store, converterRule, taskboard);
-
-		store.printGraphVizCode(root);
 
 		System.out.println(root);
 
@@ -488,8 +484,6 @@ public class BackwardTest {
 
 		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule, taskboard);
 
-		store.printGraphVizCode(root);
-
 		System.out.println(root);
 
 		BindingSet bs = new BindingSet();
@@ -512,8 +506,6 @@ public class BackwardTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicate2Rule, taskboard);
-		store.printGraphVizCode(root);
-
 		// empty binding is necessary
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
