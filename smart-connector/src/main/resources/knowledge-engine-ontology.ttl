@@ -14,7 +14,7 @@
                                      dcterms:creator "Barry Nouwt" ,
                                                      "Han Kruiger" ,
                                                      "Wilco Wijbrandi" ;
-                                     dcterms:description "This is a detailed description of the ontology. :-)"@en ;
+                                     dcterms:description "The Knowledge Engine ontology describes concepts and relations that are relevant for the Knowledge Engine. The most important concepts are Knowledge Bases and Knowledge Interactions."@en ;
                                      dcterms:license "https://www.apache.org/licenses/LICENSE-2.0" ;
                                      dcterms:modified "2022-06-14T00:00:00"^^xsd:dateTime ;
                                      dcterms:title "Knowledge Engine Ontology"^^xsd:string .
