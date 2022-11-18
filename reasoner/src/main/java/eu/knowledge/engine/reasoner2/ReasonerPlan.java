@@ -23,12 +23,19 @@ import eu.knowledge.engine.reasoner2.reasoningnode.PassiveAntRuleNode;
 import eu.knowledge.engine.reasoner2.reasoningnode.PassiveConsRuleNode;
 import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
 
+/**
+ * Decision: BindingSets relating to the start node are handled via the
+ * {@link #getResults()} and {@link #execute(BindingSet)} methods. Non-startnode
+ * binding sets should be retrieved by the caller. See
+ * {@link ForwardTest#test()} for an example.
+ */
 public class ReasonerPlan {
 
   private static final Logger LOG = LoggerFactory.getLogger(ReasonerPlan.class);
   private final RuleStore store;
   private final ProactiveRule start;
   private final Map<BaseRule, RuleNode> ruleToRuleNode;
+  private boolean done;
 
   public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
     this.store = aStore;
@@ -40,8 +47,12 @@ public class ReasonerPlan {
   public RuleNode getStartNode() {
     return this.ruleToRuleNode.get(this.start);
   }
-  
-  public BindingSet execute(BindingSet bindingSet) {
+
+  public RuleNode getRuleNodeForRule(BaseRule rule) {
+    return this.ruleToRuleNode.get(rule);
+  }
+
+  public void execute(BindingSet bindingSet) {
     RuleNode startNode = this.getStartNode();
 
     if (this.isBackward()) {
@@ -109,12 +120,22 @@ public class ReasonerPlan {
       }
     } while (!changed.isEmpty());
 
-    // TODO: Dit is gek
+    this.done = true;
+  }
+
+  public boolean isDone() {
+    return this.done;
+  }
+  
+  public BindingSet getResults() {
     if (this.isBackward()) {
-      assert startNode instanceof PassiveAntRuleNode;
-      return ((PassiveAntRuleNode) startNode).getResultBindingSetInput();
+      if (this.isDone()) {
+        return ((PassiveAntRuleNode) this.getStartNode()).getResultBindingSetInput();
+      } else {
+        throw new RuntimeException("`execute` should be finished before getting results.");
+      }
     } else {
-      return null;
+      throw new RuntimeException("Results should only be read for backward reasoning plans");
     }
   }
 

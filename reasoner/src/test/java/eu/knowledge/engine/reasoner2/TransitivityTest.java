@@ -68,7 +68,7 @@ public class TransitivityTest {
 		ReasonerPlan plan = new ReasonerPlan(store, startRule);
 		plan.execute(new BindingSet());
 
-		BindingSet result = ((PassiveAntRuleNode) plan.getStartNode()).getResultBindingSetInput();
+		BindingSet result = plan.getResults();
 
 		assertEquals(15, result.size());
 	}

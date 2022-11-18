@@ -107,7 +107,8 @@ public class VerySimpleBackwardTest {
 		binding2.put("p", "<sensor1>");
 		binding2.put("q", "22");
 		bs.add(binding2);
-		var result = plan.execute(bs);
+		plan.execute(bs);
+		var result = plan.getResults();
 		System.out.println(result);
 	}
 

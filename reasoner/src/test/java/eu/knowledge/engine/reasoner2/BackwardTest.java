@@ -244,7 +244,8 @@ public class BackwardTest {
 
 		ReasonerPlan plan = new ReasonerPlan(store, converterRule);
 
-    BindingSet result = plan.execute(new BindingSet(new Binding()));
+    plan.execute(new BindingSet(new Binding()));
+		BindingSet result = plan.getResults();
 
 		System.out.println("bindings: " + result);
 		assertFalse(result.isEmpty());
