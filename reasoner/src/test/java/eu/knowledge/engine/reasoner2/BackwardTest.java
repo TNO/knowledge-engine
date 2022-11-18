@@ -1,12 +1,15 @@
 package eu.knowledge.engine.reasoner2;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
@@ -21,6 +24,7 @@ import eu.knowledge.engine.reasoner.DataBindingSetHandler;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Table;
+import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -30,10 +34,20 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class BackwardTest {
-  private RuleStore store;
-  private static final Logger LOG = LoggerFactory.getLogger(BackwardTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BackwardTest.class);
+	private RuleStore store;
 
-  @BeforeAll
+	private ProactiveRule requestNonExistingDataRule;
+	private ProactiveRule converterRule;
+	private ProactiveRule moreThanOneInputBindingRule;
+	private ProactiveRule moreThanOneInputBinding2Rule;
+	private ProactiveRule twoPropsToAndFromTheSameVarsRule;
+	private ProactiveRule variableMatchesLiteralInGraphPatternRule;
+	private ProactiveRule variableAsPredicateRule;
+	private ProactiveRule variableAsPredicate2Rule;
+	private ProactiveRule allTriplesRule;
+
+	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
 		store = new RuleStore();
@@ -230,12 +244,112 @@ public class BackwardTest {
 						"<sensor2>,<bedroom>",
 						//@formatter:on
 				}))));
+
+		// Formulate objective
+		Set<TriplePattern> objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		requestNonExistingDataRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(requestNonExistingDataRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		converterRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(converterRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		// objective.add(new TriplePattern("?p hasValInT ?q")); //TODO this still does
+		// not work
+		moreThanOneInputBindingRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(moreThanOneInputBindingRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		moreThanOneInputBinding2Rule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(moreThanOneInputBinding2Rule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Device>"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		objective.add(new TriplePattern("?p <nonExistentProp> ?q"));
+		twoPropsToAndFromTheSameVarsRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(twoPropsToAndFromTheSameVarsRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> ?t"));
+		objective.add(new TriplePattern("?p <hasValInC> ?q"));
+		variableMatchesLiteralInGraphPatternRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableMatchesLiteralInGraphPatternRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p ?pred \"21.666666\"^^<http://www.w3.org/2001/XMLSchema#float>"));
+//		objective.add(new TriplePattern("?p ?pred 22"));
+		variableAsPredicateRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableAsPredicateRule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?p <type> <Sensor>"));
+		objective.add(new TriplePattern("?p ?pred \"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>"));
+		variableAsPredicate2Rule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(variableAsPredicate2Rule);
+
+		// Formulate objective
+		objective = new HashSet<>();
+		objective.add(new TriplePattern("?s ?p ?o"));
+		allTriplesRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(allTriplesRule);
 	}
 
-  // TODO: Add more detailed assertions: What do I expect here?
-  @Test
+	/**
+	 * TODO: it currently fails, probably because the 21 value of the filter
+	 * bindingset is translated out of the bindingset and afterwards when the
+	 * results come back it is not checked to still satisfy the original filter bs.
+	 */
+	@Test
+	public void testRequestNonExistingData() throws InterruptedException, ExecutionException {
+
+		// Start reasoning
+		ReasonerPlan root = new ReasonerPlan(store, requestNonExistingDataRule);
+
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+
+		Binding binding2 = new Binding();
+		binding2.put("p", "<sensor1>");
+		binding2.put("q", "21");
+		bs.add(binding2);
+
+		root.execute(bs);
+
+		BindingSet bind = root.getResults();
+		System.out.println("bindings: " + bind);
+		assertTrue(isEmpty(bind));
+
+	}
+
+	private boolean isEmpty(BindingSet b) {
+		if (b.isEmpty() || b.iterator().next().isEmpty())
+			return true;
+
+		return false;
+	}
+
+	// TODO: Add more detailed assertions: What do I expect here?
+	@Test
 	public void testConverter() {
-    // Formulate objective
+		// Formulate objective
 		HashSet<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
@@ -244,11 +358,155 @@ public class BackwardTest {
 
 		ReasonerPlan plan = new ReasonerPlan(store, converterRule);
 
-    plan.execute(new BindingSet(new Binding()));
+		plan.execute(new BindingSet(new Binding()));
 		BindingSet result = plan.getResults();
 
 		System.out.println("bindings: " + result);
 		assertFalse(result.isEmpty());
 
+	}
+
+	@Test
+	public void testMoreThanOneInputBinding() throws InterruptedException, ExecutionException {
+
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBindingRule);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding = new Binding();
+		binding.put("p", "<sensor2>");
+		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("p", "<sensor1>");
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println("bindings: " + bind);
+		assertFalse(isEmpty(bind));
+
+	}
+
+	@Test
+	public void testMoreThanOneInputBinding2() throws InterruptedException, ExecutionException {
+
+		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBinding2Rule);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding = new Binding();
+		binding.put("p", "<sensor2>");
+		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("p", "<sensor1>");
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println("bindings: " + bind);
+		assertFalse(bind.isEmpty());
+
+	}
+
+	@Test
+	public void testTwoPropsToAndFromTheSameVars() throws InterruptedException, ExecutionException {
+
+		ReasonerPlan root = new ReasonerPlan(store, twoPropsToAndFromTheSameVarsRule);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+//		Binding binding = new Binding();
+//		binding.put("q", "22");
+//		bs.add(binding);
+
+		Binding binding2 = new Binding();
+		binding2.put("p", "<sensor1>");
+		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println("bindings: " + bind);
+		assertTrue(isEmpty(bind));
+	}
+
+	@Test
+	public void testVariableMatchesLiteralInGraphPattern() throws InterruptedException, ExecutionException {
+		ReasonerPlan root = new ReasonerPlan(store, variableMatchesLiteralInGraphPatternRule);
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+
+		Binding binding2 = new Binding();
+		binding2.put("p", "<sensor1>");
+		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
+	}
+
+	@Test
+	public void testVariableAsPredicate() throws InterruptedException, ExecutionException {
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule);
+
+		System.out.println(root);
+
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
+	}
+
+	@Test
+	public void testVariableAsPredicate2() throws InterruptedException, ExecutionException {
+
+		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicate2Rule);
+
+		// empty binding is necessary
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
+	}
+
+	@Test
+	public void testAllTriples() throws InterruptedException, ExecutionException {
+		ReasonerPlan root = new ReasonerPlan(store, allTriplesRule);
+		System.out.println(root);
+
+		// empty binding is necessary
+		BindingSet bs = new BindingSet();
+		Binding binding2 = new Binding();
+		bs.add(binding2);
+
+		root.execute(bs);
+		BindingSet bind = root.getResults();
+
+		System.out.println(root);
+
+		System.out.println("bindings: " + bind);
+		assertTrue(!bind.isEmpty());
 	}
 }
