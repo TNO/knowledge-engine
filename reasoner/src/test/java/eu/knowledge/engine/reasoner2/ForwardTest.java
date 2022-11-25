@@ -172,10 +172,6 @@ public class ForwardTest {
 				aBindingSetHandler.getBindingSet());
 	}
 
-	/**
-	 * TODO this is clear, empty result bindingsets should not be send to the
-	 * handlers.
-	 */
 	@Test
 	public void testDoNotHandleEmptyBindingSets() throws InterruptedException, ExecutionException {
 		store = new RuleStore();
@@ -222,9 +218,6 @@ public class ForwardTest {
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
 	}
 
-	/**
-	 * TODO Probably the same problem as the backward during forward tests.
-	 */
 	@Test
 	public void testMultipleLeafs() throws InterruptedException, ExecutionException {
 		store = new RuleStore();
@@ -271,9 +264,6 @@ public class ForwardTest {
 		System.out.println("Result2: " + aBindingSetHandler2.getBindingSet());
 	}
 
-	/**
-	 * TODO probably the same error as the backward during forward tests.
-	 */
 	@Test
 	public void testBackwardChainingDuringForwardChaining() throws InterruptedException, ExecutionException {
 		store = new RuleStore();
@@ -378,11 +368,6 @@ public class ForwardTest {
 		assertEquals(1, aBindingSetHandler1.getBindingSet().size());
 	}
 
-	/**
-	 * TODO It does not collect any bindingset because not all of its neighbors have
-	 * contributed, but one neighbor will never contribute because it never gets a
-	 * filter bindingset.
-	 */
 	@Test
 	public void testBackwardChainingDuringForwardChainingIfPartialMatch()
 			throws InterruptedException, ExecutionException {
@@ -435,9 +420,6 @@ public class ForwardTest {
 		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
 	}
 
-	/**
-	 * TODO probably the same error as the backward during forward tests.
-	 */
 	@Test
 	public void testPublishedValuesShouldRemainAccessible() throws InterruptedException, ExecutionException {
 		store = new RuleStore();

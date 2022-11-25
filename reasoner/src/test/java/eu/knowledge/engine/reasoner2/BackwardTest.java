@@ -311,11 +311,6 @@ public class BackwardTest {
 		store.addRule(allTriplesRule);
 	}
 
-	/**
-	 * TODO: it currently fails, probably because the 21 value of the filter
-	 * bindingset is translated out of the bindingset and afterwards when the
-	 * results come back it is not checked to still satisfy the original filter bs.
-	 */
 	@Test
 	public void testRequestNonExistingData() throws InterruptedException, ExecutionException {
 
