@@ -76,7 +76,12 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 			filteredBS = bs.keepCompatible(this.filterBindingSetOutput);
 		}
 
-		return this.resultBindingSetInput.add(aNeighbor, filteredBS);
+		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
+		if (changed && this.filterBindingSetOutput == null) {
+			this.filterBindingSetOutput = this.resultBindingSetInput.get();
+		}
+
+		return changed;
 	}
 
 	@Override

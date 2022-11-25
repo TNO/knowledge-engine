@@ -53,7 +53,13 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 		if (this.filterBindingSetOutput != null) {
 			filteredBS = aBindingSet.keepCompatible(this.filterBindingSetOutput);
 		}
-		return this.resultBindingSetInput.add(aNeighbor, filteredBS);
+		
+		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
+		if (changed && this.filterBindingSetOutput == null) {
+			this.filterBindingSetOutput = this.resultBindingSetInput.get();
+		}
+
+		return changed;
 	}
 
 	@Override
