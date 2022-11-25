@@ -218,6 +218,7 @@ public class ReasonerPlan {
 			});
 
 			// antecedent neighbors to propagate bindings further via backward chaining
+			// TODO: Only do this if we aren't fully covered yet.
 			this.store.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert reasonerNode instanceof AntSide;
