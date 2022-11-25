@@ -392,7 +392,7 @@ public class ForwardTest {
 		TriplePattern tp13 = new TriplePattern("?sens <isInRoom> ?room");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), aBindingSetHandler1));
-		store.addRule(grandParentRule);
+
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
