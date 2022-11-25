@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutionException;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 /**
  * @author nouwtb
@@ -19,7 +20,7 @@ public class ActiveAntRuleNode extends AntRuleNode {
 	public boolean readyForTransformFilter() {
 		return false;
 	}
-	
+
 	@Override
 	public void transformFilterBS() {
 		assert false;
@@ -35,7 +36,9 @@ public class ActiveAntRuleNode extends AntRuleNode {
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getSinkBindingSetHandler();
 		try {
-			handler.handle(this.resultBindingSetInput.get().getFullBindingSet().toBindingSet()).get();
+			TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
+			if (!fullBindingSet.isEmpty())
+				handler.handle(fullBindingSet.toBindingSet()).get();
 		} catch (InterruptedException | ExecutionException e) {
 			// TODO
 			e.printStackTrace();
