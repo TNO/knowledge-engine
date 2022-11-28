@@ -373,6 +373,8 @@ public class BackwardTest {
 
 		ReasonerPlan plan = new ReasonerPlan(store, converterRule);
 
+		store.printGraphVizCode(plan);
+
 		plan.execute(new BindingSet(new Binding()));
 		BindingSet result = plan.getResults();
 

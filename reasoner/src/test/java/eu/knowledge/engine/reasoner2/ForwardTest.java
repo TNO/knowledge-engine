@@ -149,6 +149,8 @@ public class ForwardTest {
 
 		System.out.println(rp);
 
+		store.printGraphVizCode(rp);
+
 		BindingSet bs = new BindingSet();
 
 		bs.addAll(new Table(new String[] {
@@ -306,11 +308,9 @@ public class ForwardTest {
 	}
 
 	/**
-	 * TODO This test does not return anything (which is wrong) and this seems to be
-	 * caused by the result bindingset not being translated into a filter bindingset
-	 * when going backward. But of course, in this scenario, the idea is that
-	 * backward chaining does not happen at all, because the graph pattern is
-	 * already fully covered. This part is also not implemented yet!
+	 * TODO But of course, in this scenario, the idea is that backward chaining does
+	 * not happen at all, because the graph pattern is already fully covered. This
+	 * part is also not implemented yet!
 	 */
 	@Test
 	public void testNoBackwardChainingDuringForwardChainingIfFullMatch()
@@ -320,15 +320,17 @@ public class ForwardTest {
 		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
 		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
 		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12)), aBindingSetHandler1));
-		store.addRule(grandParentRule);
+
 		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
 		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
 		Set<TriplePattern> premise = new HashSet<>();
 		premise.add(tp21);
 		premise.add(tp22);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
 
-		TriplePattern tp31 = new TriplePattern("?s <hasMeasuredValue> ?v");
 		TriplePattern tp32 = new TriplePattern("?s <type> <Sensor>");
+		TriplePattern tp31 = new TriplePattern("?s <hasMeasuredValue> ?v");
 		store.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31, tp32)),
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
@@ -342,9 +344,9 @@ public class ForwardTest {
 						// @formatter:on
 				}))));
 
-		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
-		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.printGraphVizCode(rn);
 
 		LOG.info("\n{}", rn);
 		BindingSet bs = new BindingSet();
@@ -401,6 +403,9 @@ public class ForwardTest {
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.printGraphVizCode(rn);
+
 		System.out.println(rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
@@ -418,6 +423,143 @@ public class ForwardTest {
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
+	}
+
+	@Test
+	public void testBackwardChainingDuringForwardChainingIfPartialWithTwoStages() {
+
+		store = new RuleStore();
+		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
+		TriplePattern tp13 = new TriplePattern("?sens <isInArea> ?area");
+		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), aBindingSetHandler1));
+
+		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
+		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
+		Set<TriplePattern> premise = new HashSet<>();
+		premise.add(tp21);
+		premise.add(tp22);
+
+		TriplePattern tp31 = new TriplePattern("?s <isInRoom> ?r");
+		store.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
+				new DataBindingSetHandler(new Table(new String[] {
+				// @formatter:off
+						"s", "r"
+						// @formatter:on
+				}, new String[] {
+				// @formatter:off
+						"<sens1>,<room1>",
+						"<sens2>,<room2>", 
+						"<sens3>,<room3>"
+						// @formatter:on
+				}))));
+
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
+
+		TriplePattern tp41 = new TriplePattern("?s <isInRoom> ?r");
+		TriplePattern tp42 = new TriplePattern("?s <isInArea> ?r");
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp41)), new HashSet<>(Arrays.asList(tp42))));
+
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.printGraphVizCode(rn);
+
+		System.out.println(rn);
+		BindingSet bs = new BindingSet();
+		bs.addAll(new Table(new String[] {
+				// @formatter:off
+				"sensor", "value"
+				// @formatter:on
+		}, new String[] {
+				// @formatter:off
+				"<sens1>,1"
+				// @formatter:on
+		}).getData());
+
+		rn.execute(bs);
+
+		System.out.println(aBindingSetHandler1.getBindingSet());
+		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
+		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
+	}
+
+	@Test
+	public void testAlternativeForFullMatch() {
+
+//		-> ?s rdf:type :Sensor . ?s :hasValueInC ?v . ?s :isInArea ?b .
+//
+//				?s = sens1
+//				?v = 21
+//				?b = badkamer
+//
+//				-> ?x :isPartOf ?y
+//
+//
+//				?s :isInArea ?b . ?b :isPartOf ?c -> ?s :isInArea ?c .
+
+		store = new RuleStore();
+		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
+		TriplePattern tp12 = new TriplePattern("?sens <hasMeasuredValue> ?value");
+		TriplePattern tp13 = new TriplePattern("?sens <isInArea> ?area");
+		MyBindingSetHandler aBindingSetHandler1 = new MyBindingSetHandler();
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp11, tp12, tp13)), aBindingSetHandler1));
+
+		TriplePattern tp21 = new TriplePattern("?sensor <type> <Sensor>");
+		TriplePattern tp22 = new TriplePattern("?sensor <hasMeasuredValue> ?value");
+		TriplePattern tp23 = new TriplePattern("?sensor <isInArea> ?area");
+		Set<TriplePattern> premise = new HashSet<>();
+		premise.add(tp21);
+		premise.add(tp22);
+		premise.add(tp23);
+		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
+		store.addRule(aStartRule);
+
+		TriplePattern tp31 = new TriplePattern("?s <isPartOf> ?a");
+		store.addRule(new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(tp31)),
+				new DataBindingSetHandler(new Table(new String[] {
+				// @formatter:off
+						"s", "a"
+						// @formatter:on
+				}, new String[] {
+				// @formatter:off
+						"<badkamer>,<bovenverdieping>", 
+						"<woonkamer>,<benedenverdieping>", 
+						"<slaapkamer>,<bovenverdieping>"
+						// @formatter:on
+				}))));
+
+		TriplePattern tp41 = new TriplePattern("?s <isInArea> ?b");
+		var tp42 = new TriplePattern("?b <isPartOf> ?c");
+		var tp43 = new TriplePattern("?s <isInArea> ?c");
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(tp41, tp42)), new HashSet<>(Arrays.asList(tp43))));
+
+		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.printGraphVizCode(rn);
+
+		LOG.info("\n{}", rn);
+		BindingSet bs = new BindingSet();
+		bs.addAll(new Table(new String[] {
+				// @formatter:off
+				"sensor", "value", "area"
+				// @formatter:on
+		}, new String[] {
+				// @formatter:off
+				"<sens1>,1,<badkamer>"
+				// @formatter:on
+		}).getData());
+
+		rn.execute(bs);
+
+		LOG.info("\n{}", rn);
+
+		LOG.info("BindingSet: {}", aBindingSetHandler1.getBindingSet());
+		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
+
+		assertEquals(2, aBindingSetHandler1.getBindingSet().size());
+
 	}
 
 	@Test
