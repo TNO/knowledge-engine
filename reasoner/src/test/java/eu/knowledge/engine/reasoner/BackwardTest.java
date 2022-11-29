@@ -348,28 +348,6 @@ public class BackwardTest {
 	}
 
 	@Test
-	public void testConverter() throws InterruptedException, ExecutionException {
-		TaskBoard taskboard = new TaskBoard();
-		ReasonerPlan root = new ReasonerPlan(store, converterRule, taskboard);
-
-		System.out.println(root);
-
-		BindingSet bs = new BindingSet();
-		Binding binding2 = new Binding();
-//		binding2.put("p", "<sensor1>");
-		bs.add(binding2);
-
-		while (root.execute(bs)) {
-			taskboard.executeScheduledTasks().get();
-		}
-		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
-
-		System.out.println("bindings: " + bind);
-		assertFalse(bind.isEmpty());
-
-	}
-
-	@Test
 	public void testMoreThanOneInputBinding() throws InterruptedException, ExecutionException {
 
 		TaskBoard taskboard = new TaskBoard();
