@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 		if (this.filterBindingSetOutput != null) {
 			filteredBS = aBindingSet.keepCompatible(this.filterBindingSetOutput);
 		}
-		
+
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
 		if (changed && this.filterBindingSetOutput == null) {
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
@@ -70,5 +71,10 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	@Override
 	public TripleVarBindingSet getResultBindingSetOutput() {
 		return null;
+	}
+
+	@Override
+	public Set<RuleNode> getAllSameLoopNeighbors() {
+		return new HashSet<>();
 	}
 }

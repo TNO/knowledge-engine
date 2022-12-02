@@ -51,10 +51,10 @@ public class BindingSetStore {
 	}
 
 	// TODO: It feels ugly to do this.
-	public boolean haveAllNeighborsContributedExcept(RuleNode node) {
+	public boolean haveAllNeighborsContributedExcept(Set<RuleNode> nodes) {
 		var allNeighboursWithException = new HashSet<>();
 		allNeighboursWithException.addAll(neighbors);
-		allNeighboursWithException.remove(node);
+		allNeighboursWithException.removeAll(nodes);
 		return this.neighborBindingSet.keySet().containsAll(allNeighboursWithException);
 	}
 

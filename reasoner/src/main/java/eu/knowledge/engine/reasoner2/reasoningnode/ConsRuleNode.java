@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,5 +60,10 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	@Override
 	public TripleVarBindingSet getFilterBindingSetOutput() {
 		return null;
+	}
+
+	@Override
+	public Set<RuleNode> getAllSameLoopNeighbors() {
+		return new HashSet<>();
 	}
 }

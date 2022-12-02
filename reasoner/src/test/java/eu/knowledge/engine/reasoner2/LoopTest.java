@@ -20,7 +20,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 @TestInstance(Lifecycle.PER_CLASS)
-public class TransitivityTest {
+public class LoopTest {
 
 	private RuleStore store;
 
@@ -32,13 +32,18 @@ public class TransitivityTest {
 		Set<TriplePattern> antecedent = new HashSet<>();
 		antecedent.add(new TriplePattern("?x <isAncestorOf> ?y"));
 		antecedent.add(new TriplePattern("?y <isAncestorOf> ?z"));
-
 		Set<TriplePattern> consequent = new HashSet<>();
-		consequent.add(new TriplePattern("?x <isAncestorOf> ?z"));
+		consequent.add(new TriplePattern("?x <isSmurfOf> ?z"));
+		Rule transitivityRule = new Rule(antecedent, consequent);
+		store.addRule(transitivityRule);
 
-		Rule transitivity = new Rule(antecedent, consequent);
-
-		store.addRule(transitivity);
+		// smurf rule
+		antecedent = new HashSet<TriplePattern>();
+		antecedent.add(new TriplePattern("?x <isSmurfOf> ?y"));
+		consequent = new HashSet<>();
+		consequent.add(new TriplePattern("?x <isAncestorOf> ?y"));
+		Rule smurfRule = new Rule(antecedent, consequent);
+		store.addRule(smurfRule);
 
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(
@@ -52,7 +57,7 @@ public class TransitivityTest {
 				//@formatter:on
 				}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isAncestorOf> ?b"))),
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isSmurfOf> ?b"))),
 				aBindingSetHandler);
 
 		store.addRule(rule);
@@ -66,10 +71,14 @@ public class TransitivityTest {
 		store.addRule(startRule);
 
 		ReasonerPlan plan = new ReasonerPlan(store, startRule);
+
+		store.printGraphVizCode(plan);
+
 		plan.execute(new BindingSet());
 
 		BindingSet result = plan.getResults();
 
 		assertEquals(15, result.size());
 	}
+
 }

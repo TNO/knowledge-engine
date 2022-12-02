@@ -29,11 +29,17 @@ public abstract class RuleNode {
 	}
 
 	public abstract void applyRule();
-  public abstract boolean readyForApplyRule();
+
+	public abstract boolean readyForApplyRule();
+
 	public abstract TripleVarBindingSet getResultBindingSetOutput();
 
 	public abstract boolean readyForTransformFilter();
+
 	public abstract void transformFilterBS();
+
 	public abstract TripleVarBindingSet getFilterBindingSetOutput();
+
+	public abstract Set<RuleNode> getAllSameLoopNeighbors();
 
 }

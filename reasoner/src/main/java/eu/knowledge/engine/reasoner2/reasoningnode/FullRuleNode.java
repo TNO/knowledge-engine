@@ -1,10 +1,13 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Match;
@@ -98,7 +101,10 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean readyForTransformFilter() {
 		// TODO: This (the "Except" part) was needed to make transitivity work, but not
 		// sure if it is correct
-		return this.filterBindingSetInput.haveAllNeighborsContributedExcept(this);
+
+		Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
+
+		return this.filterBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
 	}
 
 	@Override
@@ -119,7 +125,9 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean readyForApplyRule() {
 		// TODO: This (the "Except" part) was needed to make transitivity work, but not
 		// sure if it is correct
-		return this.resultBindingSetInput.haveAllNeighborsContributedExcept(this);
+		Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
+
+		return this.resultBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
 	}
 
 	@Override
@@ -137,5 +145,40 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 			// TODO
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Determine loop nodes that are our neighbors and are part of the same loop as
+	 * this node.
+	 * 
+	 */
+	@Override
+	public Set<RuleNode> getAllSameLoopNeighbors() {
+		var nodes = new HashSet<RuleNode>();
+
+		this.getConsequentNeighbours().keySet().stream().filter((r) -> r instanceof FullRuleNode)
+				.map((r) -> ((FullRuleNode) r)).forEach((neighbor) -> {
+
+					Deque<FullRuleNode> stack = new LinkedList<>();
+					stack.addAll(neighbor.getConsequentNeighbours().keySet().stream()
+							.filter((r) -> r instanceof FullRuleNode).map((r) -> ((FullRuleNode) r))
+							.collect(Collectors.toSet()));
+
+					FullRuleNode current;
+					while (!stack.isEmpty()) {
+						current = stack.pop();
+						if (current == this) {
+							nodes.add(neighbor);
+							break;
+						}
+
+						stack.addAll(current.getConsequentNeighbours().keySet().stream()
+								.filter((r) -> r instanceof FullRuleNode).map((r) -> ((FullRuleNode) r))
+								.collect(Collectors.toSet()));
+
+					}
+				});
+
+		return nodes;
 	}
 }
