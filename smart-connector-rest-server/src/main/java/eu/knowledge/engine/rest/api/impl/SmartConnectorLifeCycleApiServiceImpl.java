@@ -1,6 +1,8 @@
 package eu.knowledge.engine.rest.api.impl;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
@@ -94,6 +96,16 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
+
+		try {
+			new URL(smartConnector.getKnowledgeBaseId()).toURI();
+		} catch (MalformedURLException | URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base ID must be a valid URI.");
+			asyncResponse.resume(Response.status(406).entity(response).build());
+			return;
+		} 
 
 		URI kbId;
 		try {
