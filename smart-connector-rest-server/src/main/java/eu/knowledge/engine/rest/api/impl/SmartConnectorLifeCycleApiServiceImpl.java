@@ -103,7 +103,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge base ID must be a valid URI.");
-			asyncResponse.resume(Response.status(406).entity(response).build());
+			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		} 
 

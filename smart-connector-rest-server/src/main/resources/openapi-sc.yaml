@@ -95,12 +95,6 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
-        '406':
-          description: If the creation of the Smart Connector fails due to invalid Knowledge Base Id.
-          content:
-            application/json; charset=UTF-8:
-              schema:
-                $ref: '#/components/schemas/ResponseMessage'
     delete:
       summary: Delete the Smart Connector belonging to the given Knowledge Base
       tags:
