@@ -37,9 +37,17 @@ public class LoopTest {
 		Rule transitivityRule = new Rule(antecedent, consequent);
 		store.addRule(transitivityRule);
 
-		// smurf rule
+		// snorkel rule
 		antecedent = new HashSet<TriplePattern>();
 		antecedent.add(new TriplePattern("?x <isSmurfOf> ?y"));
+		consequent = new HashSet<>();
+		consequent.add(new TriplePattern("?x <isSnorkelOf> ?y"));
+		Rule snorkelRule = new Rule(antecedent, consequent);
+		store.addRule(snorkelRule);
+
+		// smurf rule
+		antecedent = new HashSet<TriplePattern>();
+		antecedent.add(new TriplePattern("?x <isSnorkelOf> ?y"));
 		consequent = new HashSet<>();
 		consequent.add(new TriplePattern("?x <isAncestorOf> ?y"));
 		Rule smurfRule = new Rule(antecedent, consequent);
@@ -57,7 +65,7 @@ public class LoopTest {
 				//@formatter:on
 				}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isSmurfOf> ?b"))),
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isSnorkelOf> ?b"))),
 				aBindingSetHandler);
 
 		store.addRule(rule);
