@@ -96,7 +96,7 @@ For further advanced instructions on administering a Knowledge Engine runtime, r
 ### Running with Java without the REST API
 In constrained environments, it may be preferable to use the Java API directly, and not use the REST API.
 
-For this, you need to be in a Java project, import our packages, implement the `KnowledgeBase` class, and start a smart connector with a `SmartConnectorBuilder`.
+For this, you need to be in a Java project, import our packages, implement the `KnowledgeBase` interface, and start a smart connector with a `SmartConnectorBuilder`.
 An example of this can be found in the [`./examples/`](./examples/) folder.
 
 ## Integrating with the Knowledge Engine
