@@ -2,22 +2,67 @@
 
 # Knowledge Engine
 
-## Components
+Welcome to the source code repository of the Knowledge Engine.
+This README should help you understand what the Knowledge Engine is, and how to use it.
 
-The Knowledge Engine project consists of the following Maven modules:
-- `smart-connector`
-  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/03_java_developer_api.md).
-- `smart-connector-api`
-	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
-- `smart-connector-rest-server`
-	- This module contains the REST API layer that is built on top of the Java Developer API.
-- `smart-connector-rest-dist`
-  - A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#how-to-use-the-rest-api). For instructions on how to set it up, refer to [this section](#how-to-administer-the-rest-api).
-- `examples`
-	- A selection of examples of how the Java developer API is used.
-- `admin-ui`
-	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
+In short, the Knowledge Engine is an interoperability solution wants to make it easier for different knowledge bases[^1] to communicate.
+This is done by using concepts from an ontology: a common domain-specific model that the knowledge bases will have to agree upon.
 
+For example, if one knowledge base is interested in some kind of data (e.g., names of dogs), and several other knowledge bases provide this data, the data is automatically gathered and merged when such a query is executed.
+
+The Knowledge Engine consists of a number of components:
+
+- A *smart connector* is used by knowledge bases[^1] to exchange data with other knowledge bases. The smart connector gives the knowledge base a way to (1) register the kind of knowledge they want to exchange and in which way, and (2) do the actual knowledge exchange.
+- A *Knowledge Engine runtime* is a runtime in which one or more smart connectors can exist. These can exchange data with eachother, and, **if configured correctly**, also with smart connectors in other Knowledge Engine runtimes.
+- (optional) A *knowledge directory* is used as a simple discovery mechanism for several Knowledge Engine runtimes to become aware of eachother's existence.
+
+[^1]: *Knowledge base* is a term to describe "the system that connects with the interoperability platform". It can be anything. Examples include, databases, sensors, or even GUIs.
+
+[The next section](#starting-a-knowledge-engine-runtime) gives instruction on how to start a Knowledge Engine runtime, and [further below](), instructions are given on how to start and use a smart connector from your knowledge base.
+
+## Starting a Knowledge Engine runtime
+
+Starting a Knowledge Engine runtime can be done in several ways, [with Docker](#running-with-docker), [with Java](#running-with-java), and [in a more minimal way with Java](#running-with-java-without-the-rest-api).
+
+|                | Remote runtimes[^1] | REST API | Java API |
+|----------------|-----------------|----------|----------|
+| Docker         | ✅               | ✅        | ❌        |
+| Java           | ✅               | ✅        | ✅        |
+| Java (minimal) | ✅               | ❌        | ✅        |
+
+[^1]: Requires additional configuration
+
+### Running with Docker
+The easiest way to start a Knowledge Engine runtime is with Docker:
+
+```bash
+docker run \
+	-p 8280:8280 \
+	ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
+```
+
+However, running it in the way **does not support** data exchange with remote runtimes; it can only be used to exchange data with other smart connectors in the same runtime.
+
+To interact with other runtimes, it needs some additional configuration:
+
+- An additional port mapping for the socket that listens for communication from other runtimes.
+- `KE_RUNTIME_EXPOSED_URL`: The URL via which the above socket is available for communication from the other runtime(s). You need to make sure the traffic is correctly routed to the container's port 8081 with a reverse proxy.
+- `KD_URL`: The URL on which to find the knowledge directory (to discover peers).
+
+```bash
+docker run \
+  -p 8280:8280 \
+  -p 8081:8081 \
+  -e KD_URL=https://knowledge-directory.example.org \
+  -e KE_RUNTIME_EXPOSED_URL=http://your-domain.example.org:8081 \
+  ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
+```
+
+### Running with Java
+
+### Running with Java without the REST API
+
+## Integrating with the Knowledge Engine
 ## How to use the REST API
 Assuming there is a REST API instance running at a known host, you can use these instructions to help you get started with making a client for it.
 
@@ -72,8 +117,8 @@ As explained in the local mode section, nohup can be used to run the process in 
 
 Once the Knowledge Directory is up and running, the REST server can be started. It is configured through environment variables. It has the following configuration options:
 
-| Key | Descrption |
-| --- | --- |
+| Key    | Descrption                                     |
+|--------|------------------------------------------------|
 | KD_URL | URL where the Knowledge Directory can be found |
 | KE_RUNTIME_EXPOSED_URL | URL where other Smart Connectors (peers) can contact this Knowledge Engine instance. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. Note that the URL should include the scheme like `http://...` or `https://...`.
 | KE_RUNTIME_PORT | Port where where this Knowledge Engine instance will listen for new peer connections |
@@ -92,6 +137,26 @@ java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.1.
 ```
 
 As explained in the local mode section, nohup can be used to run the process in the background.
+
+# Developer information
+
+This section gives more detailed information about the project's structure, and is targeted towards developers who contribute code to the project.
+
+## Components
+
+The Knowledge Engine project consists of the following Maven modules:
+- `smart-connector`
+  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/03_java_developer_api.md).
+- `smart-connector-api`
+	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
+- `smart-connector-rest-server`
+	- This module contains the REST API layer that is built on top of the Java Developer API.
+- `smart-connector-rest-dist`
+  - A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#how-to-use-the-rest-api). For instructions on how to set it up, refer to [this section](#how-to-administer-the-rest-api).
+- `examples`
+	- A selection of examples of how the Java developer API is used.
+- `admin-ui`
+	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
 
 ## Release steps
 These are instructions on what to do when we release a new version of the knowledge engine.
