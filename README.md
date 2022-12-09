@@ -67,7 +67,7 @@ docker run \
 ### Running with Java
 If you prefer not to use Docker, you can also use the JAR to run it directly in your JVM:
 
-```
+```bash
 # Where the knowledge directory is located
 export KD_URL=https://knowledge-directory.example.org
 # Port where the runtime will listen for connections from other
@@ -84,7 +84,7 @@ java -jar -Dorg.slf4j.simpleLogger.logFile=smart-connector.log \
 
 The JAR can be retrieved by compiling the project:
 
-```
+```bash
 mvn clean package -DskipTests
 # the relevant JAR will be in `./smart-connector-rest-dist/target/`
 ```
@@ -150,12 +150,12 @@ The Knowledge Engine project consists of the following Maven modules:
 These are instructions on what to do when we release a new version of the knowledge engine.
 
 1. Update all relevant version references and make sure they are correct and non-SNAPSHOT:
-	- all pom.xml files
-	- openapi-sc.yaml version
-	- this readme.md file
+	- all `pom.xml` files
+	- `openapi-sc.yaml` version
+	- this `README.md` file
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
 3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
-4. Build and push the new docker images:
+4. Build and push the new Docker images:
 ```bash
 docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.1.3 --push
 docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.1.3 --push
