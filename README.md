@@ -2,6 +2,8 @@
 
 # Knowledge Engine
 
+[![DOI](https://zenodo.org/badge/502097185.svg)](https://zenodo.org/badge/latestdoi/502097185)
+
 Welcome to the source code repository of the Knowledge Engine.
 This README should help you understand what the Knowledge Engine is, and how to use it.
 
