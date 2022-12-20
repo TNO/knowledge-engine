@@ -7,7 +7,7 @@
 Welcome to the source code repository of the Knowledge Engine.
 This README should help you understand what the Knowledge Engine is, and how to use it.
 
-In short, the Knowledge Engine is an interoperability solution wants to make it easier for different knowledge bases to communicate.
+In short, the Knowledge Engine is an interoperability solution that wants to make it easier for different knowledge bases to communicate.
 
 *Knowledge base* is a term to describe "the system that connects with the interoperability platform". It can be anything. Examples include, databases, sensors, or even GUIs.
 
@@ -126,7 +126,7 @@ With the API specification, you will be able to:
 
 ## Using the Java API
 
-In the [`client_example` package](./smart-connector-rest-server/src/main/java/eu/interconnectproject/knowledge_engine/rest/api/client_example), there are several examples of clients written in Java.
+In the [`client_example` package](./smart-connector-rest-server/src/main/java/eu/knowledge/engine/rest/api/client_example), there are several examples of clients written in Java.
 
 # Developer information
 
