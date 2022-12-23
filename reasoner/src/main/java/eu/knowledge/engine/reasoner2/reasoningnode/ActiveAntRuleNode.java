@@ -1,6 +1,8 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
@@ -32,16 +34,19 @@ public class ActiveAntRuleNode extends AntRuleNode {
 	}
 
 	@Override
-	public void applyRule() {
+	public Future<Void> applyRule() {
 		assert this.getRule() instanceof Rule;
+
 		var handler = ((Rule) this.getRule()).getSinkBindingSetHandler();
-		try {
-			TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
-			if (!fullBindingSet.isEmpty())
-				handler.handle(fullBindingSet.toBindingSet()).get();
-		} catch (InterruptedException | ExecutionException e) {
-			// TODO
-			e.printStackTrace();
+		TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
+		
+		CompletableFuture<Void> f;
+		if (!fullBindingSet.isEmpty()) {
+			f = handler.handle(fullBindingSet.toBindingSet());
+		} else {
+			f = new CompletableFuture<Void>();
+			f.complete(null);
 		}
+		return f;
 	}
 }

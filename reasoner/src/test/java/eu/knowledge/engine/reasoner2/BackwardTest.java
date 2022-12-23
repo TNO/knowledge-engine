@@ -24,7 +24,6 @@ import eu.knowledge.engine.reasoner.DataBindingSetHandler;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Table;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -346,7 +345,10 @@ public class BackwardTest {
 		binding2.put("q", "21");
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		BindingSet bind = root.getResults();
 		System.out.println("bindings: " + bind);
@@ -363,7 +365,7 @@ public class BackwardTest {
 
 	// TODO: Add more detailed assertions: What do I expect here?
 	@Test
-	public void testConverter() {
+	public void testConverter() throws InterruptedException, ExecutionException {
 		// Formulate objective
 		HashSet<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Sensor>"));
@@ -375,7 +377,10 @@ public class BackwardTest {
 
 		store.printGraphVizCode(plan);
 
-		plan.execute(new BindingSet(new Binding()));
+		TaskBoard tb;
+		while ((tb = plan.execute(new BindingSet(new Binding()))).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet result = plan.getResults();
 
 		System.out.println("bindings: " + result);
@@ -398,7 +403,10 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println("bindings: " + bind);
@@ -421,7 +429,10 @@ public class BackwardTest {
 		binding2.put("p", "<sensor1>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println("bindings: " + bind);
@@ -445,7 +456,10 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println("bindings: " + bind);
@@ -464,7 +478,10 @@ public class BackwardTest {
 		binding2.put("q", "\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println("bindings: " + bind);
@@ -481,7 +498,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 		System.out.println(root);
 
@@ -499,7 +519,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println(root);
@@ -518,7 +541,10 @@ public class BackwardTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		System.out.println(root);

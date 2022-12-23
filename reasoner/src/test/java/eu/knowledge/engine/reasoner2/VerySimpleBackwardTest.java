@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -98,7 +99,7 @@ public class VerySimpleBackwardTest {
 	}
 
 	@Test
-	public void doReasoning() {
+	public void doReasoning() throws InterruptedException, ExecutionException {
 		// Start reasoning
 		ReasonerPlan plan = new ReasonerPlan(store, startRule);
 
@@ -107,7 +108,10 @@ public class VerySimpleBackwardTest {
 		binding2.put("p", "<sensor1>");
 		binding2.put("q", "22");
 		bs.add(binding2);
-		plan.execute(bs);
+		TaskBoard tb;
+		while ((tb = plan.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		var result = plan.getResults();
 		System.out.println(result);
 	}

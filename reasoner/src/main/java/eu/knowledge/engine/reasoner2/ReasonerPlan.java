@@ -57,8 +57,9 @@ public class ReasonerPlan {
 		return this.ruleToRuleNode.get(rule);
 	}
 
-	public void execute(BindingSet bindingSet) {
+	public TaskBoard execute(BindingSet bindingSet) {
 		RuleNode startNode = this.getStartNode();
+		TaskBoard taskboard = new TaskBoard();
 
 		if (this.isBackward()) {
 			assert startNode instanceof PassiveAntRuleNode;
@@ -89,8 +90,11 @@ public class ReasonerPlan {
 					current.transformFilterBS();
 				}
 
-				if (current.readyForApplyRule()) {
-					current.applyRule();
+				// Ready, and current version of input has not been scheduled on taskboard? -> Add to taskboard
+				// otherwise -> Do not add to taskboard
+				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
+					taskboard.addTask(current);
+					current.setResultBindingSetInputScheduled(true);
 				}
 
 				TripleVarBindingSet toBeFilterPropagated = current.getFilterBindingSetOutput();
@@ -117,6 +121,7 @@ public class ReasonerPlan {
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
 						if (itChanged) {
 							changed.add(n);
+							n.setResultBindingSetInputScheduled(false);
 						}
 					});
 				}
@@ -125,7 +130,8 @@ public class ReasonerPlan {
 			}
 		} while (!changed.isEmpty());
 
-		this.done = true;
+		this.done = !taskboard.hasTasks();
+		return taskboard;
 	}
 
 	public boolean isDone() {

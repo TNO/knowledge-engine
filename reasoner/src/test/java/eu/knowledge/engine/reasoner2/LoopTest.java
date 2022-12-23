@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,7 @@ public class LoopTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 		Set<TriplePattern> aGoal = new HashSet<>();
 		aGoal.add(new TriplePattern("?x <isAncestorOf> ?y"));
 		ProactiveRule startRule = new ProactiveRule(aGoal, new HashSet<>());
@@ -82,7 +83,10 @@ public class LoopTest {
 
 		store.printGraphVizCode(plan);
 
-		plan.execute(new BindingSet());
+		TaskBoard tb;
+		while ((tb = plan.execute(new BindingSet())).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		BindingSet result = plan.getResults();
 

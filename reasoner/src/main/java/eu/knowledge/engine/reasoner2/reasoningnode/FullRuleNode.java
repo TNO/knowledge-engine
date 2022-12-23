@@ -6,7 +6,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import eu.knowledge.engine.reasoner.BaseRule;
@@ -142,20 +144,22 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	}
 
 	@Override
-	public void applyRule() {
+	public Future<Void> applyRule() {
 		assert this.readyForApplyRule();
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getBindingSetHandler();
-		try {
-			TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
-			if (!fullBindingSet.isEmpty()) {
-				var result = handler.handle(fullBindingSet.toBindingSet()).get();
+		TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
+
+		CompletableFuture<Void> f;
+		if (!fullBindingSet.isEmpty()) {
+			f = handler.handle(fullBindingSet.toBindingSet()).thenAccept(result -> {
 				this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
-			}
-		} catch (InterruptedException | ExecutionException e) {
-			// TODO
-			e.printStackTrace();
+			});
+		} else {
+			f = new CompletableFuture<>();
+			f.complete(null);
 		}
+		return f;
 	}
 
 	/**
@@ -214,5 +218,10 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 				});
 
 		return nodes;
+	}
+
+	@Override
+	public void resetResultBindingSetOutput() {
+		this.resultBindingSetOutput = null;
 	}
 }

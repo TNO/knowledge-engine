@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.Table;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -169,7 +168,10 @@ public class DynamicSemanticConfigurationTest {
 		BindingSet bs = new BindingSet();
 
 		// Start reasoning
-		root.execute(bs);
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 		BindingSet bind = root.getResults();
 
 		LOG.info("bindings: {}", bind);

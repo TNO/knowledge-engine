@@ -27,7 +27,6 @@ import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.reasoner.Table;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -166,7 +165,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rp.execute(bs);
+		TaskBoard tb;
+		while ((tb = rp.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		assertEquals(
 				BindingSet.fromStringData(new Table(new String[] { "x", "z" },
@@ -214,7 +216,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rp.execute(bs);
+		TaskBoard tb;
+		while ((tb = rp.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
@@ -254,7 +259,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		assertTrue(aBindingSetHandler2.getBindingSet() != null);
 		assertTrue(aBindingSetHandler1.getBindingSet() != null);
@@ -300,7 +308,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		assertNotNull(aBindingSetHandler.getBindingSet());
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
@@ -360,7 +371,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		LOG.info("\n{}", rn);
 
@@ -418,7 +432,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -426,7 +443,7 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testBackwardChainingDuringForwardChainingIfPartialWithTwoStages() {
+	public void testBackwardChainingDuringForwardChainingIfPartialWithTwoStages() throws InterruptedException, ExecutionException {
 
 		store = new RuleStore();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");
@@ -478,7 +495,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
@@ -486,7 +506,7 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testAlternativeForFullMatch() {
+	public void testAlternativeForFullMatch() throws InterruptedException, ExecutionException {
 
 //		-> ?s rdf:type :Sensor . ?s :hasValueInC ?v . ?s :isInArea ?b .
 //
@@ -551,7 +571,10 @@ public class ForwardTest {
 				// @formatter:on
 		}).getData());
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		LOG.info("\n{}", rn);
 
@@ -624,7 +647,10 @@ public class ForwardTest {
 
 		System.out.println(rn);
 
-		rn.execute(bs);
+		TaskBoard tb;
+		while ((tb = rn.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
 
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertNotNull(aBindingSetHandler1.getBindingSet());

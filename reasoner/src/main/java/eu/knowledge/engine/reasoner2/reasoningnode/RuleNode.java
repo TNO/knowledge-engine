@@ -1,6 +1,8 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
@@ -13,6 +15,7 @@ public abstract class RuleNode {
 
 	private BaseRule rule;
 	private boolean executeViaTaskboard;
+	private boolean resultBindingSetOutputScheduled = false;
 
 	public RuleNode(BaseRule aRule) {
 		this.rule = aRule;
@@ -28,7 +31,7 @@ public abstract class RuleNode {
 		return executeViaTaskboard;
 	}
 
-	public abstract void applyRule();
+	public abstract Future<Void> applyRule();
 
 	public abstract boolean readyForApplyRule();
 
@@ -41,5 +44,15 @@ public abstract class RuleNode {
 	public abstract TripleVarBindingSet getFilterBindingSetOutput();
 
 	public abstract Set<RuleNode> getAllSameLoopNeighbors();
+
+  public abstract void resetResultBindingSetOutput();
+
+  public void setResultBindingSetInputScheduled(boolean b) {
+		this.resultBindingSetOutputScheduled = b;
+  }
+
+	public boolean isResultBindingSetInputScheduled() {
+		return this.resultBindingSetOutputScheduled;
+	}
 
 }

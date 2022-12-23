@@ -1,5 +1,8 @@
 package eu.knowledge.engine.reasoner2.reasoningnode;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
@@ -38,7 +41,10 @@ public class PassiveAntRuleNode extends AntRuleNode {
 	}
 
 	@Override
-	public void applyRule() {
+	public Future<Void> applyRule() {
 		assert false;
+		CompletableFuture<Void> f = new CompletableFuture<>();
+		f.completeExceptionally(new IllegalStateException("`applyRule` cannot be called for PassiveAntRuleNodes."));
+		return f;
 	}
 }

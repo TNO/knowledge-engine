@@ -77,4 +77,9 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	public Set<RuleNode> getAllSameLoopNeighbors() {
 		return new HashSet<>();
 	}
+
+	@Override
+	public void resetResultBindingSetOutput() {
+		assert false;
+	}
 }
