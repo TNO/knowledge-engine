@@ -46,7 +46,7 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 	@Override
 	public void smartConnectorAdded(RuntimeSmartConnector smartConnector) {
 		if (this.messageDispatcher.getKnowledgeBaseIds().contains(smartConnector.getKnowledgeBaseId())) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("The smart connector should have a unique knowledge base ID.");
 		}
 		// Create a new LocalSmartConnectorMessageReceiver and attach it
 		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
