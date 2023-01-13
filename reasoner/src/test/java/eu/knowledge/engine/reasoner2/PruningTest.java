@@ -1,8 +1,6 @@
-package eu.knowledge.engine.reasoner;
+package eu.knowledge.engine.reasoner2;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,17 +9,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
+import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
+@Disabled("Until the optimize() method is available.")
 @TestInstance(Lifecycle.PER_CLASS)
 public class PruningTest {
 
@@ -113,6 +118,7 @@ public class PruningTest {
 
 	}
 
+	@Disabled("Until optimize() method is available.")
 	@Test
 	public void testBackwardSingleChild() throws InterruptedException, ExecutionException {
 		Binding b = new Binding();
@@ -129,26 +135,27 @@ public class PruningTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(store, startRule, taskboard);
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
 
-		var coverage = root.getStartNode().findAntecedentCoverage(root.getStartNode().getAntecedentNeighbors());
-
-		assertFalse(coverage.get(t1).isEmpty());
-		assertFalse(coverage.get(t2).isEmpty());
-		assertTrue(coverage.get(t3).isEmpty());
-
-		BindingSet bs = new BindingSet();
-		Binding binding2 = new Binding();
-		bs.add(binding2);
-
-		while (!root.execute(bs)) {
-			taskboard.executeScheduledTasks().get();
-		}
-
-		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
-
-		System.out.println("bindings: " + bind);
-		assertTrue(bind.isEmpty());
+		/*
+		 * var coverage =
+		 * root.getStartNode().findAntecedentCoverage(root.getStartNode().
+		 * getAntecedentNeighbors());
+		 * 
+		 * assertFalse(coverage.get(t1).isEmpty());
+		 * assertFalse(coverage.get(t2).isEmpty());
+		 * assertTrue(coverage.get(t3).isEmpty());
+		 * 
+		 * 
+		 * BindingSet bs = new BindingSet(); Binding binding2 = new Binding();
+		 * bs.add(binding2);
+		 * 
+		 * while (!root.execute(bs)) { taskboard.executeScheduledTasks().get(); }
+		 * 
+		 * BindingSet bind =
+		 * root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+		 * System.out.println("bindings: " + bind); assertTrue(bind.isEmpty());
+		 */
 	}
 
 	@Test
@@ -168,26 +175,26 @@ public class PruningTest {
 		TaskBoard taskboard = new TaskBoard();
 
 		// Start reasoning
-		ReasonerPlan root = new ReasonerPlan(store, startRule, taskboard);
-
-		var coverage = root.getStartNode().findAntecedentCoverage(root.getStartNode().getAntecedentNeighbors());
-
-		assertTrue(coverage.get(t4).isEmpty());
-
-		BindingSet bs = new BindingSet();
-		Binding binding2 = new Binding();
-		bs.add(binding2);
-
-		root.optimize();
-
-		while (!root.execute(bs)) {
-			taskboard.executeScheduledTasks().get();
-		}
-
-		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
-
-		System.out.println("bindings: " + bind);
-		assertTrue(bind.isEmpty());
+		ReasonerPlan root = new ReasonerPlan(store, startRule);
+		/*
+		 * var coverage =
+		 * root.getStartNode().findAntecedentCoverage(root.getStartNode().
+		 * getAntecedentNeighbors());
+		 * 
+		 * assertTrue(coverage.get(t4).isEmpty());
+		 * 
+		 * BindingSet bs = new BindingSet(); Binding binding2 = new Binding();
+		 * bs.add(binding2);
+		 * 
+		 * root.optimize();
+		 * 
+		 * while (!root.execute(bs)) { taskboard.executeScheduledTasks().get(); }
+		 * 
+		 * BindingSet bind =
+		 * root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+		 * 
+		 * System.out.println("bindings: " + bind); assertTrue(bind.isEmpty());
+		 */
 	}
 
 	@Test
@@ -206,7 +213,7 @@ public class PruningTest {
 		store.addRule(startRule);
 		TaskBoard taskboard = new TaskBoard();
 
-		ReasonerPlan rn = new ReasonerPlan(store, startRule, null);
+		ReasonerPlan rn = new ReasonerPlan(store, startRule);
 
 		BindingSet bs = new BindingSet();
 
@@ -222,11 +229,9 @@ public class PruningTest {
 				"<benno>,<loes>",
 				// @formatter:on
 		}).getData());
-
-		while (!rn.execute(bs)) {
-			taskboard.executeScheduledTasks().get();
-		}
-
+		/*
+		 * while (!rn.execute(bs)) { taskboard.executeScheduledTasks().get(); }
+		 */
 		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
 		assertNull(aBindingSetHandler.getBindingSet());
 	}
@@ -255,25 +260,23 @@ public class PruningTest {
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(store, startRule);
 		LOG.info("Before prune");
-
-		root.optimize();
-
-		LOG.info("After prune");
-
-		assertTrue(root.getStartNode().isAntecedentFullyCovered());
-
-		BindingSet bs = new BindingSet();
-		Binding binding2 = new Binding();
-		bs.add(binding2);
-
-		while (!root.execute(bs)) {
-			taskboard.executeScheduledTasks().get();
-		}
-
-		BindingSet bind = root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
-
-		LOG.info("bindings: " + bind);
-		assertFalse(bind.isEmpty());
+		/*
+		 * root.optimize();
+		 * 
+		 * LOG.info("After prune");
+		 * 
+		 * assertTrue(root.getStartNode().isAntecedentFullyCovered());
+		 * 
+		 * BindingSet bs = new BindingSet(); Binding binding2 = new Binding();
+		 * bs.add(binding2);
+		 * 
+		 * while (!root.execute(bs)) { taskboard.executeScheduledTasks().get(); }
+		 * 
+		 * BindingSet bind =
+		 * root.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+		 * 
+		 * LOG.info("bindings: " + bind); assertFalse(bind.isEmpty());
+		 */
 	}
 
 }

@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -8,6 +8,8 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 
 /**
+ * Active means it has a bindingsethandler and can be applied.
+ * 
  * @author nouwtb
  *
  */

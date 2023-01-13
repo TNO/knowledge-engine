@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.ConsSide;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
-import eu.knowledge.engine.reasoner2.ConsSide;
 
 /**
  * @author nouwtb

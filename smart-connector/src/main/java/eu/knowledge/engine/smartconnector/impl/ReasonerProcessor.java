@@ -50,6 +50,16 @@ import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.PostMessage;
 import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 
+/**
+ * The Knowledge Engine reasoner processor class. It uses the independent
+ * reasoner (which does not know anything about KE concepts like Knowledge
+ * Interactions and Knowledge Bases) and makes sure all KE related concepts are
+ * automatically and correctly translated into the reasoner concepts like
+ * BindingSetHandler, Rule, etc.
+ * 
+ * @author nouwtb
+ *
+ */
 public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerProcessor.class);
@@ -135,7 +145,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule, this.taskBoard,
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
 					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
@@ -147,7 +157,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-		this.reasonerPlan.optimize();
+//		this.reasonerPlan.optimize();
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -158,35 +168,32 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private void continueReasoningBackward(eu.knowledge.engine.reasoner.api.BindingSet incomingBS) {
 
 		boolean isComplete;
+		TaskBoard taskboard;
 		final String msg = "Executing (scheduled) tasks for the reasoner should not result in problems.";
-		try {
-			isComplete = this.reasonerPlan.execute(incomingBS);
-			LOG.debug("ask:\n{}", this.reasonerPlan);
-			if (this.taskBoard != null) {
-				this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
-					LOG.debug("All tasks finished.");
-					if (isComplete) {
-						eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getStartNode()
-								.getIncomingAntecedentBindingSet().toBindingSet();
-						this.finalBindingSetFuture.complete(bs);
-					} else
-						continueReasoningBackward(incomingBS);
-				}).exceptionally((Throwable t) -> {
-					LOG.error(msg, t);
-					return null;
-				});
-			} else {
+		taskboard = this.reasonerPlan.execute(incomingBS);
+		isComplete = taskboard.hasTasks();
+		LOG.debug("ask:\n{}", this.reasonerPlan);
+		if (this.taskBoard != null) {
+			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+				LOG.debug("All tasks finished.");
 				if (isComplete) {
-					eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getStartNode()
-							.getIncomingAntecedentBindingSet().toBindingSet();
+					eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
 					this.finalBindingSetFuture.complete(bs);
-				} else {
+				} else
 					continueReasoningBackward(incomingBS);
-				}
+			}).exceptionally((Throwable t) -> {
+				LOG.error(msg, t);
+				return null;
+			});
+		} else {
+			if (isComplete) {
+				eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
+				this.finalBindingSetFuture.complete(bs);
+			} else {
+				continueReasoningBackward(incomingBS);
 			}
-		} catch (InterruptedException | ExecutionException e) {
-			LOG.error(msg, e);
 		}
+
 	}
 
 	@Override
@@ -213,7 +220,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule, this.taskBoard,
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
 					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
 							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
 
@@ -228,7 +235,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
-		this.reasonerPlan.optimize();
+//		this.reasonerPlan.optimize();
 
 		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
 
@@ -242,26 +249,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		String msg = "Executing (scheduled) tasks for the reasoner should not result in errors.";
 		boolean isComplete;
-		try {
-			isComplete = this.reasonerPlan.execute(incomingBS);
-			LOG.debug("post:\n{}", this.reasonerPlan);
-			if (this.taskBoard != null) {
-				this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
-					if (isComplete) {
-						eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
-						if (aBindingSetHandler != null) {
-							resultBS = aBindingSetHandler.getBindingSet();
-						}
-						this.finalBindingSetFuture.complete(resultBS);
-					} else {
-						continueReasoningForward(incomingBS, aBindingSetHandler);
-					}
-
-				}).exceptionally((Throwable t) -> {
-					LOG.error(msg, t);
-					return null;
-				});
-			} else {
+		TaskBoard taskboard;
+		taskboard = this.reasonerPlan.execute(incomingBS);
+		isComplete = taskboard.hasTasks();
+		LOG.debug("post:\n{}", this.reasonerPlan);
+		if (this.taskBoard != null) {
+			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
 				if (isComplete) {
 					eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
 					if (aBindingSetHandler != null) {
@@ -271,10 +264,23 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				} else {
 					continueReasoningForward(incomingBS, aBindingSetHandler);
 				}
+
+			}).exceptionally((Throwable t) -> {
+				LOG.error(msg, t);
+				return null;
+			});
+		} else {
+			if (isComplete) {
+				eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
+				if (aBindingSetHandler != null) {
+					resultBS = aBindingSetHandler.getBindingSet();
+				}
+				this.finalBindingSetFuture.complete(resultBS);
+			} else {
+				continueReasoningForward(incomingBS, aBindingSetHandler);
 			}
-		} catch (InterruptedException | ExecutionException e) {
-			LOG.error(msg, e);
 		}
+
 	}
 
 	/**

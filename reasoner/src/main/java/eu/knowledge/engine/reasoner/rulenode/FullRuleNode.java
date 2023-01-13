@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.Deque;
 import java.util.HashMap;
@@ -11,12 +11,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.ConsSide;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner2.AntSide;
-import eu.knowledge.engine.reasoner2.ConsSide;
 
 /**
  * @author nouwtb

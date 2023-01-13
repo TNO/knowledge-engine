@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner.api;
+package eu.knowledge.engine.reasoner2.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,6 +23,7 @@ import eu.knowledge.engine.reasoner.Match;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MatchTest {

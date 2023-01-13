@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -45,11 +45,11 @@ public abstract class RuleNode {
 
 	public abstract Set<RuleNode> getAllSameLoopNeighbors();
 
-  public abstract void resetResultBindingSetOutput();
+	public abstract void resetResultBindingSetOutput();
 
-  public void setResultBindingSetInputScheduled(boolean b) {
+	public void setResultBindingSetInputScheduled(boolean b) {
 		this.resultBindingSetOutputScheduled = b;
-  }
+	}
 
 	public boolean isResultBindingSetInputScheduled() {
 		return this.resultBindingSetOutputScheduled;

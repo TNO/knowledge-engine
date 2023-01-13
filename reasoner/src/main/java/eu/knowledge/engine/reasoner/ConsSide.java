@@ -1,11 +1,10 @@
-package eu.knowledge.engine.reasoner2;
+package eu.knowledge.engine.reasoner;
 
 import java.util.Map;
 import java.util.Set;
 
-import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
-import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 
 /**
  * @author nouwtb

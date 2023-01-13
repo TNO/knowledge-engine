@@ -1,391 +1,309 @@
 package eu.knowledge.engine.reasoner;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
+import eu.knowledge.engine.reasoner.rulenode.ActiveAntRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.ActiveConsRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.FullRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.PassiveAntRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.PassiveConsRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
+/**
+ * Decision: BindingSets relating to the start node are handled via the
+ * {@link #getResults()} and {@link #execute(BindingSet)} methods. Non-startnode
+ * binding sets should be retrieved by the caller. See
+ * {@link ForwardTest#test()} for an example.
+ * 
+ * TODO: matchstrategy.FullMatchOnly
+ * 
+ * 
+ */
 public class ReasonerPlan {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerPlan.class);
-
-	private Map<BaseRule, RuleNode> ruleToReasonerNode;
-	private ProactiveRule start;
-	private TaskBoard taskboard;
-	private MatchStrategy strategy;
-
-	/**
-	 * Keeps track of the path through the graph and allows us to retrieve
-	 * information about which nodes lie on our path to the startnode. This is
-	 * helpful while reasoning backward while forward (to propagate data) and while
-	 * reasoning forward while backward (in case of loops). The closer a node is to
-	 * the start of the list, the most recent it was visited. TODO does this really
-	 * need to be a linkedlist? Do we need to insert a lot of items in the middle
-	 * and at the start? I think we can just use an arraylist for this.
-	 */
-	private LinkedList<RuleNode> stack;
-	private RuleStore store;
-	private Map<RuleNode, RuleNode> parentMap;
-
-	private Set<RuleNode> visited;
-
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard, MatchStrategy aStrategy) {
-
-		this.ruleToReasonerNode = new HashMap<>();
-		this.store = aStore;
-		this.taskboard = aTaskBoard;
-		assert aStore.getRules().contains(aStartRule);
-		this.start = aStartRule;
-		this.parentMap = new HashMap<>();
-		this.strategy = aStrategy;
-
-		// build reasoning graph
-		RuleNode startNode = createOrGetReasonerNode(aStartRule);
-
-		// prepare execution
-		this.stack = new LinkedList<>();
-		this.visited = new HashSet<>();
-	}
+	private final RuleStore store;
+	private final ProactiveRule start;
+	private final Map<BaseRule, RuleNode> ruleToRuleNode;
+	private boolean done;
+	private MatchStrategy strategy = MatchStrategy.FIND_ALL_MATCHES;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
-		this(aStore, aStartRule, null, MatchStrategy.FIND_ALL_MATCHES);
+		this.store = aStore;
+		this.start = aStartRule;
+		this.ruleToRuleNode = new HashMap<>();
+		createOrGetReasonerNode(this.start, null);
 	}
 
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, TaskBoard aTaskBoard) {
-		this(aStore, aStartRule, aTaskBoard, MatchStrategy.FIND_ALL_MATCHES);
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, MatchStrategy aStrategy) {
+		this.store = aStore;
+		this.start = aStartRule;
+		this.ruleToRuleNode = new HashMap<>();
+		this.strategy = aStrategy;
+		createOrGetReasonerNode(this.start, null);
 	}
 
-	public RuleNode getNode(BaseRule aRule) {
-		return this.ruleToReasonerNode.get(aRule);
+	public RuleNode getStartNode() {
+		return this.ruleToRuleNode.get(this.start);
 	}
 
-	/**
-	 * recursive building of the reasonernode graph
-	 */
-	private RuleNode createOrGetReasonerNode(BaseRule aRule) {
+	public RuleNode getRuleNodeForRule(BaseRule rule) {
+		return this.ruleToRuleNode.get(rule);
+	}
 
-		RuleNode reasonerNode;
-		if ((reasonerNode = getNode(aRule)) != null)
-			return reasonerNode;
+	public TaskBoard execute(BindingSet bindingSet) {
+		RuleNode startNode = this.getStartNode();
+		TaskBoard taskboard = new TaskBoard();
+
+		if (this.isBackward()) {
+			assert startNode instanceof PassiveAntRuleNode;
+			((PassiveAntRuleNode) startNode).setFilterBindingSetOutput(bindingSet);
+		} else {
+			assert startNode instanceof PassiveConsRuleNode;
+			((PassiveConsRuleNode) startNode).setResultBindingOutput(bindingSet);
+		}
+
+		Deque<RuleNode> stack = new ArrayDeque<>();
+		Set<RuleNode> visited = new HashSet<>();
+		Set<RuleNode> changed = new HashSet<>();
+
+		do {
+			stack.clear();
+			visited.clear();
+			changed.clear();
+
+			stack.push(startNode);
+
+			while (!stack.isEmpty()) {
+				final RuleNode current = stack.pop();
+
+				current.getAllNeighbours().stream().filter(n -> !stack.contains(n)).filter(n -> !visited.contains(n))
+						.forEach(n -> stack.push(n));
+
+				if (current.readyForTransformFilter()) {
+					current.transformFilterBS();
+				}
+
+				// Ready, and current version of input has not been scheduled on taskboard? ->
+				// Add to taskboard
+				// otherwise -> Do not add to taskboard
+				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
+					taskboard.addTask(current);
+					current.setResultBindingSetInputScheduled(true);
+				}
+
+				TripleVarBindingSet toBeFilterPropagated = current.getFilterBindingSetOutput();
+				if (toBeFilterPropagated != null) {
+					assert current instanceof AntSide;
+					((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
+						// TODO: Invertion hell?
+						var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(),
+								Match.invertAll(matches));
+						boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, translated);
+						if (itChanged) {
+							changed.add(n);
+						}
+					});
+				}
+
+				TripleVarBindingSet toBeResultPropagated = current.getResultBindingSetOutput();
+				if (toBeResultPropagated != null) {
+					assert current instanceof ConsSide;
+					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
+						// TODO: Invertion hell?
+						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
+								Match.invertAll(matches));
+						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
+						if (itChanged) {
+							changed.add(n);
+							n.setResultBindingSetInputScheduled(false);
+						}
+					});
+				}
+
+				visited.add(current);
+			}
+		} while (!changed.isEmpty());
+
+		this.done = !taskboard.hasTasks();
+		return taskboard;
+	}
+
+	public boolean isDone() {
+		return this.done;
+	}
+
+	public BindingSet getResults() {
+		if (this.isBackward()) {
+			if (this.isDone()) {
+				return ((PassiveAntRuleNode) this.getStartNode()).getResultBindingSetInput();
+			} else {
+				throw new RuntimeException("`execute` should be finished before getting results.");
+			}
+		} else {
+			throw new RuntimeException("Results should only be read for backward reasoning plans");
+		}
+	}
+
+	public RuleNode newNode(BaseRule rule) {
+		// based on the rule properties, return the appropriate rulenode
+		if (!rule.getAntecedent().isEmpty()) {
+			if (!rule.getConsequent().isEmpty()) {
+				return new FullRuleNode(rule);
+			} else {
+				// no consequent, yes antecedent
+				if (rule.isProactive()) {
+					return new PassiveAntRuleNode(rule);
+				} else {
+					return new ActiveAntRuleNode(rule);
+				}
+			}
+		} else {
+			assert !rule.getConsequent().isEmpty();
+			// no antecedent, yes consequent
+			if (rule.isProactive()) {
+				return new PassiveConsRuleNode(rule);
+			} else {
+				return new ActiveConsRuleNode(rule);
+			}
+		}
+	}
+
+	public boolean isBackward() {
+		return !this.start.getAntecedent().isEmpty() && this.start.getConsequent().isEmpty();
+	}
+
+	private RuleNode createOrGetReasonerNode(BaseRule aRule, BaseRule aParent) {
+
+		final RuleNode reasonerNode;
+		if (this.ruleToRuleNode.containsKey(aRule))
+			return this.ruleToRuleNode.get(aRule);
+		else {
+			reasonerNode = this.newNode(aRule);
+		}
 
 		// build the reasoner node graph
-		reasonerNode = new RuleNode(aRule);
-		this.ruleToReasonerNode.put(aRule, reasonerNode);
+		this.ruleToRuleNode.put(aRule, reasonerNode);
 
 		if (isBackward()) {
 			// for now we only are interested in antecedent neighbors.
 			// TODO for looping we DO want to consider consequent neighbors as well.
 
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule, this.strategy)
-					.entrySet()) {
+			this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+				if (!(rule instanceof ProactiveRule)) {
+					assert reasonerNode instanceof AntSide;
+					var newNode = createOrGetReasonerNode(rule, aRule);
+					assert newNode instanceof ConsSide;
+					((AntSide) reasonerNode).addAntecedentNeighbour(newNode, matches);
 
-				if (entry.getKey() instanceof Rule) {
-					reasonerNode.addAntecedentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
+					var inverseMatches = Match.invertAll(matches);
+					// TODO: Validate with Barry if we can use the same `matches` object here
+					((ConsSide) newNode).addConsequentNeighbour(reasonerNode, inverseMatches);
 				} else {
-					LOG.trace("Skipped proactive rule: {}", entry.getKey());
+					LOG.trace("Skipped proactive rule: {}", rule);
 				}
-			}
+			});
 		} else {
 			// interested in both consequent and antecedent neighbors
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getConsequentNeighbors(aRule, this.strategy)
-					.entrySet()) {
+			this.store.getConsequentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+				if (!(rule instanceof ProactiveRule)) {
+					assert reasonerNode instanceof ConsSide;
+					var newNode = createOrGetReasonerNode(rule, aRule);
+					((ConsSide) reasonerNode).addConsequentNeighbour(newNode, matches);
 
-				if (entry.getKey() instanceof Rule) {
-					reasonerNode.addConsequentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
+					var inverseMatches = Match.invertAll(matches);
+					// TODO: Validate with Barry if we can use the same `matches` object here
+					((AntSide) newNode).addAntecedentNeighbour(reasonerNode, inverseMatches);
 				} else {
-					LOG.trace("Skipped proactive rule: {}", entry.getKey());
+					LOG.trace("Skipped proactive rule: {}", rule);
 				}
-			}
+			});
 
 			// antecedent neighbors to propagate bindings further via backward chaining
-			for (Map.Entry<BaseRule, Set<Match>> entry : this.store.getAntecedentNeighbors(aRule, this.strategy)
-					.entrySet()) {
 
-				if (entry.getKey() instanceof Rule) {
-					reasonerNode.addAntecedentNeighbor(createOrGetReasonerNode(entry.getKey()), entry.getValue());
-				} else {
-					LOG.trace("Skipped proactive rule: {}", entry.getKey());
-				}
+			// determine whether our parent matches us partially
+			boolean ourAntecedentFullyMatchesParentConsequent = false;
+
+			if (aParent != null && this.store.getAntecedentNeighbors(aRule).containsKey(aParent)) {
+				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule.getAntecedent(),
+						aParent.getConsequent(), this.getMatchStrategy());
 			}
 
+			if (!ourAntecedentFullyMatchesParentConsequent) {
+				this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+					if (!(rule instanceof ProactiveRule)) {
+						assert reasonerNode instanceof AntSide;
+						var newNode = createOrGetReasonerNode(rule, aRule);
+						assert newNode instanceof ConsSide;
+						((AntSide) reasonerNode).addAntecedentNeighbour(newNode, matches);
+
+						// TODO: Validate with Barry if we can use the same `matches` object here
+						var inverseMatches = Match.invertAll(matches);
+						((ConsSide) newNode).addConsequentNeighbour(reasonerNode, inverseMatches);
+					} else {
+						LOG.trace("Skipped proactive rule: {}", rule);
+					}
+				});
+			}
 		}
 
 		return reasonerNode;
 	}
 
-	public boolean isBackward() {
-
-		return !this.start.getAntecedent().isEmpty() && this.start.getConsequent().isEmpty();
-	}
-
-	public void optimize() {
-		/*
-		 * TODO prune is a bit different because we are working with a graph (instead of
-		 * a tree). Note though, that we cannot just look at the shortest path, because
-		 * some rules are special (i.e. have custom bindingsethandlers) and thus might
-		 * behave logically unexpected. So, we have to keep that in mind when
-		 * optimizing.
-		 */
-
-		Set<RuleNode> removedNodes = this.getStartNode().prune();
-
-		// also remove nodes that were removed from our cache.
-		Iterator<Map.Entry<BaseRule, RuleNode>> iter = this.ruleToReasonerNode.entrySet().iterator();
-		while (iter.hasNext()) {
-			if (removedNodes.contains(iter.next().getValue())) {
-				iter.remove();
-			}
-		}
-	}
-
 	/**
-	 * Executes the plan until it can no longer proceed. If there are tasks on the
-	 * TaskBoard after this method returns, make sure to execute the tasks and call
-	 * this method again. If there are no more tasks on the TaskBoard after this
-	 * method return, the reasoning process is finished.
+	 * Checks whether the given antecedent fully matches the given consequent. Note
+	 * that if the antecedent is a subset of the consequent this method also return
+	 * true.
 	 * 
-	 * @throws ExecutionException
-	 * @throws InterruptedException
+	 * @param consequent
+	 * @param antecedent
+	 * @return
 	 */
-	public boolean execute(BindingSet aBindingSet) throws InterruptedException, ExecutionException {
+	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
+			MatchStrategy aMatchStrategy) {
 
-		assert this.start.isProactive();
-		RuleNode startNode = this.getNode(this.start);
-		stack.push(startNode);
-		visited.clear();
+		assert !antecedent.isEmpty();
+		assert !consequent.isEmpty();
 
-		if (this.start.getConsequent().isEmpty()) {
-			startNode.setOutgoingAntecedentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getAntecedent()));
-		} else {
-			startNode.setOutgoingConsequentBindingSet(aBindingSet.toTripleVarBindingSet(this.start.getConsequent()));
-		}
+		if (antecedent.size() > consequent.size())
+			return false;
 
-		Map<RuleNode, Boolean> nodeFinished = new HashMap<>();
-		boolean stepFinished;
-		int i = 0;
-		while (!this.stack.isEmpty()) {
-			RuleNode currentNode = this.stack.peek();
-			LOG.info("Step {}: {}", ++i, currentNode.getRule());
-			stepFinished = step();
-			nodeFinished.put(currentNode, stepFinished);
-		}
+		Set<Match> matches = BaseRule.matches(antecedent, consequent, aMatchStrategy);
 
-		boolean finished = true;
-		for (Map.Entry<RuleNode, Boolean> entry : nodeFinished.entrySet()) {
-			finished &= entry.getValue();
-		}
-
-		return finished;
-	}
-
-	/**
-	 * The step logic consists of 3 parts:
-	 * <ul>
-	 * <li>from consequent to antecedent (backward only)</li>
-	 * <li>push/pull bindingsets to/from antecedent neighbors</li>
-	 * <li>from</li>
-	 * </ul>
-	 * Going backward and forward have an overlapping logic only it occurs either at
-	 * the end of the step (in case of backward) or at the start of the step (in
-	 * case of forward).
-	 * 
-	 * @throws InterruptedException
-	 * @throws ExecutionException
-	 */
-	public boolean step() throws InterruptedException, ExecutionException {
-		boolean finished = false;
-		boolean removeCurrentFromStack = true;
-		RuleNode current = this.stack.peek();
-
-		this.visited.add(current);
-
-		RuleNode previous = null;
-		if (this.stack.size() > 1)
-			previous = this.parentMap.get(current);
-
-		// determine our direction
-		boolean forward = isForward(current, previous);
-
-		if (!forward) {
-			if (current.hasAntecedent() && current.hasConsequent()) {
-				// from consequent to antecedent (only when backward)
-				if (!current.hasOutgoingAntecedentBindingSet()) {
-					assert current.hasIncomingConsequentBindingSet();
-					current.applyBindingSetHandlerFromConsequentToAntecedent();
-					assert current.hasOutgoingAntecedentBindingSet();
-				}
-			} else if (!current.hasAntecedent() && current.hasConsequent()) {
-				// just use the binding set handler to retrieve a binding set based on the given
-				// binding set.
-				assert current.hasConsequent();
-				assert current.hasIncomingConsequentBindingSet();
-				assert !forward;
-				if (!current.hasOutgoingConsequentBindingSet()) {
-					current.applyBindingSetHandlerFromConsequentToConsequent(this.taskboard);
-				}
-			} else if (current.hasAntecedent() && !current.hasConsequent()) {
-				assert current.equals(this.getNode(this.start));
-			} else
-				assert false;
-		}
-
-		if (current.hasAntecedent()) {
-
-			if (!current.hasIncomingAntecedentBindingSet()) {
-				current.setWaitingForTaskBoard(false);
-				// push/pull bindingsets to/from antecedents (always)
-				TripleVarBindingSet aBindingSet;
-				if (forward) {
-					aBindingSet = previous.getOutgoingConsequentBindingSet();
-
-					MatchStrategy strat;
-					if (this.strategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-						strat = MatchStrategy.FIND_ONLY_FULL_MATCHES;
-					} else {
-						strat = MatchStrategy.FIND_ONLY_BIGGEST_MATCHES;
-					}
-
-					Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
-							current.getRule().getAntecedent(), strat);
-
-					aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
-				} else {
-					aBindingSet = current.getOutgoingAntecedentBindingSet();
-				}
-				Set<RuleNode> antecedentNeighbors = current.prepareAntecedentNeighbors(aBindingSet);
-
-				if (antecedentNeighbors != null) {
-
-					int i = 0;
-					for (RuleNode rn : antecedentNeighbors) {
-						if (!visited.contains(rn)) {
-							i++;
-							this.stack.push(rn);
-							this.parentMap.put(rn, current);
-						}
-					}
-
-					if (i > 0)
-						removeCurrentFromStack = false;
-					else {
-						// create incoming antecedent bindingset
-						if (forward) {
-							aBindingSet = previous.getOutgoingConsequentBindingSet();
-
-							MatchStrategy strat;
-							if (this.strategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-								strat = MatchStrategy.FIND_ONLY_FULL_MATCHES;
-							} else {
-								strat = MatchStrategy.FIND_ONLY_BIGGEST_MATCHES;
-							}
-
-							Set<Match> previousMatches = Rule.matches(previous.getRule().getConsequent(),
-									current.getRule().getAntecedent(), strat);
-
-							aBindingSet = aBindingSet.translate(current.getRule().getAntecedent(), previousMatches);
-						} else {
-							aBindingSet = current.getOutgoingAntecedentBindingSet();
-						}
-
-						current.collectIncomingAntecedentBindingSet(aBindingSet);
+		for (Match m : matches) {
+			// check if there is a match that is full
+			boolean allFound = true;
+			for (TriplePattern tp : antecedent) {
+				boolean foundOne = false;
+				for (Map.Entry<TriplePattern, TriplePattern> entry : m.getMatchingPatterns().entrySet()) {
+					if (entry.getValue().findMatches(tp) != null) {
+						foundOne = true;
 					}
 				}
+				allFound &= foundOne;
 			}
 
-			// from antecedent to consequent (always)
-			if (current.hasConsequent()) {
-				if (current.hasIncomingAntecedentBindingSet() && !current.hasOutgoingConsequentBindingSet()) {
-					current.applyBindingSetHandlerFromAntecedentToConsequent(this.taskboard);
-				}
-			} else {
-				// just use the binding set handler to deal with the binding set.
-				// TODO see if we can remove this {@code forward} variable from this if.
-				if (forward && current.hasIncomingAntecedentBindingSet()) {
-					current.applyBindingSetHandlerToAntecedent(this.taskboard);
-				}
-			}
+			if (allFound)
+				return true;
 		}
 
-		if (forward) {
-			if (current.hasConsequent()) {
-				// activate consequent neighbors
-				if (current.hasOutgoingConsequentBindingSet()) {
-					// if we activate neighbors, we do not remove current
-					Set<RuleNode> neighbors = current.prepareConsequentNeighbors(current.getConsequentNeighbors());
-
-					int i = 0;
-					for (RuleNode rn : neighbors) {
-						if (!visited.contains(rn)) {
-							i++;
-							this.stack.push(rn);
-							this.parentMap.put(rn, current);
-						}
-					}
-
-					if (i > 0)
-						removeCurrentFromStack = false;
-				}
-			}
-		}
-
-		if (removeCurrentFromStack)
-			this.stack.pop();
-
-		if (forward && (!current.hasAntecedent() || current.hasIncomingAntecedentBindingSet())
-				&& (!current.hasConsequent() || current.hasOutgoingConsequentBindingSet()))
-			finished = true;
-		else if (!forward && (!current.hasAntecedent() || current.hasIncomingAntecedentBindingSet()))
-			finished = true;
-
-		return finished;
-	}
-
-
-	public RuleStore getStore() {
-		return this.store;
-	}
-
-	public boolean isForward(RuleNode current, RuleNode previous) {
-		boolean toConsequent = true;
-		if (current.hasAntecedent() && current.hasConsequent()) {
-			// determine based on previous node
-			if (current.getConsequentNeighbors().containsKey(previous)) {
-				toConsequent = false;
-			}
-
-		} else if (current.hasAntecedent() && !current.hasConsequent()) {
-			if (current.equals(this.getNode(this.start))) {
-				toConsequent = false;
-			}
-		} else if (!current.hasAntecedent() && current.hasConsequent()) {
-			if (!current.equals(this.getNode(this.start))) {
-				toConsequent = false;
-			}
-		} else
-			assert false;
-		return toConsequent;
-	}
-
-	public RuleNode getStartNode() {
-		return this.getNode(this.start);
+		return false;
 	}
 
 	public MatchStrategy getMatchStrategy() {
 		return this.strategy;
-	}
-
-	public String toString() {
-		return this.getStartNode().toString();
 	}
 }

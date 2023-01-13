@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner;
+package eu.knowledge.engine.reasoner2;
 
 import java.util.Map;
 import java.util.Set;
@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 

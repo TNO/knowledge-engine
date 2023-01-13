@@ -16,9 +16,9 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner2.ReasonerPlan;
-import eu.knowledge.engine.reasoner2.reasoningnode.RuleNode;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 
 /**
  * The rule store contains all the rules that are to be considered by the

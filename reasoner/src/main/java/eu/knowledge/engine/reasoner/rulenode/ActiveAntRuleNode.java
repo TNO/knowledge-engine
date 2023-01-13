@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -9,6 +9,8 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 /**
+ * Active means that it has a bindingsethandler and can be applied.
+ * 
  * @author nouwtb
  *
  */
@@ -39,7 +41,7 @@ public class ActiveAntRuleNode extends AntRuleNode {
 
 		var handler = ((Rule) this.getRule()).getSinkBindingSetHandler();
 		TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
-		
+
 		CompletableFuture<Void> f;
 		if (!fullBindingSet.isEmpty()) {
 			f = handler.handle(fullBindingSet.toBindingSet());

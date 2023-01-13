@@ -1,17 +1,19 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.rulenode;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
-import eu.knowledge.engine.reasoner2.AntSide;
 
 /**
+ * A rule that only has an antecedent.
+ * 
  * @author nouwtb
  *
  */
@@ -67,7 +69,7 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	public TripleVarBindingSet getFilterBindingSetOutput() {
 		return this.filterBindingSetOutput;
 	}
-
+	
 	@Override
 	public TripleVarBindingSet getResultBindingSetOutput() {
 		return null;

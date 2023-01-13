@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner.api;
+package eu.knowledge.engine.reasoner2.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,6 +13,13 @@ import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.Test;
+
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 public class BindingTest {
 

@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
@@ -214,7 +214,7 @@ public class TestUtils {
 				currentActor = proactiveKB;
 			}
 
-			for (RuleNode neighbor : node.getAntecedentNeighbors().keySet()) {
+			for (RuleNode neighbor : node.getAntecedentNeighbours().keySet()) {
 
 				BaseRule neighborRule = neighbor.getRule();
 				AnswerBindingSetHandler absh2 = null;
@@ -253,7 +253,7 @@ public class TestUtils {
 				}
 			}
 
-			for (RuleNode neighbor : node.getConsequentNeighbors().keySet()) {
+			for (RuleNode neighbor : node.getConsequentNeighbours().keySet()) {
 
 				BaseRule neighborRule = neighbor.getRule();
 
@@ -293,8 +293,8 @@ public class TestUtils {
 				}
 			}
 
-			queue.addAll(node.getAntecedentNeighbors().keySet());
-			queue.addAll(node.getConsequentNeighbors().keySet());
+			queue.addAll(node.getAntecedentNeighbours().keySet());
+			queue.addAll(node.getConsequentNeighbours().keySet());
 		}
 
 		String title = kiType + " data exchange";
