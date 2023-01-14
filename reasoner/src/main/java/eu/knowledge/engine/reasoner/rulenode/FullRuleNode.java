@@ -174,6 +174,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		this.getConsequentNeighbours().keySet().stream().filter((r) -> r instanceof FullRuleNode)
 				.map((r) -> ((FullRuleNode) r)).forEach((neighbor) -> {
 
+					Set<FullRuleNode> visited = new HashSet<>();
+
 					Deque<FullRuleNode> stack = new LinkedList<>();
 					stack.addAll(neighbor.getConsequentNeighbours().keySet().stream()
 							.filter((r) -> r instanceof FullRuleNode).map((r) -> ((FullRuleNode) r))
@@ -182,7 +184,9 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 					FullRuleNode current;
 					while (!stack.isEmpty()) {
 						current = stack.pop();
-						if (current == this) {
+						if (visited.contains(current)) {
+							continue;
+						} else if (current == this) {
 							nodes.add(neighbor);
 							break;
 						}
@@ -190,12 +194,15 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 						stack.addAll(current.getConsequentNeighbours().keySet().stream()
 								.filter((r) -> r instanceof FullRuleNode).map((r) -> ((FullRuleNode) r))
 								.collect(Collectors.toSet()));
+						visited.add(current);
 
 					}
 				});
 
 		this.getAntecedentNeighbours().keySet().stream().filter((r) -> r instanceof FullRuleNode)
 				.map((r) -> ((FullRuleNode) r)).forEach((neighbor) -> {
+
+					Set<FullRuleNode> visited = new HashSet<>();
 
 					Deque<FullRuleNode> stack = new LinkedList<>();
 					stack.addAll(neighbor.getAntecedentNeighbours().keySet().stream()
@@ -205,7 +212,9 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 					FullRuleNode current;
 					while (!stack.isEmpty()) {
 						current = stack.pop();
-						if (current == this) {
+						if (visited.contains(current)) {
+							continue;
+						} else if (current == this) {
 							nodes.add(neighbor);
 							break;
 						}
@@ -213,7 +222,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 						stack.addAll(current.getAntecedentNeighbours().keySet().stream()
 								.filter((r) -> r instanceof FullRuleNode).map((r) -> ((FullRuleNode) r))
 								.collect(Collectors.toSet()));
-
+						visited.add(current);
 					}
 				});
 
