@@ -70,7 +70,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
-	private TaskBoard taskBoard;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -87,7 +86,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
 			Set<Rule> someDomainKnowledge) {
 		super(knowledgeInteractions, messageRouter);
-		taskBoard = new TaskBoard();
 
 		this.additionalDomainKnowledge = someDomainKnowledge;
 
@@ -171,11 +169,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		TaskBoard taskboard;
 		final String msg = "Executing (scheduled) tasks for the reasoner should not result in problems.";
 		taskboard = this.reasonerPlan.execute(incomingBS);
-		isComplete = taskboard.hasTasks();
+		isComplete = !taskboard.hasTasks();
 		LOG.debug("ask:\n{}", this.reasonerPlan);
-		if (this.taskBoard != null) {
-			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
-				LOG.debug("All tasks finished.");
+		if (taskboard != null) {
+			taskboard.executeScheduledTasks().thenAccept(Void -> {
+				LOG.debug("All ask tasks finished.");
 				if (isComplete) {
 					eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
 					this.finalBindingSetFuture.complete(bs);
@@ -221,8 +219,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			store.addRule(aRule);
 
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES
-							: MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -251,10 +248,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		boolean isComplete;
 		TaskBoard taskboard;
 		taskboard = this.reasonerPlan.execute(incomingBS);
-		isComplete = taskboard.hasTasks();
+		isComplete = !taskboard.hasTasks();
 		LOG.debug("post:\n{}", this.reasonerPlan);
-		if (this.taskBoard != null) {
-			this.taskBoard.executeScheduledTasks().thenAccept(Void -> {
+		if (taskboard != null) {
+			taskboard.executeScheduledTasks().thenAccept(Void -> {
+				LOG.debug("All post tasks finished.");
 				if (isComplete) {
 					eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
 					if (aBindingSetHandler != null) {

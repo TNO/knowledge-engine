@@ -35,7 +35,7 @@ import eu.knowledge.engine.admin.model.PostKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.ReactKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.SmartConnector;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.RuleNode;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.BindingSet;

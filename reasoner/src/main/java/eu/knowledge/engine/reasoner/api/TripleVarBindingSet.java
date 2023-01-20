@@ -225,7 +225,9 @@ public class TripleVarBindingSet {
 								Node toNode = singleMap.getValue();
 								Node fromNode = singleMap.getKey();
 
-								// TODO first consider all possible combinations of concrete and variable nodes.
+								// first consider all possible combinations of concrete and variable nodes.
+								// note that there are slight variations in how we want to translate filter
+								// and result bindingsets
 								if (fromNode instanceof Var && toNode instanceof Var) {
 									var fromTVar = new TripleVar(fromTriple, (Var) fromNode);
 									var toTVar = new TripleVar(toTriple, (Var) toNode);

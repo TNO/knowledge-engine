@@ -237,7 +237,7 @@ public class ReasonerPlan {
 			// determine whether our parent matches us partially
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
-			if (aParent != null && this.store.getAntecedentNeighbors(aRule).containsKey(aParent)) {
+			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
 				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule.getAntecedent(),
 						aParent.getConsequent(), this.getMatchStrategy());
 			}
