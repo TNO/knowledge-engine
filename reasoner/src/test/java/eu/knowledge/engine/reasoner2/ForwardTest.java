@@ -12,8 +12,16 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Literal;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -443,7 +451,8 @@ public class ForwardTest {
 	}
 
 	@Test
-	public void testBackwardChainingDuringForwardChainingIfPartialWithTwoStages() throws InterruptedException, ExecutionException {
+	public void testBackwardChainingDuringForwardChainingIfPartialWithTwoStages()
+			throws InterruptedException, ExecutionException {
 
 		store = new RuleStore();
 		TriplePattern tp11 = new TriplePattern("?sens <type> <Sensor>");

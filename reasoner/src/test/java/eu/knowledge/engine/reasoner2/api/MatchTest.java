@@ -19,11 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Match;
-
-import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MatchTest {
@@ -456,5 +457,50 @@ public class MatchTest {
 			ret = ret.multiply(BigInteger.valueOf(N - k)).divide(BigInteger.valueOf(k + 1));
 		}
 		return ret;
+	}
+
+	@Test
+	public void testBugTranslate() {
+		TriplePattern t1 = new TriplePattern("?s ?p ?o");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1));
+
+		var tp7 = new TriplePattern("?a <p> ?a");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(tp7));
+
+		Rule r = new Rule(new HashSet<>(), rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+
+		BindingSet bs = Util.toBindingSet("s=<n2>,p=<p>,o=<n3>");
+
+		var tvbs = new TripleVarBindingSet(obj, bs);
+
+		var nBs = tvbs.translate(rhs, findMatchesWithConsequent);
+
+		System.out.println(nBs);
+		assertTrue(nBs.isEmpty());
+	}
+
+	@Test
+	public void testOtherBurgTranslate() {
+		TriplePattern t1 = new TriplePattern("?p <type> ?t");
+		TriplePattern t2 = new TriplePattern("?p <hasValInC> ?q");
+		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
+
+		var tp7 = new TriplePattern("?s <type> <Device>");
+		Set<TriplePattern> rhs = new HashSet<>(Arrays.asList(tp7));
+
+		Rule r = new Rule(new HashSet<>(), rhs);
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+
+		BindingSet bs = Util.toBindingSet("p=<sensor1>,q=\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
+
+		var tvbs = new TripleVarBindingSet(obj, bs);
+
+		var nBs = tvbs.translate(rhs, findMatchesWithConsequent);
+
+		System.out.println(nBs);
+		assertTrue(!nBs.isEmpty());
 	}
 }

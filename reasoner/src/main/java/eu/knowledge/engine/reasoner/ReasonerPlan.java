@@ -91,15 +91,14 @@ public class ReasonerPlan {
 				final RuleNode current = stack.pop();
 
 				current.getAllNeighbours().stream().filter(n -> !stack.contains(n)).filter(n -> !visited.contains(n))
-						.forEach(n -> stack.push(n));
+						.filter(n -> !n.equals(current)).forEach(n -> stack.push(n));
 
 				if (current.readyForTransformFilter()) {
 					current.transformFilterBS();
 				}
 
 				// Ready, and current version of input has not been scheduled on taskboard? ->
-				// Add to taskboard
-				// otherwise -> Do not add to taskboard
+				// Add to taskboard otherwise -> Do not add to taskboard
 				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
 					taskboard.addTask(current);
 					current.setResultBindingSetInputScheduled(true);
@@ -149,7 +148,8 @@ public class ReasonerPlan {
 	public BindingSet getResults() {
 		if (this.isBackward()) {
 			if (this.isDone()) {
-				return ((PassiveAntRuleNode) this.getStartNode()).getResultBindingSetInput();
+				return ((PassiveAntRuleNode) this.getStartNode()).getResultBindingSetInput().getFullBindingSet()
+						.toBindingSet();
 			} else {
 				throw new RuntimeException("`execute` should be finished before getting results.");
 			}

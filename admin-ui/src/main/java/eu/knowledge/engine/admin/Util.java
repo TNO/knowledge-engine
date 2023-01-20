@@ -18,11 +18,13 @@ import org.apache.jena.vocabulary.RDF;
 
 import eu.knowledge.engine.admin.model.CommunicativeAct;
 import eu.knowledge.engine.admin.model.Connection;
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BindingSetHandler;
+import eu.knowledge.engine.reasoner.ConsSide;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.RuleNode;
 import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
@@ -109,9 +111,8 @@ public class Util {
 	}
 
 	public static String getArgument(Model model, Resource kiRes) {
-		var gpRess = kiRes.listProperties(Vocab.HAS_GP)
-			.mapWith(s -> s.getObject().asResource())
-			.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.ARGUMENT_GRAPH_PATTERN));
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP).mapWith(s -> s.getObject().asResource())
+				.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.ARGUMENT_GRAPH_PATTERN));
 		if (gpRess.hasNext()) {
 			var gpRes = gpRess.next();
 			return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
@@ -121,8 +122,7 @@ public class Util {
 	}
 
 	public static String getResult(Model model, Resource kiRes) {
-		var gpRess = kiRes.listProperties(Vocab.HAS_GP)
-				.mapWith(s -> s.getObject().asResource())
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP).mapWith(s -> s.getObject().asResource())
 				.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.RESULT_GRAPH_PATTERN));
 		if (gpRess.hasNext()) {
 			var gpRes = gpRess.next();
@@ -179,8 +179,10 @@ public class Util {
 					}
 				}
 			}
-			queue.addAll(node.getAntecedentNeighbors().keySet());
-			queue.addAll(node.getConsequentNeighbors().keySet());
+			if (node instanceof AntSide)
+				queue.addAll(((AntSide) node).getAntecedentNeighbours().keySet());
+			if (node instanceof ConsSide)
+				queue.addAll(((ConsSide) node).getConsequentNeighbours().keySet());
 		}
 
 		List<Connection> connections = new ArrayList<Connection>();

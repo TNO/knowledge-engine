@@ -69,10 +69,14 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	public TripleVarBindingSet getFilterBindingSetOutput() {
 		return this.filterBindingSetOutput;
 	}
-	
+
 	@Override
 	public TripleVarBindingSet getResultBindingSetOutput() {
 		return null;
+	}
+
+	public TripleVarBindingSet getResultBindingSetInput() {
+		return this.resultBindingSetInput.get();
 	}
 
 	@Override

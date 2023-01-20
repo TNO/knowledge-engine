@@ -20,10 +20,6 @@ public class PassiveAntRuleNode extends AntRuleNode {
 		super(aRule);
 	}
 
-	public BindingSet getResultBindingSetInput() {
-		return this.resultBindingSetInput.get().getFullBindingSet().toBindingSet();
-	}
-
 	public void setFilterBindingSetOutput(BindingSet bs) {
 		this.filterBindingSetOutput = new TripleVarBindingSet(this.getRule().getAntecedent(), bs);
 	}

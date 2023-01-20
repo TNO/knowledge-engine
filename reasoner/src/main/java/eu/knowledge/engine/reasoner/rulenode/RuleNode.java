@@ -55,4 +55,9 @@ public abstract class RuleNode {
 		return this.resultBindingSetOutputScheduled;
 	}
 
+	@Override
+	public String toString() {
+		return "RuleNode for " + this.rule.toString();
+	}
+
 }

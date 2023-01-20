@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.ReasonerPlan;
-import eu.knowledge.engine.reasoner.ReasoningNode;
 
 /**
  * An {@link AskResult} contains the result of the
