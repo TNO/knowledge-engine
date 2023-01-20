@@ -175,8 +175,6 @@
 	</dependencies>
 
 	<properties>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
 		<jetty-version>9.2.9.v20150224</jetty-version>
 		<swagger-core-version>1.5.18</swagger-core-version>
 		<jersey2-version>2.35</jersey2-version>

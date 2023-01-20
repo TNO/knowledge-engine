@@ -14,9 +14,6 @@
 
 	<properties>
 		<!-- TODO move some of these to ke-parent -->
-		<java.version>17</java.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<swagger-core-version>1.5.18</swagger-core-version>
 		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
 		<jetty-version>9.2.9.v20150224</jetty-version>
