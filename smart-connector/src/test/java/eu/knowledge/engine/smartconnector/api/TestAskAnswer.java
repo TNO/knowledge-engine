@@ -63,7 +63,6 @@ public class TestAskAnswer {
 				LOG.info("smartConnector of {} ready.", this.name);
 			}
 		};
-		kb1.start();
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 
@@ -72,7 +71,10 @@ public class TestAskAnswer {
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(act1, gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			var aBindingSet = anAnswerExchangeInfo.getIncomingBindings();
-			assertTrue(aBindingSet.isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -82,6 +84,8 @@ public class TestAskAnswer {
 
 			return bindingSet;
 		});
+		kb1.start();
+		kb1.syncKIs();
 		Thread.sleep(5000);
 
 		kb2 = new MockedKnowledgeBase("kb2") {
@@ -91,14 +95,15 @@ public class TestAskAnswer {
 
 			}
 		};
-		kb2.start();
 
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		CommunicativeAct act2 = new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 				new HashSet<Resource>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(act2, gp2);
-
 		kb2.register(askKI);
+
+		kb2.start();
+		kb2.syncKIs();
 		LOG.trace("After kb2 register");
 		Thread.sleep(10000);
 

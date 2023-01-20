@@ -1,7 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
+import eu.knowledge.engine.reasoner.Rule;
 
 public interface SmartConnector {
 
@@ -111,6 +114,14 @@ public interface SmartConnector {
 	void unregister(ReactKnowledgeInteraction anReactKI);
 
 	/**
+	 * Return a plan for executing an ask knowledge interaction. This plan can be
+	 * executed using {@link AskPlan#execute(BindingSet)}.
+	 * 
+	 * @return
+	 */
+	AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector);
+
+	/**
 	 * With this method a {@link KnowledgeBase} can ask a question to its
 	 * {@link SmartConnectorImpl}. The Smart Connector will first check which of all
 	 * the other {@link KnowledgeBase}s fit the {@link RecipientSelector} and
@@ -162,8 +173,21 @@ public interface SmartConnector {
 	 *
 	 * @see SmartConnectorImpl#ask(AskKnowledgeInteraction, RecipientSelector,
 	 *      BindingSet)
+	 * @see SmartConnector#planAsk(AskKnowledgeInteraction, RecipientSelector,
+	 *      BindingSet)
 	 */
 	CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings);
+
+	/**
+	 * Returns a plan for executing a post knowledge interaction. This plan can be
+	 * executed using {@link PostPlan#execute(BindingSet)}.
+	 * 
+	 * @param aPKI
+	 * @param aSelector
+	 * @param someArguments
+	 * @return
+	 */
+	PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector);
 
 	/**
 	 * With this method a {@link KnowledgeBase} can post data to its
@@ -208,7 +232,8 @@ public interface SmartConnector {
 	 *                      {@link KnowledgeBase#getKnowledgeBaseId()}, a complete
 	 *                      wildcard or something in between where potential
 	 *                      {@link KnowledgeBase} recipients are selected based on
-	 *                      criteria from the KnowledgeBase ontology. Cannot be null!
+	 *                      criteria from the KnowledgeBase ontology. Cannot be
+	 *                      null!
 	 * @param someArguments Allows the calling {@link KnowledgeBase} to limit the
 	 *                      question to specific values for specific variables from
 	 *                      the {@link GraphPattern} in the
@@ -216,6 +241,9 @@ public interface SmartConnector {
 	 * @return A {@link CompletableFuture} that will return a {@link PostResult} in
 	 *         the future when the post is successfully processed by the
 	 *         {@link SmartConnectorImpl}.
+	 * 
+	 * @see SmartConnector#planPost(PostKnowledgeInteraction, RecipientSelector,
+	 *      BindingSet)
 	 */
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments);
@@ -232,6 +260,34 @@ public interface SmartConnector {
 	 * @see #post(PostKnowledgeInteraction, RecipientSelector, BindingSet)
 	 */
 	CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument);
+
+	/**
+	 * Sets the domain knowledge of this smart connector. This domain knowledge will
+	 * be taken into account when the reasoner orchestrates the knowledge
+	 * interactions. Note that by default there is no domain knowledge and setting
+	 * it will overwrite the existing set of rules. The domain knowledge is only
+	 * used when the reasoner is enabled. See
+	 * {@link SmartConnector#setReasonerEnabled(boolean)}.
+	 * 
+	 * @param someRules The rules to take into account.
+	 */
+	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
+
+	/**
+	 * Sets the reasoner enabled property of this Smart Connector to true or false.
+	 * Enabling the reasoner causes the data exchange to become more flexible, but
+	 * also causes the data exchange to be slower.
+	 * 
+	 * @param aReasonerEnabled {@code true} if the reasoner should be enabled,
+	 *                         {@code false} otherwise.
+	 */
+	void setReasonerEnabled(boolean aReasonerEnabled);
+
+	/**
+	 * @return {@code true} if this smart connector uses the reasoner for data
+	 *         exchange, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
 
 	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is
@@ -251,7 +307,6 @@ public interface SmartConnector {
 	 *
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
-
 	void stop();
 
 }

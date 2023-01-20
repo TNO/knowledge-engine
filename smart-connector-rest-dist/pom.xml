@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>smart-connector-rest-dist</artifactId>
 	<name>Knowledge Engine - Smart Connector Rest Dist</name>
@@ -21,6 +21,19 @@
 			<artifactId>smart-connector</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.7.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.7.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -35,6 +48,52 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+			This plugin packages all dependencies in a so-called uber-jar. See also:
+			- https://stackoverflow.com/questions/58562397/org-apache-jena-shared-noreaderforlangexception-reader-not-found-nt
+			- https://jena.apache.org/documentation/notes/jena-repack.html
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.4</version>
+				<configuration>
+						<shadedArtifactAttached>true</shadedArtifactAttached>
+						<shadedClassifierName>with-dependencies</shadedClassifierName>
+						<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<mainClass>eu.knowledge.engine.rest.Main</mainClass>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+										<addHeader>false</addHeader>
+								</transformer>
+						</transformers>
+						<filters>
+								<filter>
+										<artifact>*:*</artifact>
+										<excludes>
+												<!-- Some jars are signed but shading breaks that.
+														Don't include signing files.
+												-->
+												<exclude>META-INF/*.SF</exclude>
+												<exclude>META-INF/*.DSA</exclude>
+												<exclude>META-INF/*.RSA</exclude>
+										</excludes>
+								</filter>
+						</filters>
+				</configuration>
+				<executions>
+						<execution>
+								<phase>package</phase>
+								<goals>
+										<goal>shade</goal>
+								</goals>
+						</execution>
 				</executions>
 			</plugin>
 		</plugins>

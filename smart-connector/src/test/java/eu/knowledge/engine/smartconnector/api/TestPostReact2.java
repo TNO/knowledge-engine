@@ -31,6 +31,8 @@ public class TestPostReact2 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact2.class);
 
+	public boolean kb2Received = false, kb3Received = false;
+
 	@Test
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
@@ -45,8 +47,6 @@ public class TestPostReact2 {
 		kb3 = new MockedKnowledgeBase("kb3");
 		kn.addKB(kb3);
 
-		kn.startAndWaitForReady();
-
 		// start registering
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
@@ -56,13 +56,17 @@ public class TestPostReact2 {
 		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, (anRKI, aReactExchangeInfo) -> {
 
-			LOG.trace("KB2 Reacting...");
+			LOG.info("KB2 Reacting...");
+
+			TestPostReact2.this.kb2Received = true;
+
 			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
+			assertTrue(iter.hasNext(), "There should be at least a single binding.");
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
-			assertEquals("<https://www.tno.nl/example/c>", b.get("e"), "Binding of 'e' is incorrect.");
+			assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' should be correct.");
+			assertEquals("<https://www.tno.nl/example/c>", b.get("e"), "Binding of 'e' should be correct.");
 
 			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
@@ -73,21 +77,22 @@ public class TestPostReact2 {
 		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3, null);
 		kb3.register(ki3, (anRKI, aReactExchangeInfo) -> {
 
-			LOG.trace("KB3 Reacting...");
-
+			LOG.info("KB3 Reacting...");
+			TestPostReact2.this.kb3Received = true;
 			var argument = aReactExchangeInfo.getArgumentBindings();
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("f"), "Binding of 'd' is incorrect.");
-			assertEquals("<https://www.tno.nl/example/c>", b.get("g"), "Binding of 'e' is incorrect.");
+			assertEquals("<https://www.tno.nl/example/a>", b.get("f"), "Binding of 'f' should be correct.");
+			assertEquals("<https://www.tno.nl/example/c>", b.get("g"), "Binding of 'g' should be correct.");
 
 			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
+		LOG.info("Everyone is up-to-date!");
 
 		// start exchanging
 		BindingSet bindingSet = new BindingSet();
@@ -99,6 +104,8 @@ public class TestPostReact2 {
 		try {
 			PostResult result = kb1.post(ki1, bindingSet).get();
 
+			assertTrue(this.kb2Received, "KB2 should have received the posted data.");
+			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
 			BindingSet bs = result.getBindings();
 			assertTrue(bs.isEmpty());
 

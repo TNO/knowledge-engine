@@ -2,12 +2,9 @@ package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
@@ -22,14 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.Vocab;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
@@ -38,77 +28,51 @@ public class TestRequestMetadata {
 	private static final Logger LOG = LoggerFactory.getLogger(TestRequestMetadata.class);
 
 	@Test
-	public void testRequestMetadata() throws InterruptedException {
+	public void testRequestMetadata() throws InterruptedException, ExecutionException, ParseException {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
-		final CountDownLatch latch = new CountDownLatch(1);
+		KnowledgeNetwork kn = new KnowledgeNetwork();
 
-		kb1 = new MockedKnowledgeBase("kb1") {
+		kb1 = new MockedKnowledgeBase("kb1");
+		kn.addKB(kb1);
 
-			@Override
-			public void smartConnectorReady(SmartConnector aSC) {
+		kb2 = new MockedKnowledgeBase("kb2");
+		kn.addKB(kb2);
 
-				GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
-						"?obs saref:hasTemp ?temp .");
-				PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null);
-				aSC.register(ki);
-			}
-		};
-		kb1.start();
+		GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .", "?obs saref:hasTemp ?temp .");
+		PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null, false);
+		kb1.register(ki);
 
-		kb2 = new MockedKnowledgeBase("kb2") {
+		gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
+				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
+				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
+				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
+				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
+				"?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp kb:hasPattern ?pattern .");
 
-			private AskKnowledgeInteraction ki;
+		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
+		kb2.register(aKI);
 
-			@Override
-			public void smartConnectorReady(SmartConnector aSC) {
-				GraphPattern gp = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .",
-						"?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
-						"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
-						"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
-						"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
-						"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
-						"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
+		kn.sync();
+		LOG.info("Everyone is up-to-date!");
 
-				this.ki = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
-				aSC.register(this.ki);
+		AskResult result = kb2.ask(aKI, new BindingSet()).get();
 
-				try {
-					this.testMetadata();
-				} catch (InterruptedException | ExecutionException | ParseException e) {
-					fail("Should not throw any exception.");
-				}
+		LOG.info("Bindings: {}", result.getBindings());
 
-			}
+		Model m = Util.generateModel(aKI.getPattern(), result.getBindings());
 
-			public void testMetadata() throws InterruptedException, ExecutionException, ParseException {
-				AskResult result = this.ask(this.ki, new BindingSet()).get();
+		List<Resource> i = m
+				.listSubjectsWithProperty(RDF.type,
+						ResourceFactory.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
+				.toList();
+		assertEquals(3 + 1, i.size());
 
-				LOG.info("Bindings: {}", result.getBindings());
-
-				Model m = BindingSet.generateModel(this.ki.getPattern(), result.getBindings());
-
-				List<Resource> i = m
-						.listSubjectsWithProperty(RDF.type,
-								ResourceFactory
-										.createResource(prefixes.getNsPrefixURI("kb") + "PostKnowledgeInteraction"))
-						.toList();
-				assertEquals(3 + 1, i.size());
-
-				assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
-
-				latch.countDown();
-
-			}
-		};
-		kb2.start();
-
-		int wait = 25;
-		assertTrue(latch.await(wait, TimeUnit.SECONDS), "Should execute the tests within " + wait + " seconds.");
+		assertTrue(m.listStatements((Resource) null, RDF.type, Vocab.ARGUMENT_GRAPH_PATTERN).hasNext());
 
 	}
 

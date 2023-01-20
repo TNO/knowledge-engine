@@ -12,8 +12,8 @@ public class MyKnowledgeInteractionInfo extends KnowledgeInteractionInfo {
 	private final ReactHandler reactHandler;
 
 	public MyKnowledgeInteractionInfo(URI id, URI knowledgeBaseId, KnowledgeInteraction knowledgeInteraction,
-			AnswerHandler answerHandler, ReactHandler reactHandler, boolean isMeta) {
-		super(id, knowledgeBaseId, knowledgeInteraction, isMeta);
+			AnswerHandler answerHandler, ReactHandler reactHandler) {
+		super(id, knowledgeBaseId, knowledgeInteraction);
 		this.answerHandler = answerHandler;
 		this.reactHandler = reactHandler;
 

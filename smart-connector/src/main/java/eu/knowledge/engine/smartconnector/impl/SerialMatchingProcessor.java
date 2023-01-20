@@ -58,22 +58,44 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	}
 
 	@Override
-	CompletableFuture<AskResult> processAskInteraction(MyKnowledgeInteractionInfo askKnowledgeInteraction,
-			BindingSet bindingSet) {
-		this.myKnowledgeInteraction = askKnowledgeInteraction;
-		this.answerFuture = new CompletableFuture<>();
-		this.checkOtherKnowledgeInteraction(bindingSet);
-		return this.answerFuture;
+	void planAskInteraction(MyKnowledgeInteractionInfo aAKI) {
+		this.myKnowledgeInteraction = aAKI;
 	}
 
 	@Override
-	CompletableFuture<PostResult> processPostInteraction(MyKnowledgeInteractionInfo postKnowledgeInteraction,
-			BindingSet bindingSet) {
+	CompletableFuture<AskResult> executeAskInteraction(BindingSet bindingSet) {
+		this.answerFuture = new CompletableFuture<>();
+		this.checkOtherKnowledgeInteraction(bindingSet);
+		return this.answerFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while executing Ask Interaction ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
+	}
+
+	@Override
+	void planPostInteraction(MyKnowledgeInteractionInfo aPKI) {
+		this.myKnowledgeInteraction = aPKI;
+	}
+
+	@Override
+	CompletableFuture<PostResult> executePostInteraction(BindingSet bindingSet) {
 		this.LOG.trace("processPost()");
-		this.myKnowledgeInteraction = postKnowledgeInteraction;
 		this.reactFuture = new CompletableFuture<>();
 		this.checkOtherKnowledgeInteraction(bindingSet);
-		return this.reactFuture;
+		return this.reactFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while executing Post Interaction ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	private void checkOtherKnowledgeInteraction(BindingSet bindingSet) {
@@ -107,16 +129,16 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 									this.allBindings.addAll(transformedAnswerBindingSet);
 
 									this.askExchangeInfos
-											.add(convertMessageToExchangeInfo(transformedAnswerBindingSet, aMessage));
+											.add(convertMessageToExchangeInfo(aMessage.getBindings(), aMessage));
 
 									this.checkOtherKnowledgeInteraction(bindingSet);
 								} catch (Throwable t) {
-									this.LOG.error("Receiving a answer message should succeed.", t);
+									this.LOG.error("Receiving an answer message should succeed.", t);
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ askMessage.toString() + ": " +  e.getMessage());
+							this.LOG.warn("An error occured while sending and processing a message: {}", e);
+							this.LOG.debug("This is the message where the error occured: {}", askMessage);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -155,8 +177,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 										this.allBindings.addAll(transformedResultBindingSet);
 									}
 
-									this.postExchangeInfos.add(convertMessageToExchangeInfo(bindingSet,
-											transformedResultBindingSet, aMessage));
+									this.postExchangeInfos.add(convertMessageToExchangeInfo(transformedArgBindingSet,
+											aMessage.getResult(), aMessage));
 									// TODO should this statement be moved outside this try/catch, since it cannot
 									// throw an exception and it has nothing to do with receiving a message.
 									this.checkOtherKnowledgeInteraction(bindingSet);
@@ -165,8 +187,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("Errors should not occur when sending and processing message: "
-									+ postMessage.toString() + ": " + e.getMessage());
+							this.LOG.warn("An error occured while sending and processing a message: {}", e);
+							this.LOG.debug("This is the message where the error occured: {}", postMessage);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -197,8 +219,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		}
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(),
-				status, failedMessage);
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, this.previousSend, Instant.now(), status,
+				failedMessage);
 	}
 
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
@@ -209,7 +231,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 		if (failedMessage != null) {
 			status = Status.FAILED;
 		}
-	
+
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
 				this.previousSend, Instant.now(), status, failedMessage);

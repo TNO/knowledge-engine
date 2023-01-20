@@ -91,31 +91,31 @@ public class OtherKnowledgeBase {
 					Resource gp = m.createResource(myKI.getId() + "/gp");
 					m.add(ki, Vocab.HAS_GP, gp);
 					m.add(gp, RDF.type, Vocab.GRAPH_PATTERN);
-					m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(
-							((AskKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
+					m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this
+							.convertToPattern(((AskKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
 					break;
 				case ANSWER:
 					m.add(ki, RDF.type, Vocab.ANSWER_KI);
 					gp = m.createResource(myKI.getId() + "/gp");
 					m.add(ki, Vocab.HAS_GP, gp);
 					m.add(gp, RDF.type, Vocab.GRAPH_PATTERN);
-					m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(
-							((AnswerKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
+					m.add(gp, Vocab.HAS_PATTERN, m.createLiteral(this
+							.convertToPattern(((AnswerKnowledgeInteraction) myKI.getKnowledgeInteraction()).getPattern())));
 					break;
 				case POST:
 					m.add(ki, RDF.type, Vocab.POST_KI);
 					Resource argGp = m.createResource(myKI.getId() + "/argumentgp");
 					m.add(ki, Vocab.HAS_GP, argGp);
-					m.add(ki, Vocab.HAS_ARG, argGp);
-					m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
+					m.add(argGp, RDF.type, Vocab.ARGUMENT_GRAPH_PATTERN);
 					GraphPattern argument = ((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument();
 					if (argument != null)
 						m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(argument)));
-
+	
+					// CHECK: If the KI doesn't have a result gp, do we still need to create
+					// these resources? Currently, we do.
 					Resource resGp = m.createResource(myKI.getId() + "/resultgp");
 					m.add(ki, Vocab.HAS_GP, resGp);
-					m.add(ki, Vocab.HAS_RES, resGp);
-					m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
+					m.add(resGp, RDF.type, Vocab.RESULT_GRAPH_PATTERN);
 					GraphPattern result = ((PostKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult();
 					if (result != null)
 						m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(result)));
@@ -124,22 +124,22 @@ public class OtherKnowledgeBase {
 					m.add(ki, RDF.type, Vocab.REACT_KI);
 					argGp = m.createResource(myKI.getId() + "/argumentgp");
 					m.add(ki, Vocab.HAS_GP, argGp);
-					m.add(ki, Vocab.HAS_ARG, argGp);
-					m.add(argGp, RDF.type, Vocab.GRAPH_PATTERN);
+					m.add(argGp, RDF.type, Vocab.ARGUMENT_GRAPH_PATTERN);
 					argument = ((ReactKnowledgeInteraction) myKI.getKnowledgeInteraction()).getArgument();
 					if (argument != null)
 						m.add(argGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(argument)));
-
+	
+					// CHECK: If the KI doesn't have a result gp, do we still need to create
+					// these resources? Currently, we do.
 					resGp = m.createResource(myKI.getId() + "/resultgp");
 					m.add(ki, Vocab.HAS_GP, resGp);
-					m.add(ki, Vocab.HAS_RES, resGp);
-					m.add(resGp, RDF.type, Vocab.GRAPH_PATTERN);
+					m.add(resGp, RDF.type, Vocab.RESULT_GRAPH_PATTERN);
 					result = ((ReactKnowledgeInteraction) myKI.getKnowledgeInteraction()).getResult();
 					if (result != null)
 						m.add(resGp, Vocab.HAS_PATTERN, m.createLiteral(this.convertToPattern(result)));
 					break;
 				default:
-					this.LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
+					LOG.warn("Ignored currently unsupported knowledge interaction type {}.", myKI.getType());
 					assert false;
 				}
 			}

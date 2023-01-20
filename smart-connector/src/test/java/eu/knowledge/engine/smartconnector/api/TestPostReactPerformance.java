@@ -41,7 +41,6 @@ public class TestPostReactPerformance {
 		kn.addKB(kb1);
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
-		kn.startAndWaitForReady();
 
 		// register capabilities
 		GraphPattern kb1GP = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
@@ -67,7 +66,7 @@ public class TestPostReactPerformance {
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		LOG.info("start posting");
 

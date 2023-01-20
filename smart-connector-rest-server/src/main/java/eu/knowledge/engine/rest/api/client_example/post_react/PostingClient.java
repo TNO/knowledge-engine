@@ -31,7 +31,7 @@ public class PostingClient {
 		String ki = client.registerPost(
 			"?a <https://www.example.org/measuredTemperatureInCelsius> ?b.",
 			"?c <https://www.example.org/measuredTemperatureInKelvin> ?d."
-		);
+		).getKnowledgeInteractionId();
 		LOG.info("Made new KI with ID {}", ki);
 		
 		// Post something from the proactive side.

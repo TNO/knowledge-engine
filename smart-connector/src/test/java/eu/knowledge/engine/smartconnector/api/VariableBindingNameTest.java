@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -16,17 +15,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostResult;
-import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 
 class VariableBindingNameTest {
 
@@ -40,7 +28,7 @@ class VariableBindingNameTest {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
-		prefixes.setNsPrefix("ic", "https://www.tno.nl/energy/ontology/interconnect/");
+		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		// first add the relevant knowledge bases
@@ -49,8 +37,6 @@ class VariableBindingNameTest {
 		kn.addKB(sensor);
 		thermostat = new MockedKnowledgeBase("thermostat");
 		kn.addKB(thermostat);
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// then register the relevant knowledge interactions
 		GraphPattern argGraphPattern1 = new GraphPattern(prefixes,
@@ -74,33 +60,34 @@ class VariableBindingNameTest {
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
 			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
+				BindingSet bs = new BindingSet();
 				LOG.info("Reacting to sensor value.");
 				var argument = aReactExchangeInfo.getArgumentBindings();
 				Iterator<Binding> iterator = argument.iterator();
-				assertTrue(iterator.hasNext());
+				// with the reasoner we can also react to asks.
+				if (iterator.hasNext()) {
 
-				Binding b = iterator.next();
+					Binding b = iterator.next();
 
-				assertFalse(b.containsKey("temp1"));
-				assertTrue(b.containsKey("temp2"));
+					assertFalse(b.containsKey("temp1"));
+					assertTrue(b.containsKey("temp2"));
 
-				String temp = b.get("temp2");
+					String temp = b.get("temp2");
 
-				assertEquals("21.5", temp);
+					assertEquals("21.5", temp);
 
-				BindingSet bs = new BindingSet();
-				Binding binding = new Binding();
-				binding.put("s2", "<https://www.tno.nl/example/subject>");
-				binding.put("p2", "<https://www.tno.nl/example/predicate>");
-				binding.put("o2", "<https://www.tno.nl/example/object>");
+					Binding binding = new Binding();
+					binding.put("s2", "<https://www.tno.nl/example/subject>");
+					binding.put("p2", "<https://www.tno.nl/example/predicate>");
+					binding.put("o2", "<https://www.tno.nl/example/object>");
 
-				bs.add(binding);
-
+					bs.add(binding);
+				}
 				return bs;
 			}
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// data exchange
 
@@ -113,7 +100,7 @@ class VariableBindingNameTest {
 		b.put("temp1", temp);
 		bs.add(b);
 		try {
-			PostResult postResult = this.sensor.post(sensorPostKI, bs).get();
+			PostResult postResult = sensor.post(sensorPostKI, bs).get();
 
 			Set<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
 
@@ -127,33 +114,37 @@ class VariableBindingNameTest {
 			assertTrue(iter.hasNext());
 
 			Binding binding = iter.next();
-			// the exchange infos should use the variable names from the receiving end.
+			// the exchange infos should use the variable names from reacting and answering
+			// knowledge bases. Previously they used the variable names from the
+			// posting/asking knowledge base, but this was incompatible with the reasoner
+			// where the posting/asking knowledge base is possibly not directly sending
+			// messages.
 
-			assertTrue(binding.containsKey("id1"));
-			assertTrue(binding.containsKey("room1"));
-			assertTrue(binding.containsKey("obs1"));
-			assertTrue(binding.containsKey("temp1"));
+			assertTrue(binding.containsKey("id2"));
+			assertTrue(binding.containsKey("room2"));
+			assertTrue(binding.containsKey("obs2"));
+			assertTrue(binding.containsKey("temp2"));
 
-			assertFalse(binding.containsKey("id2"));
-			assertFalse(binding.containsKey("room2"));
-			assertFalse(binding.containsKey("obs2"));
-			assertFalse(binding.containsKey("temp2"));
+			assertFalse(binding.containsKey("id1"));
+			assertFalse(binding.containsKey("room1"));
+			assertFalse(binding.containsKey("obs1"));
+			assertFalse(binding.containsKey("temp1"));
 
 			BindingSet bindingSet2 = info.getResult();
 			var iter2 = bindingSet2.iterator();
 			assertTrue(iter2.hasNext());
 			Binding b2 = iter2.next();
 
-			assertTrue(b2.containsKey("s1"));
-			assertTrue(b2.containsKey("p1"));
-			assertTrue(b2.containsKey("o1"));
-			assertFalse(b2.containsKey("s2"));
-			assertFalse(b2.containsKey("p2"));
-			assertFalse(b2.containsKey("o2"));
+			assertTrue(b2.containsKey("s2"));
+			assertTrue(b2.containsKey("p2"));
+			assertTrue(b2.containsKey("o2"));
+			assertFalse(b2.containsKey("s1"));
+			assertFalse(b2.containsKey("p1"));
+			assertFalse(b2.containsKey("o1"));
 
-			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s1"));
-			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p1"));
-			assertEquals("<https://www.tno.nl/example/object>", b2.get("o1"));
+			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s2"));
+			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p2"));
+			assertEquals("<https://www.tno.nl/example/object>", b2.get("o2"));
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("{}", e);
 		}

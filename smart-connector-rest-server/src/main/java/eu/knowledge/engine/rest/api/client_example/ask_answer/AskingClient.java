@@ -30,7 +30,7 @@ public class AskingClient {
 		// Post an ASK KI.
 		String ki = client.registerAsk(
 			"?a <https://www.example.org/isRelatedTo> ?b."
-		);
+		).getKnowledgeInteractionId();
 		LOG.info("Made new KI with ID {}", ki);
 		
 		// ASK something from the proactive side.
@@ -38,7 +38,7 @@ public class AskingClient {
 		LOG.info("Got ASK result: {}", result);
 
 		// ASK something else from the proactive side, with partial bindings
-		var moreBindings = Arrays.asList(Map.of("a", "<a>", "b", "<b>"));
+		var moreBindings = Arrays.asList(Map.of("a", "<https://www.example.org/Math>"));
 		LOG.info("Sending ASK: {}", moreBindings);
 		var moreResults = client.postAsk(ki, moreBindings);
 		LOG.info("Got ASK result: {}", moreResults);

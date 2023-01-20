@@ -1,5 +1,7 @@
 package eu.knowledge.engine.smartconnector.runtime;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -17,10 +19,12 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
  */
 public class KeRuntime {
 
-	private static final String CONF_KEY_MY_HOSTNAME = "HOSTNAME";
-	private static final String CONF_KEY_MY_PORT = "PORT";
-	private static final String CONF_KEY_KD_HOSTNAME = "KD_HOSTNAME";
-	private static final String CONF_KEY_KD_PORT = "KD_PORT";
+	private static final String CONF_KEY_MY_HOSTNAME = "KE_RUNTIME_HOSTNAME";
+	private static final String CONF_KEY_MY_PORT = "KE_RUNTIME_PORT";
+	private static final String CONF_KEY_KD_URL = "KD_URL";
+	private static final String CONF_KEY_MY_EXPOSED_URL = "KE_RUNTIME_EXPOSED_URL";
+
+	private static final String EXPOSED_URL_DEFAULT_PROTOCOL = "http";
 
 	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
 
@@ -29,6 +33,12 @@ public class KeRuntime {
 	private static MessageDispatcher messageDispatcher = null;
 
 	static {
+		if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL) && hasConfigProperty(CONF_KEY_MY_HOSTNAME)) {
+			LOG.error("KE runtime must be configured with {} or {}, not both.", CONF_KEY_MY_EXPOSED_URL, CONF_KEY_MY_HOSTNAME);
+			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.", CONF_KEY_MY_EXPOSED_URL);
+			System.exit(1);
+		}
+
 		// we want to make sure that this threadpool does not keep the JVM alive. So we
 		// set the daemon to true.
 		executorService = Executors.newScheduledThreadPool(12, new ThreadFactory() {
@@ -59,17 +69,30 @@ public class KeRuntime {
 	public static MessageDispatcher getMessageDispatcher() {
 		if (messageDispatcher == null) {
 			try {
-				if (!hasConfigProperty(CONF_KEY_KD_HOSTNAME) || !hasConfigProperty(CONF_KEY_KD_PORT)) {
+				if (!hasConfigProperty(CONF_KEY_KD_URL)) {
 					LOG.warn(
 							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
 					messageDispatcher = new MessageDispatcher();
 				} else {
-					messageDispatcher = new MessageDispatcher(getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost"),
-							Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081")),
-							getConfigProperty(CONF_KEY_KD_HOSTNAME, "localhost"),
-							Integer.parseInt(getConfigProperty(CONF_KEY_KD_PORT, "8080")));
+					var myHostname = getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost");
+					var myPort = Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081"));
+					
+					URI myExposedUrl;
+					if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL)) {
+						myExposedUrl = new URI(getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null));
+					} else {
+						// If no exposed URL config is given we build one based on the
+						// configured host and port.
+						myExposedUrl = new URI(EXPOSED_URL_DEFAULT_PROTOCOL + "://" + myHostname + ":" + myPort);
+					}
+
+					messageDispatcher = new MessageDispatcher(
+						myPort,
+						myExposedUrl,
+						new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080"))
+					);
 				}
-			} catch (NumberFormatException e) {
+			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
 				System.exit(1);
 			}

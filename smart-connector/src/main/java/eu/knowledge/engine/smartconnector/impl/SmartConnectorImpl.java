@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,9 +11,11 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.BindingValidator;
@@ -20,6 +23,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -51,16 +55,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	private final InteractionProcessor interactionProcessor;
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
-
 	private boolean isStopped = false;
-
-	private final boolean knowledgeBaseIsThreadSafe;
 	private final ExecutorService knowledgeBaseExecutorService;
-
 	private final BindingValidator bindingValidator = new BindingValidator();
-
 	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
-
 	private Instant started;
 
 	/**
@@ -69,7 +67,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
-	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
+	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
 		this.started = Instant.now();
 		this.myKnowledgeBase = aKnowledgeBase;
 
@@ -88,9 +86,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.messageRouter.registerInteractionProcessor(this.interactionProcessor);
 
-		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
-		this.knowledgeBaseExecutorService = knowledgeBaseIsThreadSafe ? KeRuntime.executorService()
-				: Executors.newSingleThreadExecutor();
+		this.knowledgeBaseExecutorService = KeRuntime.executorService();
 
 		KeRuntime.localSmartConnectorRegistry().register(this);
 
@@ -99,7 +95,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 
 	@Override
 	public Logger getLogger(Class<?> class1) {
-		return LoggerFactory.getLogger(class1.getSimpleName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
+		return LoggerFactory.getLogger(class1.getCanonicalName() + "-" + this.myKnowledgeBase.getKnowledgeBaseName());
 	}
 
 	@Override
@@ -307,19 +303,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
 
-		this.checkStopped();
-		if (aSelector == null)
-			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
-
-		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
-
-		this.bindingValidator.validatePartialBindings(anAKI.getPattern(), aBindingSet);
-
-		assert info != null; // TODO omschrijven naar runtime check
-		assert info.getType() == Type.ASK;
-
-		LOG.info("Processing ask for KI <{}>.", info.getId());
-		return this.interactionProcessor.processAskFromKnowledgeBase(info, aSelector, aBindingSet);
+		return this.planAsk(anAKI, aSelector).execute(aBindingSet).exceptionally((Throwable t) -> {
+			LOG.error("Processing an Ask should not result in errors.", t);
+			return null;
+		});
 	}
 
 	/**
@@ -395,21 +382,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments) {
-		this.checkStopped();
-
-		if (aSelector == null)
-			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
-
-		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
-
-		this.bindingValidator.validateCompleteBindings(aPKI.getArgument(), someArguments);
-
-		assert info != null; // TODO omschrijven naar runtime check
-		assert info.getType() == Type.POST;
-
-		LOG.info("Processing post for KI <{}>.", info.getId());
-
-		return this.interactionProcessor.processPostFromKnowledgeBase(info, aSelector, someArguments);
+		return this.planPost(aPKI, aSelector).execute(someArguments).exceptionally((Throwable t) -> {
+			LOG.error("Processing a Post should not result in errors.", t);
+			return null;
+		});
 	}
 
 	/**
@@ -426,6 +402,39 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return this.post(ki, new RecipientSelector(), argument);
+	}
+
+	@Override
+	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
+		this.checkStopped();
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
+
+		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(anAKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.ASK;
+
+		LOG.info("Planning ask for KI <{}>.", info.getId());
+		return this.interactionProcessor.planAskFromKnowledgeBase(info, aSelector);
+
+	}
+
+	@Override
+	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
+		this.checkStopped();
+
+		if (aSelector == null)
+			throw new IllegalArgumentException("Recipient Selector parameter should be non-null.");
+
+		MyKnowledgeInteractionInfo info = this.knowledgeBaseStore.getKnowledgeInteractionByObject(aPKI);
+
+		assert info != null; // TODO omschrijven naar runtime check
+		assert info.getType() == Type.POST;
+
+		LOG.info("Planning post for KI <{}>.", info.getId());
+
+		return this.interactionProcessor.planPostFromKnowledgeBase(info, aSelector);
 	}
 
 	/**
@@ -460,12 +469,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
 
 		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
-
-		if (!this.knowledgeBaseIsThreadSafe) {
-			// In that case this was a SingleThreadExecutor that was created in the
-			// constructor specifically for this Knowledge Base
-			this.knowledgeBaseExecutorService.shutdown();
-		}
 	}
 
 	private void checkStopped() {
@@ -486,12 +489,12 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 				LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
 				Instant beforeConstructorFinished = Instant.now();
 				this.constructorFinished.thenRun(() -> {
-					LOG.info("Constructor finished took {} ms", Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
+					LOG.info("Constructor finished took {} ms",
+							Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is
 					// ready for action!
 					this.knowledgeBaseExecutorService.execute(() -> {
-						LOG.info("Ready to exchange data.");
 						try {
 							this.myKnowledgeBase.smartConnectorReady(this);
 						} catch (Throwable t) {
@@ -500,6 +503,9 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 					});
 				});
 			});
+		}).exceptionally((Throwable t) -> {
+			LOG.error("Populating the Smart Connector should not result in errors.", t);
+			return null;
 		});
 	}
 
@@ -526,5 +532,20 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	@Override
 	public SmartConnectorEndpoint getSmartConnectorEndpoint() {
 		return this.messageRouter;
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		this.interactionProcessor.setDomainKnowledge(someDomainKnowledge);
+	}
+
+	@Override
+	public void setReasonerEnabled(boolean aReasonerEnabled) {
+		this.interactionProcessor.setReasonerEnabled(aReasonerEnabled);
+	}
+
+	@Override
+	public boolean isReasonerEnabled() {
+		return this.interactionProcessor.isReasonerEnabled();
 	}
 }

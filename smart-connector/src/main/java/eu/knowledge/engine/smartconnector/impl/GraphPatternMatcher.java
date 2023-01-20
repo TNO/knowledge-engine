@@ -30,8 +30,8 @@ public class GraphPatternMatcher {
 	 * Transform all the variable names in a bindingset from one knowledge
 	 * interaction to another knowledge interaction.
 	 * 
-	 * @param fromVarNameKI
-	 * @param toVarNameKI
+	 * @param fromVarNameGP
+	 * @param toVarNameGP
 	 * @param fromBindingSet
 	 * @return A bindingset that uses the variable names of toVarNameKI instead of
 	 *         fromVarNameKI.
@@ -288,7 +288,8 @@ public class GraphPatternMatcher {
 		}
 
 		if (missedEdges > 0) {
-			LOG.warn("Could not add all edges. (Missed {}.) Are there duplicate edges in the graph?", missedEdges);
+			LOG.warn("Could not add all edges. Are there duplicate edges in the graph?");
+			LOG.debug("Missing edge: {}", missedEdges);
 		}
 
 		return g;
@@ -372,7 +373,8 @@ public class GraphPatternMatcher {
 				success = this.graph.add(e);
 
 				if (!success)
-					LOG.warn("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject,
+					LOG.warn("Adding edge to the graph should succeed.");
+					LOG.debug("Adding edge with type {} between {} and {} to the graph should succeed.", e, subject,
 							object);
 
 				fromVertexCounter++;

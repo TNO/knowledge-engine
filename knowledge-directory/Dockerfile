@@ -1,11 +1,14 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk/openjdk11:jre
+LABEL org.opencontainers.image.source https://github.com/tno/knowledge-engine
+LABEL org.opencontainers.image.description="Knowledge Engine: Knowledge Directory"
+LABEL org.opencontainers.image.licenses=Apache-2.0
 
-ARG JAR_FILE=target/*.jar
-ARG DEPENDENCY_DIR=target/dependency/
+ARG JAR_FILE=target/*-with-dependencies.jar
 
-# Copy all jars in a single directory
-COPY ${DEPENDENCY_DIR} /knowledge_directory/
-COPY ${JAR_FILE} /knowledge_directory/
+# Copy the jar in a single directory
+COPY ${JAR_FILE} /knowledge_directory/knowledge-directory.jar
+
+EXPOSE 8282
 
 # Add that directory to the class path.
-ENTRYPOINT ["java", "-cp", "/knowledge_directory/*", "eu.knowledge.engine.knowledgedirectory.Main", "8282"]
+ENTRYPOINT ["java", "-jar", "/knowledge_directory/knowledge-directory.jar", "8282"]

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import io.swagger.annotations.ApiParam;
 
 @Path("/sc")
@@ -51,7 +52,7 @@ public class ReactiveApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException, IOException {
 
-		LOG.info("scHandleGet() called by KB: {}", knowledgeBaseId);
+		LOG.debug("scHandleGet() called by KB: {}", knowledgeBaseId);
 		asyncResponse.setTimeout(LONGPOLL_TIMEOUT, TimeUnit.SECONDS);
 		try {
 			// validate kb id
@@ -75,7 +76,10 @@ public class ReactiveApiServiceImpl {
 						if (!kbHasAnswerOrReactKnowledgeInteraction(kb)) {
 							message += " Knowledge Base '" + kb.getKnowledgeBaseId().toString()
 									+ "' does not have any Answer or React Knowledge Interaction registered. Only those two types of Knowledge Interactions require the usage of this long polling method.";
-							aBuilder.entity(message);
+							var response = new ResponseMessage();
+							response.setMessageType("info");
+							response.setMessage(message);		
+							aBuilder.entity(response);
 						}
 						kb.resetAsyncResponse();
 						ar.resume(aBuilder.build());
@@ -87,28 +91,40 @@ public class ReactiveApiServiceImpl {
 				if (!kb.hasAsyncResponse()) {
 					kb.waitForHandleRequest(asyncResponse);
 				} else {
+					var response = new ResponseMessage();
+					response.setMessageType("error");
+					response.setMessage("Only one connection per Knowledge-Base-Id is allowed and we already have one.");
 					asyncResponse.resume(Response.status(Status.CONFLICT)
-							.entity("Only one connection per Knowledge-Base-Id is allowed and we already have one.")
+							.entity(response)
 							.build());
 					return;
 				}
 			} else {
 				if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
 					this.manager.removeSuspendedKB(knowledgeBaseId);
+					var response = new ResponseMessage();
+					response.setMessageType("error");
+					response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
 					asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-							"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+							response)
 						.build());
 					return;
 				} else {
+					var response = new ResponseMessage();
+					response.setMessageType("error");
+					response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
 					asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-							"A Knowledge Base for the given Knowledge-Base-Id cannot be found.")
+							response)
 						.build());
 					return;
 				}
 			}
 		} catch (URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Smart Connector not found, because its ID must be a valid URI.");
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity("Smart Connector not found, because its ID must be a valid URI.").build());
+					.entity(response).build());
 			return;
 		}
 	}
@@ -138,19 +154,26 @@ public class ReactiveApiServiceImpl {
 			@ApiParam(value = "") @Valid @NotNull eu.knowledge.engine.rest.model.HandleResponse responseBody,
 			@Context SecurityContext securityContext) throws NotFoundException {
 
-		LOG.info("scHandlePost() called with {}, {}, {}", knowledgeBaseId, knowledgeInteractionId, responseBody);
+		LOG.info("scHandlePost() called with {}, {}", knowledgeBaseId, knowledgeInteractionId);
+		LOG.debug("scHandlePost() received this response body: {}", responseBody);
 
 		if (knowledgeBaseId == null) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId);
 			return Response.status(Status.BAD_REQUEST)
-					.entity("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId)
+					.entity(response)
 					.build();
 		}
 
 		try {
 			new URI(knowledgeBaseId);
 		} catch (URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId);
 			return Response.status(Status.BAD_REQUEST)
-					.entity("Smart Connector not found, because its ID must be a valid URI and not " + knowledgeBaseId)
+					.entity(response)
 					.build();
 		}
 
@@ -166,28 +189,43 @@ public class ReactiveApiServiceImpl {
 					try {
 						kb.finishHandleRequest(knowledgeInteractionId, responseBody);
 					} catch (IllegalArgumentException e) {
-						return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+						var response = new ResponseMessage();
+						response.setMessageType("error");
+						response.setMessage(e.getMessage());
+						return Response.status(Status.BAD_REQUEST).entity(response).build();
 					}
 
 					return Response.ok().build();
 				} else {
-					return Response.status(Status.NOT_FOUND).entity("Handle request id " + responseBody.getHandleRequestId()
-							+ " not found. Are you sure it is still being processed?").build();
+					var response = new ResponseMessage();
+					response.setMessageType("error");
+					response.setMessage("Handle request id " + responseBody.getHandleRequestId()
+					+ " not found. Are you sure it is still being processed?");
+					return Response.status(Status.NOT_FOUND).entity(response).build();
 				}
 			} else {
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge Interaction not found, because its ID must match an existing KI: "
+					+ knowledgeInteractionId);
 				return Response.status(Status.BAD_REQUEST)
-						.entity("Knowledge Interaction not found, because its ID must match an existing KI: "
-								+ knowledgeInteractionId)
+						.entity(response)
 						.build();
 			}
 		} else {
 			if (manager.hasSuspendedKB(knowledgeBaseId)) {
 				manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
 				return Response.status(Status.NOT_FOUND).entity(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.")
+						response)
 					.build();
 			} else {
-				return Response.status(Status.NOT_FOUND).entity("A Knowledge Base for the given Knowledge-Base-Id cannot be found.")
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
+				return Response.status(Status.NOT_FOUND).entity(response)
 					.build();
 			}
 		}

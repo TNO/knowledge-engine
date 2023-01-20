@@ -4,11 +4,12 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -22,17 +23,23 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.syntax.ElementData;
+import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostResult;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
@@ -53,13 +60,32 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final Model ontology;
 	private final Reasoner reasoner;
 
+	/**
+	 * A set of rules that represent the domain knowledge this smart connector
+	 * should take into account while orchestrating data exchange. Only available if
+	 * reasoning is enabled.
+	 */
+	private Set<Rule> additionalDomainKnowledge = new HashSet<>();
+
 	private final LoggerProvider loggerProvider;
+
+	/**
+	 * Whether this interaction processor should use reasoning to orchestrate the
+	 * data exchange.
+	 */
+	private boolean reasonerEnabled = false;
+
+	private static boolean VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT = true;
+
+	private static final Query query = QueryFactory.create(
+			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
 
 	public InteractionProcessorImpl(LoggerProvider loggerProvider, OtherKnowledgeBaseStore otherKnowledgeBaseStore,
 			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
 		this.LOG = loggerProvider.getLogger(this.getClass());
+
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
 
@@ -72,10 +98,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
-			RecipientSelector aSelector, BindingSet aBindingSet) {
+	public AskPlan planAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI, RecipientSelector aSelector) {
 		assert anAKI != null : "the knowledge interaction should be non-null";
-		assert aBindingSet != null : "the binding set should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
@@ -101,8 +125,14 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
+		SingleInteractionProcessor processor;
+		if (this.reasonerEnabled) {
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
+					this.additionalDomainKnowledge);
+		} else {
+			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
+					this.messageRouter);
+		}
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -110,9 +140,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// MessageDispatcher will finish this process and the thread that handles the
 		// last reply message will complete the future and notify the caller
 		// KnowledgeBase.
-		CompletableFuture<AskResult> future = processor.processAskInteraction(anAKI, aBindingSet);
-
-		return future;
+		processor.planAskInteraction(anAKI);
+		return new AskPlanImpl(processor);
 	}
 
 	private Set<OtherKnowledgeBase> filterOtherKnowledgeBases(Set<OtherKnowledgeBase> otherKnowledgeBases,
@@ -156,13 +185,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			for (Binding b : bs) {
 				assert (b.containsKey("kb"));
 				String kbId = b.get("kb");
-				queryString += "(" + kbId + "),";
+				queryString += "(" + kbId + ")";
 			}
 		} else {
-			queryString += "(UNDEF),";
+			queryString += "(UNDEF)";
 		}
 
-		queryString = queryString.substring(0, queryString.length() - 1);
 		queryString += " }";
 		return queryString;
 	}
@@ -184,35 +212,32 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 
-		var aei = new AnswerExchangeInfo(
-			anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction()
-		);
+		var aei = new AnswerExchangeInfo(anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(),
+				anAskMsg.getFromKnowledgeInteraction());
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
-		return future
-			.thenApply((b) -> {
-				return new AnswerMessage(
-					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-					anAskMsg.getMessageId(), b
-				);
-			})
-			.exceptionally((e) -> {
-				LOG.error("An error occurred while answering msg: {} {}", anAskMsg, e);
-				return new AnswerMessage(
-					anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-					anAskMsg.getMessageId(), e.getMessage()
-				);
-			});
+		return future.thenApply((b) -> {
+			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+			if (this.shouldValidateInputOutputBindings()) {
+				var validator = new BindingValidator();
+				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(), anAskMsg.getBindings(), b);
+			}
+			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					b);
+		}).exceptionally((e) -> {
+			LOG.error("An error occurred while answering a msg: ", e);
+			LOG.debug("The error occured while answering this message: {}", anAskMsg);
+			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					e.getMessage());
+		});
 	}
 
 	@Override
-	public CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI,
-			RecipientSelector aSelector, BindingSet someArguments) {
+	public PostPlan planPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector) {
 		assert aPKI != null : "the knowledge interaction should be non-null";
-		assert someArguments != null : "the binding set should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
 		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
@@ -238,18 +263,23 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor = new SerialMatchingProcessor(this.loggerProvider,
-				otherKnowledgeInteractions, this.messageRouter);
-
+		SingleInteractionProcessor processor;
+		if (this.reasonerEnabled) {
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
+					this.additionalDomainKnowledge);
+		} else {
+			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
+					this.messageRouter);
+		}
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
 		// outstanding message replies. Then it returns the future. Threads from the
 		// MessageDispatcher will finish this process and the thread that handles the
 		// last reply message will complete the future and notify the caller
 		// KnowledgeBase.
-		CompletableFuture<PostResult> future = processor.processPostInteraction(aPKI, someArguments);
 
-		return future;
+		processor.planPostInteraction(aPKI);
+		return new PostPlanImpl(processor);
 	}
 
 	@Override
@@ -263,28 +293,37 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		CompletableFuture<BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 
-		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
+		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(),
+				aPostMsg.getFromKnowledgeInteraction());
 
 		// TODO This should happen in the single thread for the knowledge base
 		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
 
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
-		return future
-			.thenApply(b -> {
-				return new ReactMessage(
-					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-					aPostMsg.getMessageId(), b
-				);
-			})
-			.exceptionally((e) -> {
-				LOG.error("An error occurred while answering msg: {} {}", aPostMsg, e);
-				return new ReactMessage(
-					aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-					aPostMsg.getMessageId(), e.getMessage());
-			});
+		return future.thenApply(b -> {
+			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+			if (this.shouldValidateInputOutputBindings()) {
+				var validator = new BindingValidator();
+				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(), reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+			}
+			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					b);
+		}).exceptionally((e) -> {
+			LOG.error("An error occurred while reacting to a message:", e);
+			LOG.debug("The error occured while reacting to this message: {}", aPostMsg);
+			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					e.getMessage());
+		});
+	}
+
+	private boolean shouldValidateInputOutputBindings() {
+		return SmartConnectorConfig.getBoolean(
+			SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
+			VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT
+		);
 	}
 
 	@Override
@@ -362,29 +401,48 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// TODO can we do this with a single query execution? This might be a lot
 		// faster. either we set multiple iris for the same params. Or we change the ASK
 		// to include myReq/otherReq and mySat/otherSat vars.
-		ParameterizedSparqlString queryString = new ParameterizedSparqlString(
-				"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .}}");
 
 		// my perspective
-		queryString.setIri("req", myRequirementPurpose.toString());
-		queryString.setIri("sat", otherSatisfactionPurpose.toString());
-		QueryExecution myQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+		Var reqVar = Var.alloc("req");
+		Var satVar = Var.alloc("sat");
+		org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
+				NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
+				NodeFactory.createURI(otherSatisfactionPurpose.toString()));
 
-		queryString.clearParams();
+		org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
+				NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
+				NodeFactory.createURI(mySatisfactionPurpose.toString()));
 
-		// other perspective
-		queryString.setIri("req", otherRequirementPurpose.toString());
-		queryString.setIri("sat", mySatisfactionPurpose.toString());
-		QueryExecution otherQe = QueryExecutionFactory.create(queryString.asQuery(), infModel);
+		Query q = (Query) query.clone();
+		ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
 
-		doTheyMatch = !myQe.execAsk() && !otherQe.execAsk();
+		List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
+		data.add(theFirstBinding);
+		data.add(theSecondBinding);
 
+		QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
+		boolean execAskMy = myQe.execAsk();
 		myQe.close();
-		otherQe.close();
 
+		doTheyMatch = !execAskMy;
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
 
 		return doTheyMatch;
+	}
+
+	@Override
+	public void setDomainKnowledge(Set<Rule> someRules) {
+		this.additionalDomainKnowledge = someRules;
+	}
+
+	@Override
+	public void setReasonerEnabled(boolean aReasonerEnabled) {
+		this.reasonerEnabled = aReasonerEnabled;
+	}
+
+	@Override
+	public boolean isReasonerEnabled() {
+		return this.reasonerEnabled;
 	}
 
 }

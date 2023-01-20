@@ -49,13 +49,15 @@ public class KerApiImpl extends KerApiService {
 		cleanupExpired();
 
 		// Required data present?
-		if (knowledgeEngineRuntime.getHostname() == null || knowledgeEngineRuntime.getPort() == null
+		if (knowledgeEngineRuntime.getExposedUrl() == null
 				|| knowledgeEngineRuntime.getProtocolVersion() == null) {
 			return Response.status(400).entity("Data was not valid").build();
 		}
 
+		// use the exposed URL as the runtime's ID.
+		String id = knowledgeEngineRuntime.getExposedUrl().toString();
+
 		// Does it already exist?
-		String id = knowledgeEngineRuntime.getHostname() + "-" + knowledgeEngineRuntime.getPort();
 		if (kers.containsKey(id)) {
 			return Response.status(409).entity(id).build();
 		}
@@ -99,6 +101,7 @@ public class KerApiImpl extends KerApiService {
 		if (knowledgeEngineRuntime == null) {
 			KnowledgeDirectory.LOG
 					.info("Could not find Knowledge Engine Runtime with id " + kerId + " for renewing lease");
+			KnowledgeDirectory.LOG.info("Could not find {} in known runtimes: {}", kerId, kers.keySet());
 			return Response.status(404).entity("Smart Connector Runtime not found").build();
 		} else {
 			KnowledgeDirectory.LOG.info("Renewed lease for " + kerId);

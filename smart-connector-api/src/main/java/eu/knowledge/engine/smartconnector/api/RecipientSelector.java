@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
+import java.util.List;
 
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 
@@ -20,7 +21,7 @@ public class RecipientSelector {
 	public RecipientSelector() {
 		this.bindings = new BindingSet();
 		this.pattern = new GraphPattern(
-				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .");
 	}
 
 	/**
@@ -50,7 +51,26 @@ public class RecipientSelector {
 		binding.put("kb", "<" + knowledgeBase.toString() + ">");
 		bindings.add(binding);
 		this.pattern = new GraphPattern(
-				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/energy/ontology/interconnect#KnowledgeBase> .");
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .");
+	}
+
+	/**
+	 * Create a new {@link RecipientSelector} with a specific list of
+	 * {@link KnowledgeBase}s as recipient. This allows a message to be send to only
+	 * specific {@link KnowledgeBase}s, assuming they are available in the network.
+	 *
+	 * @param knowledgeBases A list of URIs of the {@link KnowledgeBase}s that should
+	 *                       receive the message.
+	 */
+	public RecipientSelector(List<URI> knowledgeBases) {
+		this.bindings = new BindingSet();
+		knowledgeBases.forEach(kb -> {
+			Binding binding = new Binding();
+			binding.put("kb", "<" + kb.toString() + ">");
+			bindings.add(binding);
+		});
+		this.pattern = new GraphPattern(
+				"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .");
 	}
 
 	/**

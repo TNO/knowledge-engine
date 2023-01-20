@@ -2,10 +2,13 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Phaser;
 
@@ -17,40 +20,64 @@ import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.util.FmtUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.PostResult;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.RecipientSelector;
-import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.Vocab;
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
-public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
+public class MockedKnowledgeBase implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MockedKnowledgeBase.class);
 
-	private final Set<KnowledgeInteraction> kis;
+	private final Set<AskKnowledgeInteraction> registeredAskKIs;
+	private final Map<AnswerKnowledgeInteraction, AnswerHandler> registeredAnswerKIs;
+	private final Set<PostKnowledgeInteraction> registeredPostKIs;
+	private final Map<ReactKnowledgeInteraction, ReactHandler> registeredReactKIs;
+
+	private final Set<AskKnowledgeInteraction> currentAskKIs;
+	private final Map<AnswerKnowledgeInteraction, AnswerHandler> currentAnswerKIs;
+	private final Set<PostKnowledgeInteraction> currentPostKIs;
+	private final Map<ReactKnowledgeInteraction, ReactHandler> currentReactKIs;
+
+	private final Set<AskKnowledgeInteraction> unregisteredAskKIs;
+	private final Set<AnswerKnowledgeInteraction> unregisteredAnswerKIs;
+	private final Set<PostKnowledgeInteraction> unregisteredPostKIs;
+	private final Set<ReactKnowledgeInteraction> unregisteredReactKIs;
+
+	private Set<Rule> domainKnowledge = new HashSet<>();
+
 	private SmartConnector sc;
 	protected String name;
 	private Phaser readyPhaser;
 
 	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
 
+	/**
+	 * Enable the reasoner. Off by default (for now).
+	 */
+	private boolean reasonerEnabled = false;
+
 	public MockedKnowledgeBase(String aName) {
-		this.kis = new HashSet<>();
+
+		this.registeredAskKIs = ConcurrentHashMap.newKeySet();
+		this.registeredAnswerKIs = new ConcurrentHashMap<>();
+		this.registeredPostKIs = ConcurrentHashMap.newKeySet();
+		this.registeredReactKIs = new ConcurrentHashMap<>();
+
+		this.currentAskKIs = ConcurrentHashMap.newKeySet();
+		this.currentAnswerKIs = new ConcurrentHashMap<>();
+		this.currentPostKIs = ConcurrentHashMap.newKeySet();
+		this.currentReactKIs = new ConcurrentHashMap<>();
+
+		this.unregisteredAskKIs = ConcurrentHashMap.newKeySet();
+		this.unregisteredAnswerKIs = ConcurrentHashMap.newKeySet();
+		this.unregisteredPostKIs = ConcurrentHashMap.newKeySet();
+		this.unregisteredReactKIs = ConcurrentHashMap.newKeySet();
+
 		this.name = aName;
 	}
 
@@ -87,7 +114,7 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 	@Override
 	public void smartConnectorReady(SmartConnector aSC) {
 		LOG.debug(this.name + " ready");
-		this.readyPhaser.arriveAndAwaitAdvance();
+		this.readyPhaser.arrive();
 	}
 
 	@Override
@@ -118,86 +145,103 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 	public void stop() {
 		this.sc.stop();
+		// remove all KIs
+		this.unregisteredAskKIs.clear();
+		this.unregisteredAnswerKIs.clear();
+		this.currentPostKIs.clear();
+		this.currentReactKIs.clear();
 	}
 
 	public CompletableFuture<Void> getStopFuture() {
 		return this.stoppedFuture;
 	}
 
-	@Override
-	public URI register(AskKnowledgeInteraction anAskKI) {
-		this.kis.add(anAskKI);
-		return this.getSC().register(anAskKI);
+	public void register(AskKnowledgeInteraction anAskKI) {
+		this.registeredAskKIs.add(anAskKI);
 	}
 
-	@Override
 	public void unregister(AskKnowledgeInteraction anAskKI) {
-		this.kis.remove(anAskKI);
-		this.getSC().unregister(anAskKI);
+		boolean removed = this.currentAskKIs.remove(anAskKI);
+		assert removed;
+		this.unregisteredAskKIs.add(anAskKI);
 	}
 
-	@Override
-	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
-		this.kis.add(anAnswerKI);
-		return this.getSC().register(anAnswerKI, aAnswerHandler);
+	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
+		this.registeredAnswerKIs.put(anAnswerKI, aAnswerHandler);
 	}
 
-	@Override
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
-		this.kis.remove(anAnswerKI);
-		this.getSC().unregister(anAnswerKI);
-
+		assert this.currentAnswerKIs.containsKey(anAnswerKI);
+		this.currentAnswerKIs.remove(anAnswerKI);
+		this.unregisteredAnswerKIs.add(anAnswerKI);
 	}
 
-	@Override
-	public URI register(PostKnowledgeInteraction aPostKI) {
-		this.kis.add(aPostKI);
-		return this.getSC().register(aPostKI);
+	public void register(PostKnowledgeInteraction aPostKI) {
+		this.registeredPostKIs.add(aPostKI);
 	}
 
-	@Override
 	public void unregister(PostKnowledgeInteraction aPostKI) {
-		this.kis.remove(aPostKI);
-		this.getSC().unregister(aPostKI);
+		boolean removed = this.currentPostKIs.remove(aPostKI);
+		assert removed;
+		this.unregisteredPostKIs.add(aPostKI);
 	}
 
-	@Override
-	public URI register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
-		this.kis.add(anReactKI);
-		return this.getSC().register(anReactKI, aReactHandler);
+	public void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
+		this.registeredReactKIs.put(anReactKI, aReactHandler);
 	}
 
-	@Override
 	public void unregister(ReactKnowledgeInteraction anReactKI) {
-		this.kis.remove(anReactKI);
-		this.getSC().unregister(anReactKI);
+		assert this.currentReactKIs.containsKey(anReactKI);
+		this.currentReactKIs.remove(anReactKI);
+		this.unregisteredReactKIs.add(anReactKI);
 	}
 
-	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
-
 		return this.getSC().ask(anAKI, aSelector, aBindingSet);
 	}
 
-	@Override
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction ki, BindingSet bindings) {
 		return this.getSC().ask(ki, bindings);
 	}
 
-	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction aPKI, RecipientSelector aSelector,
 			BindingSet someArguments) {
 		return this.getSC().post(aPKI, aSelector, someArguments);
 	}
 
-	@Override
 	public CompletableFuture<PostResult> post(PostKnowledgeInteraction ki, BindingSet argument) {
 		return this.getSC().post(ki, argument);
 	}
 
-	public Set<KnowledgeInteraction> getKnowledgeInteractions() {
-		return this.kis;
+	public Set<AskKnowledgeInteraction> getAskKnowledgeInteractions() {
+		Set<AskKnowledgeInteraction> all = new HashSet<>();
+		all.addAll(currentAskKIs);
+		all.addAll(registeredAskKIs);
+		return all;
+	}
+
+	public Map<AnswerKnowledgeInteraction, AnswerHandler> getAnswerKnowledgeInteractions() {
+		Map<AnswerKnowledgeInteraction, AnswerHandler> all = new HashMap<>();
+		all.putAll(currentAnswerKIs);
+		all.putAll(registeredAnswerKIs);
+
+		return all;
+	}
+
+	public Set<PostKnowledgeInteraction> getPostKnowledgeInteractions() {
+		Set<PostKnowledgeInteraction> all = new HashSet<>();
+		all.addAll(currentPostKIs);
+		all.addAll(registeredPostKIs);
+		return all;
+	}
+
+	public Map<ReactKnowledgeInteraction, ReactHandler> getReactKnowledgeInteractions() {
+		Map<ReactKnowledgeInteraction, ReactHandler> all = new HashMap<>();
+		all.putAll(currentReactKIs);
+		all.putAll(registeredReactKIs);
+
+		return all;
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
@@ -208,9 +252,9 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 		// ask and check the result.
 		try {
 			LOG.trace("before ask metadata");
-			AskResult result = this.sc.ask(askKnowledgeInteraction, new BindingSet()).get();
+			AskResult result = this.getSC().ask(askKnowledgeInteraction, new BindingSet()).get();
 			LOG.trace("after ask metadata");
-			Model m = BindingSet.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
+			Model m = Util.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
 
 //			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
 //			m.write(System.out, "turtle");
@@ -253,7 +297,11 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 				if (!ki.getRequiredProperty(Vocab.IS_META).getLiteral().getBoolean()) {
 
-					Set<KnowledgeInteraction> someKis = aMockedKB.getKnowledgeInteractions();
+					Set<KnowledgeInteraction> someKis = new HashSet<>();
+					someKis.addAll(aMockedKB.getAskKnowledgeInteractions());
+					someKis.addAll(aMockedKB.getAnswerKnowledgeInteractions().keySet());
+					someKis.addAll(aMockedKB.getPostKnowledgeInteractions());
+					someKis.addAll(aMockedKB.getReactKnowledgeInteractions().keySet());
 
 					boolean sameKI = false;
 					for (KnowledgeInteraction someKi : someKis) {
@@ -264,7 +312,8 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
 
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().getString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(askKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
@@ -272,47 +321,86 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 							var answerKI = (AnswerKnowledgeInteraction) someKi;
 							// compare graph pattern
 							Resource gp = ki.getRequiredProperty(Vocab.HAS_GP).getObject().asResource();
-							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral().toString();
+							String patternFromRDF = gp.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
+									.getLexicalForm();
 							String patternFromObject = convertToPattern(answerKI.getPattern());
 							sameKI |= patternFromRDF.equals(patternFromObject);
 
 						} else if (isOfType(ki, Vocab.POST_KI) && someKi instanceof PostKnowledgeInteraction) {
 							var postKI = (PostKnowledgeInteraction) someKi;
 							// compare graph pattern
-							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
-							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+							ExtendedIterator<Resource> graphPatternIterator = ki.listProperties(Vocab.HAS_GP)
+									.mapWith(stmt -> stmt.getObject().asResource());
+							String argPatternFromRDF = null;
+							String resPatternFromRDF = null;
+							while (graphPatternIterator.hasNext()) {
+								Resource graphPattern = graphPatternIterator.next();
+								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
+									if (argPatternFromRDF != null) {
+										throw new IllegalArgumentException(
+												"Knowledge interaction cannot have multiple argument patterns.");
+									}
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
+									if (resPatternFromRDF != null) {
+										throw new IllegalArgumentException(
+												"Knowledge interaction cannot have multiple result patterns.");
+									}
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else {
+									throw new IllegalArgumentException(String.format(
+											"For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.",
+											Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
+								}
+							}
 							String argPatternFromObject = convertToPattern(postKI.getArgument());
 
 							boolean resultPatternsEqual = false;
-							if (ki.hasProperty(Vocab.HAS_RES)) {
-								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
-								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+							if (resPatternFromRDF != null) {
 								String resPatternFromObject = convertToPattern(postKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
-							} else if (!ki.hasProperty(Vocab.HAS_RES) && postKI.getResult() == null) {
+							} else if (resPatternFromRDF == null && postKI.getResult() == null) {
 								resultPatternsEqual = true;
 							}
-			
+
 							sameKI |= argPatternFromRDF.equals(argPatternFromObject) && resultPatternsEqual;
 
 						} else if (isOfType(ki, Vocab.REACT_KI) && someKi instanceof ReactKnowledgeInteraction) {
 							var reactKI = (ReactKnowledgeInteraction) someKi;
 							// compare graph pattern
-							Resource gp1 = ki.getRequiredProperty(Vocab.HAS_ARG).getObject().asResource();
-							String argPatternFromRDF = gp1.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-									.getString();
+							ExtendedIterator<Resource> graphPatternIterator = ki.listProperties(Vocab.HAS_GP)
+									.mapWith(stmt -> stmt.getObject().asResource());
+							String argPatternFromRDF = null;
+							String resPatternFromRDF = null;
+							while (graphPatternIterator.hasNext()) {
+								Resource graphPattern = graphPatternIterator.next();
+								Resource gpType = graphPattern.getPropertyResourceValue(RDF.type);
+								if (gpType.equals(Vocab.ARGUMENT_GRAPH_PATTERN)) {
+									if (argPatternFromRDF != null) {
+										throw new IllegalArgumentException(
+												"Knowledge interaction cannot have multiple argument patterns.");
+									}
+									argPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else if (gpType.equals(Vocab.RESULT_GRAPH_PATTERN)) {
+									if (resPatternFromRDF != null) {
+										throw new IllegalArgumentException(
+												"Knowledge interaction cannot have multiple result patterns.");
+									}
+									resPatternFromRDF = graphPattern.getProperty(Vocab.HAS_PATTERN).getString();
+								} else {
+									throw new IllegalArgumentException(String.format(
+											"For a POST/REACT Knowledge Interaction, their graph pattern must be either %s or %s. Not %s.",
+											Vocab.ARGUMENT_GRAPH_PATTERN, Vocab.RESULT_GRAPH_PATTERN, gpType));
+								}
+							}
 							String argPatternFromObject = convertToPattern(reactKI.getArgument());
 
 							boolean resultPatternsEqual = false;
-							if (ki.hasProperty(Vocab.HAS_RES)) {
-								Resource gp2 = ki.getProperty(Vocab.HAS_RES).getObject().asResource();
-								String resPatternFromRDF = gp2.getRequiredProperty(Vocab.HAS_PATTERN).getLiteral()
-										.getString();
+							if (resPatternFromRDF != null) {
 								String resPatternFromObject = convertToPattern(reactKI.getResult());
 								resultPatternsEqual = resPatternFromRDF.equals(resPatternFromObject);
-							} else if (!ki.hasProperty(Vocab.HAS_RES) && reactKI.getResult() == null) {
+							} else if (resPatternFromRDF == null && reactKI.getResult() == null) {
 								resultPatternsEqual = true;
 							}
 
@@ -354,7 +442,97 @@ public class MockedKnowledgeBase implements KnowledgeBase, SmartConnector {
 		return sb.toString();
 	}
 
+	/**
+	 * Start this KB if it was not already started.
+	 */
 	public void start() {
-		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+		if (!isStarted()) {
+			this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
+			this.sc.setReasonerEnabled(this.reasonerEnabled);
+		}
+	}
+
+	/**
+	 * Registers all KIs that have not yet already been registered.
+	 */
+	public void syncKIs() {
+		if (!this.isStarted())
+			throw new IllegalStateException("The KB should be started before registering KIs.");
+
+		for (var ki : this.registeredAskKIs) {
+			this.getSC().register(ki);
+			this.currentAskKIs.add(ki);
+		}
+		this.registeredAskKIs.clear();
+
+		for (var entry : this.registeredAnswerKIs.entrySet()) {
+			this.getSC().register(entry.getKey(), entry.getValue());
+			this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
+		}
+		this.registeredAnswerKIs.clear();
+
+		for (var ki : this.registeredPostKIs) {
+			this.getSC().register(ki);
+			this.currentPostKIs.add(ki);
+		}
+		this.registeredPostKIs.clear();
+
+		for (var entry : this.registeredReactKIs.entrySet()) {
+			this.getSC().register(entry.getKey(), entry.getValue());
+			this.currentReactKIs.put(entry.getKey(), entry.getValue());
+		}
+		this.registeredReactKIs.clear();
+
+		for (var ki : this.unregisteredAskKIs) {
+			this.getSC().unregister(ki);
+			this.currentAskKIs.remove(ki);
+		}
+		this.unregisteredAskKIs.clear();
+
+		for (var ki : this.unregisteredAnswerKIs) {
+			this.getSC().unregister(ki);
+			this.currentAnswerKIs.remove(ki);
+		}
+		this.unregisteredAnswerKIs.clear();
+
+		for (var ki : this.unregisteredPostKIs) {
+			this.getSC().unregister(ki);
+			this.currentPostKIs.remove(ki);
+		}
+		this.unregisteredPostKIs.clear();
+
+		for (var ki : this.unregisteredReactKIs) {
+			this.getSC().unregister(ki);
+			this.currentReactKIs.remove(ki);
+		}
+		this.unregisteredReactKIs.clear();
+
+		this.getSC().setDomainKnowledge(this.domainKnowledge);
+
+	}
+
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		this.domainKnowledge = someDomainKnowledge;
+	}
+
+	public void setReasonerEnabled(boolean aReasonerEnabled) {
+		this.reasonerEnabled = aReasonerEnabled;
+
+	}
+
+	public boolean isReasonerEnabled() {
+		return this.reasonerEnabled;
+	}
+
+	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
+		return this.getSC().planAsk(anAKI, aSelector);
+	}
+
+	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
+		return this.getSC().planPost(aPKI, aSelector);
+	}
+
+	public boolean isStarted() {
+		return this.getSC() != null;
 	}
 }

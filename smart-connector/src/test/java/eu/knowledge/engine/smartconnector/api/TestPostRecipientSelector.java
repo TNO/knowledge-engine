@@ -45,8 +45,6 @@ public class TestPostRecipientSelector {
 		kn.addKB(kb2);
 		kb3 = new MockedKnowledgeBase("kb3");
 		kn.addKB(kb3);
-		
-		kn.startAndWaitForReady();
 
 		// start registering
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
@@ -80,8 +78,8 @@ public class TestPostRecipientSelector {
 
 			return new BindingSet();
 		});
-		
-		kn.waitForUpToDate();
+
+		kn.sync();
 
 		// start exchanging
 		BindingSet bindingSet = new BindingSet();

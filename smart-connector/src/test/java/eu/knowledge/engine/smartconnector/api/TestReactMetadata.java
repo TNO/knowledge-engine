@@ -34,10 +34,9 @@ public class TestReactMetadata {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
+		kn.sync();
 
-		GraphPattern gp2 = new GraphPattern(prefixes,
+		GraphPattern gp2 = new GraphPattern(prefixes, 
 			"""
 				?kb rdf:type kb:KnowledgeBase .
 				?kb kb:hasName ?name .
@@ -52,8 +51,7 @@ public class TestReactMetadata {
 				?req rdf:type ?reqType .
 				?sat rdf:type ?satType .
 				?ki kb:hasGraphPattern ?gp .
-				?ki ?patternType ?gp .
-				?gp rdf:type kb:GraphPattern .
+				?gp rdf:type ?patternType .
 				?gp kb:hasPattern ?pattern .
 			"""
 		);
@@ -82,7 +80,7 @@ public class TestReactMetadata {
 					while (kiIter.hasNext()) {
 						var ki = kiIter.next().getObject().asResource();
 
-						var prop = m.getProperty(m.expandPrefix("kb:hasArgumentGraphPattern"));
+						var prop = m.getProperty(m.expandPrefix("kb:hasGraphPattern"));
 
 						LOG.debug("KI: {}", ki);
 
@@ -113,12 +111,13 @@ public class TestReactMetadata {
 
 		});
 
-		kn.waitForUpToDate();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
 				"?obs saref:hasTemp ?temp .");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
 		kb1.register(ki1);
+
+		LOG.info("Waiting for up-to-date...");
+		kn.sync();
 
 		LOG.info("Finished, now closing!");
 	}

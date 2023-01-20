@@ -1,22 +1,17 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.Vocab;
 
 public class KnowledgeNetwork {
 
@@ -33,8 +28,8 @@ public class KnowledgeNetwork {
 	private PrefixMapping prefixMapping;
 
 	public KnowledgeNetwork() {
-		this.knowledgeBases = new HashSet<>();
-		this.knowledgeInteractionMetadata = new HashMap<>();
+		this.knowledgeBases = ConcurrentHashMap.newKeySet();
+		this.knowledgeInteractionMetadata = new ConcurrentHashMap<>();
 		this.readyPhaser = new Phaser(1);
 		this.prefixMapping = new PrefixMappingMem();
 		this.prefixMapping.setNsPrefixes(PrefixMapping.Standard);
@@ -46,38 +41,66 @@ public class KnowledgeNetwork {
 		knowledgeBases.add(aKB);
 	}
 
+	public void sync() {
+		this.startAndWaitForReady();
+		this.waitForUpToDate();
+	}
+
 	/**
 	 * wait until all knowledge bases are up and running and know of each other
 	 * existence.
 	 */
-	public void startAndWaitForReady() {
+	private void startAndWaitForReady() {
+
+		Set<MockedKnowledgeBase> justStartedKBs = new HashSet<>();
 
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			kb.start();
+			if (!kb.isStarted()) {
+				kb.start();
+				justStartedKBs.add(kb);
+			}
 		}
 
 		// wait until all smart connectors have given the 'ready' signal (and registered
 		// all their knowledge interactions).
 		LOG.debug("Waiting for ready.");
 		readyPhaser.arriveAndAwaitAdvance();
+		readyPhaser = new Phaser(1); // reset the phaser
 		LOG.debug("Everyone is ready!");
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
-		GraphPattern gp = new GraphPattern(this.prefixMapping, "?kb rdf:type kb:KnowledgeBase .",
-				"?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
-				"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
-				"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
-				"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
-				"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .",
-				"?gp rdf:type kb:GraphPattern .", "?gp kb:hasPattern ?pattern .");
-		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
+		GraphPattern gp = new GraphPattern(this.prefixMapping,
+		//@formatter:off
+				"?kb rdf:type kb:KnowledgeBase .",
+				"?kb kb:hasName ?name .", 
+				"?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .", 
+				"?ki rdf:type ?kiType .", 
+				"?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasCommunicativeAct ?act .", 
+				"?act rdf:type kb:CommunicativeAct .",
+				"?act kb:hasRequirement ?req .", 
+				"?act kb:hasSatisfaction ?sat .", 
+				"?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .", 
+				"?ki kb:hasGraphPattern ?gp .", 
+				"?gp rdf:type ?patternType .",
+				"?gp kb:hasPattern ?pattern ."
+				//@formatter:on
+		);
+
+		for (MockedKnowledgeBase kb : justStartedKBs) {
+			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}
+
+		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+			kb.syncKIs();
+		}
 	}
 
-	public void waitForUpToDate() {
+	private void waitForUpToDate() {
 		LOG.debug("Waiting for up to date.");
 		// manually check if every Knowledge Base is up to date
 		boolean allUpToDate = false;

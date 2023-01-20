@@ -70,6 +70,14 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 							} catch (Throwable t) {
 								this.LOG.error("Adding an other knowledgebase should succeed.", t);
 							}
+						}).handle((r, e) -> {
+
+							if (r == null && e != null) {
+								LOG.error("An exception has occured while adding an other Knowledge Base ", e);
+								return null;
+							} else {
+								return r;
+							}
 						});
 
 				futures.add(otherKnowledgeBaseFuture);
@@ -125,8 +133,10 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 
 	@Override
 	public void knowledgeBaseIdSetChanged() {
-		LOG.info("List of Smart Connectors changed, repopulating the the OtherKnowledgeBaseStore");
-		// it might be too brute force to start a complete repopulate when something changes. Can we refactor this to be more specific (i.e. which KnowledgeBaseIds were changed?).
+		LOG.info("List of Smart Connectors changed, repopulating the OtherKnowledgeBaseStore");
+		// it might be too brute force to start a complete repopulate when something
+		// changes. Can we refactor this to be more specific (i.e. which
+		// KnowledgeBaseIds were changed?).
 		this.populate();
 	}
 }

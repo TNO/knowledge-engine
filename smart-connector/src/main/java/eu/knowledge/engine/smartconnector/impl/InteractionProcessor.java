@@ -1,18 +1,23 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
+import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
@@ -68,27 +73,26 @@ public interface InteractionProcessor {
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link AskResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<AskResult> processAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI,
-			RecipientSelector aSelector, BindingSet aBindingSet);
+	AskPlan planAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI, RecipientSelector aSelector);
 
 	/**
 	 * Process an {@link PostKnowledgeInteraction} from MyKnowledgeBase.
 	 *
-	 * @param aPKI          The {@link PostKnowledgeInteraction} to process.
-	 * @param aSelector     The {@link RecipientSelector} to limit the
-	 *                      OtherKnowledgeBases who's
-	 *                      {@link ReactKnowledgeInteraction} will be called.
+	 * @param aPKI        The {@link PostKnowledgeInteraction} to process.
+	 * @param aSelector   The {@link RecipientSelector} to limit the
+	 *                    OtherKnowledgeBases who's
+	 *                    {@link ReactKnowledgeInteraction} will be called.
 	 * @param aBindingSet The {@link BindingSet} containing limitations on the
-	 *                      expected answers. The variable names in the bindings
-	 *                      should occur in the {@link GraphPattern} of the
-	 *                      {@link PostKnowledgeInteraction}.
+	 *                    expected answers. The variable names in the bindings
+	 *                    should occur in the {@link GraphPattern} of the
+	 *                    {@link PostKnowledgeInteraction}.
 	 * @return A future to an {@link AskResult}. This means this method immediately
 	 *         returns and will continue processing the
 	 *         {@link PostKnowledgeInteraction} in the background. Once the
 	 *         processing is done, the future can be used to retrieve the
 	 *         {@link PostResult} and access its {@link BindingSet}.
 	 */
-	CompletableFuture<PostResult> processPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector, BindingSet aBindingSet);
+	PostPlan planPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector);
 
 	/**
 	 * Interprets the given {@link AskMessage} and returns an {@link AnswerMessage}
@@ -115,4 +119,30 @@ public interface InteractionProcessor {
 	void setMessageRouter(MessageRouter messageRouter);
 
 	void unsetMessageRouter();
+
+	/**
+	 * Sets the domain knowledge of this interactionprocessor. This domain knowledge
+	 * will be taken into account when the reasoner orchestrates the knowledge
+	 * interactions. Note that by default there is no domain knowledge and setting
+	 * it will overwrite the existing set of rules.
+	 * 
+	 * @param someRules The rules to take into account.
+	 */
+	void setDomainKnowledge(Set<Rule> someRules);
+
+	/**
+	 * Whether the InteractionProcessor should use reasoning to orchestrate the data
+	 * exchange, or should use a matcher instead. Enabling the reasoner increases
+	 * the flexibility of the data exchange, but decreases the performance.
+	 * 
+	 * @param aReasonerEnabled {@code true} if this interaction processor should use
+	 *                         reasoning, {@code false} otherwise.
+	 */
+	void setReasonerEnabled(boolean aReasonerEnabled);
+
+	/**
+	 * @return {@code true} if the reasoner for this interaction processor is
+	 *         enabled, {@code false} otherwise.
+	 */
+	boolean isReasonerEnabled();
 }

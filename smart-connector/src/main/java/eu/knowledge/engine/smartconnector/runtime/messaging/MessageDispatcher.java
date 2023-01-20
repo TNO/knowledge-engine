@@ -55,10 +55,9 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 		NEW, RUNNING, STOPPED
 	}
 
-	private final String myHostname;
 	private final int myPort;
-	private final String kdHostname;
-	private final int kdPort;
+	private final URI myExposedUrl;
+	private final URI kdUrl;
 
 	private State state;
 	private Server httpServer;
@@ -81,16 +80,14 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * Construct the {@link MessageDispatcher} in a distributed mode, with an
 	 * external KnowledgeDirectory.
 	 *
-	 * @param myHostname
 	 * @param myPort
-	 * @param kdHostname
-	 * @param kdPort
+	 * @param myExposedUrl
+	 * @param kdUrl
 	 */
-	public MessageDispatcher(String myHostname, int myPort, String kdHostname, int kdPort) {
-		this.myHostname = myHostname;
+	public MessageDispatcher(int myPort, URI myExposedUrl, URI kdUrl) {
 		this.myPort = myPort;
-		this.kdHostname = kdHostname;
-		this.kdPort = kdPort;
+		this.myExposedUrl = myExposedUrl;
+		this.kdUrl = kdUrl;
 		this.state = State.NEW;
 	}
 
@@ -99,11 +96,11 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * external Knowledge Directory.
 	 */
 	public MessageDispatcher() {
-		this(null, 0, null, 0);
+		this(0, null, null);
 	}
 
 	boolean runsInDistributedMode() {
-		return kdHostname != null;
+		return kdUrl != null;
 	}
 
 	public void start() throws Exception {
@@ -119,8 +116,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 
 		if (runsInDistributedMode()) {
 			// Start Knowledge Directory Connection Manager
-			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdHostname, kdPort, myHostname,
-					myPort);
+			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl);
 			this.getKnowledgeDirectoryConnectionManager().start();
 
 			// Start the RemoteSmartConnnectorConnectionsManager
@@ -239,6 +235,9 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			LOG.warn("Received message from unknown Knowledge Base: " + message.getFromKnowledgeBase()
 					+ ", I only know " + knowledgeBaseIds);
 			this.undeliverableMail.add(message);
+
+			// Force a refresh of the KERs from the Knowledge Directory
+			this.remoteSmartConnectorConnectionsManager.scheduleQueryKnowledgeDirectory();
 		} else {
 			LocalSmartConnectorConnection cm = localSmartConnectorConnectionsManager
 					.getLocalSmartConnectorConnection(message.getToKnowledgeBase());

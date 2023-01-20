@@ -1,9 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-
 /**
  * An object of this class represents that the associated {@link KnowledgeBase}
  * can react to knowledge of the shape {@code argument}, and can produce a
@@ -39,7 +35,26 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		super(act);
+		this(act, argument, result, null, false, false);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
+		this(act, argument, result, name, false, false);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
+			boolean anIsFullMatch) {
+		this(act, argument, result, null, false, anIsFullMatch);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
+			boolean anIsFullMatch) {
+		this(act, argument, result, null, anIsMeta, anIsFullMatch);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name, boolean anIsMeta,
+			boolean anIsFullMatch) {
+		super(act, name, anIsMeta, anIsFullMatch);
 		this.argument = argument;
 		this.result = result;
 	}
@@ -63,7 +78,8 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 
 	@Override
 	public String toString() {
-		return "ReactKnowledgeInteraction [" + (this.argument != null ? "argument=" + this.argument + ", " : "")
+		return "ReactKnowledgeInteraction [" + (this.name != null ? "name=" + this.name + ", " : "")
+				+ (this.argument != null ? "argument=" + this.argument + ", " : "")
 				+ (this.result != null ? "result=" + this.result + ", " : "")
 				+ (this.getAct() != null ? "getAct()=" + this.getAct() + ", " : "") + "]";
 	}

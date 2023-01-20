@@ -28,8 +28,12 @@ public interface ReactHandler {
 	 */
 	public default CompletableFuture<BindingSet> reactAsync(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
 		CompletableFuture<BindingSet> future = new CompletableFuture<BindingSet>();
-		BindingSet bs = this.react(anRKI, aReactExchangeInfo);
-		future.complete(bs);
+		try {
+			BindingSet bs = this.react(anRKI, aReactExchangeInfo);
+			future.complete(bs);
+		} catch (Exception e) {
+			future.completeExceptionally(e);
+		}
 		return future;
 	}
 

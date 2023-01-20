@@ -1,7 +1,6 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
+import org.apache.jena.ext.xerces.impl.xpath.regex.RegularExpression;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
@@ -19,6 +18,16 @@ public abstract class KnowledgeInteraction {
 	 */
 	private final CommunicativeAct act;
 
+	private final boolean fullMatchOnly;
+
+	/**
+	 * {@code true} if this Knowledge Interaction is used for internal knowledge
+	 * engine communication.
+	 */
+	private final boolean isMeta;
+
+	protected final String name;
+
 	/**
 	 * Create a {@link KnowledgeInteraction}.
 	 *
@@ -27,8 +36,7 @@ public abstract class KnowledgeInteraction {
 	 *            whether it has side-effects or not.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act) {
-		super();
-		this.act = act;
+		this(act, null, false, false);
 	}
 
 	/**
@@ -42,8 +50,23 @@ public abstract class KnowledgeInteraction {
 	 *               about the knowledge base itself.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
-		super();
+		this(act, null, isMeta, false);
+	}
+
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean aFullMatchOnly) {
+		this(act, null, isMeta, aFullMatchOnly);
+	}
+
+	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean aFullMatchOnly) {
+		this.validateName(name);
 		this.act = act;
+		this.name = name;
+		this.isMeta = isMeta;
+		this.fullMatchOnly = aFullMatchOnly;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	/**
@@ -51,5 +74,25 @@ public abstract class KnowledgeInteraction {
 	 */
 	public CommunicativeAct getAct() {
 		return this.act;
+	}
+
+	public boolean isMeta() {
+		return this.isMeta;
+	}
+
+	public boolean fullMatchOnly() {
+		return this.fullMatchOnly;
+	}
+
+	/**
+	 * Throws an exception if {@code name} does not conform to the requirements of
+	 * knowledge interaction names.
+	 * 
+	 * @param name
+	 */
+	private void validateName(String name) {
+		if (name != null && !name.matches("[a-zA-Z0-9-]*")) {
+			throw new IllegalArgumentException("Knowledge Interaction names can only contain alphanumeric characters and hyphens.");
+		}
 	}
 }

@@ -1,11 +1,11 @@
 package eu.knowledge.engine.rest.api.impl;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -17,15 +17,16 @@ public class RestKnowledgeBaseManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBaseManager.class);
 
-	private Map<String, RestKnowledgeBase> restKnowledgeBases = new HashMap<>();
-	private Map<String, RestKnowledgeBase> suspendedRestKnowledgeBases = new HashMap<>();
+	private Map<String, RestKnowledgeBase> restKnowledgeBases = new ConcurrentHashMap<>();
+	private Map<String, RestKnowledgeBase> suspendedRestKnowledgeBases = new ConcurrentHashMap<>();
 
 	private final ScheduledThreadPoolExecutor leaseExpirationExecutor;
 
 	private final static int CHECK_LEASES_PERIOD = 10;
 	private final static int CHECK_LEASES_INITIAL_DELAY = 5;
 
-	private static RestKnowledgeBaseManager instance;
+	private static final Object instanceLock = new Object();
+	private static volatile RestKnowledgeBaseManager instance;
 
 	private RestKnowledgeBaseManager() {
 		LOG.info("RestKnowledgeBaseManager initialized!");
@@ -38,10 +39,20 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public static RestKnowledgeBaseManager newInstance() {
-		if (instance == null) {
-			instance = new RestKnowledgeBaseManager();
+		// See:
+		// - https://stackoverflow.com/a/11165926/2501474
+		// - https://en.wikipedia.org/wiki/Double-checked_locking#Usage_in_Java
+		RestKnowledgeBaseManager r = instance;
+		if (r == null) {
+			synchronized (instanceLock) { // While we were waiting for the lock, another
+				r = instance; // thread may have instantiated the object.
+				if (r == null) {
+					r = new RestKnowledgeBaseManager();
+					instance = r;
+				}
+			}
 		}
-		return instance;
+		return r;
 	}
 
 	public boolean hasKB(String knowledgeBaseId) {
@@ -61,6 +72,7 @@ public class RestKnowledgeBaseManager {
 	/**
 	 * Creates a new KB with a smart connector. Once the smart connector has
 	 * received the 'ready' signal, the future is completed.
+	 * 
 	 * @param scModel
 	 * @return
 	 */
@@ -74,7 +86,16 @@ public class RestKnowledgeBaseManager {
 		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel, () -> {
 			f.complete(null);
 		}));
-		return f;
+		LOG.info("Added KB {}", scModel.getKnowledgeBaseId());
+		return f.handle((r, e) -> {
+
+			if (r == null && e != null) {
+				LOG.error("An exception has occured while creating KB ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	public RestKnowledgeBase getKB(String knowledgeBaseId) {
@@ -97,33 +118,34 @@ public class RestKnowledgeBaseManager {
 
 		boolean success = false;
 		try {
-			if (rkb != null) rkb.stop();
+			if (rkb != null)
+				rkb.stop();
 			success = true;
 		} catch (IllegalStateException e) {
 			success = false;
 		}
 		this.restKnowledgeBases.remove(knowledgeBaseId);
+		LOG.info("Removed KB {}", knowledgeBaseId);
 		return success;
 	}
 
 	private void removeExpiredSmartConnectors() {
-		this.restKnowledgeBases.entrySet().stream()
-			.filter(entry -> entry.getValue().leaseExpired())
-			.map(entry -> entry.getKey())
-			.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
-			.forEach(kbId -> {
-				LOG.warn("Deleting KB with ID {}, because its lease expired.", kbId);
-				this.deleteKB(kbId);
-			});
+		this.restKnowledgeBases.entrySet().stream().filter(entry -> entry.getValue().leaseExpired())
+				.map(entry -> entry.getKey()).collect(Collectors.toSet()) // Collect it so we don't mutate the list
+																			// while iterating over it.
+				.forEach(kbId -> {
+					LOG.warn("Deleting KB with ID {}, because its lease expired.", kbId);
+					this.deleteKB(kbId);
+				});
 	}
 
 	private void checkSuspendedSmartConnectors() {
-		this.restKnowledgeBases.entrySet().stream()
-			.filter(entry -> entry.getValue().isSuspended())
-			.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
-			.forEach(entry -> {
-				this.restKnowledgeBases.remove(entry.getKey());
-				this.suspendedRestKnowledgeBases.put(entry.getKey(), entry.getValue());
-			});
+		this.restKnowledgeBases.entrySet().stream().filter(entry -> entry.getValue().isSuspended())
+				.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
+				.forEach(entry -> {
+					LOG.info("Moving suspended KB {} to the suspended list.", entry.getKey());
+					this.restKnowledgeBases.remove(entry.getKey());
+					this.suspendedRestKnowledgeBases.put(entry.getKey(), entry.getValue());
+				});
 	}
 }

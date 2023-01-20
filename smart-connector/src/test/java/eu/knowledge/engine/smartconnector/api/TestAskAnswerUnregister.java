@@ -51,13 +51,13 @@ public class TestAskAnswerUnregister {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -72,7 +72,7 @@ public class TestAskAnswerUnregister {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;
@@ -105,7 +105,10 @@ public class TestAskAnswerUnregister {
 		GraphPattern gp3 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/p> ?c.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 		kb1.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().size() == 0,
+					"Should not have bindings in this binding set.");
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("a", "<https://www.tno.nl/example/a>");
@@ -118,7 +121,7 @@ public class TestAskAnswerUnregister {
 		AskKnowledgeInteraction askKI4 = new AskKnowledgeInteraction(new CommunicativeAct(), gp4);
 		kb2.register(askKI4);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// test whether the old knowledge interactions are indeed gone.
 		BindingSet bindings2 = null;

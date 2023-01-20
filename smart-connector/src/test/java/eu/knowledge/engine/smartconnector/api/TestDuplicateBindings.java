@@ -66,9 +66,6 @@ public class TestDuplicateBindings {
 		kb3 = new MockedKnowledgeBase("kb3");
 		kn.addKB(kb3);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
@@ -77,7 +74,10 @@ public class TestDuplicateBindings {
 		GraphPattern gp1_2 = new GraphPattern(prefixes, "?b <https://www.tno.nl/example/c> ?d.");
 		answerKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1_1);
 		kb1.register(answerKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -105,7 +105,10 @@ public class TestDuplicateBindings {
 
 		answerKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3_1);
 		kb3.register(answerKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
-			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(), "Should not have bindings in this binding set.");
+			assertTrue(
+					anAnswerExchangeInfo.getIncomingBindings().isEmpty()
+							|| anAnswerExchangeInfo.getIncomingBindings().iterator().next().getVariables().isEmpty(),
+					"Should not have bindings in this binding set.");
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
@@ -134,7 +137,7 @@ public class TestDuplicateBindings {
 		kb2.register(askKI2);
 		postKI2 = new PostKnowledgeInteraction(new CommunicativeAct(), gp2_1, gp2_2);
 		kb2.register(postKI2);
-		kn.waitForUpToDate();
+		kn.sync();
 	}
 
 	@Test

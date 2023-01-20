@@ -46,7 +46,7 @@ public class Thermostat {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
-		prefixes.setNsPrefix("ic", "https://www.tno.nl/energy/ontology/interconnect/");
+		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		r = new Room();
@@ -72,8 +72,6 @@ public class Thermostat {
 		kn.addKB(thermostat);
 		heating = new MockedKnowledgeBase("heatingSource");
 		kn.addKB(heating);
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// then register the relevant knowledge interactions
 		GraphPattern obsGraphPattern = new GraphPattern(prefixes,
@@ -142,7 +140,7 @@ public class Thermostat {
 				return null;
 			}
 		});
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start the data exchange
 

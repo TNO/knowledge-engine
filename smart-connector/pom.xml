@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>${revision}</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>knowledge-directory</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>${revision}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -155,6 +155,22 @@
 			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector-api</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.knowledge.engine</groupId>
+			<artifactId>reasoner</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- Java cache -->
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>3.9.9</version>
 		</dependency>
 	</dependencies>
 
