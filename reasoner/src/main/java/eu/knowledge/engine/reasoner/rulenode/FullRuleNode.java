@@ -157,6 +157,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 			});
 		} else {
 			f = new CompletableFuture<>();
+			this.resultBindingSetOutput = new TripleVarBindingSet(this.getRule().getConsequent());
 			f.complete(null);
 		}
 		return f;

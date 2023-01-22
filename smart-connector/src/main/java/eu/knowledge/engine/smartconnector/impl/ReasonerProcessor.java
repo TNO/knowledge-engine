@@ -171,26 +171,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
 		LOG.debug("ask:\n{}", this.reasonerPlan);
-		if (taskboard != null) {
-			taskboard.executeScheduledTasks().thenAccept(Void -> {
-				LOG.debug("All ask tasks finished.");
-				if (isComplete) {
-					eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
-					this.finalBindingSetFuture.complete(bs);
-				} else
-					continueReasoningBackward(incomingBS);
-			}).exceptionally((Throwable t) -> {
-				LOG.error(msg, t);
-				return null;
-			});
-		} else {
+		taskboard.executeScheduledTasks().thenAccept(Void -> {
+			LOG.debug("All ask tasks finished.");
 			if (isComplete) {
 				eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
 				this.finalBindingSetFuture.complete(bs);
-			} else {
+			} else
 				continueReasoningBackward(incomingBS);
-			}
-		}
+		}).exceptionally((Throwable t) -> {
+			LOG.error(msg, t);
+			return null;
+		});
 
 	}
 
@@ -250,24 +241,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
 		LOG.debug("post:\n{}", this.reasonerPlan);
-		if (taskboard != null) {
-			taskboard.executeScheduledTasks().thenAccept(Void -> {
-				LOG.debug("All post tasks finished.");
-				if (isComplete) {
-					eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
-					if (aBindingSetHandler != null) {
-						resultBS = aBindingSetHandler.getBindingSet();
-					}
-					this.finalBindingSetFuture.complete(resultBS);
-				} else {
-					continueReasoningForward(incomingBS, aBindingSetHandler);
-				}
-
-			}).exceptionally((Throwable t) -> {
-				LOG.error(msg, t);
-				return null;
-			});
-		} else {
+		taskboard.executeScheduledTasks().thenAccept(Void -> {
+			LOG.debug("All post tasks finished.");
 			if (isComplete) {
 				eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
 				if (aBindingSetHandler != null) {
@@ -277,7 +252,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			} else {
 				continueReasoningForward(incomingBS, aBindingSetHandler);
 			}
-		}
+
+		}).exceptionally((Throwable t) -> {
+			LOG.error(msg, t);
+			return null;
+		});
 
 	}
 
