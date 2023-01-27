@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ public class ReasonerPlan {
 	private final Map<BaseRule, RuleNode> ruleToRuleNode;
 	private boolean done;
 	private MatchStrategy strategy = MatchStrategy.FIND_ALL_MATCHES;
+	private boolean useTaskBoard = true;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
 		this.store = aStore;
@@ -54,6 +56,20 @@ public class ReasonerPlan {
 		this.ruleToRuleNode = new HashMap<>();
 		this.strategy = aStrategy;
 		createOrGetReasonerNode(this.start, null);
+	}
+
+	/**
+	 * Enable (default) or disable the {@link TaskBoard}. When it is disabled, all
+	 * tasks will be executed as they occur in the algorithm, and an EMPTY task
+	 * board is returned in {@link #execute}, which means that a single call to
+	 * {@link #execute} suffices to terminate the algorithm. When it is enabled
+	 * (the default), deferrable tasks will be put on the {@link TaskBoard}, and
+	 * the caller of {@link #execute} is responsible to complete them at their
+	 * leisure before calling {@link #execute} again.
+	 * @param aUseTaskBoard
+	 */
+	public void setUseTaskBoard(boolean aUseTaskBoard) {
+		this.useTaskBoard = aUseTaskBoard;
 	}
 
 	public RuleNode getStartNode() {
@@ -100,7 +116,7 @@ public class ReasonerPlan {
 				// Ready, and current version of input has not been scheduled on taskboard? ->
 				// Add to taskboard otherwise -> Do not add to taskboard
 				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
-					taskboard.addTask(current);
+					this.scheduleOrDoTask(current, taskboard);
 					current.setResultBindingSetInputScheduled(true);
 				}
 
@@ -261,6 +277,22 @@ public class ReasonerPlan {
 		}
 
 		return reasonerNode;
+	}
+
+	private void scheduleOrDoTask(RuleNode current, TaskBoard taskBoard) {
+		if (this.useTaskBoard) {
+			taskBoard.addTask(current);
+			current.setResultBindingSetInputScheduled(true);
+		} else {
+			try {
+				current.applyRule().get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				// since we only disable the taskboard when debugging, it is fine to
+				// throw a RuntimeException here.
+				throw new RuntimeException(String.format("Interrupted while processing node %s", current));
+			}
+		}
 	}
 
 	/**
