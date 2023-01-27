@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 
 	private static int NR_OF_BINDINGS = 20;
 
+	@Tag("Long")
 	@Test
 	public void testSingleLargeGP() throws InterruptedException, ExecutionException {
 

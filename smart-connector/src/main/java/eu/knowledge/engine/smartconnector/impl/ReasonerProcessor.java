@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.TriplePath;
@@ -355,18 +354,30 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage,
 			Instant aPreviousSend) {
+		Status status = Status.SUCCEEDED;
+		String failedMessage = aMessage.getFailedMessage();
+
+		if (failedMessage != null) {
+			status = Status.FAILED;
+		}
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, aPreviousSend, Instant.now(),
-				Status.SUCCEEDED, null);
+				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, aPreviousSend, Instant.now(), status,
+				failedMessage);
 	}
 
 	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
 			BindingSet someConvertedResultBindings, ReactMessage aMessage, Instant aPreviousSend) {
+		Status status = Status.SUCCEEDED;
+		String failedMessage = aMessage.getFailedMessage();
+
+		if (failedMessage != null) {
+			status = Status.FAILED;
+		}
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
 				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
-				aPreviousSend, Instant.now(), Status.SUCCEEDED, null);
+				aPreviousSend, Instant.now(), status, failedMessage);
 	}
 
 	/**
