@@ -1,32 +1,54 @@
 @prefix : <https://w3id.org/knowledge-engine/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @base <https://w3id.org/knowledge-engine> .
 
 <https://w3id.org/knowledge-engine> rdf:type owl:Ontology ;
-                                     <http://purl.org/dc/terms/created> "2020-11-16T13:31:00"^^xsd:dateTime ;
-                                     <http://purl.org/dc/terms/creator> "Barry Nouwt" ,
-                                                                        "Han Kruiger" ,
-                                                                        "Wilco Wijbrandi" ;
-                                     <http://purl.org/dc/terms/title> "Knowledge Engine Ontology"^^xsd:string .
+                                     dcterms:abstract "The Knowledge Engine ontology describes concepts and relations that are relevant for the Knowledge Engine. The most important concepts are Knowledge Bases and Knowledge Interactions." ;
+                                     dcterms:created "2020-11-16T13:31:00"^^xsd:dateTime ;
+                                     dcterms:creator "Barry Nouwt" ,
+                                                     "Han Kruiger" ,
+                                                     "Wilco Wijbrandi" ;
+                                     dcterms:description "The Knowledge Engine ontology describes concepts and relations that are relevant for the Knowledge Engine. The most important concepts are Knowledge Bases and Knowledge Interactions."@en ;
+                                     dcterms:license "https://www.apache.org/licenses/LICENSE-2.0" ;
+                                     dcterms:modified "2022-06-14T00:00:00"^^xsd:dateTime ;
+                                     dcterms:title "Knowledge Engine Ontology"^^xsd:string .
 
 #################################################################
 #    Annotation properties
 #################################################################
 
+###  http://purl.org/dc/terms/abstract
+dcterms:abstract rdf:type owl:AnnotationProperty .
+
+
 ###  http://purl.org/dc/terms/created
-<http://purl.org/dc/terms/created> rdf:type owl:AnnotationProperty .
+dcterms:created rdf:type owl:AnnotationProperty .
 
 
 ###  http://purl.org/dc/terms/creator
-<http://purl.org/dc/terms/creator> rdf:type owl:AnnotationProperty .
+dcterms:creator rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/description
+dcterms:description rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/license
+dcterms:license rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/modified
+dcterms:modified rdf:type owl:AnnotationProperty .
 
 
 ###  http://purl.org/dc/terms/title
-<http://purl.org/dc/terms/title> rdf:type owl:AnnotationProperty .
+dcterms:title rdf:type owl:AnnotationProperty .
 
 
 #################################################################
