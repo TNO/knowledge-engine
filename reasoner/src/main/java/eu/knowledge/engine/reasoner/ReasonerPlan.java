@@ -82,7 +82,7 @@ public class ReasonerPlan {
 
 	public TaskBoard execute(BindingSet bindingSet) {
 		RuleNode startNode = this.getStartNode();
-		TaskBoard taskboard = new TaskBoard();
+		TaskBoard taskBoard = new TaskBoard();
 
 		if (this.isBackward()) {
 			assert startNode instanceof PassiveAntRuleNode;
@@ -116,7 +116,7 @@ public class ReasonerPlan {
 				// Ready, and current version of input has not been scheduled on taskboard? ->
 				// Add to taskboard otherwise -> Do not add to taskboard
 				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
-					this.scheduleOrDoTask(current, taskboard);
+					this.scheduleOrDoTask(current, taskBoard);
 					current.setResultBindingSetInputScheduled(true);
 				}
 
@@ -124,7 +124,6 @@ public class ReasonerPlan {
 				if (toBeFilterPropagated != null) {
 					assert current instanceof AntSide;
 					((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
-						// TODO: Invertion hell?
 						var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(),
 								Match.invertAll(matches));
 						boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, translated);
@@ -138,7 +137,6 @@ public class ReasonerPlan {
 				if (toBeResultPropagated != null) {
 					assert current instanceof ConsSide;
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
-						// TODO: Invertion hell?
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
 								Match.invertAll(matches));
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
@@ -153,8 +151,8 @@ public class ReasonerPlan {
 			}
 		} while (!changed.isEmpty());
 
-		this.done = !taskboard.hasTasks();
-		return taskboard;
+		this.done = !taskBoard.hasTasks();
+		return taskBoard;
 	}
 
 	public boolean isDone() {
