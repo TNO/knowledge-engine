@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
@@ -143,11 +144,14 @@ public class Util {
 		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);
 
+		List<RuleNode> visited = new ArrayList<>();
+
 		Set<String> actors = new HashSet<>();
 
 		while (!queue.isEmpty()) {
 
 			RuleNode node = queue.poll();
+			visited.add(node);
 
 			String currentActor = null;
 
@@ -180,9 +184,11 @@ public class Util {
 				}
 			}
 			if (node instanceof AntSide)
-				queue.addAll(((AntSide) node).getAntecedentNeighbours().keySet());
+				queue.addAll(((AntSide) node).getAntecedentNeighbours().keySet().stream()
+						.filter(n -> !visited.contains(n)).collect(Collectors.toSet()));
 			if (node instanceof ConsSide)
-				queue.addAll(((ConsSide) node).getConsequentNeighbours().keySet());
+				queue.addAll(((ConsSide) node).getConsequentNeighbours().keySet().stream()
+						.filter(n -> !visited.contains(n)).collect(Collectors.toSet()));
 		}
 
 		List<Connection> connections = new ArrayList<Connection>();
