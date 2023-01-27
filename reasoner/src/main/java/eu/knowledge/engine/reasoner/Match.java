@@ -3,8 +3,10 @@ package eu.knowledge.engine.reasoner;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.jena.graph.Node;
 
@@ -202,6 +204,14 @@ public class Match {
 			invertedMap.put(entry.getValue(), entry.getKey());
 		}
 		return new Match(newMatchingPatterns, invertedMap);
+	}
+
+	public static Set<Match> invertAll(Set<Match> someMatches) {
+		Set<Match> inverseMatches = new HashSet<>();
+		for (Match m : someMatches) {
+			inverseMatches.add(m.inverse());
+		}
+		return inverseMatches;
 	}
 
 	/**

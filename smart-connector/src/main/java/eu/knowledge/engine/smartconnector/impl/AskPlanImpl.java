@@ -2,11 +2,10 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.util.concurrent.CompletableFuture;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 
 public class AskPlanImpl implements AskPlan {
 
@@ -25,8 +24,8 @@ public class AskPlanImpl implements AskPlan {
 	}
 
 	@Override
-	public ReasoningNode getReasoningNode() {
-		return (this.processor instanceof ReasonerProcessor ? ((ReasonerProcessor) this.processor).getReasoningNode()
+	public ReasonerPlan getReasonerPlan() {
+		return (this.processor instanceof ReasonerProcessor ? ((ReasonerProcessor) this.processor).getReasonerPlan()
 				: null);
 	}
 

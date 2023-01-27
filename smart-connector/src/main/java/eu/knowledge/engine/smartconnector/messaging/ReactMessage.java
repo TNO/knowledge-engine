@@ -54,10 +54,9 @@ public class ReactMessage extends KnowledgeMessage {
 
 	@Override
 	public String toString() {
-		return "ReactMessage [getToKnowledgeBase()=" + getToKnowledgeBase() + ", getToKnowledgeInteraction()="
-				+ getToKnowledgeInteraction() + ", getFromKnowledgeBase()=" + getFromKnowledgeBase()
-				+ ", getFromKnowledgeInteraction()=" + getFromKnowledgeInteraction() + ", getMessageId()="
-				+ getMessageId() + ", getReplyToPostMessage()=" + getReplyToPostMessage() + ", getResult()="
-				+ getResult() + "]";
+		return "ReactMessage [getFromKnowledgeBase()=" + getFromKnowledgeBase() + ", getFromKnowledgeInteraction()="
+				+ getFromKnowledgeInteraction() + ", getToKnowledgeBase()=" + getToKnowledgeBase()
+				+ ", getToKnowledgeInteraction()=" + getToKnowledgeInteraction() + ", getMessageId()=" + getMessageId()
+				+ ", getReplyToPostMessage()=" + getReplyToPostMessage() + ", getResult()=" + getResult() + "]";
 	}
 }

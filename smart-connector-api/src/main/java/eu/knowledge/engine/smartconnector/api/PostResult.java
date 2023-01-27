@@ -8,7 +8,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 
 /**
  * A {@link PostResult} contains the result of the
@@ -25,7 +25,7 @@ public class PostResult {
 	/**
 	 * Can be null if the matcher is used instead of the reasoner.
 	 */
-	private final ReasoningNode rootNode;
+	private final ReasonerPlan rootNode;
 
 	/**
 	 * Create a {@link PostResult}.
@@ -40,7 +40,7 @@ public class PostResult {
 		this(someBindings, postExchangeInfos, null);
 	}
 
-	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos, ReasoningNode aNode) {
+	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos, ReasonerPlan aNode) {
 		this.bindings = someBindings;
 		this.exchangeInfos = postExchangeInfos;
 		this.rootNode = aNode;
@@ -93,7 +93,7 @@ public class PostResult {
 	 * 
 	 * @return
 	 */
-	public ReasoningNode getReasoningNode() {
+	public ReasonerPlan getReasonerPlan() {
 		return this.rootNode;
 	}
 

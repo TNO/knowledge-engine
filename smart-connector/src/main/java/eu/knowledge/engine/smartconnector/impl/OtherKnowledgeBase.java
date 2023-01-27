@@ -187,4 +187,9 @@ public class OtherKnowledgeBase {
 
 		return sb.toString();
 	}
+
+	@Override
+	public String toString() {
+		return "OtherKnowledgeBase [getId()=" + getId() + "]";
+	}
 }

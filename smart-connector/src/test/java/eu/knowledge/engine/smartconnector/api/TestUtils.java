@@ -20,10 +20,14 @@ import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.AntSide;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.ConsSide;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulenode.AntRuleNode;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
@@ -128,12 +132,13 @@ public class TestUtils {
 	 * @param prefixes
 	 * @throws URISyntaxException
 	 */
-	public static void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasoningNode rn,
+	public static void printSequenceDiagram(String proactiveKB, String kiType, GraphPattern gp, ReasonerPlan plan,
 			PrefixMapping prefixes) throws URISyntaxException {
 
+		RuleNode rn = plan.getStartNode();
 //		System.out.println(rn.toString());
 
-		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
+		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);
 
 		List<String> actors = new ArrayList<>();
@@ -182,27 +187,29 @@ public class TestUtils {
 		}
 
 		// arrows to actors that need to come back
-		Map<Pair, ReasoningNode> toFromExchanges = new HashMap<>();
+		Map<Pair, RuleNode> toFromExchanges = new HashMap<>();
 
 		// arrows to actors that do not need to come back (only to ourselves)
-		Map<Pair, ReasoningNode> toExchanges = new HashMap<>();
+		Map<Pair, RuleNode> toExchanges = new HashMap<>();
 
 		while (!queue.isEmpty()) {
 
-			ReasoningNode node = queue.poll();
+			RuleNode node = queue.poll();
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getBindingSetHandler();
+
+			BaseRule rule = node.getRule();
 			ReactBindingSetHandler rbsh = null;
 			AnswerBindingSetHandler absh = null;
-			if (bsh instanceof ReactBindingSetHandler) {
-				rbsh = (ReactBindingSetHandler) bsh;
+			if (rule instanceof Rule && ((Rule) rule).getBindingSetHandler() instanceof ReactBindingSetHandler) {
+				rbsh = (ReactBindingSetHandler) ((Rule) rule).getBindingSetHandler();
 
 				currentActor = rbsh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
 				if (!actors.contains(currentActor))
 					actors.add(currentActor);
-			} else if (bsh instanceof AnswerBindingSetHandler) {
-				absh = (AnswerBindingSetHandler) bsh;
+			} else if (rule instanceof Rule
+					&& ((Rule) rule).getBindingSetHandler() instanceof AnswerBindingSetHandler) {
+				absh = (AnswerBindingSetHandler) ((Rule) rule).getBindingSetHandler();
 				currentActor = absh.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString();
 				if (!actors.contains(currentActor))
 					actors.add(currentActor);
@@ -210,82 +217,94 @@ public class TestUtils {
 				currentActor = proactiveKB;
 			}
 
-			for (ReasoningNode neighbor : node.getAntecedentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
+			if (node instanceof AntSide) {
+				for (RuleNode neighbor : ((AntSide) node).getAntecedentNeighbours().keySet()) {
 
-				AnswerBindingSetHandler absh2 = null;
-				ReactBindingSetHandler rbsh2 = null;
-				if (bsh2 instanceof ReactBindingSetHandler) {
-					rbsh2 = (ReactBindingSetHandler) bsh2;
+					BaseRule neighborRule = neighbor.getRule();
+					AnswerBindingSetHandler absh2 = null;
+					ReactBindingSetHandler rbsh2 = null;
+					if (neighborRule instanceof Rule
+							&& ((Rule) neighborRule).getBindingSetHandler() instanceof ReactBindingSetHandler) {
+						rbsh2 = (ReactBindingSetHandler) ((Rule) neighborRule).getBindingSetHandler();
 
-					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
-							.getKnowledgeInteraction();
+						ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2
+								.getKnowledgeInteractionInfo().getKnowledgeInteraction();
 
-					if (!react.isMeta()) {
-						if (react.getResult() != null) {
+						if (!react.isMeta()) {
+							if (react.getResult() != null) {
+								toFromExchanges.put(
+										new Pair(proactiveKB,
+												rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+										neighbor);
+							} else {
+								toExchanges.put(
+										new Pair(proactiveKB,
+												rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+										neighbor);
+							}
+						}
+
+					} else if (neighborRule instanceof Rule
+							&& ((Rule) neighborRule).getBindingSetHandler() instanceof AnswerBindingSetHandler) {
+						absh2 = (AnswerBindingSetHandler) ((Rule) neighborRule).getBindingSetHandler();
+						if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
 							toFromExchanges.put(
 									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						} else {
-							toExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+											absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
 									neighbor);
 						}
+					} else {
+						if (!neighborRule.getAntecedent().isEmpty() && !neighborRule.getConsequent().isEmpty())
+							toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 					}
-
-				} else if (bsh2 instanceof AnswerBindingSetHandler) {
-					absh2 = (AnswerBindingSetHandler) bsh2;
-					if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
-						toFromExchanges.put(new Pair(proactiveKB,
-								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
-					}
-				} else {
-					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
-						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
+				queue.addAll(((AntSide) node).getAntecedentNeighbours().keySet());
 			}
 
-			for (ReasoningNode neighbor : node.getConsequentNeighbors().keySet()) {
-				BindingSetHandler bsh2 = neighbor.getRule().getBindingSetHandler();
+			if (node instanceof ConsSide) {
+				for (RuleNode neighbor : ((ConsSide) node).getConsequentNeighbours().keySet()) {
 
-				AnswerBindingSetHandler absh2 = null;
-				ReactBindingSetHandler rbsh2 = null;
-				if (bsh2 instanceof ReactBindingSetHandler) {
-					rbsh2 = (ReactBindingSetHandler) bsh2;
+					BaseRule neighborRule = neighbor.getRule();
 
-					ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2.getKnowledgeInteractionInfo()
-							.getKnowledgeInteraction();
+					AnswerBindingSetHandler absh2 = null;
+					ReactBindingSetHandler rbsh2 = null;
+					if (neighborRule instanceof Rule
+							&& ((Rule) neighborRule).getBindingSetHandler() instanceof ReactBindingSetHandler) {
+						rbsh2 = (ReactBindingSetHandler) ((Rule) neighborRule).getBindingSetHandler();
 
-					if (!react.isMeta()) {
-						if (react.getResult() != null) {
+						ReactKnowledgeInteraction react = (ReactKnowledgeInteraction) rbsh2
+								.getKnowledgeInteractionInfo().getKnowledgeInteraction();
+
+						if (!react.isMeta()) {
+							if (react.getResult() != null) {
+								toFromExchanges.put(
+										new Pair(proactiveKB,
+												rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+										neighbor);
+							} else {
+								toExchanges.put(
+										new Pair(proactiveKB,
+												rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+										neighbor);
+							}
+						}
+					} else if (neighborRule instanceof Rule
+							&& ((Rule) neighborRule).getBindingSetHandler() instanceof AnswerBindingSetHandler) {
+						absh2 = (AnswerBindingSetHandler) ((Rule) neighborRule).getBindingSetHandler();
+
+						if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
 							toFromExchanges.put(
 									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
-									neighbor);
-						} else {
-							toExchanges.put(
-									new Pair(proactiveKB,
-											rbsh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
+											absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()),
 									neighbor);
 						}
+					} else {
+						if (!neighborRule.getAntecedent().isEmpty() && !neighbor.getRule().getConsequent().isEmpty())
+							toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 					}
-				} else if (bsh2 instanceof AnswerBindingSetHandler) {
-					absh2 = (AnswerBindingSetHandler) bsh2;
-
-					if (!absh2.getKnowledgeInteractionInfo().getKnowledgeInteraction().isMeta()) {
-						toFromExchanges.put(new Pair(proactiveKB,
-								absh2.getKnowledgeInteractionInfo().getKnowledgeBaseId().toString()), neighbor);
-					}
-				} else {
-					if (!neighbor.getRule().antecedent.isEmpty() && !neighbor.getRule().consequent.isEmpty())
-						toExchanges.put(new Pair(proactiveKB, proactiveKB), neighbor);
 				}
+				queue.addAll(((ConsSide) node).getConsequentNeighbours().keySet());
 			}
-
-			queue.addAll(node.getAntecedentNeighbors().keySet());
-			queue.addAll(node.getConsequentNeighbors().keySet());
 		}
 
 		String title = kiType + " data exchange";
@@ -298,29 +317,33 @@ public class TestUtils {
 
 		System.out.println("activate " + new URI(proactiveKB).getPath().substring(1));
 
-		System.out
-				.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":" + convertGP(prefixes,
-						(rn.getRule().antecedent).isEmpty() ? rn.getRule().consequent : rn.getRule().antecedent));
+		System.out.println("aboxright left of " + new URI(proactiveKB).getPath().substring(1) + ":"
+				+ convertGP(prefixes, (rn.getRule().getAntecedent()).isEmpty() ? rn.getRule().getConsequent()
+						: rn.getRule().getAntecedent()));
 
 		for (Pair pair : toFromExchanges.keySet()) {
-			ReasoningNode node = toFromExchanges.get(pair);
+			RuleNode node = toFromExchanges.get(pair);
 
 			assert node != null;
 
-			Rule rule = node.getRule();
-			boolean empty = rule.antecedent.isEmpty();
+			BaseRule rule = node.getRule();
+			boolean empty = rule.getAntecedent().isEmpty();
 
-			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
-					+ new URI(pair.second).getPath().substring(1) + ":" + convertGP(prefixes, rule.antecedent) + "\\n"
-					+ (empty ? "" : convertBindingSet(prefixes, node.getBindingSetToHandler())));
+			System.out.println(
+					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
+							+ ":" + convertGP(prefixes, rule.getAntecedent()) + "\\n"
+							+ (empty ? ""
+									: convertBindingSet(prefixes,
+											((AntRuleNode) node).getResultBindingSetInput().toBindingSet())));
 
 			if (!pair.second.equals(proactiveKB))
 				System.out.println("deactivate " + new URI(proactiveKB).getPath().substring(1));
 
 			System.out.println("activate " + new URI(pair.second).getPath().substring(1));
 			System.out.println(new URI(pair.second).getPath().substring(1) + "-->"
-					+ new URI(pair.first).getPath().substring(1) + ":" + convertGP(prefixes, rule.consequent) + "\\n"
-					+ convertBindingSet(prefixes, node.getBindingSetFromHandler()));
+					+ new URI(pair.first).getPath().substring(1) + ":" + convertGP(prefixes, rule.getConsequent())
+					+ "\\n"
+					+ convertBindingSet(prefixes, ((AntRuleNode) node).getResultBindingSetInput().toBindingSet()));
 
 			System.out.println("deactivate " + new URI(pair.second).getPath().substring(1));
 			if (!pair.second.equals(proactiveKB))
@@ -330,14 +353,14 @@ public class TestUtils {
 
 		for (Pair pair : toExchanges.keySet()) {
 
-			ReasoningNode node = toExchanges.get(pair);
+			RuleNode node = toExchanges.get(pair);
 
-			Rule rule = node.getRule();
+			BaseRule rule = node.getRule();
 
-			System.out.println(
-					new URI(pair.first).getPath().substring(1) + "->" + new URI(pair.second).getPath().substring(1)
-							+ ":" + convertGP(prefixes, rule.antecedent) + " => " + convertGP(prefixes, rule.consequent)
-							+ "\\n" + convertBindingSet(prefixes, node.getBindingSetToHandler()));
+			System.out.println(new URI(pair.first).getPath().substring(1) + "->"
+					+ new URI(pair.second).getPath().substring(1) + ":" + convertGP(prefixes, rule.getAntecedent())
+					+ " => " + convertGP(prefixes, rule.getConsequent()) + "\\n"
+					+ convertBindingSet(prefixes, ((AntRuleNode) node).getResultBindingSetInput().toBindingSet()));
 
 		}
 

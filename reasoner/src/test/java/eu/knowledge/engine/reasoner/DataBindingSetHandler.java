@@ -7,10 +7,11 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 
-public class DataBindingSetHandler implements BindingSetHandler {
+public class DataBindingSetHandler implements TransformBindingSetHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DataBindingSetHandler.class);
 

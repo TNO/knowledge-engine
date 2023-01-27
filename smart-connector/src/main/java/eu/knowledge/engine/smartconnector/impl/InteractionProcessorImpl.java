@@ -30,6 +30,7 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
@@ -221,7 +222,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 			if (this.shouldValidateInputOutputBindings()) {
 				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(), anAskMsg.getBindings(), b);
+				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
+						anAskMsg.getBindings(), b);
 			}
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
@@ -305,7 +307,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 			if (this.shouldValidateInputOutputBindings()) {
 				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(), reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
+						reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 			}
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
@@ -321,9 +324,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 	private boolean shouldValidateInputOutputBindings() {
 		return SmartConnectorConfig.getBoolean(
-			SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
-			VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT
-		);
+				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
+				VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT);
 	}
 
 	@Override

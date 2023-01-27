@@ -25,6 +25,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
@@ -452,6 +453,10 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		}
 	}
 
+	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
+		this.domainKnowledge = someDomainKnowledge;
+	}
+
 	/**
 	 * Registers all KIs that have not yet already been registered.
 	 */
@@ -508,11 +513,8 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
+		this.getSC().setReasonerEnabled(this.reasonerEnabled);
 
-	}
-
-	public void setDomainKnowledge(Set<Rule> someDomainKnowledge) {
-		this.domainKnowledge = someDomainKnowledge;
 	}
 
 	public void setReasonerEnabled(boolean aReasonerEnabled) {

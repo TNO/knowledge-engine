@@ -1,7 +1,7 @@
 package eu.knowledge.engine.reasoner.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,8 +12,14 @@ import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVar;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
+import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 public class BindingTest {
 
@@ -39,7 +45,7 @@ public class BindingTest {
 		BindingSet bs = gbs.toBindingSet();
 		System.out.println(bs);
 
-		TripleVarBindingSet gbsReturned = bs.toGraphBindingSet(aGraphPattern);
+		TripleVarBindingSet gbsReturned = bs.toTripleVarBindingSet(aGraphPattern);
 
 		System.out.println(gbsReturned);
 	}

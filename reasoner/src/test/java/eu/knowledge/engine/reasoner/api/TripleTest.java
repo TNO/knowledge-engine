@@ -1,13 +1,13 @@
 package eu.knowledge.engine.reasoner.api;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.sse.SSE;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
