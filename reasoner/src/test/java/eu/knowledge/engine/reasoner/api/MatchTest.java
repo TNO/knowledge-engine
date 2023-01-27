@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.api;
+package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

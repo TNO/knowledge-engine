@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2;
+package eu.knowledge.engine.reasoner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,8 +39,8 @@ import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.Util;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
-import eu.knowledge.engine.reasoner2.api.Util;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ForwardTest {

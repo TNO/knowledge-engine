@@ -1,7 +1,7 @@
 /**
  * 
  */
-package eu.knowledge.engine.reasoner2.api;
+package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.Table;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
-import eu.knowledge.engine.reasoner2.Table;
 
 /**
  * @author nouwtb

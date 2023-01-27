@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.reasoningnode;
+package eu.knowledge.engine.reasoner.reasoningnode;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.Util;
 import eu.knowledge.engine.reasoner.rulenode.ActiveConsRuleNode;
 import eu.knowledge.engine.reasoner.rulenode.BindingSetStore;
 import eu.knowledge.engine.reasoner.rulenode.RuleNode;
-import eu.knowledge.engine.reasoner2.api.Util;
 
 public class TestBindingSetStore {
   @Test

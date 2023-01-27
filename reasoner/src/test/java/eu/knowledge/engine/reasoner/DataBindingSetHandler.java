@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2;
+package eu.knowledge.engine.reasoner;
 
 import java.util.Map;
 import java.util.Set;

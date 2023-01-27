@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner2.api;
+package eu.knowledge.engine.reasoner.api;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
