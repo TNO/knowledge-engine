@@ -666,4 +666,85 @@ public class BackwardTest {
 
 	}
 
+	/**
+	 * Based on:
+	 * https://github.com/apache/jena/blob/main/jena-core/testing/reasoners/bugs/groundClosure2.rules
+	 * 
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 * @throws ParseException
+	 */
+	@Test
+	public void jenaForwardTest2() throws InterruptedException, ExecutionException, ParseException {
+
+//		-> (eg:Paul eg:fatherTwo eg:Phil) .
+//		-> (eg:Paul eg:altFather eg:Phil) .
+//		-> (eg:Paul eg:builtinFather eg:Phil) .
+//
+//		[fatherparent: (?a eg:parent ?b) <- (?a eg:father ?b)]
+//		[fatherparenttwo: (?a eg:father ?b) <- (?a eg:fatherTwo ?b)]
+//		[builtinparent: (?a eg:parent ?b)<- flag() (?a eg:builtinFater ?b) ]
+
+		RuleStore s = new RuleStore();
+		var tp1 = new TriplePattern("?a <father> ?b");
+		var tp2 = new TriplePattern("?a <parent> ?b");
+		var r1 = new Rule(new HashSet<>(Arrays.asList(tp1)), new HashSet<>(Arrays.asList(tp2)));
+		s.addRule(r1);
+
+		var tp4 = new TriplePattern("?a <fatherTwo> ?b");
+		var tp5 = new TriplePattern("?a <father> ?b");
+		var r2 = new Rule(new HashSet<>(Arrays.asList(tp4)), new HashSet<>(Arrays.asList(tp5)));
+		s.addRule(r2);
+
+		var tp7 = new TriplePattern("?a <builtinFather> ?b");
+		var tp8 = new TriplePattern("?a <parent> ?b");
+		var r3 = new Rule(new HashSet<>(Arrays.asList(tp7)), new HashSet<>(Arrays.asList(tp8)));
+		s.addRule(r3);
+
+		// data rule
+		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
+				// @formatter:off
+						"s", "p", "o"
+						// @formatter:on
+		}, new String[] {
+				// @formatter:off
+						"<paul>,<fatherTwo>,<phil>", 
+						"<paul>,<altFather>,<phil>", 
+						"<paul>,<builtinFather>,<phil>",
+						// @formatter:on
+		}));
+
+		Rule r5 = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
+				aBindingSetHandler);
+		s.addRule(r5);
+
+		TriplePattern tp13 = new TriplePattern("?s ?p ?o");
+		ProactiveRule startRule = new ProactiveRule(new HashSet<>(Arrays.asList(tp13)), new HashSet<>());
+		s.addRule(startRule);
+
+		ReasonerPlan rp = new ReasonerPlan(s, startRule);
+
+		s.printGraphVizCode(rp);
+
+		BindingSet bs = new BindingSet();
+		Binding b = new Binding();
+		bs.add(b);
+
+		TaskBoard tb;
+		while ((tb = rp.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
+
+		Model m = Util.generateModel(tp13, rp.getResults());
+
+		StmtIterator iter = m.listStatements();
+
+		while (iter.hasNext()) {
+			Statement st = iter.next();
+			System.out.println(st);
+		}
+		assertEquals(5, rp.getResults().size()); // TODO make this assert more specific
+
+	}
+
 }

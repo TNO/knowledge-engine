@@ -8,17 +8,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
@@ -301,7 +300,7 @@ public class BaseRule {
 		assert !consequent.isEmpty();
 
 		List<Match> matchingTriplePatterns = new ArrayList<>();
-		Map<Node, Node> map;
+		Map<TripleNode, TripleNode> map;
 		for (TriplePattern tp : consequent) {
 			map = antecedent.findMatches(tp);
 			if (map != null) {

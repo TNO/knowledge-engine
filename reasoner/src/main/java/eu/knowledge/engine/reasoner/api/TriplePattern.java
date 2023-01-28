@@ -6,13 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
-
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TriplePattern {
 	private final Node subject;
@@ -57,11 +54,12 @@ public class TriplePattern {
 	 * @param other
 	 * @return
 	 */
-	public Map<Node, Node> findMatches(TriplePattern other) {
-		Map<Node, Node> substitutionMap = new HashMap<>();
+	public Map<TripleNode, TripleNode> findMatches(TriplePattern other) {
+		Map<TripleNode, TripleNode> substitutionMap = new HashMap<>();
 
 		if (this.getSubject() instanceof Var || other.getSubject() instanceof Var) {
-			substitutionMap.put(this.getSubject(), other.getSubject());
+			substitutionMap.put(new TripleNode(this, this.getSubject(), 0),
+					new TripleNode(other, other.getSubject(), 0));
 		} else {
 			if (!this.getSubject().equals(other.getSubject())) {
 				return null;
@@ -69,7 +67,8 @@ public class TriplePattern {
 		}
 
 		if (this.getPredicate() instanceof Var || other.getPredicate() instanceof Var) {
-			substitutionMap.put(this.getPredicate(), other.getPredicate());
+			substitutionMap.put(new TripleNode(this, this.getPredicate(), 1),
+					new TripleNode(other, other.getPredicate(), 1));
 		} else {
 			if (!this.getPredicate().equals(other.getPredicate())) {
 				return null;
@@ -77,7 +76,7 @@ public class TriplePattern {
 		}
 
 		if (this.getObject() instanceof Var || other.getObject() instanceof Var) {
-			substitutionMap.put(this.getObject(), other.getObject());
+			substitutionMap.put(new TripleNode(this, this.getObject(), 2), new TripleNode(other, other.getObject(), 2));
 		} else {
 			if (!this.getObject().equals(other.getObject())) {
 				return null;
