@@ -239,10 +239,12 @@ public class TripleVarBindingSet {
 								if (fromTNode.node instanceof Var && toTNode.node instanceof Var) {
 									var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
 									var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
-									if (fromB.containsKey(fromTVar) && !toB.containsVar((Var) toTVar.node)) {
+									var toBVarValue = toB.getVarValue((Var) toTVar.node);
+									if (fromB.containsKey(fromTVar) && !toB.containsKey(toTVar)
+											&& (toBVarValue == null || toBVarValue.equals(fromB.get(fromTVar)))) {
 										toB.put(toTVar, fromB.get(fromTVar));
 									} else if (fromB.containsKey(fromTVar) && toB.containsVar((Var) toTVar.node)
-											&& !fromB.get(fromTVar).equals(toB.getVarValue((Var) toTVar.node))) {
+											&& !fromB.get(fromTVar).equals(toBVarValue)) {
 										skip = true; // conflict, so skip
 									}
 								} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node_Concrete) {
