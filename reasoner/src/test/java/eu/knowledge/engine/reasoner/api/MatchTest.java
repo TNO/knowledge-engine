@@ -518,4 +518,26 @@ public class MatchTest {
 		assertEquals(expectedMap, actualMap);
 
 	}
+
+	@Test
+	public void testTranslateEmptyBindingSet() {
+		var t1 = new TriplePattern("?s ?p ?o");
+		var t2 = new TriplePattern("?a ?b ?c");
+
+		TripleVarBindingSet tvbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(t1)));
+
+		Map<TripleNode, TripleNode> map = new HashMap<>();
+		map.put(new TripleNode(t1, "?s", 0), new TripleNode(t2, "?a", 0));
+		map.put(new TripleNode(t1, "?p", 1), new TripleNode(t2, "?b", 1));
+		map.put(new TripleNode(t1, "?o", 2), new TripleNode(t2, "?c", 2));
+
+		var match = new Match(t1, t2, map);
+
+		TripleVarBindingSet tvbs2 = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
+				new HashSet<>(Arrays.asList(match)));
+
+		System.out.println("BindingSet: " + tvbs2);
+
+		assertTrue(tvbs2.isEmpty());
+	}
 }

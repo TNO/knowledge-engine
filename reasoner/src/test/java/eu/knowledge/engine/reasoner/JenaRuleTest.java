@@ -126,7 +126,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBaseRules6() throws InterruptedException, ExecutionException, ParseException {
-		doBasicTest("[r1: (?x r ?x) <- (?x p b)]", new TriplePattern("<a> <r> <b>"), "");
+		doBasicTest("[r1: (?x r ?x) <- (?x p b)]", new TriplePattern("<a> <r> <b>"), null);
 	}
 
 	/**
@@ -138,7 +138,19 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBaseRules7() throws InterruptedException, ExecutionException, ParseException {
-		doBasicTest("[r1: (?x r ?y) <- (?x p c)]", new TriplePattern("<a> <r> <b>"), "");
+		doBasicTest("[r1: (?x r ?y) <- (?x p c)]", new TriplePattern("<a> <r> <b>"), null);
+	}
+	
+	/**
+	 * Test basic rule operations - chain rule which will succeed in search
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBaseRules7_2() throws InterruptedException, ExecutionException, ParseException {
+		doBasicTest("[r1: (?x r ?y) <- (?x p ?y)]", new TriplePattern("<a> <r> <b>"), "");
 	}
 
 	/**
@@ -168,6 +180,189 @@ public class JenaRuleTest {
 	}
 
 	/**
+	 * Test backtracking - simple triple query.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack1() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
+				new TriplePattern("<a> <p> ?o"), "o=<b>|o=<c>|o=<d>");
+
+	}
+
+	/**
+	 * Test backtracking - chain to simple triple query.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack2() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
+				new TriplePattern("<a> <r> ?o"), "o=<b>|o=<c>|o=<d>");
+	}
+
+	/**
+	 * Test backtracking - simple choice point
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack3() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"),
+				"<a>,<p>,<b>", new TriplePattern("<a> <r> ?o"), "o=<C1>|o=<C2>|o=<C3>");
+	}
+
+	/**
+	 * Test backtracking - nested choice point
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack4() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]"
+				+ "[r3: (?x r C3) <- (?x p b)]" + "[r4: (?x s ?z) <- (?x p ?w), (?x r ?y) (?y p ?z)]"),
+				"<a>,<p>,<b>|<C1>,<p>,<D1>|<C2>,<p>,<D2>|<C3>,<p>,<D3>", new TriplePattern("<a> <s> ?o"),
+				"o=<D1>|o=<D2>|o=<D3>");
+	}
+
+	/**
+	 * Test backtracking - nested choice point with multiple triple matches
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack5() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[r1: (?x r C3) <- (C1 p ?x)]" + "[r2: (?x r C2) <- (C2 p ?x)]" + "[r4: (?x s ?y) <- (?x r ?y)]"),
+				"<C1>,<p>,<D1>|<C1>,<p>,<a>|<C2>,<p>,<D2>|<C2>,<p>,<b>", new TriplePattern("?s <s> ?o"),
+				"s=<D1>,o=<C3>|s=<a>,o=<C3>|s=<D2>,o=<C2>|s=<b>,o=<C2>");
+	}
+
+	/**
+	 * Test backtracking - nested choice point with multiple triple matches, and
+	 * checking temp v. permanent variable usage
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack6() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[r1: (?x r C1) <- (?x p a)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x q C1) <- (?x p b)]"
+						+ "[r4: (?x q C2) <- (?x p a)]" + "[r5: (?x s ?y) <- (?x r ?y) (?x q ?y)]"),
+				"<D1>,<p>,<a>|<D2>,<p>,<a>|<D2>,<p>,<b>|<D3>,<p>,<b>", new TriplePattern("?s <s> ?o"),
+				"s=<D2>,o=<C1>|s=<D2>,o=<C2>");
+	}
+
+	/**
+	 * Test backtracking - nested choice point with simple triple matches
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack7() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"
+						+ "[r3: (?x r D1) <- (?x p b)]" + "[r4: (?x q C2) <- (?x p b)]" + "[r5: (?x q C3) <- (?x p b)]"
+						+ "[r5: (?x q D1) <- (?x p b)]" + "[r6: (?x t C1) <- (?x p b)]" + "[r7: (?x t C2) <- (?x p b)]"
+						+ "[r8: (?x t C3) <- (?x p b)]" + "[r9: (?x s ?y) <- (?x r ?y) (?x q ?y) (?x t ?y)]"),
+				"<a>,<p>,<b>", new TriplePattern("?s <s> ?o"), "s=<a>,o=<C2>|s=<a>,o=<C3>");
+	}
+
+	/**
+	 * Test backtracking - nested choice point with simple triple matches, permanent
+	 * vars but used just once in body
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack8() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"
+						+ "[r3: (?x r D1) <- (?x p b)]" + "[r4: (?x q C2) <- (?x p b)]" + "[r5: (?x q C3) <- (?x p b)]"
+						+ "[r5: (?x q D1) <- (?x p b)]" + "[r6: (?x t C1) <- (?x p b)]" + "[r7: (?x t C2) <- (?x p b)]"
+						+ "[r8: (?x t C3) <- (?x p b)]" + "[r9: (?x s ?y) <- (?w r C1) (?x q ?y) (?w t C1)]"),
+				"<a>,<p>,<b>", new TriplePattern("?s <s> ?o"), "s=<a>,o=<D1>|s=<a>,o=<C2>|s=<a>,o=<C3>");
+	}
+
+	/**
+	 * Test backtracking - multiple triple matches
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testBacktrack9() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (?x s ?y) <- (?x r ?y) (?x q ?y)]"),
+				"<a>,<r>,<D1>|<a>,<r>,<D2>|<a>,<r>,<D3>|<b>,<r>,<D2>|<a>,<q>,<D2>|<b>,<q>,<D2>|<b>,<q>,<D3>",
+				new TriplePattern("?s <s> ?o"), "s=<a>,o=<D2>|s=<b>,o=<D2>");
+	}
+
+	/**
+	 * Test backtracking - multiple triple matches
+	 * 
+	 * TODO: contains equals builtin, so does not work?
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+//	@Test
+//	public void testBacktrack10() throws InterruptedException, ExecutionException, ParseException {
+//		doTest(convertRules("[r1: (?x s ?y) <- (?x r ?y) (?x q ?z), equal(?y, ?z)(?x, p, ?y)]" + "[(a p D1) <- ]"
+//				+ "[(a p D2) <- ]" + "[(b p D1) <- ]"),
+//				"<a>,<r>,<D1>|<a>,<r>,<D2>|<a>,<r>,<D3>|<b>,<r>,<D2>|<a>,<q>,<D2>|<b>,<q>,<D2>|<b>,<q>,<D3>",
+//				new TriplePattern("?s <s> ?o"), "s=<a>,o=<D2>");
+//	}
+
+	/**
+	 * Test axioms work.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testAxioms() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules(
+				"[a1: -> (a r C1) ]" + "[a2: -> (a r C2) ]" + "[a3: (b r C1) <- ]" + "[r1: (?x s ?y) <- (?x r ?y)]"),
+				"", new TriplePattern("?s <s> ?o"), "s=<a>,o=<C1>|s=<a>,o=<C2>|s=<b>,o=<C1>");
+	}
+
+	/**
+	 * Test nested invocation of rules with permanent vars
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testNestedPvars() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?z) (?z q ?y)]" + "[r1: (?y t ?x) <- (?x p ?z) (?z q ?y)]"
+				+ "[r3: (?x s ?y) <- (?x r ?y) (?y t ?x)]"),
+				"<a>,<p>,<C1>|<a>,<p>,<C2>|<a>,<p>,<C3>|<C2>,<q>,<b>|<C3>,<q>,<c>|<D1>,<q>,<D2>",
+				new TriplePattern("?s <s> ?o"), "s=<a>,o=<b>|s=<a>,o=<c>");
+	}
+
+	/**
 	 * Generic base test operation on a graph with the single triple (a, p, b)
 	 * 
 	 * @param ruleSrc the source of the rules
@@ -180,8 +375,14 @@ public class JenaRuleTest {
 	private void doBasicTest(String ruleSrc, TriplePattern query, String results)
 			throws InterruptedException, ExecutionException, ParseException {
 
+		Set<BaseRule> keRules = convertRules(ruleSrc);
+
+		doTest(keRules, "<a>,<p>,<b>", query, results);
+	}
+
+	private Set<BaseRule> convertRules(String someRules) {
 		List<org.apache.jena.reasoner.rulesys.Rule> jenaRules = org.apache.jena.reasoner.rulesys.Rule
-				.parseRules(ruleSrc);
+				.parseRules(someRules);
 
 		Set<BaseRule> keRules = new HashSet<>();
 		for (org.apache.jena.reasoner.rulesys.Rule r : jenaRules) {
@@ -197,8 +398,7 @@ public class JenaRuleTest {
 			}
 			keRules.add(new Rule(antecedent, consequent));
 		}
-
-		doTest(keRules, "<a>,<p>,<b>", query, results);
+		return keRules;
 	}
 
 	private void doTest(Set<BaseRule> keRules, String data, TriplePattern query, String results)
@@ -207,16 +407,14 @@ public class JenaRuleTest {
 		RuleStore rs = new RuleStore();
 		rs.addRules(keRules);
 
+		String[] dataSplitted = new String[0];
+		if (!data.isEmpty()) {
+			dataSplitted = data.split("\\|");
+		}
+
 		// data rule
-		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
-				// @formatter:off
-						"s", "p", "o"
-						// @formatter:on
-		}, new String[] {
-				// @formatter:off
-				data
-						// @formatter:on
-		}));
+		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(
+				new Table(new String[] { "s", "p", "o" }, dataSplitted));
 		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
 				aBindingSetHandler);
 		rs.addRule(r);
@@ -248,9 +446,8 @@ public class JenaRuleTest {
 		}
 
 		BindingSet bindset = new BindingSet();
-		Binding b2 = Util.toBinding(results);
-		if (!b2.isEmpty())
-			bindset.add(b2);
+		if (results != null)
+			bindset = Util.toBindingSet(results);
 
 		assertEquals(bindset, results2);
 	}

@@ -215,7 +215,8 @@ public class TripleVarBindingSet {
 					}
 
 				}
-				newOne.add(toB);
+				if (!toB.isEmpty())
+					newOne.add(toB);
 			}
 
 		} else {
@@ -225,47 +226,47 @@ public class TripleVarBindingSet {
 					toB = new TripleVarBinding();
 					for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 						TriplePattern fromTriple = keyValue.getKey();
-						if (fromB.containsTriplePattern(fromTriple)) {
-							TriplePattern toTriple = keyValue.getValue();
-							Map<TripleNode, TripleNode> mapping = fromTriple.findMatches(toTriple); // TODO get these
-																									// from entry
-							for (Map.Entry<TripleNode, TripleNode> singleMap : mapping.entrySet()) {
-								TripleNode toTNode = singleMap.getValue();
-								TripleNode fromTNode = singleMap.getKey();
+//						if (fromB.containsTriplePattern(fromTriple)) {
+						TriplePattern toTriple = keyValue.getValue();
+						Map<TripleNode, TripleNode> mapping = fromTriple.findMatches(toTriple); // TODO get these
+																								// from entry
+						for (Map.Entry<TripleNode, TripleNode> singleMap : mapping.entrySet()) {
+							TripleNode toTNode = singleMap.getValue();
+							TripleNode fromTNode = singleMap.getKey();
 
-								// first consider all possible combinations of concrete and variable nodes.
-								// note that there are slight variations in how we want to translate filter
-								// and result bindingsets
-								if (fromTNode.node instanceof Var && toTNode.node instanceof Var) {
-									var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
-									var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
-									var toBVarValue = toB.getVarValue((Var) toTVar.node);
-									if (fromB.containsKey(fromTVar) && !toB.containsKey(toTVar)
-											&& (toBVarValue == null || toBVarValue.equals(fromB.get(fromTVar)))) {
-										toB.put(toTVar, fromB.get(fromTVar));
-									} else if (fromB.containsKey(fromTVar) && toB.containsVar((Var) toTVar.node)
-											&& !fromB.get(fromTVar).equals(toBVarValue)) {
-										skip = true; // conflict, so skip
-									}
-								} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node_Concrete) {
-									var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
-									if (fromB.containsKey(fromTVar) && !fromB.get(fromTVar).equals(toTNode.node)) {
-										skip = true; // conflict, so skip
-									}
-								} else if (fromTNode.node instanceof Node_Concrete && toTNode.node instanceof Var) {
-									var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
-									if (toB.containsVar((Var) toTVar.node)
-											&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
-										skip = true;
-									} else if (!toB.containsVar((Var) toTVar.node)) {
-										toB.put(toTVar, (Node_Concrete) fromTNode.node);
-									}
-								} else if (fromTNode.node instanceof Node_Concrete
-										&& toTNode.node instanceof Node_Concrete) {
-									assert fromTNode.node.equals(toTNode.node);
+							// first consider all possible combinations of concrete and variable nodes.
+							// note that there are slight variations in how we want to translate filter
+							// and result bindingsets
+							if (fromTNode.node instanceof Var && toTNode.node instanceof Var) {
+								var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
+								var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
+								var toBVarValue = toB.getVarValue((Var) toTVar.node);
+								if (fromB.containsKey(fromTVar) && !toB.containsKey(toTVar)
+										&& (toBVarValue == null || toBVarValue.equals(fromB.get(fromTVar)))) {
+									toB.put(toTVar, fromB.get(fromTVar));
+								} else if (fromB.containsKey(fromTVar) && toB.containsVar((Var) toTVar.node)
+										&& !fromB.get(fromTVar).equals(toBVarValue)) {
+									skip = true; // conflict, so skip
 								}
+							} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node_Concrete) {
+								var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
+								if (fromB.containsKey(fromTVar) && !fromB.get(fromTVar).equals(toTNode.node)) {
+									skip = true; // conflict, so skip
+								}
+							} else if (fromTNode.node instanceof Node_Concrete && toTNode.node instanceof Var) {
+								var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
+								if (toB.containsVar((Var) toTVar.node)
+										&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
+									skip = true;
+								} else if (!toB.containsVar((Var) toTVar.node)) {
+									toB.put(toTVar, (Node_Concrete) fromTNode.node);
+								}
+							} else if (fromTNode.node instanceof Node_Concrete
+									&& toTNode.node instanceof Node_Concrete) {
+								assert fromTNode.node.equals(toTNode.node);
 							}
 						}
+//						}
 					}
 					if (!skip)
 						newOne.add(toB);

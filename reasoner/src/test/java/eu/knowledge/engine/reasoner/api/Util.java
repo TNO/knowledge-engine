@@ -53,10 +53,8 @@ public class Util {
 		String[] entries = encodedBindingSet.split("\\|");
 
 		for (String entry : entries) {
-			if (!entry.isEmpty()) {
-				Binding b = toBinding(entry);
-				bs.add(b);
-			}
+			Binding b = toBinding(entry);
+			bs.add(b);
 		}
 		return bs;
 	}

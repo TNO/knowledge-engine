@@ -12,10 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -67,8 +64,14 @@ public class TransitivityTest {
 		store.addRule(startRule);
 
 		ReasonerPlan plan = new ReasonerPlan(store, startRule);
+
+		store.printGraphVizCode(plan);
+
 		TaskBoard tb;
-		while ((tb = plan.execute(new BindingSet())).hasTasks()) {
+		BindingSet bindingSet = new BindingSet();
+		bindingSet.add(new Binding());
+
+		while ((tb = plan.execute(bindingSet)).hasTasks()) {
 			tb.executeScheduledTasks().get();
 		}
 

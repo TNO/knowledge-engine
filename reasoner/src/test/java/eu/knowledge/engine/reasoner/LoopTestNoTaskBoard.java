@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -76,10 +77,12 @@ public class LoopTestNoTaskBoard {
 		store.addRule(startRule);
 
 		ReasonerPlan plan = new ReasonerPlan(store, startRule);
-    plan.setUseTaskBoard(false);
+		plan.setUseTaskBoard(false);
 
 		TaskBoard tb;
-		while ((tb = plan.execute(new BindingSet())).hasTasks()) {
+		BindingSet bindingSet = new BindingSet();
+		bindingSet.add(new Binding());
+		while ((tb = plan.execute(bindingSet)).hasTasks()) {
 			tb.executeScheduledTasks().get();
 		}
 
