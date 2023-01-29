@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -17,8 +16,6 @@ import org.apache.jena.reasoner.rulesys.ClauseEntry;
 import org.apache.jena.reasoner.rulesys.Node_RuleVariable;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.api.Binding;
@@ -32,29 +29,6 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
  * https://github.com/apache/jena/blob/main/jena-core/src/test/java/org/apache/jena/reasoner/rulesys/test/TestBasicLP.java
  */
 public class JenaRuleTest {
-
-	// Useful constants
-	Node p = NodeFactory.createURI("p");
-	Node q = NodeFactory.createURI("q");
-	Node r = NodeFactory.createURI("r");
-	Node s = NodeFactory.createURI("s");
-	Node t = NodeFactory.createURI("t");
-	Node u = NodeFactory.createURI("u");
-	Node a = NodeFactory.createURI("a");
-	Node b = NodeFactory.createURI("b");
-	Node c = NodeFactory.createURI("c");
-	Node d = NodeFactory.createURI("d");
-	Node e = NodeFactory.createURI("e");
-	Node C1 = NodeFactory.createURI("C1");
-	Node C2 = NodeFactory.createURI("C2");
-	Node C3 = NodeFactory.createURI("C3");
-	Node C4 = NodeFactory.createURI("C4");
-	Node D1 = NodeFactory.createURI("D1");
-	Node D2 = NodeFactory.createURI("D2");
-	Node D3 = NodeFactory.createURI("D3");
-	Node sP = RDFS.Nodes.subPropertyOf;
-	Node sC = RDFS.Nodes.subClassOf;
-	Node ty = RDF.Nodes.type;
 
 	/**
 	 * Test basic rule operations - lookup, no matching rules
@@ -542,7 +516,7 @@ public class JenaRuleTest {
 		doTest(keRules, "<a>,<p>,<b>", query, results);
 	}
 
-	private Set<BaseRule> convertRules(String someRules) {
+	public static Set<BaseRule> convertRules(String someRules) {
 		List<org.apache.jena.reasoner.rulesys.Rule> jenaRules = org.apache.jena.reasoner.rulesys.Rule
 				.parseRules(someRules);
 
@@ -615,7 +589,7 @@ public class JenaRuleTest {
 		assertEquals(bindset, results2);
 	}
 
-	private TriplePattern convertToTriplePattern(org.apache.jena.reasoner.TriplePattern triple) {
+	private static TriplePattern convertToTriplePattern(org.apache.jena.reasoner.TriplePattern triple) {
 
 		Node subject = triple.getSubject();
 		Node predicate = triple.getPredicate();
