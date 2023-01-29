@@ -77,4 +77,10 @@ public class BindingSetStore {
 		// store, or when they get translated/matched.
 		return combinedBS.merge(combinedBS);
 	}
+
+	@Override
+	public String toString() {
+		return "BindingSetStore [neighborBindingSet=" + neighborBindingSet + "]";
+	}
+
 }

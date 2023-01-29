@@ -1,5 +1,6 @@
 package eu.knowledge.engine.reasoner.api;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -88,7 +89,25 @@ public class TriplePattern {
 
 	@Override
 	public String toString() {
-		return subject + " " + predicate + " " + object;
+		return trunc(subject) + " " + trunc(predicate) + " " + trunc(object);
+	}
+
+	public static String trunc(Node n) {
+
+		if (n.isURI()) {
+			URI uri = URI.create(n.getURI());
+
+			if (uri.getFragment() != null) {
+				return uri.getFragment();
+			}
+			var path = uri.getPath();
+			if (path != null)
+				return path.substring(path.lastIndexOf('/') + 1);
+		} else if (n.isLiteral()) {
+			return n.getLiteralLexicalForm();
+		}
+		return n.toString();
+
 	}
 
 	public Set<Var> getVariables() {

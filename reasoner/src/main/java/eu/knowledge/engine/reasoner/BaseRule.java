@@ -78,7 +78,7 @@ public class BaseRule {
 	 */
 	private Set<TriplePattern> consequent;
 
-	private String name = "Rule";
+	private String name = "";
 
 	protected BaseRule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 		this(anAntecedent, aConsequent);
@@ -318,7 +318,7 @@ public class BaseRule {
 
 	@Override
 	public String toString() {
-		return this.name + " [antecedent=" + antecedent + ", consequent=" + consequent + "]";
+		return antecedent + " -> " + consequent + (!this.name.isEmpty() ? "(" + this.name + ")" : "");
 	}
 
 	public Set<Var> getVars() {

@@ -26,7 +26,23 @@ public class TripleNode {
 
 	@Override
 	public String toString() {
-		return "TripleNode [node=" + node + ", tp=" + tp + "]";
+
+		StringBuilder sb = new StringBuilder();
+		boolean firstTime = true;
+		for (Node n : new Node[] { tp.getSubject(), tp.getPredicate(), tp.getObject() }) {
+			if (!firstTime) {
+				sb.append(" ");
+			}
+			var truncatedNode = TriplePattern.trunc(n);
+			if (this.node.equals(n)) {
+				sb.append("|").append(truncatedNode).append("|");
+			} else {
+				sb.append(truncatedNode);
+			}
+			firstTime = false;
+		}
+
+		return sb.toString();
 	}
 
 	@Override

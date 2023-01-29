@@ -62,6 +62,7 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
 		}
 
+
 		return changed;
 	}
 
@@ -82,10 +83,5 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	@Override
 	public Set<RuleNode> getAllSameLoopNeighbors() {
 		return new HashSet<>();
-	}
-
-	@Override
-	public void resetResultBindingSetOutput() {
-		assert false;
 	}
 }

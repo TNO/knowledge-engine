@@ -184,7 +184,7 @@ public class Match {
 
 	@Override
 	public String toString() {
-		return "Match [matchingPatterns=" + matchingPatterns + ", mapping=" + mapping + "]";
+		return "Match " + mapping;
 	}
 
 	/**

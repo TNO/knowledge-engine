@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
@@ -28,9 +29,6 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
  * {@link #getResults()} and {@link #execute(BindingSet)} methods. Non-startnode
  * binding sets should be retrieved by the caller. See
  * {@link ForwardTest#test()} for an example.
- * 
- * TODO: matchstrategy.FullMatchOnly
- * 
  * 
  */
 public class ReasonerPlan {
@@ -82,6 +80,10 @@ public class ReasonerPlan {
 	}
 
 	public TaskBoard execute(BindingSet bindingSet) {
+
+		if (bindingSet.isEmpty())
+			bindingSet.add(new Binding());
+
 		RuleNode startNode = this.getStartNode();
 		TaskBoard taskBoard = new TaskBoard();
 
@@ -336,5 +338,9 @@ public class ReasonerPlan {
 
 	public MatchStrategy getMatchStrategy() {
 		return this.strategy;
+	}
+
+	public RuleStore getStore() {
+		return this.store;
 	}
 }

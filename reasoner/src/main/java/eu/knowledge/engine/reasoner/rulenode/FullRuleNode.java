@@ -229,9 +229,4 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 		return nodes;
 	}
-
-	@Override
-	public void resetResultBindingSetOutput() {
-		this.resultBindingSetOutput = null;
-	}
 }
