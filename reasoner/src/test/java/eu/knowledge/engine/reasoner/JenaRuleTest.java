@@ -413,6 +413,118 @@ public class JenaRuleTest {
 	}
 
 	/**
+	 * Test wildcard predicate usage - wildcard in head as well
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testWildPredicate4() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (a ?p ?x) <- (b ?p ?x)]"), "<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<c>,<q>,<d>",
+				new TriplePattern("<a> ?p ?o"), "p=<p>,o=<C1>|p=<q>,o=<C2>|p=<q>,o=<C3>");
+	}
+
+	/**
+	 * Test RDFS example.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testRDFS1() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C2) <- (?a <type> C3) ]"
+				+ "[ (?a <type> C3) <- (?a <type> C4) ]"),
+				"<a>,<type>,<C1>|<b>,<type>,<C2>|<c>,<type>,<C3>|<d>,<type>,<C4>", new TriplePattern("?s <type> <C1>"),
+				"s=<a>|s=<b>|s=<c>|s=<d>");
+	}
+
+	/**
+	 * Test RDFS example - branched version
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testRDFS2() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C1) <- (?a <type> C3) ]"
+				+ "[ (?a <type> C1) <- (?a <type> C4) ]"),
+				"<a>,<type>,<C1>|<b>,<type>,<C2>|<c>,<type>,<C3>|<d>,<type>,<C4>", new TriplePattern("?s <type> <C1>"),
+				"s=<a>|s=<b>|s=<c>|s=<d>");
+	}
+
+	/**
+	 * A problem from the original backchainer tests - tabled closure operation.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testProblem2() throws InterruptedException, ExecutionException, ParseException {
+		String ruleSrc = "[rdfs8:  (?a <subClass> ?c) <- (?a <subClass> ?b), (?b <subClass> ?c)]"
+				+ "[rdfs7:  (?a <subClass> ?a) <- (?a <type> <class>)]";
+		doTest(convertRules(ruleSrc),
+				"<C1>,<subClass>,<C2>|<C2>,<subClass>,<C3>|<C1>,<type>,<class>|<C2>,<type>,<class>|<C3>,<type>,<class>",
+				new TriplePattern("?s <subClass> ?o"),
+				"s=<C1>,o=<C2>|s=<C1>,o=<C3>|s=<C1>,o=<C1>|s=<C2>,o=<C3>|s=<C2>,o=<C2>|s=<C3>,o=<C3>");
+	}
+
+	/**
+	 * A problem from the original backchainer tests - head unification test
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testProblem4() throws InterruptedException, ExecutionException, ParseException {
+		String rules = "[r1: (c r ?x) <- (?x p ?x)]" + "[r2: (?x p ?y) <- (a q ?x), (b q ?y)]";
+		doTest(convertRules(rules), "<a>,<q>,<a>|<a>,<q>,<b>|<a>,<q>,<c>|<b>,<q>,<b>|<b>,<q>,<d>",
+				new TriplePattern("<c> <r> ?o"), "o=<b>");
+	}
+
+	/**
+	 * A problem from the original backchainer tests - RDFS example which threw an
+	 * NPE
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testProblem5() throws InterruptedException, ExecutionException, ParseException {
+		String ruleSrc = "[rdfs8:  (?a <subClass> ?c) <- (?a <subClass> ?b), (?b <subClass> ?c)]"
+				+ "[rdfs9:   (?a <type> ?y) <- (?x <subClass> ?y), (?a <type> ?x)]" + "[(<type> <range> <class>) <-]"
+				+ "[rdfs3:  (?y <type> ?c) <- (?x ?p ?y), (?p <range> ?c)]"
+				+ "[rdfs7:  (?a <subClass> ?a) <- (?a <type> <class>)]";
+		doTest(convertRules(ruleSrc),
+				"<p>,<subProp>,<q>|<q>,<subProp>,<r>|<C1>,<subClass>,<C2>|<C2>,<subClass>,<C3>|<a>,<type>,<C1>",
+				new TriplePattern("<a> <type> ?o"), "o=<C1>|o=<C2>|o=<C3>");
+
+	}
+
+	/**
+	 * A suspect problem, originally derived from the OWL rules - risk of unbound
+	 * variables escaping. Not managed to isolate or reproduce the problem yet.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testProblem9() throws InterruptedException, ExecutionException, ParseException {
+		String ruleSrc = "[test:   (?x <sameAs> ?x) <- (?x <type> <thing>) ]"
+				+ "[sameIndividualAs6: (?X <type> <thing>) <- (?X <sameAs> ?Y) ]"
+				+ "[ans:    (?x <p> C1) <- (?y <sameAs> ?x)]";
+		doTest(convertRules(ruleSrc), "<a>,<type>,<thing>|<b>,<sameAs>,<c>", new TriplePattern("?s <p> ?o"),
+				"s=<a>,o=<C1>|s=<b>,o=<C1>|s=<c>,o=<C1>");
+
+	}
+
+	/**
 	 * Generic base test operation on a graph with the single triple (a, p, b)
 	 * 
 	 * @param ruleSrc the source of the rules
