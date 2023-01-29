@@ -559,7 +559,7 @@ public class JenaRuleTest {
 		rs.addRule(startRule);
 
 		ReasonerPlan rp = new ReasonerPlan(rs, startRule);
-		rp.setUseTaskBoard(false);
+		rp.setUseTaskBoard(true);
 
 		rs.printGraphVizCode(rp);
 
