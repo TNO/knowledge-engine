@@ -140,7 +140,7 @@ public class JenaRuleTest {
 	public void testBaseRules7() throws InterruptedException, ExecutionException, ParseException {
 		doBasicTest("[r1: (?x r ?y) <- (?x p c)]", new TriplePattern("<a> <r> <b>"), null);
 	}
-	
+
 	/**
 	 * Test basic rule operations - chain rule which will succeed in search
 	 * 
@@ -363,6 +363,56 @@ public class JenaRuleTest {
 	}
 
 	/**
+	 * Test wildcard predicate usage - simple triple search. Rules look odd because
+	 * we have to hack around the recursive loops.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testWildPredicate1() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (b r ?y) <- (a ?y ?v)]"), "<a>,<p>,<C1>|<a>,<q>,<C2>|<a>,<q>,<C3>",
+				new TriplePattern("<b> <r> ?o"), "o=<p>|o=<q>");
+	}
+
+	/**
+	 * Test wildcard predicate usage - combind triple search and multiclause
+	 * matching. Rules look odd because we have to hack around the recursive loops.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testWildPredicate2() throws InterruptedException, ExecutionException, ParseException {
+		doTest(convertRules("[r1: (a r ?y) <- (b ?y ?v)]" + "[r2: (?x q ?y) <- (?x p ?y)]"
+				+ "[r3: (?x s C1) <- (?x p C1)]" + "[r4: (?x t C2) <- (?x p C2)]"),
+				"<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<a>,<p>,<C1>|<a>,<p>,<C2>|<c>,<p>,<C1>",
+				new TriplePattern("<a> ?p ?o"),
+				"p=<r>,o=<p>|p=<r>,o=<q>|p=<q>,o=<C1>|p=<q>,o=<C2>|p=<s>,o=<C1>|p=<t>,o=<C2>|p=<p>,o=<C1>|p=<p>,o=<C2>|p=<r>,o=<s>");
+	}
+
+	/**
+	 * Test wildcard predicate usage - combined triple search and multiclause
+	 * matching. Rules look odd because we have to hack around the recursive loops.
+	 * 
+	 * @throws ParseException
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void testWildPredicate3() throws InterruptedException, ExecutionException, ParseException {
+		String rules = "[r1: (a r ?y) <- (b ?y ?v)]" + "[r2: (?x q ?y) <- (?x p ?y)]" + "[r3: (?x s C1) <- (?x p C1)]"
+				+ "[r4: (?x t ?y) <- (?x ?y C1)]";
+		String data = "<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<a>,<p>,<C1>|<a>,<p>,<C2>|<c>,<p>,<C1>";
+
+		doTest(convertRules(rules), data, new TriplePattern("<a> ?p <C1>"), "p=<q>|p=<s>|p=<p>");
+		doTest(convertRules(rules), data, new TriplePattern("<a> <t> ?o"), "o=<q>|o=<s>|o=<p>");
+		doTest(convertRules(rules), data, new TriplePattern("?s <t> <q>"), "s=<a>|s=<b>|s=<c>");
+	}
+
+	/**
 	 * Generic base test operation on a graph with the single triple (a, p, b)
 	 * 
 	 * @param ruleSrc the source of the rules
@@ -423,6 +473,7 @@ public class JenaRuleTest {
 		rs.addRule(startRule);
 
 		ReasonerPlan rp = new ReasonerPlan(rs, startRule);
+		rp.setUseTaskBoard(false);
 
 		rs.printGraphVizCode(rp);
 
