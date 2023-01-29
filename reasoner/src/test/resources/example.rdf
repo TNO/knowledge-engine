@@ -21,7 +21,7 @@
         :ds000113 ;
     dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> ;
     dct:publisher <https://openfmri.org> ;
-    dct:title "OpenfMRI" ;
+    dct:title "OpenfMRI"@en ;
     schemaorg:logo <https://openfmri.org/sites/all/themes/openfmri/logo.png> ;
     dcat:accessURL <https://openfmri.org> ;
     dcat:theme <http://dbpedia.org/page/Neuroimaging> .

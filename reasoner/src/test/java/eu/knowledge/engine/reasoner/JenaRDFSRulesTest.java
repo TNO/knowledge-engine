@@ -11,12 +11,15 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.reasoner.rulesys.RDFSForwardRuleReasoner;
+import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
@@ -60,11 +63,13 @@ public class JenaRDFSRulesTest {
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(
 				new Table(new String[] { "s", "p", "o" }, dataSplitted));
-		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
+		String genericTriple = "?s ?p ?o";
+		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(genericTriple))),
 				aBindingSetHandler);
 		rs.addRule(r);
 
-		ProactiveRule startRule = new ProactiveRule(new HashSet<>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
+		String query = "<http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?o";
+		ProactiveRule startRule = new ProactiveRule(new HashSet<>(Arrays.asList(new TriplePattern(genericTriple))),
 				new HashSet<>());
 		rs.addRule(startRule);
 
@@ -82,7 +87,7 @@ public class JenaRDFSRulesTest {
 		}
 
 		BindingSet results2 = rp.getResults();
-		Model m = Util.generateModel(new TriplePattern("?s ?p ?o"), results2);
+		Model m = Util.generateModel(new TriplePattern(genericTriple), results2);
 
 		StmtIterator iter = m.listStatements();
 		LOG.info("------------------------");
@@ -90,6 +95,24 @@ public class JenaRDFSRulesTest {
 			Statement st = iter.next();
 			LOG.info("{}", st);
 		}
+
+		Model m2 = ModelFactory.createDefaultModel();
+		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/example.rdf"), null, "TTL");
+
+		InfModel im2 = ModelFactory.createInfModel(new RDFSForwardRuleReasoner(null), m);
+
+		StmtIterator iter3 = im2.listStatements();
+		LOG.info("------------------------");
+		while (iter3.hasNext()) {
+			Statement st = iter3.next();
+			LOG.info("{}", st);
+		}
+
+		// compare two models
+
+		Model m3 = m.difference(im2);
+
+		LOG.info("Difference: {}", m3);
 
 		LOG.info("------------------------");
 		StmtIterator iter2 = m.listStatements(
