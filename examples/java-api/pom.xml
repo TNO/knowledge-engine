@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>examples</artifactId>
 	<packaging>jar</packaging>
-	<name>Knowledge Engine - Examples</name>
+	<name>Knowledge Engine - Java API Examples</name>
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
 		<version>${revision}</version>
-		<relativePath>..</relativePath>
+		<relativePath>../..</relativePath>
 	</parent>
 
 	<description>A Knowledge Base that shares power measurements of an EEBUS submeter.</description>
