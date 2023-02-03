@@ -29,13 +29,25 @@ The GUI (called `ui` in the example) commences by retrieving all historical meas
 
 # Running it
 
-To run the example, and only show the UI results, do the following:
+To run the example, and only show the 'GUI' results, do the following:
 
 ```
 docker-compose up --build --force-recreate -d && docker-compose logs -f ui
 ```
 
-When you're done, terminate it with:
+You should see output similar to this:
+
+```
+[HISTORICAL] Temperature was 18.157762736025088 units at 2023-02-03T13:26:23.226876
+[HISTORICAL] Temperature was 21.93865480633777 units at 2023-02-03T13:26:27.399687
+[HISTORICAL] Temperature was 15.033330953610719 units at 2023-02-03T13:26:25.372232
+[NEW!] Live temperature is 18.44299690674754 units at 2023-02-03T13:26:29.445521
+[NEW!] Live temperature is 21.2856473490042 units at 2023-02-03T13:26:31.503030
+
+# more will appear indefinitely
+```
+
+When you're done, shut the services down with:
 
 ```
 docker-compose down
