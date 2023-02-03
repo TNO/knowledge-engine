@@ -21,6 +21,8 @@ The Knowledge Engine consists of a number of components:
 - A *Knowledge Engine runtime* is a runtime in which one or more smart connectors can exist. These can exchange data with eachother, and, **if configured correctly**, also with smart connectors in other Knowledge Engine runtimes.
 - (optional) A *knowledge directory* is used as a simple discovery mechanism for several Knowledge Engine runtimes to become aware of eachother's existence.
 
+To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
+
 [The next section](#starting-a-knowledge-engine-runtime) gives instruction on how to start a Knowledge Engine runtime, and [further on](), instructions are given on how to start and use a smart connector from your knowledge base.
 
 ## Starting a Knowledge Engine runtime
@@ -124,9 +126,13 @@ With the API specification, you will be able to:
 - Trigger new proactive knowledge requests via the `/sc/ask` and `/sc/post` paths.
 - Long-poll (`GET`) and respond to (`POST`) knowledge requests from the network via the `/sc/handle` path.
 
+In the [`examples/rest-api`](./examples/rest-api) folder, there is an example Docker Compose project with 3 knowledge bases that publish, store, and present sensor data through a single Knowledge Engine runtime.
+This example covers all four knowledge interaction types, but does not cover all features the REST API provides.
+
 ## Using the Java API
 
-In the [`client_example` package](./smart-connector-rest-server/src/main/java/eu/knowledge/engine/rest/api/client_example), there are several examples of clients written in Java.
+In the [`Java API Example` module](./examples/java-api), the Java API is used to share bindings through a POST knowledge interaction as they appear on an MQTT queue.
+Another knowledge base receives those bindings through a REACT knowledge interaction an prints them to the console.
 
 # Developer information
 
@@ -143,8 +149,6 @@ The Knowledge Engine project consists of the following Maven modules:
 	- This module contains the REST API layer that is built on top of the Java Developer API.
 - `smart-connector-rest-dist`
   - A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#how-to-use-the-rest-api). For instructions on how to set it up, refer to [this section](#how-to-administer-the-rest-api).
-- `examples`
-	- A selection of examples of how the Java developer API is used.
 - `admin-ui`
 	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
 
@@ -191,6 +195,8 @@ nohup java -cp "smart-connector-rest-dist-1.1.3.jar:dependency/*" eu.knowledge.e
 
 ### Starting the Knowledge Engine in distributed mode
 The Knowledge Engine can also start in distributed mode, where it connects with a remote knowledge directory and where different instances of the Knowledge Engine (each instance hosting one or more smart connectors) can communicate with each other.
+
+A minimal example showing how to configure it in distributed mode can be found in [`./examples/multiple-runtimes/`](./examples/multiple-runtimes/).
 
 First of all, you need to start a knowledge directory. The desired port number for the knowledge directory can be configured using the command line argument (8080 in the example below).
 
