@@ -26,3 +26,17 @@ The database (called `storage` in the example) listens for new measurements, and
 
 ## GUI
 The GUI (called `ui` in the example) commences by retrieving all historical measurements and displaying them. Then it starts listening for live updates that it also displays.
+
+# Running it
+
+To run the example, and only show the UI results, do the following:
+
+```
+docker-compose up --build --force-recreate -d && docker-compose logs -f ui
+```
+
+When you're done, terminate it with:
+
+```
+docker-compose down
+```
