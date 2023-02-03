@@ -6,7 +6,7 @@ The setup of the knowledge bases is illustrated as follows:
 
 ![](./img/kbs.svg)
 
-*Arrows that point up are proactive interactions whereas arrows that point down are reactive interactions.*
+*Arrows that point up are proactive interactions (triggered by the knowledge base itself) whereas arrows that point down are reactive interactions (triggered by other knowledge bases).*
 
 All knowledge interactions in this setup use the same graph pattern (so the ASK/ANSWER and POST/REACT pairs all match):
 
