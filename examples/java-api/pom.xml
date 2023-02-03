@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>examples</artifactId>
 	<packaging>jar</packaging>
-	<name>Knowledge Engine - Java API Examples</name>
+	<name>Knowledge Engine - Java API Example</name>
 	<parent>
 		<groupId>eu.knowledge.engine</groupId>
 		<artifactId>ke-parent</artifactId>
