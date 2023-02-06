@@ -24,7 +24,7 @@ The Knowledge Engine consists of a number of components:
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
 In [the following section](#demonstration-videos-and-tutorials), videos are shared giving a high-level introduction to the Knowledge Engine.
-Further on, instructions are given on [how to start](#starting-a-knowledge-engine-runtime) and [how to use](#integrating-with-the-knowledge-engine) a Knowledge Engine runtime..
+Further on, instructions are given on [how to start](#starting-a-knowledge-engine-runtime) and [how to use](#integrating-with-the-knowledge-engine) a Knowledge Engine runtime.
 
 ## Demonstration videos and tutorials
 
