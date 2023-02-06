@@ -11,6 +11,7 @@ Table of Contents:
 - [Integrating with the Knowledge Engine](#integrating-with-the-knowledge-engine)
   - [Using the REST API](#using-the-rest-api)
   - [Using the Java API](#using-the-java-api)
+- [Performance benchmark](#performance-benchmark)
 - [Developer information](#developer-information)
   - [Components](#components)
   - [Release steps](#release-steps)
@@ -162,6 +163,9 @@ This example covers all four knowledge interaction types, but does not cover all
 
 In the [`Java API Example` module](./examples/java-api), the Java API is used to share bindings through a POST knowledge interaction as they appear on an MQTT queue.
 Another knowledge base receives those bindings through a REACT knowledge interaction an prints them to the console.
+
+# Performance benchmark
+A preliminary performence benchmark of the Knowledge Engine is available in [this repository](https://github.com/faclc4/YCSB-KE/tree/master).
 
 # Developer information
 
