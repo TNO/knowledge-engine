@@ -32,7 +32,7 @@ Further on, instructions are given on [how to start](#starting-a-knowledge-engin
 
 Following the previous video, [this video shows the realisation](https://youtu.be/fYoak5EI3FY), and explains more about a pilot in the Netherlands that uses the Knowledge Engine to control energy flexibility in a 22-story building with 160 appartments.
 
-[This video tutorial](#TODO) gives technical details about how to develop knowledge bases and connect them with the Knowledge Engine.
+[This video tutorial](https://youtu.be/QVGmrOBJVkg) gives technical details about how to develop knowledge bases and connect them with the Knowledge Engine.
 
 ## Starting a Knowledge Engine runtime
 
