@@ -23,7 +23,16 @@ The Knowledge Engine consists of a number of components:
 
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
-[The next section](#starting-a-knowledge-engine-runtime) gives instruction on how to start a Knowledge Engine runtime, and [further on](), instructions are given on how to start and use a smart connector from your knowledge base.
+In [the following section](#demonstration-videos-and-tutorials), videos are shared giving a high-level introduction to the Knowledge Engine.
+Further on, instructions are given on [how to start](#starting-a-knowledge-engine-runtime) and [how to use](#integrating-with-the-knowledge-engine) a Knowledge Engine runtime.
+
+## Demonstration videos and tutorials
+
+[This video](https://youtu.be/Kj66N0U2dzg) gives a high-level introduction to the Knowledge Engine, with a simple demonstration of how we aimed to use it in the [InterConnect project](https://interconnectproject.eu).
+
+Following the previous video, [this video shows the realisation](https://youtu.be/fYoak5EI3FY), and explains more about a pilot in the Netherlands that uses the Knowledge Engine to control energy flexibility in a 22-story building with 160 appartments.
+
+[This video tutorial](https://youtu.be/QVGmrOBJVkg) gives technical details about how to develop knowledge bases and connect them with the Knowledge Engine.
 
 ## Starting a Knowledge Engine runtime
 
