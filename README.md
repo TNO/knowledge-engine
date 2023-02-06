@@ -1,23 +1,5 @@
 *Note: This is experimental software, and should not be considered production-ready!*
 
-Table of Contents:
-- [Knowledge Engine](#knowledge-engine)
-- [Demonstration videos and tutorials](#demonstration-videos-and-tutorials)
-- [Starting a Knowledge Engine runtime](#starting-a-knowledge-engine-runtime)
-    - [Running with Docker](#running-with-docker)
-    - [Running with Java](#running-with-java)
-      - [Advanced administration](#advanced-administration)
-    - [Running with Java without the REST API](#running-with-java-without-the-rest-api)
-- [Integrating with the Knowledge Engine](#integrating-with-the-knowledge-engine)
-  - [Using the REST API](#using-the-rest-api)
-  - [Using the Java API](#using-the-java-api)
-- [Performance benchmark](#performance-benchmark)
-- [Developer information](#developer-information)
-  - [Components](#components)
-  - [Release steps](#release-steps)
-  - [(advanced) Administering a Knowledge Engine runtime](#advanced-administering-a-knowledge-engine-runtime)
-    - [Starting the Knowledge Engine in local mode](#starting-the-knowledge-engine-in-local-mode)
-    - [Starting the Knowledge Engine in distributed mode](#starting-the-knowledge-engine-in-distributed-mode)
 
 # Knowledge Engine
 
@@ -42,10 +24,25 @@ The Knowledge Engine consists of a number of components:
 
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
+The rest of this README is structured as follows:
 
-
-In [the following section](#demonstration-videos-and-tutorials), videos are shared giving a high-level introduction to the Knowledge Engine.
-Further on, instructions are given on [how to start](#starting-a-knowledge-engine-runtime) and [how to use](#integrating-with-the-knowledge-engine) a Knowledge Engine runtime.
+- [Knowledge Engine](#knowledge-engine)
+- [Demonstration videos and tutorials](#demonstration-videos-and-tutorials)
+- [Starting a Knowledge Engine runtime](#starting-a-knowledge-engine-runtime)
+    - [Running with Docker](#running-with-docker)
+    - [Running with Java](#running-with-java)
+      - [Advanced administration](#advanced-administration)
+    - [Running with Java without the REST API](#running-with-java-without-the-rest-api)
+- [Integrating with the Knowledge Engine](#integrating-with-the-knowledge-engine)
+  - [Using the REST API](#using-the-rest-api)
+  - [Using the Java API](#using-the-java-api)
+- [Performance benchmark](#performance-benchmark)
+- [Developer information](#developer-information)
+  - [Components](#components)
+  - [Release steps](#release-steps)
+  - [(advanced) Administering a Knowledge Engine runtime](#advanced-administering-a-knowledge-engine-runtime)
+    - [Starting the Knowledge Engine in local mode](#starting-the-knowledge-engine-in-local-mode)
+    - [Starting the Knowledge Engine in distributed mode](#starting-the-knowledge-engine-in-distributed-mode)
 
 # Demonstration videos and tutorials
 
