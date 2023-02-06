@@ -1,5 +1,6 @@
 *Note: This is experimental software, and should not be considered production-ready!*
 
+
 # Knowledge Engine
 
 [![DOI](https://zenodo.org/badge/502097185.svg)](https://zenodo.org/badge/latestdoi/502097185)
@@ -23,10 +24,27 @@ The Knowledge Engine consists of a number of components:
 
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
-In [the following section](#demonstration-videos-and-tutorials), videos are shared giving a high-level introduction to the Knowledge Engine.
-Further on, instructions are given on [how to start](#starting-a-knowledge-engine-runtime) and [how to use](#integrating-with-the-knowledge-engine) a Knowledge Engine runtime.
+The rest of this README is structured as follows:
 
-## Demonstration videos and tutorials
+- [Knowledge Engine](#knowledge-engine)
+- [Demonstration videos and tutorials](#demonstration-videos-and-tutorials)
+- [Starting a Knowledge Engine runtime](#starting-a-knowledge-engine-runtime)
+    - [Running with Docker](#running-with-docker)
+    - [Running with Java](#running-with-java)
+      - [Advanced administration](#advanced-administration)
+    - [Running with Java without the REST API](#running-with-java-without-the-rest-api)
+- [Integrating with the Knowledge Engine](#integrating-with-the-knowledge-engine)
+  - [Using the REST API](#using-the-rest-api)
+  - [Using the Java API](#using-the-java-api)
+- [Performance benchmark](#performance-benchmark)
+- [Developer information](#developer-information)
+  - [Components](#components)
+  - [Release steps](#release-steps)
+  - [(advanced) Administering a Knowledge Engine runtime](#advanced-administering-a-knowledge-engine-runtime)
+    - [Starting the Knowledge Engine in local mode](#starting-the-knowledge-engine-in-local-mode)
+    - [Starting the Knowledge Engine in distributed mode](#starting-the-knowledge-engine-in-distributed-mode)
+
+# Demonstration videos and tutorials
 
 [This video](https://youtu.be/Kj66N0U2dzg) gives a high-level introduction to the Knowledge Engine, with a simple demonstration of how we aimed to use it in the [InterConnect project](https://interconnectproject.eu).
 
@@ -34,7 +52,7 @@ Following the previous video, [this video shows the realisation](https://youtu.b
 
 [This video tutorial](https://youtu.be/QVGmrOBJVkg) gives technical details about how to develop knowledge bases and connect them with the Knowledge Engine.
 
-## Starting a Knowledge Engine runtime
+# Starting a Knowledge Engine runtime
 
 Starting a Knowledge Engine runtime can be done in several ways, [with Docker](#running-with-docker), [with Java](#running-with-java), and [in a more minimal way with Java](#running-with-java-without-the-rest-api).
 
@@ -112,7 +130,7 @@ In constrained environments, it may be preferable to use the Java API directly, 
 For this, you need to be in a Java project, import our packages, implement the `KnowledgeBase` interface, and start a smart connector with a `SmartConnectorBuilder`.
 An example of this can be found in the [`./examples/`](./examples/) folder.
 
-## Integrating with the Knowledge Engine
+# Integrating with the Knowledge Engine
 
 Again, there are several options here: use the REST API, the Java API or the Knowledge Mapper<sup>*</sup>.
 
@@ -142,6 +160,9 @@ This example covers all four knowledge interaction types, but does not cover all
 
 In the [`Java API Example` module](./examples/java-api), the Java API is used to share bindings through a POST knowledge interaction as they appear on an MQTT queue.
 Another knowledge base receives those bindings through a REACT knowledge interaction an prints them to the console.
+
+# Performance benchmark
+A preliminary performence benchmark of the Knowledge Engine is available in [this repository](https://github.com/faclc4/YCSB-KE/tree/master).
 
 # Developer information
 
