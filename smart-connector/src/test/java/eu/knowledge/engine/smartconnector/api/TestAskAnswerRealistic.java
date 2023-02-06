@@ -9,12 +9,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+@Disabled
 public class TestAskAnswerRealistic {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);

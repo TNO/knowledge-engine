@@ -1,11 +1,11 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.sse.SSE;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JenaTest {
 	@Test

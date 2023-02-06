@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -548,4 +547,5 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public boolean isReasonerEnabled() {
 		return this.interactionProcessor.isReasonerEnabled();
 	}
+
 }

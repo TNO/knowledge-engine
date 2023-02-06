@@ -1,8 +1,5 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,19 +7,33 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class VerySimpleBackwardTest {
 
-	private KeReasoner reasoner;
+	private static final Logger LOG = LoggerFactory.getLogger(VerySimpleBackwardTest.class);
+
+	private RuleStore store;
 	private ProxyDataBindingSetHandler bindingSetHandler;
+
+	private ProactiveRule startRule;
 
 	/**
 	 * A simple proxy class that captures the incoming bindingsets so that we are
@@ -57,10 +68,10 @@ public class VerySimpleBackwardTest {
 		}
 	}
 
-	@Before
+	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
-		reasoner = new KeReasoner();
+		store = new RuleStore();
 		bindingSetHandler = new ProxyDataBindingSetHandler(new Table(new String[] {
 		//@formatter:off
 				"a", "b"
@@ -71,67 +82,38 @@ public class VerySimpleBackwardTest {
 				"<sensor2>,21",
 				//@formatter:on
 		}));
-		reasoner.addRule(new Rule(new HashSet<>(),
-				new HashSet<>(Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
+		store.addRule(new Rule(
+				new HashSet<>(
+						Arrays.asList(new TriplePattern("?a <type> <Sensor>"), new TriplePattern("?a <hasValInC> ?b"))),
 				bindingSetHandler));
 
-		reasoner.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
+		store.addRule(new Rule(new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Sensor>"))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?s <type> <Device>")))));
-	}
 
-	@Test
-	public void testConverter() {
-
-		// test with taskboard
-		doReasoning(new TaskBoard());
-		List<BindingSet> bsWithTaskBoard = new ArrayList<>(this.bindingSetHandler.getBindingSets());
-
-		// emtpy the bindingsets collected
-		this.bindingSetHandler.clear();
-		System.out.println("----------------- new reasoning ------------------");
-
-		// test without taskboard
-		doReasoning(null);
-		List<BindingSet> bsWithoutTaskBoard = new ArrayList<>(this.bindingSetHandler.getBindingSets());
-
-		// incoming bindingset for handler should be the same when using TaskBoard and
-		// not using taskboard. Ordering is not important. Is the number of times it is
-		// called important? Maybe not because the TaskBoard might aggregate multiple
-		// calls together into a single one?
-		System.out.println("With TaskBoard   : " + bsWithTaskBoard);
-		System.out.println("Without TaskBoard: " + bsWithoutTaskBoard);
-
-		assertEquals(new HashSet<>(bsWithTaskBoard), new HashSet<>(bsWithoutTaskBoard));
-
-	}
-
-	private void doReasoning(TaskBoard aTaskBoard) {
-		// Formulate objective
-		Binding b = new Binding();
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?p <type> <Device>"));
 		objective.add(new TriplePattern("?p <hasValInC> ?q"));
 
+		startRule = new ProactiveRule(objective, new HashSet<>());
+		store.addRule(startRule);
+	}
+
+	@Test
+	public void doReasoning() throws InterruptedException, ExecutionException {
 		// Start reasoning
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, aTaskBoard);
-		System.out.println(root);
+		ReasonerPlan plan = new ReasonerPlan(store, startRule);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
 		binding2.put("p", "<sensor1>");
 		binding2.put("q", "22");
 		bs.add(binding2);
-
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			System.out.println(root);
-
-			if (aTaskBoard != null)
-				aTaskBoard.executeScheduledTasks();
+		TaskBoard tb;
+		while ((tb = plan.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
 		}
-
-		System.out.println("bindings: " + bind);
-		assertFalse(bind.isEmpty());
+		var result = plan.getResults();
+		System.out.println(result);
 	}
 
 }

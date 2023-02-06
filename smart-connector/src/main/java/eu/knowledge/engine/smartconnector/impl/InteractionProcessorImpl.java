@@ -30,6 +30,7 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
@@ -185,13 +186,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			for (Binding b : bs) {
 				assert (b.containsKey("kb"));
 				String kbId = b.get("kb");
-				queryString += "(" + kbId + "),";
+				queryString += "(" + kbId + ")";
 			}
 		} else {
-			queryString += "(UNDEF),";
+			queryString += "(UNDEF)";
 		}
 
-		queryString = queryString.substring(0, queryString.length() - 1);
 		queryString += " }";
 		return queryString;
 	}
@@ -222,13 +222,14 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 			if (this.shouldValidateInputOutputBindings()) {
 				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(), anAskMsg.getBindings(), b);
+				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
+						anAskMsg.getBindings(), b);
 			}
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering a msg: {}", e);
+			LOG.error("An error occurred while answering a msg: ", e);
 			LOG.debug("The error occured while answering this message: {}", anAskMsg);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
@@ -306,14 +307,15 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 			if (this.shouldValidateInputOutputBindings()) {
 				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(), reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
+						reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 			}
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					b);
 		}).exceptionally((e) -> {
-			LOG.error("An error occurred while answering a msg: {}", e);
-			LOG.debug("The error occured while answering this message: {}", aPostMsg);
+			LOG.error("An error occurred while reacting to a message:", e);
+			LOG.debug("The error occured while reacting to this message: {}", aPostMsg);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					e.getMessage());
@@ -322,9 +324,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 	private boolean shouldValidateInputOutputBindings() {
 		return SmartConnectorConfig.getBoolean(
-			SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
-			VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT
-		);
+				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
+				VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT);
 	}
 
 	@Override

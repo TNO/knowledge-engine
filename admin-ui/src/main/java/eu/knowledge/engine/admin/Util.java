@@ -1,13 +1,12 @@
 package eu.knowledge.engine.admin;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
@@ -20,12 +19,17 @@ import org.apache.jena.vocabulary.RDF;
 
 import eu.knowledge.engine.admin.model.CommunicativeAct;
 import eu.knowledge.engine.admin.model.Connection;
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.ReasoningNode;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.knowledge.engine.reasoner.ConsSide;
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactVoidBindingSetHandler;
 
 public class Util {
 
@@ -35,8 +39,7 @@ public class Util {
 		// store some predefined prefixes
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
-		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
+		prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
 	}
 
 	// --------------------- RDF Model navigation helper methods ------------------
@@ -44,7 +47,7 @@ public class Util {
 	public static Set<Resource> getKnowledgeBaseURIs(Model m) {
 
 		ResIterator iter = m.listResourcesWithProperty(RDF.type,
-				m.createResource(prefixes.expandPrefix("kb:KnowledgeBase")));
+				m.createResource(prefixes.expandPrefix("ke:KnowledgeBase")));
 
 		Set<Resource> kbs = new HashSet<>();
 
@@ -55,15 +58,15 @@ public class Util {
 	}
 
 	public static String getName(Model m, Resource r) {
-		return getProperty(m, r, prefixes.expandPrefix("kb:hasName"));
+		return getProperty(m, r, prefixes.expandPrefix("ke:hasName"));
 	}
 
 	public static String getDescription(Model m, Resource r) {
-		return getProperty(m, r, prefixes.expandPrefix("kb:hasDescription"));
+		return getProperty(m, r, prefixes.expandPrefix("ke:hasDescription"));
 	}
 
 	public static Set<Resource> getKnowledgeInteractionURIs(Model m, Resource r) {
-		StmtIterator kiIter = m.listStatements(r, m.getProperty(prefixes.expandPrefix("kb:hasKnowledgeInteraction")),
+		StmtIterator kiIter = m.listStatements(r, m.getProperty(prefixes.expandPrefix("ke:hasKnowledgeInteraction")),
 				(RDFNode) null);
 
 		Set<Resource> kis = new HashSet<>();
@@ -79,22 +82,22 @@ public class Util {
 	}
 
 	public static boolean isMeta(Model model, Resource kiRes) {
-		return kiRes.getProperty(model.createProperty(prefixes.expandPrefix("kb:isMeta"))).getObject().asLiteral()
+		return kiRes.getProperty(model.createProperty(prefixes.expandPrefix("ke:isMeta"))).getObject().asLiteral()
 				.getBoolean();
 	}
 
 	public static CommunicativeAct getCommunicativeAct(Model model, Resource kiRes) {
 		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasCommunicativeAct")));
+				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("ke:hasCommunicativeAct")));
 		CommunicativeAct ca = new CommunicativeAct();
 		if (gpRes != null) {
 			StmtIterator reqIter = model.listStatements(gpRes,
-					model.getProperty(prefixes.expandPrefix("kb:hasRequirement")), (RDFNode) null);
+					model.getProperty(prefixes.expandPrefix("ke:hasRequirement")), (RDFNode) null);
 			while (reqIter.hasNext()) {
 				ca.addRequiredPurposesItem(reqIter.next().getObject().toString());
 			}
 			StmtIterator satIter = model.listStatements(gpRes,
-					model.getProperty(prefixes.expandPrefix("kb:hasSatisfaction")), (RDFNode) null);
+					model.getProperty(prefixes.expandPrefix("ke:hasSatisfaction")), (RDFNode) null);
 			while (satIter.hasNext()) {
 				ca.addSatisfiedPurposesItem(satIter.next().getObject().toString());
 			}
@@ -104,26 +107,27 @@ public class Util {
 	}
 
 	public static String getGraphPattern(Model model, Resource kiRes) {
-		Resource gpRes = kiRes.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasGraphPattern")));
-		return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
-
+		Resource gpRes = kiRes.getPropertyResourceValue(Vocab.HAS_GP);
+		return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 	}
 
 	public static String getArgument(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasArgumentGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP).mapWith(s -> s.getObject().asResource())
+				.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.ARGUMENT_GRAPH_PATTERN));
+		if (gpRess.hasNext()) {
+			var gpRes = gpRess.next();
+			return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 		} else {
 			return NONE;
 		}
 	}
 
 	public static String getResult(Model model, Resource kiRes) {
-		Resource gpRes = kiRes
-				.getPropertyResourceValue(model.getProperty(prefixes.expandPrefix("kb:hasResultGraphPattern")));
-		if (gpRes != null) {
-			return gpRes.getProperty(model.getProperty(model.expandPrefix("kb:hasPattern"))).getObject().asLiteral().getLexicalForm();
+		var gpRess = kiRes.listProperties(Vocab.HAS_GP).mapWith(s -> s.getObject().asResource())
+				.filterKeep(r -> r.getPropertyResourceValue(RDF.type).equals(Vocab.RESULT_GRAPH_PATTERN));
+		if (gpRess.hasNext()) {
+			var gpRes = gpRess.next();
+			return gpRes.getProperty(Vocab.HAS_PATTERN).getObject().asLiteral().getLexicalForm();
 		} else {
 			return NONE;
 		}
@@ -133,35 +137,58 @@ public class Util {
 		return r.getProperty(m.getProperty(propertyURI)).getObject().toString();
 	}
 
-	public static List<Connection> createConnectionObjects(ReasoningNode rn) {
+	public static List<Connection> createConnectionObjects(RuleNode rn) {
 
 		System.out.println(rn.toString());
 
-		Queue<ReasoningNode> queue = new LinkedList<ReasoningNode>();
+		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);
+
+		List<RuleNode> visited = new ArrayList<>();
 
 		Set<String> actors = new HashSet<>();
 
 		while (!queue.isEmpty()) {
 
-			ReasoningNode node = queue.poll();
+			RuleNode node = queue.poll();
+			visited.add(node);
 
 			String currentActor = null;
-			BindingSetHandler bsh = node.getRule().getBindingSetHandler();
-			ReactBindingSetHandler rbsh = null;
-			AnswerBindingSetHandler absh = null;
-			if (bsh instanceof ReactBindingSetHandler) {
-				rbsh = (ReactBindingSetHandler) bsh;
-				currentActor = rbsh.getKnowledgeInteractionInfo().getId().toString();
-				actors.add(currentActor);
-			} else if (bsh instanceof AnswerBindingSetHandler) {
-				absh = (AnswerBindingSetHandler) bsh;
-				currentActor = absh.getKnowledgeInteractionInfo().getId().toString();
-				actors.add(currentActor);
-			}
 
-			queue.addAll(node.getAntecedentNeighbors().keySet());
-			queue.addAll(node.getConsequentNeighbors().keySet());
+			if (!(node.getRule() instanceof ProactiveRule)) {
+
+				Rule rule = (Rule) node.getRule();
+				BindingSetHandler bsh = rule.getBindingSetHandler();
+
+				if (bsh != null) {
+					ReactBindingSetHandler rbsh = null;
+					AnswerBindingSetHandler absh = null;
+					if (bsh instanceof ReactBindingSetHandler) {
+						rbsh = (ReactBindingSetHandler) bsh;
+						currentActor = rbsh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					} else if (bsh instanceof AnswerBindingSetHandler) {
+						absh = (AnswerBindingSetHandler) bsh;
+						currentActor = absh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					}
+				} else {
+					assert rule.getConsequent().isEmpty();
+					SinkBindingSetHandler sbsh = rule.getSinkBindingSetHandler();
+					ReactVoidBindingSetHandler rvbsh = null;
+					if (sbsh instanceof ReactVoidBindingSetHandler) {
+						rvbsh = (ReactVoidBindingSetHandler) sbsh;
+						currentActor = rvbsh.getKnowledgeInteractionInfo().getId().toString();
+						actors.add(currentActor);
+					}
+				}
+			}
+			if (node instanceof AntSide)
+				queue.addAll(((AntSide) node).getAntecedentNeighbours().keySet().stream()
+						.filter(n -> !visited.contains(n)).collect(Collectors.toSet()));
+			if (node instanceof ConsSide)
+				queue.addAll(((ConsSide) node).getConsequentNeighbours().keySet().stream()
+						.filter(n -> !visited.contains(n)).collect(Collectors.toSet()));
 		}
 
 		List<Connection> connections = new ArrayList<Connection>();

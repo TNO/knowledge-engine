@@ -57,19 +57,25 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
-	public synchronized void scheduleQueryKnowledgeDirectory() {
+	public void scheduleQueryKnowledgeDirectory() {
 		if (this.scheduledKnowledgeDirectoryQueryFuture != null && !this.scheduledKnowledgeDirectoryQueryFuture.isDone()) {
 			// There was already a scheduled update, so we don't have to do anything.
+			LOG.debug("It was requested to schedule a query to the Knowledge Directory but there was already a scheduled query! Doing nothing. ");
 			return;
 		}
 
 		var now = new Date();
 		
-		if (knowledgeDirectoryUpdateCooldownEnds == null || now.getTime() > knowledgeDirectoryUpdateCooldownEnds.getTime()) {
-			// Cooldown already ended: do it right away.
-			queryKnowledgeDirectory();
+		if (knowledgeDirectoryUpdateCooldownEnds == null || knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime() < 0) {
+			// Cooldown already ended: schedule it on the KeRuntime right away.
+			LOG.debug("Scheduling to query the Knowledge Directory right away.");
+			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
+				queryKnowledgeDirectory();
+				this.scheduledKnowledgeDirectoryQueryFuture = null;
+			}, 0, TimeUnit.MILLISECONDS);
 		} else {
 			// Cooldown not yet ended: schedule to update when the cooldown ends.
+			LOG.debug("Scheduling to query the Knowledge Directory when the cooldown ends (in {} ms).", knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime());
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
 				queryKnowledgeDirectory();
 				this.scheduledKnowledgeDirectoryQueryFuture = null;
@@ -80,6 +86,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private synchronized void queryKnowledgeDirectory() {
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails;
 		try {
+			LOG.info("Querying Knowledge Directory for new peers");
 			kerConnectionDetails = messageDispatcher
 				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
 			// Check if there are new KERs

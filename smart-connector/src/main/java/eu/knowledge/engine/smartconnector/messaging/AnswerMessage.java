@@ -53,11 +53,11 @@ public class AnswerMessage extends KnowledgeMessage {
 
 	@Override
 	public String toString() {
-		return "AnswerMessage [getToKnowledgeBase()=" + getToKnowledgeBase() + ", getToKnowledgeInteraction()="
-				+ getToKnowledgeInteraction() + ", getFromKnowledgeBase()=" + getFromKnowledgeBase()
-				+ ", getFromKnowledgeInteraction()=" + getFromKnowledgeInteraction() + ", getMessageId()="
-				+ getMessageId() + ", getReplyToAskMessage()=" + getReplyToAskMessage() + ", getBindings()="
-				+ getBindings() + "]";
+		return "AnswerMessage [getFromKnowledgeBase()=" + getFromKnowledgeBase() + ", getFromKnowledgeInteraction()="
+				+ getFromKnowledgeInteraction() + ", getToKnowledgeBase()=" + getToKnowledgeBase()
+				+ ", getToKnowledgeInteraction()=" + getToKnowledgeInteraction() + ", getMessageId()=" + getMessageId()
+				+ ", getFailedMessage()=" + getFailedMessage() + ", getReplyToAskMessage()=" + getReplyToAskMessage()
+				+ ", getBindings()=" + getBindings() + "]";
 	}
 
 }

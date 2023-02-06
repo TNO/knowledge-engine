@@ -8,7 +8,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.ReasoningNode;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
 
 /**
  * An {@link AskResult} contains the result of the
@@ -25,7 +25,7 @@ public class AskResult {
 	/**
 	 * Can be null, if the matcher is used instead of the reasoner.
 	 */
-	private ReasoningNode rootNode;
+	private ReasonerPlan reasonerPlan;
 
 	private final Set<AskExchangeInfo> exchangeInfos;
 
@@ -38,10 +38,10 @@ public class AskResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasoningNode aRootNode) {
+	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode) {
 		this.bindings = someBindings;
 		this.exchangeInfos = askExchangeInfos;
-		this.rootNode = aRootNode;
+		this.reasonerPlan = aRootNode;
 	}
 
 	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos) {
@@ -95,8 +95,8 @@ public class AskResult {
 	 * 
 	 * @return
 	 */
-	public ReasoningNode getReasoningNode() {
-		return this.rootNode;
+	public ReasonerPlan getReasonerPlan() {
+		return this.reasonerPlan;
 	}
 
 	@Override

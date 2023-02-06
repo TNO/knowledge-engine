@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -9,34 +8,44 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.ProactiveRule;
+import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class DynamicSemanticConfigurationTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DynamicSemanticConfigurationTest.class);
 
-	private KeReasoner reasoner;
+	private RuleStore ruleStore;
 
-	@Before
+	@BeforeAll
 	public void init() throws URISyntaxException {
+		ruleStore = new RuleStore();
+
 		// Initialize
-		reasoner = new KeReasoner();
-		reasoner.addRule(new Rule(new HashSet<>(), new HashSet<>(
+		ruleStore.addRule(new Rule(new HashSet<>(), new HashSet<>(
 				Arrays.asList(new TriplePattern("?id <type> <Target>"), new TriplePattern("?id <hasName> ?name"))),
-				new BindingSetHandler() {
+				new TransformBindingSetHandler() {
 
 					private Table data = new Table(new String[] {
 				//@formatter:off
@@ -86,17 +95,17 @@ public class DynamicSemanticConfigurationTest {
 
 				}));
 
-		reasoner.addRule(new Rule(
+		ruleStore.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasCountry> \"Russia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
-		reasoner.addRule(new Rule(
+		ruleStore.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
 						new TriplePattern("?id <hasName> ?name"))),
-				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"),
-						new TriplePattern("?id <hasLanguage> ?lang"))),
-				new BindingSetHandler() {
+
+				new HashSet<>(Arrays.asList(new TriplePattern("?id <hasCountry> ?c"))),
+				new TransformBindingSetHandler() {
 
 					@Override
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
@@ -145,24 +154,26 @@ public class DynamicSemanticConfigurationTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 		// Formulate objective
 		Set<TriplePattern> objective = new HashSet<>();
 		objective.add(new TriplePattern("?id <type> <HighValueTarget>"));
 		objective.add(new TriplePattern("?id <hasName> ?name"));
 
-		TaskBoard taskboard = new TaskBoard();
+		ProactiveRule aRule = new ProactiveRule(objective, new HashSet<>());
+		ruleStore.addRule(aRule);
 
 		// Make a plan
-		ReasoningNode root = reasoner.backwardPlan(objective, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
+		ReasonerPlan root = new ReasonerPlan(this.ruleStore, aRule);
 		LOG.info("\n{}", root);
 		BindingSet bs = new BindingSet();
+
 		// Start reasoning
-		BindingSet bind;
-		while ((bind = root.continueBackward(bs)) == null) {
-			LOG.info("\n{}", root);
-			taskboard.executeScheduledTasks();
+		TaskBoard tb;
+		while ((tb = root.execute(bs)).hasTasks()) {
+			tb.executeScheduledTasks().get();
 		}
+		BindingSet bind = root.getResults();
 
 		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());

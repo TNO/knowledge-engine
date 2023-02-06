@@ -1,0 +1,27 @@
+services:
+  knowledge-engine:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.3
+    healthcheck:
+      test: curl -f http://localhost:8280/rest/sc
+      interval: 1s
+  sensor:
+    build:
+      context: ./knowledge-bases/
+      dockerfile: Dockerfile.sensor
+    depends_on:
+      knowledge-engine:
+        condition: service_healthy
+  storage:
+    build:
+      context: ./knowledge-bases/
+      dockerfile: Dockerfile.storage
+    depends_on:
+      knowledge-engine:
+        condition: service_healthy
+  ui:
+    build:
+      context: ./knowledge-bases/
+      dockerfile: Dockerfile.ui
+    depends_on:
+      knowledge-engine:
+        condition: service_healthy
