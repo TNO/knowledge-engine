@@ -22,6 +22,11 @@ public class BindingSetStore {
 	private final Map<RuleNode, TripleVarBindingSet> neighborBindingSet = new HashMap<>();
 	private final Set<TriplePattern> graphPattern;
 
+	/**
+	 * Keep a cache and see if it improves performance.
+	 */
+	private TripleVarBindingSet cache;
+
 	public BindingSetStore(Set<TriplePattern> aGraphPattern, Set<RuleNode> someNeighbors) {
 		this.graphPattern = aGraphPattern;
 		this.neighbors = someNeighbors;
@@ -43,7 +48,12 @@ public class BindingSetStore {
 
 		TripleVarBindingSet previousBindingSet = this.neighborBindingSet.put(aNeighbor, aBindingSet);
 
-		return previousBindingSet == null || !previousBindingSet.equals(aBindingSet);
+		boolean changed = previousBindingSet == null || !previousBindingSet.equals(aBindingSet);
+
+		if (changed)
+			this.cache = null;
+
+		return changed;
 	}
 
 	public boolean haveAllNeighborsContributed() {
@@ -62,6 +72,10 @@ public class BindingSetStore {
 	 * @return the bindingset with the combined bindingset of all neighbors.
 	 */
 	public TripleVarBindingSet get() {
+
+		if (this.cache != null) {
+			return this.cache;
+		}
 		// TODO: Can a similar assertion be made? (Changed the class so that the
 		// result is also gettable when all neighbours except a specific one
 		// contributed)
@@ -75,7 +89,8 @@ public class BindingSetStore {
 		// NOTE: we merge the bindings with themselves here (when the bindings
 		// 'leave' the store), but it may be better to do it when they enter the
 		// store, or when they get translated/matched.
-		return combinedBS.merge(combinedBS);
+		this.cache = combinedBS.merge(combinedBS);
+		return this.cache;
 	}
 
 	@Override

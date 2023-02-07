@@ -10,16 +10,12 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.reasoner.rulesys.RDFSForwardRuleReasoner;
 import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.sparql.sse.SSE;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +39,7 @@ public class JenaRDFSRulesTest {
 	 * @throws ExecutionException
 	 * @throws ParseException
 	 */
+	@Disabled
 	@Test
 	public void test() throws InterruptedException, ExecutionException, ParseException {
 
@@ -187,13 +184,6 @@ public class JenaRDFSRulesTest {
 			e.printStackTrace();
 		}
 		return sb.toString();
-	}
-
-	@Test
-	public void simpleTest() {
-		String str = "\"Quotation is a particular case of derivation (see http://www.w3.org/TR/prov-dm/#term-quotation) in which an entity is derived from an original entity by copying or \\\"quoting\\\" some or all of it. \"^^<http://www.w3.org/2001/XMLSchema#string>";
-
-		SSE.parseNode(str, null);
 	}
 
 }

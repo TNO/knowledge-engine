@@ -108,6 +108,7 @@ public class ReasonerPlan {
 
 			while (!stack.isEmpty()) {
 				final RuleNode current = stack.pop();
+				LOG.trace("Processing {}", current);
 
 				current.getAllNeighbours().stream().filter(n -> !stack.contains(n)).filter(n -> !visited.contains(n))
 						.filter(n -> !n.equals(current)).forEach(n -> stack.push(n));

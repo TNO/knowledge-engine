@@ -27,8 +27,8 @@ public class TripleVarBinding {
 	private Map<Var, TripleNode> variableTripleVarMapping;
 
 	public TripleVarBinding() {
-		tripleVarMapping = new HashMap<>();
-		variableTripleVarMapping = new HashMap<>();
+		tripleVarMapping = new HashMap<>(6, 1.0f);
+		variableTripleVarMapping = new HashMap<>(4, 1.0f);
 	}
 
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
@@ -108,9 +108,10 @@ public class TripleVarBinding {
 	 */
 	public boolean isConflicting(TripleVarBinding tvb) {
 
+		Node l;
 		for (Map.Entry<TripleNode, Node_Concrete> e : this.tripleVarMapping.entrySet()) {
 			assert e.getKey().node.isVariable();
-			Node l = tvb.getVarValue((Var) e.getKey().node);
+			l = tvb.getVarValue((Var) e.getKey().node);
 
 			if (l != null && !e.getValue().equals(l)) {
 				return true;
@@ -211,6 +212,7 @@ public class TripleVarBinding {
 		TripleVarBinding b = new TripleVarBinding();
 		b.putAll(this.tripleVarMapping);
 		b.putAll(otherB.tripleVarMapping);
+
 		return b;
 	}
 

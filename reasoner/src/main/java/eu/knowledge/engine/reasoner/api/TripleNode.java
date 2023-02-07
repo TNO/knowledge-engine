@@ -13,8 +13,12 @@ public class TripleNode {
 	 */
 	public int nodeIdx;
 
+	// Precalulated the hash code because hashCode() is used so heavily with Var's
+	private final int hashCodeValue;
+
 	public TripleNode(TriplePattern aTriplePattern, Node aNode, int aNodeIdx) {
 		assert (0 <= aNodeIdx && aNodeIdx <= 2);
+		this.hashCodeValue = this.calcHashCode();
 		this.tp = aTriplePattern;
 		this.node = aNode;
 		this.nodeIdx = aNodeIdx;
@@ -45,14 +49,18 @@ public class TripleNode {
 		return sb.toString();
 	}
 
-	@Override
-	public int hashCode() {
+	private int calcHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((node == null) ? 0 : node.hashCode());
 		result = prime * result + nodeIdx;
 		result = prime * result + ((tp == null) ? 0 : tp.hashCode());
 		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.hashCodeValue;
 	}
 
 	@Override
