@@ -121,7 +121,10 @@ public class NotDesignedToWorkTogetherTest {
 		binding2.put("l", "<lamp2>");
 		binding2.put("o", "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
 		argument.add(binding2);
-		appKb.post(appKbPost, argument);
+		PostPlan pp = appKb.planPost(appKbPost, new RecipientSelector());
+
+		pp.getReasonerPlan().getStore().printGraphVizCode(pp.getReasonerPlan());
+		pp.execute(argument);
 
 		boolean allTouched = latch.await(3000, TimeUnit.MILLISECONDS);
 

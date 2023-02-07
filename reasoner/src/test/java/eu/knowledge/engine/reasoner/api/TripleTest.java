@@ -5,11 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
-
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class TripleTest {
 
@@ -21,10 +18,10 @@ public class TripleTest {
 		// if two triples matche exactly, we still need to store the matching variables,
 		// otherwise we cannot detect conflicts when merging!
 
-		Map<Node, Node> actual = t1.findMatches(t2);
+		Map<TripleNode, TripleNode> actual = t1.findMatches(t2);
 
-		Map<Node, Node> expected = new HashMap<>();
-		expected.put(SSE.parseNode("?s"), SSE.parseNode("?d"));
+		Map<TripleNode, TripleNode> expected = new HashMap<>();
+		expected.put(new TripleNode(t1, SSE.parseNode("?s"), 0), new TripleNode(t2, SSE.parseNode("?d"), 0));
 
 		assertEquals(expected, actual);
 

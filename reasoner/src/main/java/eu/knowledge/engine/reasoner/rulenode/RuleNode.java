@@ -14,7 +14,6 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 public abstract class RuleNode {
 
 	private BaseRule rule;
-	private boolean executeViaTaskboard;
 	private boolean resultBindingSetOutputScheduled = false;
 
 	public RuleNode(BaseRule aRule) {
@@ -26,10 +25,6 @@ public abstract class RuleNode {
 	}
 
 	public abstract Set<RuleNode> getAllNeighbours();
-
-	public boolean getExecuteViaTaskboard() {
-		return executeViaTaskboard;
-	}
 
 	public abstract Future<Void> applyRule();
 
@@ -45,8 +40,6 @@ public abstract class RuleNode {
 
 	public abstract Set<RuleNode> getAllSameLoopNeighbors();
 
-	public abstract void resetResultBindingSetOutput();
-
 	public void setResultBindingSetInputScheduled(boolean b) {
 		this.resultBindingSetOutputScheduled = b;
 	}
@@ -57,7 +50,7 @@ public abstract class RuleNode {
 
 	@Override
 	public String toString() {
-		return "RuleNode for " + this.rule.toString();
+		return "RN " + this.rule.toString();
 	}
 
 }

@@ -53,10 +53,8 @@ public class Util {
 		String[] entries = encodedBindingSet.split("\\|");
 
 		for (String entry : entries) {
-			if (!entry.isEmpty()) {
-				Binding b = toBinding(entry);
-				bs.add(b);
-			}
+			Binding b = toBinding(entry);
+			bs.add(b);
 		}
 		return bs;
 	}
@@ -94,7 +92,7 @@ public class Util {
 						if (b.get(n.getName()).isURI()) {
 							repr = "<" + b.get(n.getName()).toString() + ">";
 						} else {
-							repr = "\"" + b.get(n.getName()).toString() + "\"";
+							repr = b.get(n.getName()).toString(); //"\"" + b.get(n.getName()).toString() + "\"";
 						}
 
 						LOG.trace("Parsing: {}", repr);

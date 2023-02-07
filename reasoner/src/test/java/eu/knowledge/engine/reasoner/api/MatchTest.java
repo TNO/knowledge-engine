@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -22,9 +21,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MatchTest {
@@ -218,15 +214,16 @@ public class MatchTest {
 		TriplePattern tp2_2 = new TriplePattern("?s <hasV> ?val");
 		TriplePattern tp2_3 = new TriplePattern("?s <type> <Device>");
 
-		Map<Node, Node> mapping1 = new HashMap<Node, Node>();
-		mapping1.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
-		mapping1.put(SSE.parseNode("?t"), SSE.parseNode("<Sensor>"));
+		Map<TripleNode, TripleNode> mapping1 = new HashMap<TripleNode, TripleNode>();
+		mapping1.put(new TripleNode(tp1_1, SSE.parseNode("?p"), 0), new TripleNode(tp2_1, SSE.parseNode("?s"), 0));
+		mapping1.put(new TripleNode(tp1_1, SSE.parseNode("?t"), 2),
+				new TripleNode(tp2_1, SSE.parseNode("<Sensor>"), 2));
 
 		Match m1 = new Match(tp1_1, tp2_1, mapping1);
 
-		Map<Node, Node> mapping2 = new HashMap<Node, Node>();
-		mapping2.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
-		mapping2.put(SSE.parseNode("?q"), SSE.parseNode("?val"));
+		Map<TripleNode, TripleNode> mapping2 = new HashMap<TripleNode, TripleNode>();
+		mapping2.put(new TripleNode(tp1_2, SSE.parseNode("?p"), 0), new TripleNode(tp2_2, SSE.parseNode("?s"), 0));
+		mapping2.put(new TripleNode(tp1_2, SSE.parseNode("?q"), 2), new TripleNode(tp2_2, SSE.parseNode("?val"), 2));
 
 		Match m2 = new Match(tp1_2, tp2_2, mapping2);
 
@@ -239,9 +236,10 @@ public class MatchTest {
 		Match m4 = m2.merge(m1);
 		System.out.println("Match: " + m4);
 
-		Map<Node, Node> mapping3 = new HashMap<Node, Node>();
-		mapping3.put(SSE.parseNode("?p"), SSE.parseNode("?s"));
-		mapping3.put(SSE.parseNode("?t"), SSE.parseNode("<Device>"));
+		Map<TripleNode, TripleNode> mapping3 = new HashMap<TripleNode, TripleNode>();
+		mapping3.put(new TripleNode(tp1_1, SSE.parseNode("?p"), 0), new TripleNode(tp2_3, SSE.parseNode("?s"), 0));
+		mapping3.put(new TripleNode(tp1_1, SSE.parseNode("?t"), 2),
+				new TripleNode(tp2_3, SSE.parseNode("<Device>"), 2));
 		Match m5 = new Match(tp1_1, tp2_3, mapping3);
 
 		// conflict, so should be null
@@ -352,15 +350,15 @@ public class MatchTest {
 	public void testEqualityOfMatches1() {
 		TriplePattern tp1 = new TriplePattern("?s <type> <Sensor>");
 		TriplePattern tp2 = new TriplePattern("?p <type> ?t");
-		Map<Node, Node> mapping1 = new HashMap<>();
-		mapping1.put(tp1.getSubject(), tp2.getSubject());
-		mapping1.put(tp1.getObject(), tp2.getObject());
+		Map<TripleNode, TripleNode> mapping1 = new HashMap<>();
+		mapping1.put(new TripleNode(tp1, tp1.getSubject(), 0), new TripleNode(tp2, tp2.getSubject(), 0));
+		mapping1.put(new TripleNode(tp1, tp1.getObject(), 0), new TripleNode(tp2, tp2.getObject(), 0));
 
 		Match m1 = new Match(tp1, tp2, mapping1);
 
-		Map<Node, Node> mapping2 = new HashMap<>();
-		mapping2.put(tp2.getSubject(), tp1.getSubject());
-		mapping2.put(tp2.getObject(), tp1.getObject());
+		Map<TripleNode, TripleNode> mapping2 = new HashMap<>();
+		mapping2.put(new TripleNode(tp2, tp2.getSubject(), 0), new TripleNode(tp1, tp1.getSubject(), 0));
+		mapping2.put(new TripleNode(tp2, tp2.getObject(), 0), new TripleNode(tp1, tp1.getObject(), 0));
 
 		Match m2 = new Match(tp2, tp1, mapping2);
 
@@ -378,14 +376,14 @@ public class MatchTest {
 		TriplePattern tp21 = new TriplePattern("?p <type> ?t");
 		TriplePattern tp22 = new TriplePattern("?p <hasVal> ?val");
 
-		Map<Node, Node> mapping1 = new HashMap<>();
-		mapping1.put(tp11.getSubject(), tp21.getSubject());
-		mapping1.put(tp11.getObject(), tp21.getObject());
+		Map<TripleNode, TripleNode> mapping1 = new HashMap<>();
+		mapping1.put(new TripleNode(tp11, tp11.getSubject(), 0), new TripleNode(tp21, tp21.getSubject(), 0));
+		mapping1.put(new TripleNode(tp11, tp11.getObject(), 2), new TripleNode(tp21, tp21.getObject(), 2));
 		Match m1 = new Match(tp11, tp21, mapping1);
 
-		Map<Node, Node> mapping2 = new HashMap<>();
-		mapping2.put(tp12.getSubject(), tp22.getSubject());
-		mapping2.put(tp12.getObject(), tp22.getObject());
+		Map<TripleNode, TripleNode> mapping2 = new HashMap<>();
+		mapping2.put(new TripleNode(tp12, tp12.getSubject(), 0), new TripleNode(tp22, tp22.getSubject(), 0));
+		mapping2.put(new TripleNode(tp12, tp12.getObject(), 2), new TripleNode(tp22, tp22.getObject(), 2));
 		Match m2 = new Match(tp12, tp22, mapping2);
 
 		assertTrue(m1.equals(m1));
@@ -502,5 +500,44 @@ public class MatchTest {
 
 		System.out.println(nBs);
 		assertTrue(!nBs.isEmpty());
+	}
+
+	@Test
+	public void testMatchWithReflexiveTriple() {
+		// {TripleNode [tp=?x r ?x, node=?x]=TripleNode [tp=?s r a, node=a]}
+
+		var t1 = new TriplePattern("?x <r> ?x");
+		var t2 = new TriplePattern("?s <r> <a>");
+
+		var actualMap = t1.findMatches(t2);
+
+		Map<TripleNode, TripleNode> expectedMap = new HashMap<>();
+		expectedMap.put(new TripleNode(t1, "?x", 0), new TripleNode(t2, "?s", 0));
+		expectedMap.put(new TripleNode(t1, "?x", 2), new TripleNode(t2, "<a>", 2));
+
+		assertEquals(expectedMap, actualMap);
+
+	}
+
+	@Test
+	public void testTranslateEmptyBindingSet() {
+		var t1 = new TriplePattern("?s ?p ?o");
+		var t2 = new TriplePattern("?a ?b ?c");
+
+		TripleVarBindingSet tvbs1 = new TripleVarBindingSet(new HashSet<>(Arrays.asList(t1)));
+
+		Map<TripleNode, TripleNode> map = new HashMap<>();
+		map.put(new TripleNode(t1, "?s", 0), new TripleNode(t2, "?a", 0));
+		map.put(new TripleNode(t1, "?p", 1), new TripleNode(t2, "?b", 1));
+		map.put(new TripleNode(t1, "?o", 2), new TripleNode(t2, "?c", 2));
+
+		var match = new Match(t1, t2, map);
+
+		TripleVarBindingSet tvbs2 = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
+				new HashSet<>(Arrays.asList(match)));
+
+		System.out.println("BindingSet: " + tvbs2);
+
+		assertTrue(tvbs2.isEmpty());
 	}
 }

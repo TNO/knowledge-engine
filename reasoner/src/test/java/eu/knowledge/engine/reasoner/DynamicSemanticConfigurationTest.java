@@ -167,6 +167,7 @@ public class DynamicSemanticConfigurationTest {
 		ReasonerPlan root = new ReasonerPlan(this.ruleStore, aRule);
 		LOG.info("\n{}", root);
 		BindingSet bs = new BindingSet();
+		bs.add(new Binding());
 
 		// Start reasoning
 		TaskBoard tb;

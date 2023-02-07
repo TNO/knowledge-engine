@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
@@ -28,9 +29,6 @@ import eu.knowledge.engine.reasoner.rulestore.RuleStore;
  * {@link #getResults()} and {@link #execute(BindingSet)} methods. Non-startnode
  * binding sets should be retrieved by the caller. See
  * {@link ForwardTest#test()} for an example.
- * 
- * TODO: matchstrategy.FullMatchOnly
- * 
  * 
  */
 public class ReasonerPlan {
@@ -62,10 +60,11 @@ public class ReasonerPlan {
 	 * Enable (default) or disable the {@link TaskBoard}. When it is disabled, all
 	 * tasks will be executed as they occur in the algorithm, and an EMPTY task
 	 * board is returned in {@link #execute}, which means that a single call to
-	 * {@link #execute} suffices to terminate the algorithm. When it is enabled
-	 * (the default), deferrable tasks will be put on the {@link TaskBoard}, and
-	 * the caller of {@link #execute} is responsible to complete them at their
-	 * leisure before calling {@link #execute} again.
+	 * {@link #execute} suffices to terminate the algorithm. When it is enabled (the
+	 * default), deferrable tasks will be put on the {@link TaskBoard}, and the
+	 * caller of {@link #execute} is responsible to complete them at their leisure
+	 * before calling {@link #execute} again.
+	 * 
 	 * @param aUseTaskBoard
 	 */
 	public void setUseTaskBoard(boolean aUseTaskBoard) {
@@ -81,6 +80,10 @@ public class ReasonerPlan {
 	}
 
 	public TaskBoard execute(BindingSet bindingSet) {
+
+		if (bindingSet.isEmpty())
+			bindingSet.add(new Binding());
+
 		RuleNode startNode = this.getStartNode();
 		TaskBoard taskBoard = new TaskBoard();
 
@@ -105,6 +108,7 @@ public class ReasonerPlan {
 
 			while (!stack.isEmpty()) {
 				final RuleNode current = stack.pop();
+				LOG.trace("Processing {}", current);
 
 				current.getAllNeighbours().stream().filter(n -> !stack.contains(n)).filter(n -> !visited.contains(n))
 						.filter(n -> !n.equals(current)).forEach(n -> stack.push(n));
@@ -335,5 +339,9 @@ public class ReasonerPlan {
 
 	public MatchStrategy getMatchStrategy() {
 		return this.strategy;
+	}
+
+	public RuleStore getStore() {
+		return this.store;
 	}
 }

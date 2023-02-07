@@ -66,9 +66,4 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	public Set<RuleNode> getAllSameLoopNeighbors() {
 		return new HashSet<>();
 	}
-	
-	@Override
-	public void resetResultBindingSetOutput() {
-		this.resultBindingSetOutput = null;
-	}
 }

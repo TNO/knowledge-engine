@@ -101,17 +101,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 	@Override
 	public boolean readyForTransformFilter() {
-		// TODO: This (the "Except" part) was needed to make transitivity work, but not
-		// sure if it is correct
-		boolean isReady;
-
-		if (!this.filterBindingSetInput.get().isEmpty()) {
-			Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
-			isReady = this.filterBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
-		} else {
-			isReady = false;
-		}
-		return isReady;
+		Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
+		return this.filterBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
 	}
 
 	@Override
@@ -228,10 +219,5 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 				});
 
 		return nodes;
-	}
-
-	@Override
-	public void resetResultBindingSetOutput() {
-		this.resultBindingSetOutput = null;
 	}
 }
