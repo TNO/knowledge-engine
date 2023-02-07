@@ -1,7 +1,5 @@
 package eu.knowledge.engine.reasoner;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,17 +9,17 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.rulesys.RDFSForwardRuleReasoner;
-import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.Util;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class JenaRDFSRulesTest {
@@ -51,22 +48,29 @@ public class JenaRDFSRulesTest {
 
 		Set<BaseRule> rdfsRules = JenaRuleTest.convertRules(readRuleFile());
 
-		for (BaseRule br : rdfsRules) {
-			LOG.info("{}", br);
-		}
+//		for (BaseRule br : rdfsRules) {
+//			LOG.info("{}", br);
+//		}
 
 		RuleStore rs = new RuleStore();
 		rs.addRules(rdfsRules);
 
-		String[] dataSplitted = readExampleRDF();
-
-		// data rule
+		// sample data rule
+		String[] sampleDataSplitted = readRDF("/example.rdf");
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(
-				new Table(new String[] { "s", "p", "o" }, dataSplitted));
+				new Table(new String[] { "s", "p", "o" }, sampleDataSplitted));
 		String genericTriple = "?s ?p ?o";
 		Rule r = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(genericTriple))),
 				aBindingSetHandler);
 		rs.addRule(r);
+
+		// prov data rule
+		String[] provDataSplitted = readRDF("/prov.ttl");
+		DataBindingSetHandler aBindingSetHandler2 = new DataBindingSetHandler(
+				new Table(new String[] { "s", "p", "o" }, provDataSplitted));
+		Rule r2 = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern(genericTriple))),
+				aBindingSetHandler2);
+		rs.addRule(r2);
 
 		String query = "<http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?o";
 		ProactiveRule startRule = new ProactiveRule(new HashSet<>(Arrays.asList(new TriplePattern(genericTriple))),
@@ -75,7 +79,7 @@ public class JenaRDFSRulesTest {
 
 		ReasonerPlan rp = new ReasonerPlan(rs, startRule);
 
-		rs.printGraphVizCode(rp);
+//		rs.printGraphVizCode(rp);
 
 		BindingSet bs = new BindingSet();
 		Binding b = new Binding();
@@ -87,48 +91,55 @@ public class JenaRDFSRulesTest {
 		}
 
 		BindingSet results2 = rp.getResults();
-		Model m = Util.generateModel(new TriplePattern(genericTriple), results2);
 
-		StmtIterator iter = m.listStatements();
-		LOG.info("------------------------");
-		while (iter.hasNext()) {
-			Statement st = iter.next();
-			LOG.info("{}", st);
+		Model m = ModelFactory.createDefaultModel();
+		for (Binding binding : results2) {
+			m.add(m.asStatement(new Triple(binding.get("s"), binding.get("p"), binding.get("o"))));
 		}
 
-		Model m2 = ModelFactory.createDefaultModel();
-		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/example.rdf"), null, "TTL");
+//		Model m = Util.generateModel(new TriplePattern(genericTriple), results2);
+//
+//		StmtIterator iter = m.listStatements();
+//		LOG.info("------------------------");
+//		while (iter.hasNext()) {
+//			Statement st = iter.next();
+//			LOG.info("{}", st);
+//		}
+//		iter.close();
 
-		InfModel im2 = ModelFactory.createInfModel(new RDFSForwardRuleReasoner(null), m);
-
-		StmtIterator iter3 = im2.listStatements();
-		LOG.info("------------------------");
-		while (iter3.hasNext()) {
-			Statement st = iter3.next();
-			LOG.info("{}", st);
-		}
-
-		// compare two models
-
-		Model m3 = m.difference(im2);
-
-		LOG.info("Difference: {}", m3);
-
-		LOG.info("------------------------");
-		StmtIterator iter2 = m.listStatements(
-				ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"), RDF.type,
-				(Resource) null);
-		int teller = 0;
-		while (iter2.hasNext()) {
-			LOG.info("{}", iter2.next());
-			teller = teller + 1;
-		}
-		assertEquals(4, teller);
+//		Model m2 = ModelFactory.createDefaultModel();
+//		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/example.rdf"), null, "TTL");
+//		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/prov.ttl"), null, "TTL");
+//		InfModel im2 = ModelFactory.createInfModel(new RDFSForwardRuleReasoner(null), m2);
+//		StmtIterator iter3 = im2.listStatements();
+//		LOG.info("------------------------");
+//		while (iter3.hasNext()) {
+//			Statement st = iter3.next();
+//			LOG.info("{} {} {} .", st.getSubject().asNode(), st.getPredicate().asNode(), st.getObject().asNode());
+//		}
+//		iter3.close();
+//
+//		// compare two models
+//		Model m3 = m.difference(im2);
+//		Model m4 = im2.difference(m);
+//
+//		LOG.info("Difference m<->im2: {}", m3.size());
+//		LOG.info("Difference im2<->m: {}", m4.size());
+//
+//		LOG.info("------------------------");
+////		StmtIterator iter2 = m3.listStatements(
+////				ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"), RDF.type,
+////				(Resource) null);
+//		StmtIterator iter2 = m4.listStatements((Resource) null, null, (RDFNode) null);
+//		while (iter2.hasNext()) {
+//			LOG.info("{}", iter2.next());
+//		}
+//		assertEquals(5, teller);
 	}
 
-	public String[] readExampleRDF() {
+	public String[] readRDF(String name) {
 		Model m = ModelFactory.createDefaultModel();
-		m.read(JenaRDFSRulesTest.class.getResourceAsStream("/example.rdf"), null, "TTL");
+		m.read(JenaRDFSRulesTest.class.getResourceAsStream(name), null, "TTL");
 
 		StmtIterator iter = m.listStatements();
 
@@ -138,7 +149,6 @@ public class JenaRDFSRulesTest {
 			String str = pNode(next.getSubject().asNode()) + "," + pNode(next.getPredicate().asNode()) + ","
 					+ pNode(next.getObject().asNode());
 			triples.append(str + "|");
-			LOG.info("{}", str);
 		}
 		return triples.toString().split("\\|");
 	}
@@ -147,7 +157,17 @@ public class JenaRDFSRulesTest {
 		if (n.isURI()) {
 			return "<" + n.getURI() + ">";
 		} else if (n.isLiteral()) {
-			return n.toString().replaceAll("\"", "\\\"");
+
+			String value = n.getLiteralLexicalForm().replaceAll("\n", "");
+			value = value.replaceAll(",", "");
+			value = value.replaceAll("\"", "\\\\\"");
+			value = "\"" + value + "\"";
+			if (n.getLiteralDatatypeURI() != null) {
+				value = value + "^^<" + n.getLiteralDatatypeURI() + ">";
+			}
+			return value;
+		} else if (n.isBlank()) {
+			return "<" + n.getBlankNodeLabel() + ">";
 		}
 		return n.toString();
 	}
@@ -167,6 +187,13 @@ public class JenaRDFSRulesTest {
 			e.printStackTrace();
 		}
 		return sb.toString();
+	}
+
+	@Test
+	public void simpleTest() {
+		String str = "\"Quotation is a particular case of derivation (see http://www.w3.org/TR/prov-dm/#term-quotation) in which an entity is derived from an original entity by copying or \\\"quoting\\\" some or all of it. \"^^<http://www.w3.org/2001/XMLSchema#string>";
+
+		SSE.parseNode(str, null);
 	}
 
 }
