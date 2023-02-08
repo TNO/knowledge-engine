@@ -95,8 +95,18 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	}
 
 	@Override
+	public TripleVarBindingSet getFilterBindingSetInput() {
+		return this.filterBindingSetInput.get();
+	}
+
+	@Override
 	public TripleVarBindingSet getResultBindingSetOutput() {
 		return this.resultBindingSetOutput;
+	}
+
+	@Override
+	public TripleVarBindingSet getResultBindingSetInput() {
+		return this.resultBindingSetInput.get();
 	}
 
 	@Override

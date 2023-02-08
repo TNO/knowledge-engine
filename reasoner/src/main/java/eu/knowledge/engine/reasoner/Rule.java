@@ -198,8 +198,7 @@ public class Rule extends BaseRule {
 	}
 
 	public TransformBindingSetHandler getBindingSetHandler() {
-		assert !this.getAntecedent().isEmpty() && !this.getConsequent().isEmpty()
-				|| this.getAntecedent().isEmpty() && !this.getConsequent().isEmpty();
+		assert !this.getConsequent().isEmpty();
 
 		if (this.getAntecedent().isEmpty())
 			return this.backwardForwardBindingSetHandler;
