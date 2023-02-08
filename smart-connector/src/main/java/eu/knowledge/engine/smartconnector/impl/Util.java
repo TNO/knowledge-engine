@@ -131,64 +131,66 @@ public class Util {
 	public static Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
 
 		assert plan instanceof AntSide;
-		throw new UnsupportedOperationException(
-				"Knowledge Gaps have not yet been implemented in the refactored version of the reasoner.");
 
-//		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
-//
-//		// TODO do we need to include the parent if we are not backward chaining?
-//		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
-//				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
-//
-//		// collect triple patterns that have an empty set
-//		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
-//		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
-//
-//			collectedOrGaps = new HashSet<>();
-//			boolean foundNeighborWithoutGap = false;
-//			for (RuleNode neighbor : entry.getValue()) {
-//				// make sure neighbor has no knowledge gaps
-//
-//				// knowledge engine specific code. We ignore meta knowledge interactions when
-//				// looking for knowledge gaps, because they are very generic and make finding
-//				// knowledge gaps nearly impossible.
-//				boolean isMeta = isMetaKI(neighbor);
-//
-//				if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
-//					// found neighbor without knowledge gaps for the current triple, so current
-//					// triple is covered.
-//					foundNeighborWithoutGap = true;
-//					break;
-//				}
-//				collectedOrGaps.addAll(someGaps);
-//			}
-//
-//			if (!foundNeighborWithoutGap) {
-//				// there is a gap here, either in the current node or in a neighbor.
-//
-//				if (collectedOrGaps.isEmpty()) {
-//					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
-//				}
-//
-//				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
-//				if (existingOrGaps.isEmpty()) {
-//					existingOrGaps.addAll(collectedOrGaps);
-//				} else {
-//					Set<TriplePattern> newGap;
-//					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
-//						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
-//							newGap = new HashSet<>();
-//							newGap.addAll(existingOrGap);
-//							newGap.addAll(collectedOrGap);
-//							newExistingOrGaps.add(newGap);
-//						}
-//					}
-//					existingOrGaps = newExistingOrGaps;
-//				}
-//			}
-//		}
-//
-//		return existingOrGaps;
+		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
+
+		// TODO do we need to include the parent if we are not backward chaining?
+		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
+				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
+
+		// collect triple patterns that have an empty set
+		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
+		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
+
+			collectedOrGaps = new HashSet<>();
+			boolean foundNeighborWithoutGap = false;
+			for (RuleNode neighbor : entry.getValue()) {
+				if (!neighbor.getRule().getAntecedent().isEmpty()) {
+					// make sure neighbor has no knowledge gaps
+
+					// knowledge engine specific code. We ignore meta knowledge interactions when
+					// looking for knowledge gaps, because they are very generic and make finding
+					// knowledge gaps nearly impossible.
+					boolean isMeta = isMetaKI(neighbor);
+
+					//TODO what if the graph contains loops?
+					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
+						// found neighbor without knowledge gaps for the current triple, so current
+						// triple is covered.
+						foundNeighborWithoutGap = true;
+						break;
+					}
+					collectedOrGaps.addAll(someGaps);
+				} else
+					foundNeighborWithoutGap = true;
+			}
+
+			if (!foundNeighborWithoutGap) {
+				// there is a gap here, either in the current node or in a neighbor.
+
+				if (collectedOrGaps.isEmpty()) {
+					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
+				}
+
+				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
+				if (existingOrGaps.isEmpty()) {
+					existingOrGaps.addAll(collectedOrGaps);
+				} else {
+					Set<TriplePattern> newGap;
+					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
+						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
+							newGap = new HashSet<>();
+							newGap.addAll(existingOrGap);
+							newGap.addAll(collectedOrGap);
+							newExistingOrGaps.add(newGap);
+						}
+					}
+					existingOrGaps = newExistingOrGaps;
+				}
+			}
+		}
+
+		return existingOrGaps;
 	}
 
 	private static boolean isMetaKI(RuleNode neighbor) {

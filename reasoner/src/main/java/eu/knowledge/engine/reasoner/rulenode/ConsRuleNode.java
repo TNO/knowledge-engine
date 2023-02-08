@@ -63,6 +63,16 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	}
 
 	@Override
+	public TripleVarBindingSet getResultBindingSetInput() {
+		return null;
+	}
+
+	@Override
+	public TripleVarBindingSet getFilterBindingSetInput() {
+		return this.filterBindingSetInput.get();
+	}
+
+	@Override
 	public Set<RuleNode> getAllSameLoopNeighbors() {
 		return new HashSet<>();
 	}

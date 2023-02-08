@@ -23,7 +23,6 @@ import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,6 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
-@Disabled
 public class TestDynamicSemanticComposition {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
@@ -106,7 +104,7 @@ public class TestDynamicSemanticComposition {
 		BindingSet bindings = null;
 		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
 		ReasonerPlan rn = plan.getReasonerPlan();
-		LOG.info("Plan: {}", rn);
+		rn.getStore().printGraphVizCode(rn);
 		// check for knowledge gaps
 		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
 		LOG.info("Found gaps: " + gaps);
@@ -120,8 +118,8 @@ public class TestDynamicSemanticComposition {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 			// try to generate JSON tree.
-//			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
-//					result.getReasonerPlan(), prefixes);
+			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
+					result.getReasonerPlan(), prefixes);
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
@@ -153,7 +151,7 @@ public class TestDynamicSemanticComposition {
 			assertFalse(iter.hasNext(), "there should be no bindings");
 			LOG.info("After post!");
 
-//			TestUtils.printReasoningNodeDotNotation("TargetObserver", aPlan.getReasoningNode());
+			aPlan.getReasonerPlan().getStore().printGraphVizCode(aPlan.getReasonerPlan());
 
 			// try to generate JSON tree.
 			TestUtils.printSequenceDiagram(kbTargetObserver.getKnowledgeBaseId().toString(), "post",
@@ -189,7 +187,7 @@ public class TestDynamicSemanticComposition {
 		// add the first KB that fulfills the gap
 		kbs: for (MockedKnowledgeBase kb : availableKBs) {
 
-			kis: for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
+			for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
 
 				for (Set<TriplePattern> gap : gaps) {
 
