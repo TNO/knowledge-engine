@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre
+FROM eclipse-temurin:17
 LABEL org.opencontainers.image.source https://github.com/tno/knowledge-engine
 LABEL org.opencontainers.image.description="Knowledge Engine: Smart Connector (with HTTP API)"
 LABEL org.opencontainers.image.licenses=Apache-2.0
