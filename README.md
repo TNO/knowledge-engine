@@ -5,6 +5,8 @@
 
 [![DOI](https://zenodo.org/badge/502097185.svg)](https://zenodo.org/badge/latestdoi/502097185)
 
+[![Knowledge Engine logo](./docs/img/ke_text_white_backdrop.png)](https://www.knowledge-engine.eu/)
+
 Welcome to the source code repository of the Knowledge Engine.
 This README should help you understand what the Knowledge Engine is, and how to use it.
 
