@@ -62,6 +62,11 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	 */
 	private boolean reasonerEnabled = false;
 
+	/**
+	 * Whether the Knowledge Base is threadsafe.
+	 */
+	private boolean isThreadSafe = false;
+
 	public MockedKnowledgeBase(String aName) {
 
 		this.registeredAskKIs = ConcurrentHashMap.newKeySet();
@@ -534,7 +539,12 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		return this.getSC().planPost(aPKI, aSelector);
 	}
 
+	public void setIsThreadSafe(boolean aIsThreadSafe) {
+		this.isThreadSafe = aIsThreadSafe;
+	}
+
 	public boolean isStarted() {
 		return this.getSC() != null;
 	}
+
 }
