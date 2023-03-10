@@ -1,0 +1,27 @@
+@prefix : <http://openfmri.s3.amazonaws.com/nidm.ttl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dctypes: <http://purl.org/dc/dcmitype/> .
+@prefix nidm: <http://www.incf.org/ns/nidash/nidm#> .
+@prefix pav: <http://purl.org/pav/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schemaorg: <http://schema.org/> .
+@prefix void: <http://www.w3.org/TR/void/> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:openfmri a dctypes:Dataset,
+        nidm:Database,
+        prov:Collection ;
+    dct:description """OpenfMRI.org is a project dedicated to the free and open sharing of functional magnetic resonance imaging (fMRI) datasets including raw data."""@en ;
+    dct:hasPart :ds000001,
+        :ds000005,
+        :ds000113 ;
+    dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> ;
+    dct:publisher <https://openfmri.org> ;
+    dct:title "OpenfMRI"@en ;
+    schemaorg:logo <https://openfmri.org/sites/all/themes/openfmri/logo.png> ;
+    dcat:accessURL <https://openfmri.org> ;
+    dcat:theme <http://dbpedia.org/page/Neuroimaging> .

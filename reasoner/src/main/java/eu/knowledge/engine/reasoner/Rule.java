@@ -1,276 +1,225 @@
 package eu.knowledge.engine.reasoner;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
-public class Rule {
+/**
+ * The base implementation of a rule. A rule typically has either an antecedent
+ * or a consequent or both. A rule transforms data that comes in from the
+ * antecedent to its consequent. This transformation happens via the so called
+ * <i>BindingSetHandler<i>. There are several types of BindingSetHandlers, but
+ * all of them deal with incoming BindingSets and most of them transform this
+ * incoming BindingSet into an outgoing BindingSet although not all of them do.
+ * This reasoning library allows customized BindingSetHandlers to be attached to
+ * rules that replace the default BindingSetHandlers. Default BindingSetHandlers
+ * take all variables that occur in both the antecedent and consequent of the
+ * rule (if present) and copy their values from the one BindingSet to the other
+ * BindingSet. Custom BindingSetHandlers, however, can do more complicated
+ * things like do calculations, etc.<br/>
+ * <br/>
+ * Forward in the context of a rule means going from the antecedent to the
+ * consequent, while backward means going from the consequent to the antecedent.
+ * 
+ * @author nouwtb
+ *
+ */
+public class Rule extends BaseRule {
 
-	public static enum MatchStrategy {
-		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
-	}
+	/**
+	 * the bindingset handler used to from the incoming consequent bindingset
+	 * directly to the outgoing consequent binding set.
+	 */
+	public TransformBindingSetHandler backwardForwardBindingSetHandler;
 
-	public Set<TriplePattern> antecedent;
-	public Set<TriplePattern> consequent;
+	/**
+	 * the bindingset handler used to go from the incoming antecedent bindingset to
+	 * the outgoing consequent bindingset.
+	 */
+	public TransformBindingSetHandler forwardBindingSetHandler;
 
-	public BindingSetHandler bindingSetHandler;
+	/**
+	 * the bindingset handler used to go from the incoming consequent bindingset to
+	 * the outgoing antecedent bindingset.
+	 * 
+	 * this one is (for now) always the trivial one.
+	 */
+	public TransformBindingSetHandler backwardBindingSetHandler;
 
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent, BindingSetHandler aBindingSetHandler) {
-		this.antecedent = anAntecedent;
-		this.consequent = aConsequent;
-		bindingSetHandler = aBindingSetHandler;
-	}
+	/**
+	 * the bindingset handler used to deal with an incoming antecedent bindingset
+	 * without producing an outgoing antecedent bindingset.
+	 */
+	public SinkBindingSetHandler sinkBindingSetHandler;
 
-	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
-		this.antecedent = anAntecedent;
-		this.consequent = aConsequent;
-		bindingSetHandler = new BindingSetHandler() {
-			@Override
-			public CompletableFuture<BindingSet> handle(BindingSet bs) {
+	public static class AntecedentToConsequentBindingSetHandler implements TransformBindingSetHandler {
 
-				BindingSet newBS = new BindingSet();
+		private Set<TriplePattern> consequent;
 
-				Binding newB;
-
-				Set<Var> vars = Rule.this.getVars(Rule.this.consequent);
-				for (Binding b : bs) {
-					newB = new Binding();
-					for (Var v : vars) {
-						if (b.containsKey(v)) {
-							newB.put(v, b.get(v));
-						} else {
-							throw new IllegalArgumentException(
-									"Not all variables in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
-						}
-					}
-					newBS.add(newB);
-				}
-
-				CompletableFuture<BindingSet> future = new CompletableFuture<>();
-				future.complete(newBS);
-				return future;
-			}
-		};
-	}
-
-	public Set<Var> getVars(Set<TriplePattern> aPattern) {
-		Set<Var> vars = new HashSet<Var>();
-		for (TriplePattern t : aPattern) {
-			vars.addAll(t.getVariables());
+		public AntecedentToConsequentBindingSetHandler(Set<TriplePattern> aTriplePattern) {
+			this.consequent = aTriplePattern;
 		}
-		return vars;
+
+		@Override
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+
+			BindingSet newBS = new BindingSet();
+
+			Binding newB;
+
+			Set<Var> vars = BaseRule.getVars(this.consequent);
+			for (Binding b : bs) {
+				newB = new Binding();
+				for (Var v : vars) {
+					if (b.containsKey(v)) {
+						newB.put(v, b.get(v));
+					} else {
+						throw new IllegalArgumentException(
+								"Not all variables in the consequent are available in the antecedent of the rule. This type of rule should use a custom BindingHandler.");
+					}
+				}
+				newBS.add(newB);
+			}
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			future.complete(newBS);
+			return future;
+		}
 	}
 
-	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, MatchStrategy aMatchStrategy) {
-		if (!this.consequent.isEmpty())
-			return matches(anAntecedent, this.consequent, aMatchStrategy);
-		return new HashSet<>();
+	private static final Logger LOG = LoggerFactory.getLogger(Rule.class);
+
+	/**
+	 * This default bindingsethandler copies the values for any variables that occur
+	 * both in the consequent and the antecedent to the antecedent bindingset. TODO
+	 * In the future we could allow these to be customized as well which would allow
+	 * us to for example transform degrees Celsius to degrees Fahrenheit when the
+	 * actual rule transform Fahrenheit to Celsius. This means that this bindingset
+	 * represents the inverse of applying this rule and this can be useful if
+	 * incoming bindingsets contain degrees celsius and instead of ignoring these,
+	 * we can transform them into degrees Fahrenheit.
+	 * 
+	 * @author nouwtb
+	 *
+	 */
+	public static class ConsequentToAntecedentBindingSetHandler implements TransformBindingSetHandler {
+
+		private Set<TriplePattern> antecedent;
+
+		public ConsequentToAntecedentBindingSetHandler(Set<TriplePattern> aTriplePattern) {
+			this.antecedent = aTriplePattern;
+		}
+
+		@Override
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+
+			BindingSet newBS = new BindingSet();
+
+			Binding newB;
+
+			Set<Var> vars = BaseRule.getVars(this.antecedent);
+			for (Binding b : bs) {
+				newB = new Binding();
+				for (Var v : vars) {
+					if (b.containsKey(v)) {
+						newB.put(v, b.get(v));
+					}
+				}
+				newBS.add(newB);
+			}
+
+			CompletableFuture<BindingSet> future = new CompletableFuture<>();
+			future.complete(newBS);
+			return future;
+		}
 	}
 
-	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, MatchStrategy aMatchStrategy) {
-		if (!this.antecedent.isEmpty())
-			return matches(aConsequent, this.antecedent, aMatchStrategy);
-		return new HashSet<>();
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+			TransformBindingSetHandler aBindingSetHandler) {
+		super(anAntecedent, aConsequent);
+
+		if (aBindingSetHandler == null)
+			throw new IllegalArgumentException("A rule should have a non-null bindingsethandler.");
+
+		if (anAntecedent.isEmpty() && !aConsequent.isEmpty())
+			this.backwardForwardBindingSetHandler = aBindingSetHandler;
+		else if (!anAntecedent.isEmpty() && !aConsequent.isEmpty())
+			this.forwardBindingSetHandler = aBindingSetHandler;
+		else
+			throw new IllegalArgumentException(
+					"A rule with a TransformBindingSetHandler should have both an antecedent and a consequent or only a consequent and not antecedent '"
+							+ anAntecedent + "' and consequent '" + aConsequent + "'");
+		this.backwardBindingSetHandler = new ConsequentToAntecedentBindingSetHandler(anAntecedent);
 	}
 
-	public BindingSetHandler getBindingSetHandler() {
-		return bindingSetHandler;
+	public Rule(Set<TriplePattern> anAntecedent, SinkBindingSetHandler aSinkBindingSetHandler) {
+		super(anAntecedent, new HashSet<>());
+		this.sinkBindingSetHandler = aSinkBindingSetHandler;
+	}
+
+	public Rule(Set<TriplePattern> aConsequent, TransformBindingSetHandler aBindingSetHandler) {
+		this(new HashSet<>(), aConsequent, aBindingSetHandler);
+	}
+
+	public Rule(String aName, Set<TriplePattern> anAntecedent, SinkBindingSetHandler aSinkBindingSetHandler) {
+		this(anAntecedent, aSinkBindingSetHandler);
+		this.setName(aName);
+	}
+
+	public Rule(String aName, Set<TriplePattern> aConsequent, TransformBindingSetHandler aBindingSetHandler) {
+		this(aConsequent, aBindingSetHandler);
+		this.setName(aName);
+	}
+
+	public Rule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
+			TransformBindingSetHandler aBindingSetHandler) {
+		this(anAntecedent, aConsequent, aBindingSetHandler);
+		this.setName(aName);
 	}
 
 	/**
-	 * FInd the biggest matches bewteen two graph patterns.
+	 * Create a rule with a default bindingset handler.
 	 * 
-	 * @param aFirstPattern
-	 * @param aSecondPattern
-	 * @param aMatchStrategy
-	 * @return
+	 * @param anAntecedent
+	 * @param aConsequent
 	 */
-	public static Set<Match> matches(Set<TriplePattern> aFirstPattern, Set<TriplePattern> aSecondPattern,
-			MatchStrategy aMatchStrategy) {
+	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
 
-		assert aFirstPattern != null;
-		assert aSecondPattern != null;
-		assert !aFirstPattern.isEmpty();
-		assert !aSecondPattern.isEmpty();
+		this(anAntecedent, aConsequent, new AntecedentToConsequentBindingSetHandler(aConsequent));
 
-		long start = System.currentTimeMillis();
-
-		List<Match> allMatches = new LinkedList<>();
-
-		// first find all triples in the consequent that match each triple in the
-		// antecedent
-		Map<TriplePattern, Set<Match>> matchesPerTriple = new HashMap<>();
-		Set<Match> findMatches;
-		for (TriplePattern anteTriple : aFirstPattern) {
-			// find all possible matches of the current antecedent triple in the consequent
-			findMatches = findMatches(anteTriple, aSecondPattern);
-			if (!findMatches.isEmpty())
-				matchesPerTriple.put(anteTriple, findMatches);
-		}
-
-		// if not every triple pattern can be matched, we stop the process if we require
-		// a full match.
-		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
-				&& matchesPerTriple.keySet().size() < aFirstPattern.size())
-			return new HashSet<>();
-
-		// next, correctly combine all found matches
-		List<Match> biggestMatches = new ArrayList<>();
-		List<Match> smallerMatches = new ArrayList<>();
-		Match mergedMatch = null;
-		Set<Match> matches = null;
-		List<Match> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
-		Set<Integer> toBeDemotedMatchIndices = null;
-
-		Iterator<Map.Entry<TriplePattern, Set<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
-
-		// always add first matches
-		if (matchIter.hasNext()) {
-			biggestMatches.addAll(matchIter.next().getValue());
-		}
-
-		while (matchIter.hasNext()) {
-
-			long innerStart = System.currentTimeMillis();
-
-			Map.Entry<TriplePattern, Set<Match>> entry = matchIter.next();
-
-			// keep a set of new/remove matches, so we can add/remove them at the end of
-			// this loop
-			toBeAddedToBiggestMatches = new ArrayList<>();
-			toBeAddedToSmallerMatches = new ArrayList<>();
-			toBeDemotedMatchIndices = new HashSet<>();
-
-			matches = entry.getValue();
-			assert matches != null;
-
-			for (Match m1 : matches) {
-				// check if we need to merge with existing matches
-				boolean hasMerged = false;
-				// first check if m1 can be merged with any of the existing biggest matches.
-				for (int i = 0; i < biggestMatches.size(); i++) {
-					Match m2 = biggestMatches.get(i);
-					mergedMatch = m2.merge(m1);
-					if (mergedMatch != null) {
-						hasMerged = true;
-						toBeAddedToBiggestMatches.add(mergedMatch);
-						toBeDemotedMatchIndices.add(i);
-					} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-						toBeDemotedMatchIndices.add(i);
-					}
-				}
-
-				// then check if m1 can be merged with any of the existing smaller matches
-				if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-					for (Match m2 : smallerMatches) {
-						mergedMatch = m2.merge(m1);
-						if (mergedMatch != null) {
-							hasMerged = true;
-							toBeAddedToBiggestMatches.add(mergedMatch);
-						}
-					}
-				}
-
-				if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-					toBeAddedToBiggestMatches.add(m1);
-				} else {
-					toBeAddedToSmallerMatches.add(m1);
-				}
-			}
-
-			// remove all toBeDemotedMatches from the biggestMatches and add them to the
-			// smallerMatches.
-
-			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
-			Collections.sort(sortedList, Collections.reverseOrder());
-			for (int i : sortedList) {
-				smallerMatches.add(biggestMatches.get(i));
-				biggestMatches.remove(i);
-			}
-
-			// add all toBeAddedMatches
-			biggestMatches.addAll(toBeAddedToBiggestMatches);
-			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			long innerEnd = System.currentTimeMillis();
-			toBeAddedToBiggestMatches = null;
-			toBeDemotedMatchIndices = null;
-			toBeAddedToSmallerMatches = null;
-		}
-
-		assert biggestMatches != null;
-
-		long finalEnd = System.currentTimeMillis();
-
-		if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
-			allMatches.addAll(biggestMatches);
-			allMatches.addAll(smallerMatches);
-		} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)
-				|| aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-			allMatches.addAll(biggestMatches);
-		}
-
-		return new HashSet<>(allMatches);
 	}
 
-	private static Set<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
+	public TransformBindingSetHandler getBindingSetHandler() {
+		assert !this.getConsequent().isEmpty();
 
-		assert consequent != null;
-		assert antecedent != null;
-		assert !consequent.isEmpty();
-
-		Set<Match> matchingTriplePatterns = new HashSet<>();
-		Map<Node, Node> map;
-		for (TriplePattern tp : consequent) {
-			map = antecedent.findMatches(tp);
-			if (map != null) {
-				matchingTriplePatterns.add(new Match(antecedent, tp, map));
-			}
-		}
-
-		assert matchingTriplePatterns != null;
-		return matchingTriplePatterns;
+		if (this.getAntecedent().isEmpty())
+			return this.backwardForwardBindingSetHandler;
+		else
+			return this.forwardBindingSetHandler;
 	}
 
-	@Override
-	public String toString() {
-		return "Rule [antecedent=" + antecedent + ", consequent=" + consequent + "]";
+	public TransformBindingSetHandler getInverseBindingSetHandler() {
+		return this.backwardBindingSetHandler;
 	}
 
-	public Set<Var> getVars() {
-
-		Set<Var> vars = new HashSet<>();
-		;
-		if (this.antecedent != null)
-			vars.addAll(this.getVars(this.antecedent));
-
-		if (this.consequent != null)
-			vars.addAll(this.getVars(this.consequent));
-
-		return vars;
+	public SinkBindingSetHandler getSinkBindingSetHandler() {
+		return this.sinkBindingSetHandler;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
-		result = prime * result + ((bindingSetHandler == null) ? 0 : bindingSetHandler.hashCode());
-		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
+		int result = super.hashCode();
+		result = prime * result + ((backwardBindingSetHandler == null) ? 0 : backwardBindingSetHandler.hashCode());
+		result = prime * result + ((forwardBindingSetHandler == null) ? 0 : forwardBindingSetHandler.hashCode());
 		return result;
 	}
 
@@ -278,25 +227,20 @@ public class Rule {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		Rule other = (Rule) obj;
-		if (antecedent == null) {
-			if (other.antecedent != null)
+		if (backwardBindingSetHandler == null) {
+			if (other.backwardBindingSetHandler != null)
 				return false;
-		} else if (!antecedent.equals(other.antecedent))
+		} else if (!backwardBindingSetHandler.equals(other.backwardBindingSetHandler))
 			return false;
-		if (bindingSetHandler == null) {
-			if (other.bindingSetHandler != null)
+		if (forwardBindingSetHandler == null) {
+			if (other.forwardBindingSetHandler != null)
 				return false;
-		} else if (!bindingSetHandler.equals(other.bindingSetHandler))
-			return false;
-		if (consequent == null) {
-			if (other.consequent != null)
-				return false;
-		} else if (!consequent.equals(other.consequent))
+		} else if (!forwardBindingSetHandler.equals(other.forwardBindingSetHandler))
 			return false;
 		return true;
 	}

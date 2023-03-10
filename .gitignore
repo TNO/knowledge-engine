@@ -32,4 +32,7 @@ build/
 
 ### VS Code ###
 .vscode/launch.json
+.vscode/
 /.metadata/
+
+.DS_Store

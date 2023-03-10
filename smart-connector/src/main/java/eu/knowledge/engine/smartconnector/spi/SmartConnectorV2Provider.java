@@ -9,7 +9,7 @@ public class SmartConnectorV2Provider implements SmartConnectorProvider {
 
 	@Override
 	public SmartConnector create(KnowledgeBase kb) {
-		return new SmartConnectorImpl(kb, true);
+		return new SmartConnectorImpl(kb);
 	}
 
 }

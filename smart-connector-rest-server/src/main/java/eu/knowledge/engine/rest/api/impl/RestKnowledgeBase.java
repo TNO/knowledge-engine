@@ -3,7 +3,6 @@ package eu.knowledge.engine.rest.api.impl;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -81,6 +81,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private AtomicInteger handleRequestId;
 
+	private final Object asyncResponseLock = new Object();
+
 	/**
 	 * Can be null, if no connection with the client is available.
 	 */
@@ -98,7 +100,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	 * processed, once it has been processed and the results come in, we send the
 	 * data to the smart connector.
 	 */
-	private Map<Integer, HandleRequest> beingProcessedHandleRequests;
+	private final Map<Integer, HandleRequest> beingProcessedHandleRequests;
 	private SmartConnector sc;
 	private Map<URI, KnowledgeInteraction> knowledgeInteractions;
 
@@ -125,8 +127,16 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) anAKI,
 					KnowledgeInteractionType.ANSWER, bindings, anAnswerExchangeInfo.getAskingKnowledgeBaseId(), future);
 
-			toBeProcessedByKnowledgeBase(hr);
-			return future;
+			tryProcessHandleRequestElseEnqueue(hr);
+			return future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while answering ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 		}
 
 		/**
@@ -155,8 +165,16 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			HandleRequest hr = new HandleRequest(myHandleRequestId, (KnowledgeInteraction) aRKI,
 					KnowledgeInteractionType.REACT, bindings, aReactExchangeInfo.getPostingKnowledgeBaseId(), future);
 
-			toBeProcessedByKnowledgeBase(hr);
-			return future;
+			tryProcessHandleRequestElseEnqueue(hr);
+			return future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while reacting ", e);
+					return null;
+				} else {
+					return r;
+				}
+			});
 		}
 
 		/**
@@ -195,7 +213,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
 		this.knowledgeInteractions = new HashMap<>();
 		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(QUEUE_SIZE);
-		this.beingProcessedHandleRequests = Collections.synchronizedMap(new HashMap<Integer, HandleRequest>());
+		this.beingProcessedHandleRequests = new ConcurrentHashMap<Integer, HandleRequest>();
 		this.handleRequestId = new AtomicInteger(0);
 		this.onReady = onReady;
 		this.leaseRenewalTime = scModel.getLeaseRenewalTime();
@@ -225,38 +243,43 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			this.sc.setReasonerEnabled(scModel.getReasonerEnabled());
 	}
 
-	protected void toBeProcessedByKnowledgeBase(HandleRequest handleRequest) {
+	protected void tryProcessHandleRequestElseEnqueue(HandleRequest handleRequest) {
+		boolean sentToKnowledgeBase = false;
+		synchronized (this.asyncResponseLock) {
+			if (this.asyncResponse != null) {
+				this.beingProcessedHandleRequests.put(handleRequest.getHandleRequestId(), handleRequest);
+				// immediately process
+				// retrieve corresponding KnowledgeInteractionId
+				if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
 
-		if (asyncResponse != null) {
-			this.beingProcessedHandleRequests.put(handleRequest.getHandleRequestId(), handleRequest);
-			// immediately process
-			// retrieve corresponding KnowledgeInteractionId
-			if (this.knowledgeInteractions.containsValue(handleRequest.getKnowledgeInteraction())) {
-
-				String knowledgeInteractionId = null;
-				for (var entry : this.knowledgeInteractions.entrySet()) {
-					if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
-						knowledgeInteractionId = entry.getKey().toString();
+					String knowledgeInteractionId = null;
+					for (var entry : this.knowledgeInteractions.entrySet()) {
+						if (entry.getValue().equals(handleRequest.getKnowledgeInteraction())) {
+							knowledgeInteractionId = entry.getKey().toString();
+						}
 					}
+					assert knowledgeInteractionId != null;
+
+					eu.knowledge.engine.rest.model.HandleRequest handleRequestModel = new eu.knowledge.engine.rest.model.HandleRequest()
+							.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
+							.knowledgeInteractionId(knowledgeInteractionId);
+
+					if (handleRequest.getRequestingKnowledgeBaseId() != null) {
+						handleRequestModel.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
+					}
+
+					sentToKnowledgeBase = this.asyncResponse.resume(Response.status(200).entity(handleRequestModel).build());
+					// Even if unsuccesful, we want to reset the asyncResponse object, as it
+					// is somehow faulty. So we will wait for a new request.
+					this.resetAsyncResponse();	
 				}
-				assert knowledgeInteractionId != null;
-
-				eu.knowledge.engine.rest.model.HandleRequest object = new eu.knowledge.engine.rest.model.HandleRequest()
-						.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
-						.knowledgeInteractionId(knowledgeInteractionId);
-
-				if (handleRequest.getRequestingKnowledgeBaseId() != null) {
-					object.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
-				}
-
-				this.asyncResponse.resume(Response.status(200).entity(object).build());
-				this.resetAsyncResponse();
 			}
+		}
 
-		} else {
+		if (!sentToKnowledgeBase) {
 			// Offer a new item to the queue
-			var success = this.toBeProcessedHandleRequests.offer(handleRequest);
-			if (!success) {
+			var enqueued = this.toBeProcessedHandleRequests.offer(handleRequest);
+			if (!enqueued) {
 				// If unsuccessfull, remove the oldest item and complete it exceptionally.
 				HandleRequest oldest = this.toBeProcessedHandleRequests.remove();
 				oldest.getFuture().completeExceptionally(new KnowledgeEngineException(
@@ -276,7 +299,6 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				}
 			}
 		}
-
 	}
 
 	public boolean hasAsyncResponse() {
@@ -295,7 +317,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		if (hr != null) {
 			beingProcessedHandleRequests.put(hr.getHandleRequestId(), hr);
 			// there is a handle request waiting
-			toBeProcessedByKnowledgeBase(hr);
+			tryProcessHandleRequestElseEnqueue(hr);
 		}
 	}
 
@@ -313,19 +335,27 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			eu.knowledge.engine.rest.model.HandleResponse responseBody) {
 
 		int handleRequestId = responseBody.getHandleRequestId();
-		HandleRequest hr = this.beingProcessedHandleRequests.get(handleRequestId);
-		BindingSet bs = this.listToBindingSet(responseBody.getBindingSet());
 
-		// TODO: Can this be moved to somewhere internal so that it can also be
-		// caught in the Java developer api?
-		// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
-		hr.validateBindings(bs);
+		HandleRequest hr = null;
+		BindingSet bs = null;
 
-		// Now that the validation is done, from the reactive side we are done, so
-		// we can remove the HandleRequest from our list.
-		this.beingProcessedHandleRequests.remove(handleRequestId);
+		synchronized (this.beingProcessedHandleRequests) {
+			hr = this.beingProcessedHandleRequests.get(handleRequestId);
+			bs = this.listToBindingSet(responseBody.getBindingSet());
+	
+			// TODO: Can this be moved to somewhere internal so that it can also be
+			// caught in the Java developer api?
+			// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
+			hr.validateBindings(bs);
+	
+			// Now that the validation is done, from the reactive side we are done, so
+			// we can remove the HandleRequest from our list.
+			this.beingProcessedHandleRequests.remove(handleRequestId);
+		}
 
-		hr.getFuture().complete(bs);
+		if (hr != null && bs != null) {
+			hr.getFuture().complete(bs);
+		}
 	}
 
 	public String register(KnowledgeInteractionBase ki) {
@@ -561,7 +591,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// method to handle it.
 		var askFuture = this.sc.ask((AskKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
-		return askFuture;
+		return askFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while asking ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	public CompletableFuture<eu.knowledge.engine.smartconnector.api.PostResult> post(String kiId,
@@ -587,7 +625,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		// method to handle it.
 		var postFuture = this.sc.post((PostKnowledgeInteraction) ki, recipientSelector, listToBindingSet(bindings));
 
-		return postFuture;
+		return postFuture.handle((r, e) -> {
+
+			if (r == null) {
+				LOG.error("An exception has occured while posting ", e);
+				return null;
+			} else {
+				return r;
+			}
+		});
 	}
 
 	private BindingSet listToBindingSet(List<Map<String, String>> listBindings) {

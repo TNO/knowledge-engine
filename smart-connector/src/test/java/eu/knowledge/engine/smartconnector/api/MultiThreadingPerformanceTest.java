@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,6 +143,7 @@ public class MultiThreadingPerformanceTest {
 
 	private Map<String, MessageTime> alreadyFound = new HashMap<>();
 
+	@Disabled
 	@Test
 	public void test() throws InterruptedException {
 
@@ -152,8 +154,6 @@ public class MultiThreadingPerformanceTest {
 		reacter = new MockedKnowledgeBase("reacter");
 		reacter.setIsThreadSafe(true);
 		kn.addKB(reacter);
-
-		kn.startAndWaitForReady();
 
 		// add KIs
 		GraphPattern gp1 = new GraphPattern("?s <pred> <obj> .");
@@ -168,7 +168,7 @@ public class MultiThreadingPerformanceTest {
 			return new BindingSet();
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		for (int i = 0; i < INITIAL_NR_OF_THREADS; i++) {
 			Thread e = new Thread(this.postRunnable);

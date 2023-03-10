@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	private final OtherKnowledgeBaseStore otherKnowledgeBaseStore;
 	private final MessageRouterImpl messageRouter;
 	private boolean isStopped = false;
-	private final boolean knowledgeBaseIsThreadSafe;
 	private final ExecutorService knowledgeBaseExecutorService;
 	private final BindingValidator bindingValidator = new BindingValidator();
 	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
@@ -68,7 +66,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 * @param aKnowledgeBase The {@link KnowledgeBase} this smart connector belongs
 	 *                       to.
 	 */
-	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase, boolean knowledgeBaseIsThreadSafe) {
+	public SmartConnectorImpl(KnowledgeBase aKnowledgeBase) {
 		this.started = Instant.now();
 		this.myKnowledgeBase = aKnowledgeBase;
 
@@ -87,9 +85,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		this.messageRouter.registerMetaKnowledgeBase(this.metaKnowledgeBase);
 		this.messageRouter.registerInteractionProcessor(this.interactionProcessor);
 
-		this.knowledgeBaseIsThreadSafe = knowledgeBaseIsThreadSafe;
-		this.knowledgeBaseExecutorService = knowledgeBaseIsThreadSafe ? KeRuntime.executorService()
-				: Executors.newSingleThreadExecutor();
+		this.knowledgeBaseExecutorService = KeRuntime.executorService();
 
 		KeRuntime.localSmartConnectorRegistry().register(this);
 
@@ -472,12 +468,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		KeRuntime.localSmartConnectorRegistry().unregister(this);
 
 		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
-
-		if (!this.knowledgeBaseIsThreadSafe) {
-			// In that case this was a SingleThreadExecutor that was created in the
-			// constructor specifically for this Knowledge Base
-			this.knowledgeBaseExecutorService.shutdown();
-		}
 	}
 
 	private void checkStopped() {
@@ -557,4 +547,5 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public boolean isReasonerEnabled() {
 		return this.interactionProcessor.isReasonerEnabled();
 	}
+
 }

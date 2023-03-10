@@ -1,41 +1,46 @@
 package eu.knowledge.engine.reasoner;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import eu.knowledge.engine.reasoner.Rule.MatchStrategy;
+import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class TransitivityTest {
 
-	private KeReasoner reasoner;
+	private RuleStore store;
 
-	@Before
+	@BeforeAll
 	public void init() {
-		reasoner = new KeReasoner();
+		store = new RuleStore();
 
 		// transitivity rule
 		Set<TriplePattern> antecedent = new HashSet<>();
-		antecedent.add(new TriplePattern("?x <isVoorouderVan> ?y"));
-		antecedent.add(new TriplePattern("?y <isVoorouderVan> ?z"));
+		antecedent.add(new TriplePattern("?x <isAncestorOf> ?y"));
+		antecedent.add(new TriplePattern("?y <isAncestorOf> ?z"));
 
 		Set<TriplePattern> consequent = new HashSet<>();
-		consequent.add(new TriplePattern("?x <isVoorouderVan> ?z"));
+		consequent.add(new TriplePattern("?x <isAncestorOf> ?z"));
+
 		Rule transitivity = new Rule(antecedent, consequent);
-		reasoner.addRule(transitivity);
+
+		store.addRule(transitivity);
 
 		// data rule
-		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
-				//@formatter:off
-				"a", "b"
-				//@formatter:on
-		}, new String[] {
+		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(
+				new Table(new String[] { "a", "b" }, new String[] {
 				//@formatter:off
 				"<barry>,<fenna>",
 				"<janny>,<barry>",
@@ -43,30 +48,35 @@ public class TransitivityTest {
 				"<benno>,<loes>",
 				"<loes>,<hendrik>",
 				//@formatter:on
-		}));
+				}));
 
-		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isVoorouderVan> ?b"))),
+		Rule rule = new Rule(new HashSet<>(), new HashSet<>(Arrays.asList(new TriplePattern("?a <isAncestorOf> ?b"))),
 				aBindingSetHandler);
 
-		reasoner.addRule(rule);
+		store.addRule(rule);
 	}
 
-	@Ignore
 	@Test
-	public void test() {
+	public void test() throws InterruptedException, ExecutionException {
 		Set<TriplePattern> aGoal = new HashSet<>();
-		aGoal.add(new TriplePattern("?x <isVoorouderVan> ?y"));
-		TaskBoard taskboard = new TaskBoard();
-		ReasoningNode rn = reasoner.backwardPlan(aGoal, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES, taskboard);
-		BindingSet result = null;
+		aGoal.add(new TriplePattern("?x <isAncestorOf> ?y"));
+		ProactiveRule startRule = new ProactiveRule(aGoal, new HashSet<>());
+		store.addRule(startRule);
 
-		System.out.println(rn);
-		while ((result = rn.continueBackward(new BindingSet())) == null) {
-			System.out.println(rn);
-			taskboard.executeScheduledTasks();
+		ReasonerPlan plan = new ReasonerPlan(store, startRule);
+
+		store.printGraphVizCode(plan);
+
+		TaskBoard tb;
+		BindingSet bindingSet = new BindingSet();
+		bindingSet.add(new Binding());
+
+		while ((tb = plan.execute(bindingSet)).hasTasks()) {
+			tb.executeScheduledTasks().get();
 		}
 
-		System.out.println("Result: " + result);
-	}
+		BindingSet result = plan.getResults();
 
+		assertEquals(15, result.size());
+	}
 }

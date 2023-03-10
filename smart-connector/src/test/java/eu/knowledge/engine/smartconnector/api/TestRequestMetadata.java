@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.impl.Util;
+
 public class TestRequestMetadata {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -41,9 +43,6 @@ public class TestRequestMetadata {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		kn.startAndWaitForReady();
-		LOG.info("Everyone is ready!");
-
 		GraphPattern gp = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .", "?obs saref:hasTemp ?temp .");
 		PostKnowledgeInteraction ki = new PostKnowledgeInteraction(new CommunicativeAct(), gp, null, false);
 		kb1.register(ki);
@@ -53,20 +52,19 @@ public class TestRequestMetadata {
 				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
 				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
 				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
+				"?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp kb:hasPattern ?pattern .");
 
 		AskKnowledgeInteraction aKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 		kb2.register(aKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 		LOG.info("Everyone is up-to-date!");
 
 		AskResult result = kb2.ask(aKI, new BindingSet()).get();
 
 		LOG.info("Bindings: {}", result.getBindings());
 
-		Model m = BindingSet.generateModel(aKI.getPattern(), result.getBindings());
+		Model m = Util.generateModel(aKI.getPattern(), result.getBindings());
 
 		List<Resource> i = m
 				.listSubjectsWithProperty(RDF.type,
@@ -74,7 +72,7 @@ public class TestRequestMetadata {
 				.toList();
 		assertEquals(3 + 1, i.size());
 
-		assertTrue(m.listStatements((Resource) null, Vocab.HAS_ARG, (RDFNode) null).hasNext());
+		assertTrue(m.listStatements((Resource) null, RDF.type, Vocab.ARGUMENT_GRAPH_PATTERN).hasNext());
 
 	}
 

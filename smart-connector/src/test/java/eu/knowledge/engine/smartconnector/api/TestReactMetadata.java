@@ -1,18 +1,8 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
@@ -22,14 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestReactMetadata {
@@ -52,16 +34,27 @@ public class TestReactMetadata {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
+		kn.sync();
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .",
-				"?kb kb:hasDescription ?description .", "?kb kb:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .", "?ki kb:hasCommunicativeAct ?act .",
-				"?act rdf:type kb:CommunicativeAct .", "?act kb:hasRequirement ?req .",
-				"?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki kb:hasGraphPattern ?gp .", "?ki ?patternType ?gp .", "?gp rdf:type kb:GraphPattern .",
-				"?gp kb:hasPattern ?pattern .");
+		GraphPattern gp2 = new GraphPattern(prefixes, 
+			"""
+				?kb rdf:type kb:KnowledgeBase .
+				?kb kb:hasName ?name .
+				?kb kb:hasDescription ?description .
+				?kb kb:hasKnowledgeInteraction ?ki .
+				?ki rdf:type ?kiType .
+				?ki kb:isMeta ?isMeta .
+				?ki kb:hasCommunicativeAct ?act .
+				?act rdf:type kb:CommunicativeAct .
+				?act kb:hasRequirement ?req .
+				?act kb:hasSatisfaction ?sat .
+				?req rdf:type ?reqType .
+				?sat rdf:type ?satType .
+				?ki kb:hasGraphPattern ?gp .
+				?gp rdf:type ?patternType .
+				?gp kb:hasPattern ?pattern .
+			"""
+		);
 
 		var ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, new ReactHandler() {
@@ -87,7 +80,7 @@ public class TestReactMetadata {
 					while (kiIter.hasNext()) {
 						var ki = kiIter.next().getObject().asResource();
 
-						var prop = m.getProperty(m.expandPrefix("kb:hasArgumentGraphPattern"));
+						var prop = m.getProperty(m.expandPrefix("kb:hasGraphPattern"));
 
 						LOG.debug("KI: {}", ki);
 
@@ -118,13 +111,13 @@ public class TestReactMetadata {
 
 		});
 
-		LOG.info("Waiting for up-to-date...");
-		kn.waitForUpToDate();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?obs rdf:type saref:Measurement .",
 				"?obs saref:hasTemp ?temp .");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
 		kb1.register(ki1);
+
+		LOG.info("Waiting for up-to-date...");
+		kn.sync();
 
 		LOG.info("Finished, now closing!");
 	}

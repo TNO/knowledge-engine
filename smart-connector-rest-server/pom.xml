@@ -11,12 +11,9 @@
 	</parent>
 
 	<properties>
-		<java.version>11</java.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<swagger-core-version>1.5.18</swagger-core-version>
 		<jetty-version>9.2.9.v20150224</jetty-version>
-		<jersey2-version>2.34</jersey2-version>
+		<jersey2-version>2.35</jersey2-version>
 		<jackson-version>2.9.9</jackson-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -143,6 +140,13 @@
 			<version>5.7.0</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- maven model for dynamic version info -->
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-model</artifactId>
+			<version>3.8.5</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -165,7 +169,7 @@
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease</apisToGenerate>
+							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease,VersionInfo</apisToGenerate>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>

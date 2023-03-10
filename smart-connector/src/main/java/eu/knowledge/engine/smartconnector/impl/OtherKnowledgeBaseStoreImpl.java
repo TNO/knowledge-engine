@@ -70,6 +70,14 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 							} catch (Throwable t) {
 								this.LOG.error("Adding an other knowledgebase should succeed.", t);
 							}
+						}).handle((r, e) -> {
+
+							if (r == null && e != null) {
+								LOG.error("An exception has occured while adding an other Knowledge Base ", e);
+								return null;
+							} else {
+								return r;
+							}
 						});
 
 				futures.add(otherKnowledgeBaseFuture);

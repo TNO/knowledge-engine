@@ -44,9 +44,6 @@ public class TestAskAnswerWithPartialBindings {
 		kb2 = new MockedKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
-
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
@@ -83,7 +80,7 @@ public class TestAskAnswerWithPartialBindings {
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// start testing!
 		BindingSet bindings = null;
@@ -110,23 +107,20 @@ public class TestAskAnswerWithPartialBindings {
 
 		int count = 0;
 		Binding b;
-		while(iter.hasNext())
-		{
+		while (iter.hasNext()) {
 			count++;
 			b = iter.next();
-			
+
 			assertTrue(!b.containsKey("a") && !b.containsKey("c"),
 					"The variable names should follow the graph pattern of the current KB.");
-			
+
 			assertTrue(b.containsKey("x") && b.containsKey("y"));
-			
-			if (b.get("x").equals("<https://www.tno.nl/example/a>"))
-			{
+
+			if (b.get("x").equals("<https://www.tno.nl/example/a>")) {
 				assertTrue(b.get("y").equals("<https://www.tno.nl/example/c>"));
 			}
-			
-			if (b.get("x").equals("<https://www.tno.nl/example/x>"))
-			{
+
+			if (b.get("x").equals("<https://www.tno.nl/example/x>")) {
 				assertTrue(b.get("y").equals("<https://www.tno.nl/example/y>"));
 			}
 		}

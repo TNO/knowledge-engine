@@ -6,17 +6,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.Vocab;
 
 public class KnowledgeNetwork {
 
@@ -33,8 +29,8 @@ public class KnowledgeNetwork {
 	private PrefixMapping prefixMapping;
 
 	public KnowledgeNetwork() {
-		this.knowledgeBases = new HashSet<>();
-		this.knowledgeInteractionMetadata = new HashMap<>();
+		this.knowledgeBases = ConcurrentHashMap.newKeySet();
+		this.knowledgeInteractionMetadata = new ConcurrentHashMap<>();
 		this.readyPhaser = new Phaser(1);
 		this.prefixMapping = new PrefixMappingMem();
 		this.prefixMapping.setNsPrefixes(PrefixMapping.Standard);
@@ -46,20 +42,31 @@ public class KnowledgeNetwork {
 		knowledgeBases.add(aKB);
 	}
 
+	public void sync() {
+		this.startAndWaitForReady();
+		this.waitForUpToDate();
+	}
+
 	/**
 	 * wait until all knowledge bases are up and running and know of each other
 	 * existence.
 	 */
-	public void startAndWaitForReady() {
+	private void startAndWaitForReady() {
+
+		Set<MockedKnowledgeBase> justStartedKBs = new HashSet<>();
 
 		for (MockedKnowledgeBase kb : this.knowledgeBases) {
-			kb.start();
+			if (!kb.isStarted()) {
+				kb.start();
+				justStartedKBs.add(kb);
+			}
 		}
 
 		// wait until all smart connectors have given the 'ready' signal (and registered
 		// all their knowledge interactions).
 		LOG.debug("Waiting for ready.");
 		readyPhaser.arriveAndAwaitAdvance();
+		readyPhaser = new Phaser(1); // reset the phaser
 		LOG.debug("Everyone is ready!");
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
@@ -78,19 +85,23 @@ public class KnowledgeNetwork {
 				"?req rdf:type ?reqType .",
 				"?sat rdf:type ?satType .", 
 				"?ki kb:hasGraphPattern ?gp .", 
-				"?ki ?patternType ?gp .",
-				"?gp rdf:type kb:GraphPattern .", 
+				"?gp rdf:type ?patternType .",
 				"?gp kb:hasPattern ?pattern ."
 				//@formatter:on
 		);
-		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+
+		for (MockedKnowledgeBase kb : justStartedKBs) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, true);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}
+
+		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+			kb.syncKIs();
+		}
 	}
 
-	public void waitForUpToDate() {
+	private void waitForUpToDate() {
 		LOG.debug("Waiting for up to date.");
 		// manually check if every Knowledge Base is up to date
 		boolean allUpToDate = false;
@@ -101,23 +112,37 @@ public class KnowledgeNetwork {
 			count++;
 			LOG.info("Checking up to date knowledge bases.");
 			allUpToDate = true;
+			Map<MockedKnowledgeBase, Boolean> upToDate = new HashMap<>();
 			boolean kbUpToDate;
 			for (MockedKnowledgeBase kb : this.knowledgeBases) {
-				LOG.info("Before isUpToDate");
 				kbUpToDate = kb.isUpToDate(this.knowledgeInteractionMetadata.get(kb), this.knowledgeBases);
-				LOG.info("After isUpToDate");
 				allUpToDate &= kbUpToDate;
+				upToDate.put(kb, kbUpToDate);
 				if (kbUpToDate) {
-					LOG.info("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
+					LOG.debug("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
 				}
 			}
 			try {
+				LOG.info("KBs up to date? {}", getUpToDateInfo(upToDate));
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				LOG.error("An error occured while waiting for up-to-date.", e);
 			}
 		}
 		LOG.info("Everyone is up to date after {} rounds!", count);
+	}
+
+	private String getUpToDateInfo(Map<MockedKnowledgeBase, Boolean> upToDate) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("(");
+		for (Map.Entry<MockedKnowledgeBase, Boolean> entry : upToDate.entrySet()) {
+			sb.append(entry.getKey().getKnowledgeBaseName()).append("=").append(entry.getValue());
+			sb.append(",");
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	/**

@@ -200,6 +200,17 @@ public class InteractionProcessorImplTest {
 
 			CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 
+			future.handle((r, e) -> {
+
+				if (r == null) {
+					LOG.error("An exception has occured while sending Ask Message ", e);
+					return null;
+				} else {
+					return r;
+				}
+
+			});
+
 			this.executor.execute(() -> {
 
 				BindingSet bindings = new BindingSet();

@@ -6,9 +6,9 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 public class Vocab {
 
-	public static final String ONTOLOGY_RESOURCE_LOCATION = "/knowledgebase.ttl";
+	public static final String ONTOLOGY_RESOURCE_LOCATION = "/knowledge-engine-ontology.ttl";
 
-	public static final String ONTO_URI = "https://www.tno.nl/energy/ontology/interconnect#";
+	public static final String ONTO_URI = "https://w3id.org/knowledge-engine/";
 
 	public static final Resource KNOWLEDGE_BASE = ResourceFactory.createResource(ONTO_URI + "KnowledgeBase");
 	public static final Resource KNOWLEDGE_INTERACTION = ResourceFactory
@@ -18,6 +18,8 @@ public class Vocab {
 	public static final Resource ANSWER_KI = ResourceFactory.createResource(ONTO_URI + "AnswerKnowledgeInteraction");
 	public static final Resource ASK_KI = ResourceFactory.createResource(ONTO_URI + "AskKnowledgeInteraction");
 	public static final Resource GRAPH_PATTERN = ResourceFactory.createResource(ONTO_URI + "GraphPattern");
+	public static final Resource ARGUMENT_GRAPH_PATTERN = ResourceFactory.createResource(ONTO_URI + "ArgumentGraphPattern");
+	public static final Resource RESULT_GRAPH_PATTERN = ResourceFactory.createResource(ONTO_URI + "ResultGraphPattern");
 	public static final Resource COMMUNICATIVE_ACT = ResourceFactory.createResource(ONTO_URI + "CommunicativeAct");
 	public static final Resource PURPOSE = ResourceFactory.createResource(ONTO_URI + "Purpose");
 	public static final Resource INFORM_PURPOSE = ResourceFactory.createResource(ONTO_URI + "InformPurpose");
@@ -41,8 +43,6 @@ public class Vocab {
 	public static final Property HAS_KI = ResourceFactory.createProperty(ONTO_URI + "hasKnowledgeInteraction");
 	public static final Property IS_META = ResourceFactory.createProperty(ONTO_URI + "isMeta");
 	public static final Property HAS_PATTERN = ResourceFactory.createProperty(ONTO_URI + "hasPattern");
-	public static final Property HAS_ARG = ResourceFactory.createProperty(ONTO_URI + "hasArgumentGraphPattern");
-	public static final Property HAS_RES = ResourceFactory.createProperty(ONTO_URI + "hasResultGraphPattern");
 	public static final Property HAS_REQ = ResourceFactory.createProperty(ONTO_URI + "hasRequirement");
 	public static final Property HAS_SAT = ResourceFactory.createProperty(ONTO_URI + "hasSatisfaction");
 

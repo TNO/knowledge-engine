@@ -3,10 +3,12 @@ package eu.knowledge.engine.reasoner;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import org.apache.jena.graph.Node;
-
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
@@ -36,19 +38,19 @@ public class Match {
 	 * Note that the semantics of this mapping is that it contains all mappings that
 	 * involve variables. Literal to literal mappings are left out.
 	 */
-	private Map<Node, Node> mapping;
+	private Map<TripleNode, TripleNode> mapping;
 
-	public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<Node, Node> someMapping) {
+	public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<TripleNode, TripleNode> someMapping) {
 		Map<TriplePattern, TriplePattern> someMatchingPatterns = new HashMap<>();
 		someMatchingPatterns.put(matchTriple, uponTriple);
 		this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 
-		Map<Node, Node> newMapping = new HashMap<>();
+		Map<TripleNode, TripleNode> newMapping = new HashMap<>();
 		newMapping.putAll(someMapping);
 		this.mapping = Collections.unmodifiableMap(someMapping);
 	}
 
-	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<Node, Node> someMapping) {
+	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<TripleNode, TripleNode> someMapping) {
 		this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 		this.mapping = Collections.unmodifiableMap(someMapping);
 	}
@@ -68,22 +70,18 @@ public class Match {
 		Match m = null;
 
 		// if both sides of the matching patterns do not overlap
-		boolean doKeysIntersect = doIntersect(this.getMatchingPatterns().keySet(),
-				otherMatch.getMatchingPatterns().keySet());
+		boolean doMapsIntersect = doIntersect(this.getMatchingPatterns(), otherMatch.getMatchingPatterns());
 
-		boolean doValuesIntersect = doIntersect(this.getMatchingPatterns().values(),
-				otherMatch.getMatchingPatterns().values());
-
-		if (!doKeysIntersect && !doValuesIntersect) {
+		if (!doMapsIntersect) {
 
 			// and if the mappings do not conflict
-			Map<Node, Node> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
+			Map<TripleNode, TripleNode> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
 			if (mergedMapping != null) {
 				// if both patterns and mappings do not conflict.
 				Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
 				newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
 
-				Map<Node, Node> newMapping = new HashMap<>(this.getMappings());
+				Map<TripleNode, TripleNode> newMapping = new HashMap<>(this.getMappings());
 				newMapping.putAll(otherMatch.getMappings());
 				m = new Match(newMatchingPatterns, newMapping);
 			}
@@ -91,11 +89,19 @@ public class Match {
 		return m;
 	}
 
-	private boolean doIntersect(Collection<TriplePattern> aFirstSet, Collection<TriplePattern> aSecondSet) {
+	/**
+	 * Checks both the keys and the values.
+	 * 
+	 * @param aFirstMap
+	 * @param aSecondMap
+	 * @return
+	 */
+	private boolean doIntersect(Map<TriplePattern, TriplePattern> aFirstMap,
+			Map<TriplePattern, TriplePattern> aSecondMap) {
 
-		for (TriplePattern tp1 : aFirstSet) {
-			for (TriplePattern tp2 : aSecondSet) {
-				if (tp1.equals(tp2))
+		for (Entry<TriplePattern, TriplePattern> entry1 : aFirstMap.entrySet()) {
+			for (Entry<TriplePattern, TriplePattern> entry2 : aSecondMap.entrySet()) {
+				if (entry1.getKey().equals(entry2.getKey()) || entry1.getValue().equals(entry2.getValue()))
 					return true;
 			}
 		}
@@ -103,7 +109,7 @@ public class Match {
 		return false;
 	}
 
-	public Map<Node, Node> getMappings() {
+	public Map<TripleNode, TripleNode> getMappings() {
 		return this.mapping;
 	}
 
@@ -118,18 +124,23 @@ public class Match {
 	 * @param newContext
 	 * @return
 	 */
-	private Map<Node, Node> mergeContexts(Map<Node, Node> existingContext, Map<Node, Node> newContext) {
+	private Map<TripleNode, TripleNode> mergeContexts(Map<TripleNode, TripleNode> existingContext,
+			Map<TripleNode, TripleNode> newContext) {
 
-		Map<Node, Node> mergedContext = new HashMap<Node, Node>(existingContext);
-		for (Map.Entry<Node, Node> newEntry : newContext.entrySet()) {
-			if (existingContext.containsKey(newEntry.getKey())) {
-				if (!existingContext.get(newEntry.getKey()).equals(newEntry.getValue())) {
+		Collection<TripleNode> existingContextValues = existingContext.values();
+		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(existingContext);
+		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
+			TripleNode node;
+			if ((node = existingContext.get(newEntry.getKey())) != null) {
+				if (!node.equals(newEntry.getValue())) {
 					return null;
 				}
-			} else if (existingContext.values().contains(newEntry.getValue())) {
-				return null;
 			} else {
-				mergedContext.put(newEntry.getKey(), newEntry.getValue());
+				if (existingContextValues.contains(newEntry.getValue())) {
+					return null;
+				} else {
+					mergedContext.put(newEntry.getKey(), newEntry.getValue());
+				}
 			}
 		}
 
@@ -173,7 +184,7 @@ public class Match {
 
 	@Override
 	public String toString() {
-		return "Match [matchingPatterns=" + matchingPatterns + ", mapping=" + mapping + "]";
+		return "Match " + mapping;
 	}
 
 	/**
@@ -182,16 +193,48 @@ public class Match {
 	 * @return
 	 */
 	public Match inverse() {
-		Map<Node, Node> invertedMap = new HashMap<Node, Node>();
+		Map<TripleNode, TripleNode> invertedMap = new HashMap<TripleNode, TripleNode>();
 		Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<TriplePattern, TriplePattern>();
 
 		for (Map.Entry<TriplePattern, TriplePattern> someMatchingPatterns : this.matchingPatterns.entrySet()) {
 			newMatchingPatterns.put(someMatchingPatterns.getValue(), someMatchingPatterns.getKey());
 		}
 
-		for (Map.Entry<Node, Node> entry : this.getMappings().entrySet()) {
+		for (Map.Entry<TripleNode, TripleNode> entry : this.getMappings().entrySet()) {
 			invertedMap.put(entry.getValue(), entry.getKey());
 		}
 		return new Match(newMatchingPatterns, invertedMap);
+	}
+
+	public static Set<Match> invertAll(Set<Match> someMatches) {
+		Set<Match> inverseMatches = new HashSet<>();
+		for (Match m : someMatches) {
+			inverseMatches.add(m.inverse());
+		}
+		return inverseMatches;
+	}
+
+	/**
+	 * Checks if aMatch is a submatch of this match.
+	 * 
+	 * @param aMatch
+	 * @return
+	 */
+	public boolean isSubMatch(Match aMatch) {
+
+		for (Entry<TriplePattern, TriplePattern> entry : aMatch.getMatchingPatterns().entrySet()) {
+
+			if (!entry.getValue().equals(this.matchingPatterns.get(entry.getKey()))) {
+				return false;
+			}
+		}
+
+		for (Entry<TripleNode, TripleNode> entry : aMatch.getMappings().entrySet()) {
+			if (!entry.getValue().equals(this.mapping.get(entry.getKey()))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

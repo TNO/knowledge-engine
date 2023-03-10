@@ -28,7 +28,7 @@ class VariableBindingNameTest {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
-		prefixes.setNsPrefix("ic", "https://www.tno.nl/energy/ontology/interconnect/");
+		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		// first add the relevant knowledge bases
@@ -37,8 +37,6 @@ class VariableBindingNameTest {
 		kn.addKB(sensor);
 		thermostat = new MockedKnowledgeBase("thermostat");
 		kn.addKB(thermostat);
-		LOG.info("Waiting for ready...");
-		kn.startAndWaitForReady();
 
 		// then register the relevant knowledge interactions
 		GraphPattern argGraphPattern1 = new GraphPattern(prefixes,
@@ -47,7 +45,7 @@ class VariableBindingNameTest {
 						+ "?obs1 sosa:observedProperty ic:Temperature . \n" + "?obs1 sosa:hasSimpleResult ?temp1 .");
 		GraphPattern resGraphPattern1 = new GraphPattern(prefixes, "?s1 ?p1 ?o1");
 		PostKnowledgeInteraction sensorPostKI = new PostKnowledgeInteraction(new CommunicativeAct(), argGraphPattern1,
-				null);
+				resGraphPattern1);
 		sensor.register(sensorPostKI);
 
 		GraphPattern argGraphPattern2 = new GraphPattern(prefixes,
@@ -58,7 +56,7 @@ class VariableBindingNameTest {
 		GraphPattern resGraphPattern2 = new GraphPattern(prefixes, "?s2 ?p2 ?o2");
 
 		ReactKnowledgeInteraction thermostatReactKI = new ReactKnowledgeInteraction(new CommunicativeAct(),
-				argGraphPattern2, null);
+				argGraphPattern2, resGraphPattern2);
 		thermostat.register(thermostatReactKI, new ReactHandler() {
 			@Override
 			public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
@@ -89,7 +87,7 @@ class VariableBindingNameTest {
 			}
 		});
 
-		kn.waitForUpToDate();
+		kn.sync();
 
 		// data exchange
 

@@ -22,6 +22,7 @@ import eu.knowledge.engine.rest.model.HandleRequest;
 import eu.knowledge.engine.rest.model.HandleResponse;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionBase;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionId;
+import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.PostKnowledgeInteraction;
 import eu.knowledge.engine.rest.model.PostResult;
 import eu.knowledge.engine.rest.model.ReactKnowledgeInteraction;
@@ -163,7 +164,8 @@ public class KnowledgeEngineRestApiClient {
 			try {
 				var response = this.okClient.newCall(request).execute();
 				KnowledgeInteractionId kii = new KnowledgeInteractionId();
-				kii.setKnowledgeInteractionId(response.body().string());
+				KnowledgeInteractionWithId kiWithId = (KnowledgeInteractionWithId) this.mapper.readValue(response.body().string(), new TypeReference<KnowledgeInteractionWithId>() {});
+				kii.setKnowledgeInteractionId(kiWithId.getKnowledgeInteractionId());
 				return kii;
 			} catch (IOException e) {
 				e.printStackTrace();
