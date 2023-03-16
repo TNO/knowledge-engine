@@ -21,6 +21,8 @@ public abstract class RuleNode {
 	private BaseRule rule;
 	private boolean resultBindingSetOutputScheduled = false;
 	private Map<TriplePattern, Set<RuleNode>> antecedentCoverageCache;
+	protected boolean isFilterBindingSetOutputDirty = false;
+	protected boolean isResultBindingSetOutputDirty = false;
 
 	public RuleNode(BaseRule aRule) {
 		this.rule = aRule;
@@ -85,6 +87,32 @@ public abstract class RuleNode {
 			}
 		}
 		return this.antecedentCoverageCache;
+	}
+
+	/**
+	 * @return true if the filter bindingset output has changed and was not yet
+	 *         propagated, false otherwise.
+	 */
+	public abstract boolean shouldPropagateFilterBindingSetOutput();
+
+	/**
+	 * register that the current filterbindingsetoutput was propagated.
+	 */
+	public void setFilterBindingSetOutputPropagated() {
+		this.isFilterBindingSetOutputDirty = false;
+	}
+
+	/**
+	 * @return true if the result bindingset output has changed and was not yet
+	 *         propagated, false otherwise.
+	 */
+	public abstract boolean shouldPropagateResultBindingSetOutput();
+
+	/**
+	 * register that the current resultbindingsetoutput was propagated.
+	 */
+	public void setResultBindingSetOutputPropagated() {
+		this.isResultBindingSetOutputDirty = false;
 	}
 
 }

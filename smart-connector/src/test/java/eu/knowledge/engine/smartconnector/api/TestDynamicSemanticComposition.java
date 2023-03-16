@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -98,8 +99,15 @@ public class TestDynamicSemanticComposition {
 	@Test
 	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
+		try {
+			System.in.read();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		setupNetwork();
 
+		System.exit(-1);
 		// start planning ask for targets!
 		BindingSet bindings = null;
 		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
@@ -164,13 +172,17 @@ public class TestDynamicSemanticComposition {
 	private void setupNetwork() {
 
 		instantiateHVTSearcherKB();
+
 		instantiateObserverKB();
 
 		kn = new KnowledgeNetwork();
 		kn.addKB(kbTargetObserver);
 		kn.addKB(kbHVTSearcher);
 
+		long start = System.nanoTime();
 		kn.sync();
+		long end = System.nanoTime();
+		LOG.info("Duration: {}", (((double) (end - start)) / 1_000_000));
 	}
 
 	private void updateNetwork(Set<Set<TriplePattern>> gaps) {

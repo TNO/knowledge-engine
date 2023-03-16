@@ -83,7 +83,11 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
 		if (changed && this.filterBindingSetOutput == null) {
+			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
+
+			if (!this.filterBindingSetOutput.equals(previousBindingSetOutput))
+				this.isFilterBindingSetOutputDirty = true;
 		}
 
 		return changed;
@@ -122,7 +126,14 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		var handler = ((Rule) this.getRule()).getInverseBindingSetHandler();
 		try {
 			var result = handler.handle(this.filterBindingSetInput.get().toBindingSet()).get();
+
+			var previousBindingSetOutput = this.filterBindingSetOutput;
+
 			this.filterBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getAntecedent());
+
+			if (!this.filterBindingSetOutput.equals(previousBindingSetOutput))
+				this.isFilterBindingSetOutputDirty = true;
+
 		} catch (InterruptedException | ExecutionException e) {
 			// TODO
 			e.printStackTrace();
@@ -151,16 +162,24 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		var handler = ((Rule) this.getRule()).getBindingSetHandler();
 		TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
 
+		var previousBindingSetOutput = this.resultBindingSetOutput;
+
 		CompletableFuture<Void> f;
 		if (!fullBindingSet.isEmpty()) {
 			f = handler.handle(fullBindingSet.toBindingSet()).thenAccept(result -> {
 				this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
+				if (!this.resultBindingSetOutput.equals(previousBindingSetOutput))
+					this.isResultBindingSetOutputDirty = true;
+
 			});
 		} else {
 			f = new CompletableFuture<>();
 			this.resultBindingSetOutput = new TripleVarBindingSet(this.getRule().getConsequent());
 			f.complete(null);
+			if (!this.resultBindingSetOutput.equals(previousBindingSetOutput))
+				this.isResultBindingSetOutputDirty = true;
 		}
+
 		return f;
 	}
 
@@ -229,5 +248,15 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 				});
 
 		return nodes;
+	}
+
+	@Override
+	public boolean shouldPropagateFilterBindingSetOutput() {
+		return this.isFilterBindingSetOutputDirty;
+	}
+
+	@Override
+	public boolean shouldPropagateResultBindingSetOutput() {
+		return this.isResultBindingSetOutputDirty;
 	}
 }
