@@ -1,5 +1,4 @@
-*Note: This is experimental software, and should not be considered production-ready!*
-
+*This software is in development ([TRL 6](https://en.wikipedia.org/wiki/Technology_readiness_level)).*
 
 # Knowledge Engine
 
