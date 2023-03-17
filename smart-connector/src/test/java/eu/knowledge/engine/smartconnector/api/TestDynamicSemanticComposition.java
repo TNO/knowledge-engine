@@ -99,15 +99,8 @@ public class TestDynamicSemanticComposition {
 	@Test
 	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
-		try {
-			System.in.read();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		setupNetwork();
 
-		System.exit(-1);
 		// start planning ask for targets!
 		BindingSet bindings = null;
 		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
