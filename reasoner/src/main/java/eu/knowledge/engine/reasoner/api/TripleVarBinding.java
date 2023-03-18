@@ -33,20 +33,21 @@ public class TripleVarBinding {
 
 	public TripleVarBinding(Set<TriplePattern> aGraphPattern, Binding aBinding) {
 		this();
+		TripleNode tripleVar;
 		for (TriplePattern tp : aGraphPattern) {
 
 			if (tp.getSubject().isVariable() && aBinding.containsKey(tp.getSubject())) {
-				TripleNode tripleVar = new TripleNode(tp, tp.getSubject(), 0);
+				tripleVar = new TripleNode(tp, tp.getSubject(), 0);
 				tripleVarMapping.put(tripleVar, aBinding.get(tp.getSubject()));
 				variableTripleVarMapping.put((Var) tp.getSubject(), tripleVar);
 			}
 			if (tp.getPredicate().isVariable() && aBinding.containsKey(tp.getPredicate())) {
-				TripleNode tripleVar = new TripleNode(tp, tp.getPredicate(), 1);
+				tripleVar = new TripleNode(tp, tp.getPredicate(), 1);
 				tripleVarMapping.put(tripleVar, aBinding.get(tp.getPredicate()));
 				variableTripleVarMapping.put((Var) tp.getPredicate(), tripleVar);
 			}
 			if (tp.getObject().isVariable() && aBinding.containsKey(tp.getObject())) {
-				TripleNode tripleVar = new TripleNode(tp, tp.getObject(), 2);
+				tripleVar = new TripleNode(tp, tp.getObject(), 2);
 				tripleVarMapping.put(tripleVar, aBinding.get(tp.getObject()));
 				variableTripleVarMapping.put((Var) tp.getObject(), tripleVar);
 			}
