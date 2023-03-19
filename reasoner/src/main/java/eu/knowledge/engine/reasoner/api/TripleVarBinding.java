@@ -144,8 +144,8 @@ public class TripleVarBinding {
 	public boolean containsVar(Var aVar) {
 		assert aVar instanceof Var;
 
-		for (Map.Entry<TripleNode, Node_Concrete> entry : this.tripleVarMapping.entrySet()) {
-			if (entry.getKey().node.equals(aVar)) {
+		for (TripleNode tNode : this.tripleVarMapping.keySet()) {
+			if (tNode.node.equals(aVar)) {
 				return true;
 			}
 		}
