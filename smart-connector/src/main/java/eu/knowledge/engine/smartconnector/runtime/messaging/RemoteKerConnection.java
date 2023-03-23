@@ -25,6 +25,7 @@ import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
 import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
 import eu.knowledge.engine.smartconnector.messaging.PostMessage;
 import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
+import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
@@ -50,7 +51,7 @@ public class RemoteKerConnection {
 		this.dispatcher = dispatcher;
 		this.remoteKerConnectionDetails = kerConnectionDetails;
 
-		httpClient = HttpClient.newBuilder().build();
+		httpClient = HttpClient.newBuilder().executor(KeRuntime.executorService()).build();
 
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
