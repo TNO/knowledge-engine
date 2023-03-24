@@ -165,6 +165,14 @@ Another knowledge base receives those bindings through a REACT knowledge interac
 # Performance benchmark
 A preliminary performence benchmark of the Knowledge Engine is available in [this repository](https://github.com/faclc4/YCSB-KE/tree/master).
 
+Based on this benchmark, the minimum requirements for the Knowledge Engine are:
+- i3-3040 Intel processor at 3.4 GHz
+- 8 Gbit RAM 
+- 250Gb SSD drives
+
+Of course, it highly depends on how you want to use the Knowledge Engine, because the reasoner, for example, increases these requirements.
+
+
 # Developer information
 
 This section gives more detailed information about the project's structure, and is targeted towards developers who contribute code to the project.
