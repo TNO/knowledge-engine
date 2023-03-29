@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.Var;
 
@@ -13,6 +14,7 @@ public class TripleVarBindingSet {
 
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
+	private Set<TripleNode> tripleVarsCache;
 
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
@@ -54,20 +56,22 @@ public class TripleVarBindingSet {
 	}
 
 	public Set<TripleNode> getTripleVars() {
-		Set<TripleNode> vars = new HashSet<>();
-		for (TriplePattern tp : graphPattern) {
+		if (tripleVarsCache == null) {
+			tripleVarsCache = new HashSet<>();
+			for (TriplePattern tp : graphPattern) {
 
-			if (tp.getSubject().isVariable()) {
-				vars.add(new TripleNode(tp, tp.getSubject(), 0));
-			}
-			if (tp.getPredicate().isVariable()) {
-				vars.add(new TripleNode(tp, tp.getPredicate(), 1));
-			}
-			if (tp.getObject().isVariable()) {
-				vars.add(new TripleNode(tp, tp.getObject(), 2));
+				if (tp.getSubject().isVariable()) {
+					tripleVarsCache.add(new TripleNode(tp, tp.getSubject(), 0));
+				}
+				if (tp.getPredicate().isVariable()) {
+					tripleVarsCache.add(new TripleNode(tp, tp.getPredicate(), 1));
+				}
+				if (tp.getObject().isVariable()) {
+					tripleVarsCache.add(new TripleNode(tp, tp.getObject(), 2));
+				}
 			}
 		}
-		return vars;
+		return tripleVarsCache;
 	}
 
 	/**
@@ -197,7 +201,6 @@ public class TripleVarBindingSet {
 	public TripleVarBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
 		TripleVarBindingSet newOne = new TripleVarBindingSet(graphPattern);
 		TripleVarBinding toB;
-
 		for (TripleVarBinding fromB : this.bindings) {
 			for (Match entry : match) {
 				boolean skip = false;
@@ -205,8 +208,7 @@ public class TripleVarBindingSet {
 				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
 					TriplePattern fromTriple = keyValue.getKey();
 					TriplePattern toTriple = keyValue.getValue();
-					Map<TripleNode, TripleNode> mapping = fromTriple.findMatches(toTriple); // TODO get these
-																							// from entry
+					Map<TripleNode, TripleNode> mapping = fromTriple.findMatches(toTriple);
 					for (Map.Entry<TripleNode, TripleNode> singleMap : mapping.entrySet()) {
 						TripleNode toTNode = singleMap.getValue();
 						TripleNode fromTNode = singleMap.getKey();
@@ -238,8 +240,6 @@ public class TripleVarBindingSet {
 							} else if (!toB.containsVar((Var) toTVar.node)) {
 								toB.put(toTVar, (Node_Concrete) fromTNode.node);
 							}
-						} else if (fromTNode.node instanceof Node_Concrete && toTNode.node instanceof Node_Concrete) {
-							assert fromTNode.node.equals(toTNode.node);
 						}
 					}
 				}

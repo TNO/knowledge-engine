@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -164,13 +165,17 @@ public class TestDynamicSemanticComposition {
 	private void setupNetwork() {
 
 		instantiateHVTSearcherKB();
+
 		instantiateObserverKB();
 
 		kn = new KnowledgeNetwork();
 		kn.addKB(kbTargetObserver);
 		kn.addKB(kbHVTSearcher);
 
+		long start = System.nanoTime();
 		kn.sync();
+		long end = System.nanoTime();
+		LOG.info("Duration: {}", (((double) (end - start)) / 1_000_000));
 	}
 
 	private void updateNetwork(Set<Set<TriplePattern>> gaps) {

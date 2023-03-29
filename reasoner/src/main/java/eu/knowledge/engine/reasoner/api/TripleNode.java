@@ -52,7 +52,6 @@ public class TripleNode {
 	private int calcHashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((node == null) ? 0 : node.hashCode());
 		result = prime * result + nodeIdx;
 		result = prime * result + ((tp == null) ? 0 : tp.hashCode());
 		return result;
@@ -72,11 +71,6 @@ public class TripleNode {
 		if (getClass() != obj.getClass())
 			return false;
 		TripleNode other = (TripleNode) obj;
-		if (node == null) {
-			if (other.node != null)
-				return false;
-		} else if (!node.equals(other.node))
-			return false;
 		if (nodeIdx != other.nodeIdx)
 			return false;
 		if (tp == null) {
@@ -86,5 +80,4 @@ public class TripleNode {
 			return false;
 		return true;
 	}
-
 }
