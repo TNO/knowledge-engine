@@ -1,7 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +74,11 @@ public class AdditionForAudienceTest {
 	MockedKnowledgeBase kb100;
 	MockedKnowledgeBase kbRule;
 	private AskKnowledgeInteraction askKI;
+	private static KnowledgeNetwork kn;
 
 	public void beforeAll() {
 
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 
 		// kb1
 		kb1 = new MockedKnowledgeBase("kb1");
@@ -210,6 +214,11 @@ public class AdditionForAudienceTest {
 
 		System.out.println("Result: " + ar.getBindings());
 
+	}
+
+	@AfterAll
+	public static void afterAll() throws InterruptedException, ExecutionException, TimeoutException {
+		kn.stop().get(10, TimeUnit.SECONDS);
 	}
 
 }
