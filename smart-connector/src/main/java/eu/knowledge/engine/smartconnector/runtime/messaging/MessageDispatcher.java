@@ -10,9 +10,12 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,8 +154,11 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 
 	private void startHttpServer() throws Exception {
 		LOG.info("Starting Inter-KER REST API on port {}.", myPort);
+		httpServer = new Server(new ExecutorThreadPool(KeRuntime.executorService()));
 
-		httpServer = new Server(myPort);
+		ServerConnector sc = new ServerConnector(this.httpServer, new HttpConnectionFactory());
+		sc.setPort(myPort);
+		httpServer.addConnector(sc);
 
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
