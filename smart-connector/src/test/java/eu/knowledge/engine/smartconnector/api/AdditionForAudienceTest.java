@@ -68,10 +68,10 @@ public class AdditionForAudienceTest {
 	};
 
 	MockedKnowledgeBase kb1;
-	MockedKnowledgeBase kbSum;
-	MockedKnowledgeBase kbNum;
 	MockedKnowledgeBase kb10;
 	MockedKnowledgeBase kb100;
+	MockedKnowledgeBase kbSum;
+	MockedKnowledgeBase kbNum;
 	MockedKnowledgeBase kbRule;
 	private AskKnowledgeInteraction askKI;
 	private static KnowledgeNetwork kn;
