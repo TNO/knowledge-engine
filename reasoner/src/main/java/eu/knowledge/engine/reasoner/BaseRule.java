@@ -197,7 +197,8 @@ public class BaseRule {
 				// check if we need to merge with existing matches
 				boolean hasMerged = false;
 				// first check if m1 can be merged with any of the existing biggest matches.
-				for (int i = 0; i < biggestMatches.size(); i++) {
+				int biggestMatchesSize = biggestMatches.size();
+				for (int i = 0; i < biggestMatchesSize; i++) {
 					Match m2 = biggestMatches.get(i);
 					mergedMatch = m2.merge(m1);
 					if (mergedMatch != null) {

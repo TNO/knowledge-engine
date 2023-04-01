@@ -51,4 +51,15 @@ public class ActiveAntRuleNode extends AntRuleNode {
 		}
 		return f;
 	}
+
+	@Override
+	public boolean shouldPropagateFilterBindingSetOutput() {
+		return this.isFilterBindingSetOutputDirty;
+	}
+
+	@Override
+	public boolean shouldPropagateResultBindingSetOutput() {
+		return false;
+	}
+
 }

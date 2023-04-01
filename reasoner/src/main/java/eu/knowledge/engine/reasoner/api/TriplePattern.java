@@ -16,6 +16,7 @@ public class TriplePattern {
 	private final Node subject;
 	private final Node predicate;
 	private final Node object;
+	private int hashCodeValue;
 
 	public TriplePattern(Node subject, Node predicate, Node object) {
 		// TODO I assume a variable name is used only once
@@ -29,6 +30,8 @@ public class TriplePattern {
 		this.subject = t.getSubject();
 		this.predicate = t.getPredicate();
 		this.object = t.getObject();
+
+		this.hashCodeValue = this.calcHashCode();
 	}
 
 	public Node getSubject() {
@@ -126,14 +129,18 @@ public class TriplePattern {
 		return vars;
 	}
 
-	@Override
-	public int hashCode() {
+	public int calcHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((object == null) ? 0 : object.hashCode());
 		result = prime * result + ((predicate == null) ? 0 : predicate.hashCode());
 		result = prime * result + ((subject == null) ? 0 : subject.hashCode());
 		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.hashCodeValue;
 	}
 
 	@Override

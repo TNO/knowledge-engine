@@ -125,8 +125,8 @@ public class ReasonerPlan {
 					current.setResultBindingSetInputScheduled(true);
 				}
 
-				TripleVarBindingSet toBeFilterPropagated = current.getFilterBindingSetOutput();
-				if (toBeFilterPropagated != null) {
+				if (current.shouldPropagateFilterBindingSetOutput()) {
+					TripleVarBindingSet toBeFilterPropagated = current.getFilterBindingSetOutput();
 					assert current instanceof AntSide;
 					((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
 						var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(),
@@ -136,10 +136,11 @@ public class ReasonerPlan {
 							changed.add(n);
 						}
 					});
+					current.setFilterBindingSetOutputPropagated();
 				}
 
-				TripleVarBindingSet toBeResultPropagated = current.getResultBindingSetOutput();
-				if (toBeResultPropagated != null) {
+				if (current.shouldPropagateResultBindingSetOutput()) {
+					TripleVarBindingSet toBeResultPropagated = current.getResultBindingSetOutput();
 					assert current instanceof ConsSide;
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
@@ -150,6 +151,7 @@ public class ReasonerPlan {
 							n.setResultBindingSetInputScheduled(false);
 						}
 					});
+					current.setResultBindingSetOutputPropagated();
 				}
 
 				visited.add(current);
@@ -345,6 +347,5 @@ public class ReasonerPlan {
 	public RuleStore getStore() {
 		return this.store;
 	}
-
 
 }

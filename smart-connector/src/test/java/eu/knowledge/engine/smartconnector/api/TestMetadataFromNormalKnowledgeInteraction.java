@@ -12,10 +12,12 @@ import java.util.Iterator;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Tag("Long")
 public class TestMetadataFromNormalKnowledgeInteraction {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -40,28 +42,25 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		var prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
-		var metaGraphPattern = new GraphPattern(prefixes,
-				"?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .",
+		var metaGraphPattern = new GraphPattern(prefixes, "?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .",
 				"?kb ke:hasDescription ?description .", "?kb ke:hasKnowledgeInteraction ?ki .",
 				"?ki rdf:type ?kiType .", "?ki ke:isMeta ?isMeta .", "?ki ke:hasCommunicativeAct ?act .",
 				"?act rdf:type ke:CommunicativeAct .", "?act ke:hasRequirement ?req .",
 				"?act ke:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
-				"?gp ke:hasPattern ?pattern ."
-		);
+				"?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp ke:hasPattern ?pattern .");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(
-			new CommunicativeAct(
-				new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
-				new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))
-			), metaGraphPattern, null);
+				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
+						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
+				metaGraphPattern, null);
 		kb1.register(ki1);
 
 		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), metaGraphPattern, null);
 		kb2.register(ki2, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("KB2 Reacting...");
-			
-			if (aReactExchangeInfo.getPostingKnowledgeInteractionId().toString().startsWith(kb1.getKnowledgeBaseId().toString() + "/meta")) {
+
+			if (aReactExchangeInfo.getPostingKnowledgeInteractionId().toString()
+					.startsWith(kb1.getKnowledgeBaseId().toString() + "/meta")) {
 				LOG.info("Ignoring real meta KI...");
 				return new BindingSet();
 			}
@@ -100,7 +99,8 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		binding.put("satType", "<https://w3id.org/knowledge-engine/InformPurpose>");
 		binding.put("gp", "<https://example.org/gp>");
 		binding.put("patternType", "https://w3id.org/knowledge-engine/ArgumentGraphPattern");
-		binding.put("pattern", "?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp kb:hasPattern ?pattern .");
+		binding.put("pattern",
+				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp kb:hasPattern ?pattern .");
 		bindingSet.add(binding);
 
 		try {

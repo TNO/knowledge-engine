@@ -59,7 +59,11 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
 		if (changed && this.filterBindingSetOutput == null) {
+			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
+
+			if (!this.filterBindingSetOutput.equals(previousBindingSetOutput))
+				this.isFilterBindingSetOutputDirty = true;
 		}
 
 		return changed;

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
@@ -40,6 +42,8 @@ public class Match {
 	 */
 	private Map<TripleNode, TripleNode> mapping;
 
+	private int hashCodeCache;
+
 	public Match(TriplePattern matchTriple, TriplePattern uponTriple, Map<TripleNode, TripleNode> someMapping) {
 		Map<TriplePattern, TriplePattern> someMatchingPatterns = new HashMap<>();
 		someMatchingPatterns.put(matchTriple, uponTriple);
@@ -48,11 +52,14 @@ public class Match {
 		Map<TripleNode, TripleNode> newMapping = new HashMap<>();
 		newMapping.putAll(someMapping);
 		this.mapping = Collections.unmodifiableMap(someMapping);
+
+		this.hashCodeCache = calcHashCode();
 	}
 
 	private Match(Map<TriplePattern, TriplePattern> someMatchingPatterns, Map<TripleNode, TripleNode> someMapping) {
 		this.matchingPatterns = Collections.unmodifiableMap(someMatchingPatterns);
 		this.mapping = Collections.unmodifiableMap(someMapping);
+		this.hashCodeCache = calcHashCode();
 	}
 
 	/**
@@ -130,56 +137,34 @@ public class Match {
 		Collection<TripleNode> existingContextValues = existingContext.values();
 		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(existingContext);
 		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
-			TripleNode node;
-			if ((node = existingContext.get(newEntry.getKey())) != null) {
-				if (!node.equals(newEntry.getValue())) {
+			Node node;
+			if ((node = getOtherNode(existingContext, newEntry.getKey().node)) != null) {
+				if (!node.equals(newEntry.getValue().node)) {
 					return null;
 				}
 			} else {
-				if (existingContextValues.contains(newEntry.getValue())) {
-					return null;
-				} else {
-					mergedContext.put(newEntry.getKey(), newEntry.getValue());
+
+				for (TripleNode tn : existingContextValues) {
+					if (tn.node.equals(newEntry.getValue().node)) {
+						return null;
+					}
 				}
+				// no conflict, so we can safely put it into the mergedContext.
+				mergedContext.put(newEntry.getKey(), newEntry.getValue());
+
 			}
 		}
 
 		return mergedContext;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((mapping == null) ? 0 : mapping.hashCode());
-		result = prime * result + ((matchingPatterns == null) ? 0 : matchingPatterns.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!(obj instanceof Match)) {
-			return false;
-		}
-		Match other = (Match) obj;
-		if (mapping == null) {
-			if (other.mapping != null) {
-				return false;
+	public Node getOtherNode(Map<TripleNode, TripleNode> aContext, Node aNode) {
+		for (Map.Entry<TripleNode, TripleNode> entry : aContext.entrySet()) {
+			if (entry.getKey().node.equals(aNode)) {
+				return entry.getValue().node;
 			}
-		} else if (!mapping.equals(other.mapping)) {
-			return false;
 		}
-		if (matchingPatterns == null) {
-			if (other.matchingPatterns != null) {
-				return false;
-			}
-		} else if (!matchingPatterns.equals(other.matchingPatterns)) {
-			return false;
-		}
-		return true;
+		return null;
 	}
 
 	@Override
@@ -235,6 +220,35 @@ public class Match {
 			}
 		}
 
+		return true;
+	}
+
+	private int calcHashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((matchingPatterns == null) ? 0 : matchingPatterns.hashCode());
+		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.hashCodeCache;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Match other = (Match) obj;
+		if (matchingPatterns == null) {
+			if (other.matchingPatterns != null)
+				return false;
+		} else if (!matchingPatterns.equals(other.matchingPatterns))
+			return false;
 		return true;
 	}
 }

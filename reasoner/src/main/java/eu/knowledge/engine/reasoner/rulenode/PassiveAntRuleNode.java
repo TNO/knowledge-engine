@@ -22,6 +22,7 @@ public class PassiveAntRuleNode extends AntRuleNode {
 
 	public void setFilterBindingSetOutput(BindingSet bs) {
 		this.filterBindingSetOutput = new TripleVarBindingSet(this.getRule().getAntecedent(), bs);
+		this.isFilterBindingSetOutputDirty = true;
 	}
 
 	@Override
@@ -45,5 +46,15 @@ public class PassiveAntRuleNode extends AntRuleNode {
 		CompletableFuture<Void> f = new CompletableFuture<>();
 		f.completeExceptionally(new IllegalStateException("`applyRule` cannot be called for PassiveAntRuleNodes."));
 		return f;
+	}
+
+	@Override
+	public boolean shouldPropagateFilterBindingSetOutput() {
+		return this.isFilterBindingSetOutputDirty;
+	}
+
+	@Override
+	public boolean shouldPropagateResultBindingSetOutput() {
+		return false;
 	}
 }

@@ -25,7 +25,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;

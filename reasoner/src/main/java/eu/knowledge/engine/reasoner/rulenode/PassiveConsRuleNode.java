@@ -22,6 +22,7 @@ public class PassiveConsRuleNode extends ConsRuleNode {
 	public void setResultBindingOutput(BindingSet bs) {
 		assert !this.getRule().getConsequent().isEmpty();
 		this.resultBindingSetOutput = new TripleVarBindingSet(this.getRule().getConsequent(), bs);
+		this.isResultBindingSetOutputDirty = true;
 	}
 
 	@Override
@@ -45,5 +46,15 @@ public class PassiveConsRuleNode extends ConsRuleNode {
 		CompletableFuture<Void> f = new CompletableFuture<>();
 		f.completeExceptionally(new IllegalStateException("`applyRule` cannot be called for PassiveConsRuleNodes."));
 		return f;
+	}
+
+	@Override
+	public boolean shouldPropagateFilterBindingSetOutput() {
+		return false;
+	}
+
+	@Override
+	public boolean shouldPropagateResultBindingSetOutput() {
+		return this.isResultBindingSetOutputDirty;
 	}
 }

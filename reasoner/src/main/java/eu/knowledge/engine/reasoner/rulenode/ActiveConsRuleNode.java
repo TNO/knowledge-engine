@@ -39,8 +39,23 @@ public class ActiveConsRuleNode extends ConsRuleNode {
 		assert this.readyForApplyRule();
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getBindingSetHandler();
+
+		var previousBindingSetOutput = this.resultBindingSetOutput;
+
 		return handler.handle(this.filterBindingSetInput.get().toBindingSet()).thenAccept(result -> {
 			this.resultBindingSetOutput = result.toTripleVarBindingSet(this.getRule().getConsequent());
+			if (!this.resultBindingSetOutput.equals(previousBindingSetOutput))
+				this.isResultBindingSetOutputDirty = true;
 		});
+	}
+
+	@Override
+	public boolean shouldPropagateFilterBindingSetOutput() {
+		return false;
+	}
+
+	@Override
+	public boolean shouldPropagateResultBindingSetOutput() {
+		return this.isResultBindingSetOutputDirty;
 	}
 }
