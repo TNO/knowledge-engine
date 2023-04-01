@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
@@ -135,21 +137,34 @@ public class Match {
 		Collection<TripleNode> existingContextValues = existingContext.values();
 		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(existingContext);
 		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
-			TripleNode node;
-			if ((node = existingContext.get(newEntry.getKey())) != null) {
-				if (!node.equals(newEntry.getValue())) {
+			Node node;
+			if ((node = getOtherNode(existingContext, newEntry.getKey().node)) != null) {
+				if (!node.equals(newEntry.getValue().node)) {
 					return null;
 				}
 			} else {
-				if (existingContextValues.contains(newEntry.getValue())) {
-					return null;
-				} else {
-					mergedContext.put(newEntry.getKey(), newEntry.getValue());
+
+				for (TripleNode tn : existingContextValues) {
+					if (tn.node.equals(newEntry.getValue().node)) {
+						return null;
+					}
 				}
+				// no conflict, so we can safely put it into the mergedContext.
+				mergedContext.put(newEntry.getKey(), newEntry.getValue());
+
 			}
 		}
 
 		return mergedContext;
+	}
+
+	public Node getOtherNode(Map<TripleNode, TripleNode> aContext, Node aNode) {
+		for (Map.Entry<TripleNode, TripleNode> entry : aContext.entrySet()) {
+			if (entry.getKey().node.equals(aNode)) {
+				return entry.getValue().node;
+			}
+		}
+		return null;
 	}
 
 	@Override
