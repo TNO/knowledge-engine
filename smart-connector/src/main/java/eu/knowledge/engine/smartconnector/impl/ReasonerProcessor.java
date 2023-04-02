@@ -335,7 +335,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			future.handle((r, e) -> {
 
-				if (r == null) {
+				if (e != null) {
 					LOG.error("An exception has occured while capturing binging set", e);
 					return null;
 				} else {
