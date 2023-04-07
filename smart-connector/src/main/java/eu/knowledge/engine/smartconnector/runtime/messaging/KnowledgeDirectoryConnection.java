@@ -1,6 +1,8 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -69,7 +71,22 @@ public class KnowledgeDirectoryConnection {
 		LOG.info("Starting connection with Knowledge Directory at " + kdUrl);
 
 		// Init
-		httpClient = HttpClient.newBuilder().build();
+		var builder = HttpClient.newBuilder();
+
+		if (kdUrl.getUserInfo() != null) {
+			String[] userInfo = kdUrl.getUserInfo().split(":");
+			if (userInfo.length == 2) {
+				builder.authenticator(new Authenticator() {
+					@Override
+					protected PasswordAuthentication getPasswordAuthentication() {
+
+						return new PasswordAuthentication(userInfo[0], userInfo[1].toCharArray());
+					}
+				});
+			}
+		}
+
+		httpClient = builder.build();
 
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
