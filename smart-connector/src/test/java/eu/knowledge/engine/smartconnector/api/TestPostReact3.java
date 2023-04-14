@@ -110,7 +110,7 @@ public class TestPostReact3 {
 			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
 			BindingSet bs = result.getBindings();
 			LOG.info("received post results: {}", bs);
-			assertTrue(bs.size() > 0);
+			assertTrue(bs.size() == 1);
 			bs.forEach(b -> {
 				assertEquals(new HashSet<String>(Arrays.asList("c", "d")), b.getVariables());
 			});
