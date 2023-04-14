@@ -1,5 +1,7 @@
 package eu.knowledge.engine.knowledgedirectory;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,9 +56,16 @@ public class KerApiImpl extends KerApiService {
 			return Response.status(400).entity("Data was not valid").build();
 		}
 
-		// use the exposed URL as the runtime's ID.
-		String id = knowledgeEngineRuntime.getExposedUrl().toString();
-
+		// use the exposed URL (stripped from userinfo, if any) as the runtime's ID.
+		var uriWithCredentials = knowledgeEngineRuntime.getExposedUrl();
+		URI uriWithoutCredentials;
+		try {
+			uriWithoutCredentials = new URI(uriWithCredentials.getScheme(),null, uriWithCredentials.getHost(), uriWithCredentials.getPort(),uriWithCredentials.getPath(), uriWithCredentials.getQuery(), uriWithCredentials.getFragment());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("Encountered invalid URI syntax while stripping userinfo from URI.");
+		}
+		String id = uriWithoutCredentials.toString();
+		LOG.info("issued new id: {}", id);
 		// Does it already exist?
 		if (kers.containsKey(id)) {
 			return Response.status(409).entity(id).build();

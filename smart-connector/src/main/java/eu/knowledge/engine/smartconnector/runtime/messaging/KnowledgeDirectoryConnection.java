@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
-
+import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 /**
  * The {@link KnowledgeDirectoryConnection} is responsible for providing access
  * to the Knowledge Directory, maintaining the connection and the renewing the
@@ -68,7 +68,7 @@ public class KnowledgeDirectoryConnection {
 					"Can only start KnowledgeDirectoryConnectionManager when the state is UNREGISTERED");
 		}
 
-		LOG.info("Starting connection with Knowledge Directory at " + kdUrl);
+		LOG.info("Starting connection with Knowledge Directory at " + stripUserInfoFromURI(kdUrl));
 
 		// Init
 		var builder = HttpClient.newBuilder();
@@ -130,7 +130,7 @@ public class KnowledgeDirectoryConnection {
 						"The KnowledgeDirectoryConnectionManager was already trying to stop or stopped");
 			}
 
-			LOG.info("Stopping connection with Knowledge Directory at " + kdUrl);
+			LOG.info("Stopping connection with Knowledge Directory at " + stripUserInfoFromURI(kdUrl));
 
 			this.currentState = State.STOPPING;
 			scheduledFuture.cancel(true);
@@ -196,11 +196,11 @@ public class KnowledgeDirectoryConnection {
 				// Registration was successful
 				myId = response.body();
 				this.currentState = State.REGISTERED;
-				LOG.info("Successfully registered at the Knowledge Directory " + kdUrl);
+				LOG.info("Successfully registered at the Knowledge Directory " + stripUserInfoFromURI(kdUrl));
 			} else if (statusCode == 400) {
 				// Registration was not successful
 				this.currentState = State.INTERRUPTED;
-				LOG.warn("Could not register at Knowledge Directory " + kdUrl + ", response was: "
+				LOG.warn("Could not register at Knowledge Directory " + stripUserInfoFromURI(kdUrl) + ", response was: "
 						+ response.body());
 			} else if (statusCode == 409) {
 				// Was already registered
@@ -213,7 +213,7 @@ public class KnowledgeDirectoryConnection {
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			// Could not register
 			this.currentState = State.INTERRUPTED;
-			LOG.warn("Could not register at Knowledge Directory " + kdUrl, e);
+			LOG.warn("Could not register at Knowledge Directory " + stripUserInfoFromURI(kdUrl), e);
 		}
 	}
 
@@ -236,11 +236,11 @@ public class KnowledgeDirectoryConnection {
 			if (statusCode == 200) {
 				// Unregister was successful
 				this.currentState = State.STOPPED;
-				LOG.info("Successfully unregistered at the Knowledge Directory " + kdUrl);
+				LOG.info("Successfully unregistered at the Knowledge Directory " + stripUserInfoFromURI(kdUrl));
 			} else if (statusCode == 404) {
 				// Not found, so we're not registered anymore, also fine
 				this.currentState = State.STOPPED;
-				LOG.info("Could not unregister at Knowledge Directory " + kdUrl + ", response was: "
+				LOG.info("Could not unregister at Knowledge Directory " + stripUserInfoFromURI(kdUrl) + ", response was: "
 						+ response.body());
 			} else {
 				LOG.warn("Unknown status code {} while unregistering the KER", statusCode);
@@ -248,7 +248,7 @@ public class KnowledgeDirectoryConnection {
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			// Could not register
 			this.currentState = State.STOPPING;
-			LOG.warn("Could not unregister at Knowledge Directory " + kdUrl, e);
+			LOG.warn("Could not unregister at Knowledge Directory " + stripUserInfoFromURI(kdUrl), e);
 		}
 	}
 
@@ -271,7 +271,7 @@ public class KnowledgeDirectoryConnection {
 			} else if (statusCode == 404) {
 				// Doesn't recognize this KER
 				this.currentState = State.INTERRUPTED;
-				LOG.info("Could not renew lease at Knowledge Directory " + kdUrl
+				LOG.info("Could not renew lease at Knowledge Directory " + stripUserInfoFromURI(kdUrl)
 						+ ", response was: " + response.body());
 			} else {
 				LOG.warn("Unknown status code {} while calling the renewing the lease on the Knowledge Direcotry",
@@ -280,7 +280,7 @@ public class KnowledgeDirectoryConnection {
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			// Could not renew
 			this.currentState = State.INTERRUPTED;
-			LOG.warn("Could not renew lease at Knowledge Directory " + kdUrl, e);
+			LOG.warn("Could not renew lease at Knowledge Directory " + stripUserInfoFromURI(kdUrl), e);
 		}
 
 	}

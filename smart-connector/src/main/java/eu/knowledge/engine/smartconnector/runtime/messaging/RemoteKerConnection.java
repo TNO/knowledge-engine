@@ -30,6 +30,7 @@ import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 
 /**
  * This class is responsible for sending messages to a single remote Knowledge
@@ -88,13 +89,13 @@ public class RemoteKerConnection {
 			if (response.statusCode() == 200) {
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
 						KnowledgeEngineRuntimeDetails.class);
-				LOG.info("Successfully received runtimedetails from " + this.remoteKerConnectionDetails.getExposedUrl() + " with " + runtimeDetails.getSmartConnectorIds().size()
+				LOG.info("Successfully received runtimedetails from " + stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()) + " with " + runtimeDetails.getSmartConnectorIds().size()
 						+ " Smart Connectors: " + runtimeDetails.getSmartConnectorIds());
 				// TODO validate
 				this.remoteKerDetails = runtimeDetails;
 				dispatcher.notifySmartConnectorsChanged();
 			} else {
-				LOG.warn("Failed to received runtimedetails from " + this.remoteKerConnectionDetails.getExposedUrl() + ", got status code " + response.statusCode());
+				LOG.warn("Failed to received runtimedetails from " + stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()) + ", got status code " + response.statusCode());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
 			LOG.warn("Failed to received runtimedetails from " + this.remoteKerConnectionDetails.getId(), e);
@@ -158,7 +159,7 @@ public class RemoteKerConnection {
 				LOG.trace("Successfully said goodbye to {}", this.remoteKerConnectionDetails.getExposedUrl());
 			} else {
 				LOG.warn("Failed to say goodbye to {}, got response {}: {}",
-						this.remoteKerConnectionDetails.getExposedUrl(),
+						stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()),
 						response.statusCode(), response.body());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
@@ -182,7 +183,7 @@ public class RemoteKerConnection {
 						this.remoteKerConnectionDetails.getExposedUrl());
 			} else {
 				LOG.warn("Failed to send message {} to {}, got response {}: {}", message.getMessageId(),
-						this.remoteKerConnectionDetails.getExposedUrl(), response.statusCode(), response.body());
+					stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()), response.statusCode(), response.body());
 				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 						+ ", body " + response.body());
 			}
@@ -205,7 +206,7 @@ public class RemoteKerConnection {
 						this.remoteKerConnectionDetails.getExposedUrl());
 			} else {
 				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}, got response {}: {}",
-						this.remoteKerConnectionDetails.getExposedUrl(), response.statusCode(), response.body());
+					stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()), response.statusCode(), response.body());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
 			LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to "
