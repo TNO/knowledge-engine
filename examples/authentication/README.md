@@ -8,7 +8,7 @@ The Knowledge Engine receives the credentials for connecting to the Knowledge Di
 
 This example uses the same credentials for all three resources (KD, runtime 1 inter-ker, and runtime 2 inter-ker), but it should be noted that they can (and should) be different for each resource.
 
-__It should be noted that this current solution can be a security risk, because the credentials are shared from the Knowledge Directory to the Knowledge Engine in plain text format.__
+__It should be noted that this current solution can be a security risk if traffic is unencrypted, because the credentials are shared from the Knowledge Directory to the Knowledge Engine in plain text format. So if using this you should make sure that HTTPS is used.__
 
 ## Running this example
 
