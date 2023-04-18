@@ -152,7 +152,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 					PostKnowledgeInteraction pKI = (PostKnowledgeInteraction) this.myKnowledgeInteraction
 							.getKnowledgeInteraction();
-					if (this.matches(pKI.getArgument(), rKI.getArgument())) {
+					if (this.matches(pKI.getArgument(), rKI.getArgument()) && this.matches(pKI.getResult(), rKI.getResult())) {
 
 						BindingSet transformedArgBindingSet = GraphPatternMatcher.transformBindingSet(pKI.getArgument(),
 								rKI.getArgument(), bindingSet);
@@ -238,6 +238,11 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 	}
 
 	private boolean matches(GraphPattern gp1, GraphPattern gp2) {
+		if (gp1 == null && gp2 == null) {
+			return true;
+		} else if (gp1 == null || gp2 == null) {
+			return false;
+		}
 		try {
 			return GraphPatternMatcher.areIsomorphic(gp1, gp2);
 		} catch (ParseException e) {

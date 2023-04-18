@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -107,7 +106,7 @@ public class TestPostReact3 {
 			PostResult result = kb1.post(ki1, bindingSet).get();
 
 			assertTrue(this.kb2Received, "KB2 should have received the posted data.");
-			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
+			assertFalse(this.kb3Received, "KB3 should not have received the posted data.");
 			BindingSet bs = result.getBindings();
 			LOG.info("received post results: {}", bs);
 			assertTrue(bs.size() == 1);
