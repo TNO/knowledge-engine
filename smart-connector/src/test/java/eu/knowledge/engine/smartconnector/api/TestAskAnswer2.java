@@ -18,6 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+
 public class TestAskAnswer2 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer2.class);

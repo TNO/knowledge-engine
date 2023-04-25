@@ -1,4 +1,4 @@
-package eu.knowledge.engine.smartconnector.api;
+package eu.knowledge.engine.smartconnector.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,11 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
+import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.Vocab;
 
 public class KnowledgeNetwork {
 
@@ -71,23 +76,14 @@ public class KnowledgeNetwork {
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
 		GraphPattern gp = new GraphPattern(this.prefixMapping,
-		//@formatter:off
-				"?kb rdf:type kb:KnowledgeBase .",
-				"?kb kb:hasName ?name .", 
-				"?kb kb:hasDescription ?description .",
-				"?kb kb:hasKnowledgeInteraction ?ki .", 
-				"?ki rdf:type ?kiType .", 
-				"?ki kb:isMeta ?isMeta .",
-				"?ki kb:hasCommunicativeAct ?act .", 
-				"?act rdf:type kb:CommunicativeAct .",
-				"?act kb:hasRequirement ?req .", 
-				"?act kb:hasSatisfaction ?sat .", 
-				"?req rdf:type ?reqType .",
-				"?sat rdf:type ?satType .", 
-				"?ki kb:hasGraphPattern ?gp .", 
-				"?gp rdf:type ?patternType .",
+				// @formatter:off
+				"?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
+				"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
+				"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
+				"?act kb:hasRequirement ?req .", "?act kb:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .", "?ki kb:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
 				"?gp kb:hasPattern ?pattern ."
-				//@formatter:on
+		// @formatter:on
 		);
 
 		for (MockedKnowledgeBase kb : justStartedKBs) {

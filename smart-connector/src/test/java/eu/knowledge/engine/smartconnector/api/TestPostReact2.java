@@ -23,6 +23,8 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestPostReact2 {
 	private static MockedKnowledgeBase kb1;
