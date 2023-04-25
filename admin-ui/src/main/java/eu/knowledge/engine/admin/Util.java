@@ -158,7 +158,11 @@ public class Util {
 			if (!(node.getRule() instanceof ProactiveRule)) {
 
 				Rule rule = (Rule) node.getRule();
-				BindingSetHandler bsh = rule.getBindingSetHandler();
+
+				BindingSetHandler bsh = null;
+				if (!rule.getConsequent().isEmpty()) {
+					bsh = rule.getBindingSetHandler();
+				}
 
 				if (bsh != null) {
 					ReactBindingSetHandler rbsh = null;
