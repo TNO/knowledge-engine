@@ -39,7 +39,7 @@ public class KnowledgeDirectoryConnection {
 
 	private final static Logger LOG = org.slf4j.LoggerFactory.getLogger(KnowledgeDirectoryConnection.class);
 
-	private static final String PROTOCOL_VERSION = "1.0.0-SNAPSHOT";
+	private static final String PROTOCOL_VERSION = "1.0.0";
 
 	public static enum State {
 		UNREGISTERED, REGISTERED, INTERRUPTED, STOPPING, STOPPED
