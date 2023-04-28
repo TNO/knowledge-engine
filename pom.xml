@@ -74,7 +74,7 @@
 		<java.version>17</java.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<revision>1.1.4-SNAPSHOT</revision>
+		<revision>1.2.0</revision>
 	</properties>
 
 	<dependencyManagement>
