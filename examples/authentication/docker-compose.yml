@@ -1,0 +1,45 @@
+services:
+  nginx:
+    build: ./nginx/
+    ports:
+      - "8080:80"
+    environment:
+      - BASIC_USERNAME=thisisausername
+      - BASIC_PASSWORD=thisisapassword
+    depends_on:
+      - knowledge-directory
+  knowledge-directory:
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.1.4-SNAPSHOT
+  runtime-1:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.4-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
+      KD_URL: http://thisisausername:thisisapassword@nginx/kd
+      KE_RUNTIME_EXPOSED_URL: http://thisisausername:thisisapassword@nginx/ker1
+  runtime-2:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.1.4-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
+      KD_URL: http://thisisausername:thisisapassword@nginx/kd
+      KE_RUNTIME_EXPOSED_URL: http://thisisausername:thisisapassword@nginx/ker2
+  kb1:
+    build: ../multiple-runtimes/asking_kb
+    environment:
+      KE_URL: http://runtime-1:8280/rest
+      KB_ID: http://example.org/kb1
+  kb2:
+    build: ../multiple-runtimes/answering_kb
+    environment:
+      KE_URL: http://runtime-2:8280/rest
+      KB_ID: http://example.org/kb2
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Math>",
+            "b": "<http://example.org/Science>"
+          },
+          {
+            "a": "<http://example.org/Books>",
+            "b": "<http://example.org/Magazines>"
+          }
+        ]
