@@ -101,6 +101,7 @@ public class TestApiRoutes {
 			assertEquals(list, new ArrayList<>());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
 		}
 	}
 
@@ -124,6 +125,7 @@ public class TestApiRoutes {
 			assertEquals(200, response.statusCode());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
 		}
 		stopKbs();
 	}
@@ -164,7 +166,7 @@ public class TestApiRoutes {
 		startKbs();
 
 		try {
-			URI uri = new URI("http://localhost:8283/rest/admin/sc/all/false");
+			URI uri = new URI("http://localhost:8283/admin/sc/all/false");
 			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -179,6 +181,7 @@ public class TestApiRoutes {
 			assertEquals(200, response.statusCode());
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
 		}
 		stopKbs();
 	}
@@ -223,6 +226,7 @@ public class TestApiRoutes {
 			return bindingSet;
 		});
 		kb1.start();
+		kb1.syncKIs();
 
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
@@ -241,6 +245,7 @@ public class TestApiRoutes {
 
 		kb2.register(askKI);
 		kb2.start();
+		kb2.syncKIs();
 		LOG.trace("After kb2 register");
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(10000);
