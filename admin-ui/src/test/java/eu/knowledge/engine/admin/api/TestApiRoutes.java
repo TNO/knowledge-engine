@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.knowledge.engine.admin.AdminUI;
 import eu.knowledge.engine.smartconnector.api.*;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterAll;
@@ -140,17 +142,15 @@ public class TestApiRoutes {
 					eu.knowledge.engine.admin.model.SmartConnector[].class);
 			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
 			Collections.addAll(list, result);
-			
+
 			System.out.println(list);
-			
+
 			assertNotNull(list);
 			assertEquals(2, list.size());
 			assertEquals(0, list.get(0).getKnowledgeInteractions().get(0).getConnections().size());
 			assertEquals(1, list.get(1).getKnowledgeInteractions().get(0).getConnections().size());
 			assertEquals(200, response.statusCode());
-			
-			
-			
+
 		} catch (IOException | InterruptedException | URISyntaxException e) {
 			LOG.warn("Was not able to retrieve smart connectors", e);
 			fail();
@@ -210,7 +210,7 @@ public class TestApiRoutes {
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
-		kb1.getSmartConnector().register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
+		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(),
 					"Should not have bindings in this binding set.");
 
@@ -222,6 +222,7 @@ public class TestApiRoutes {
 
 			return bindingSet;
 		});
+		kb1.start();
 
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
@@ -238,7 +239,8 @@ public class TestApiRoutes {
 		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
-		kb2.getSmartConnector().register(askKI);
+		kb2.register(askKI);
+		kb2.start();
 		LOG.trace("After kb2 register");
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(10000);
