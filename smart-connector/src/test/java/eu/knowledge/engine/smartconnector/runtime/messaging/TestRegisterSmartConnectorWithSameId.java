@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.knowledgedirectory.KnowledgeDirectory;
-import eu.knowledge.engine.smartconnector.api.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestRegisterSmartConnectorWithSameId {
   private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);

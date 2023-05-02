@@ -25,6 +25,7 @@ import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestPostReact {
 	private static MockedKnowledgeBase kb1;

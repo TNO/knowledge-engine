@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestAskAnswerBindingValidity {
 

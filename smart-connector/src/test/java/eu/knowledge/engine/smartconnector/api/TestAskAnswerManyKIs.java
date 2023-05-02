@@ -23,6 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+
 @Tag("Long")
 public class TestAskAnswerManyKIs {
 

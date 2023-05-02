@@ -35,6 +35,7 @@ import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.Vocab;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestAskAnswer {
 

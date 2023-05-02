@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 @Disabled
 public class TestAskAnswerRealistic {

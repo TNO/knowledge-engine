@@ -22,6 +22,8 @@ import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class Thermostat {
 
