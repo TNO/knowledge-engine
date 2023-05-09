@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+
 public class TestPostReact3 {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
@@ -42,10 +45,12 @@ public class TestPostReact3 {
 		// start registering
 		GraphPattern argumentPattern = new GraphPattern(prefixes, "?a ex:pred1 ?b .");
 		GraphPattern resultPattern1 = new GraphPattern(prefixes, "?c ex:pred2 ?d .");
-		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), argumentPattern, resultPattern1);
+		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), argumentPattern,
+				resultPattern1);
 		kb1.register(ki1);
 
-		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), argumentPattern, resultPattern1);
+		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), argumentPattern,
+				resultPattern1);
 		kb2.register(ki2, (anRKI, aReactExchangeInfo) -> {
 			TestPostReact3.this.kb2Received = true;
 
@@ -68,7 +73,8 @@ public class TestPostReact3 {
 		});
 
 		GraphPattern resultPattern2 = new GraphPattern(prefixes, "?c ex:pred2 ?d . ?e ex:pred3 ?f .");
-		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), argumentPattern, resultPattern2);
+		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), argumentPattern,
+				resultPattern2);
 		kb3.register(ki3, (anRKI, aReactExchangeInfo) -> {
 
 			LOG.info("KB3 Reacting...");
