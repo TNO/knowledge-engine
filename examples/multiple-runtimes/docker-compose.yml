@@ -8,19 +8,19 @@ services:
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port
   # number than the ones configured below. It is still the default 8280.
   runtime-1:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
     environment: 
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
   runtime-2:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
     environment: 
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
   runtime-3:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
     environment: 
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
