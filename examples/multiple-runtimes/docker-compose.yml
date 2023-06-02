@@ -2,7 +2,7 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.0
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.1
 
   # These services are seperate Knowledge Engine runtime, which can host
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port

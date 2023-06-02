@@ -9,7 +9,7 @@ services:
     depends_on:
       - knowledge-directory
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.0
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.1
   runtime-1:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
     environment:
