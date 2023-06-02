@@ -1,6 +1,36 @@
-# How is reasoning used?
+# How to use reasoning?
 
-This section explains how reasoning is used in the knowledge engine. We can distinguish between two types of reasoning as it happens within the knowledge engine: 1) reasoning to infer new data and 2) reasoning for orchestration of data exchange.
+This section explains how to use reasoning in the knowledge engine.
+
+It is optional to use the reasoner, and you have to specifically opt in to enable it.
+If you don't opt in, the *matcher* is used, which simply only facilitates data exchange when graph patterns match exactly (except for order of triples and variable names).
+
+## Enabling the reasoner when using the Java API
+If using the Java API, you can enable the reasoner in your `SmartConnector` by calling:
+
+```java
+smartConnector.setReasonerEnabled(true);
+```
+
+Then, any **proactive** knowledge interaction that you trigger in the smart connector will use the reasoner.
+
+## Enabling the reasoner when using the REST API
+If using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerEnabled` property during knowledge base registration:
+
+```json
+{
+  "knowledgeBaseId": "http://example.org/kb-with-reasoner-enabled",
+  "knowledgeBaseName": "My reasonable knowledge base",
+  "knowledgeBaseDescription": "This is an example knowledge base with the reasoner turned on.",
+  "reasonerEnabled": true
+}
+```
+
+Subsequently, any **proactive** knowledge interaction that you register and use will use the reasoner.
+
+# What does the reasoner do?
+
+We can distinguish between two types of reasoning as it happens within the knowledge engine: 1) reasoning to infer new data and 2) reasoning for orchestration of data exchange.
 
 ## Reasoning to infer new data
 
@@ -163,3 +193,11 @@ end
 Now, upon receiving the new measurement the rule for the Temperature Converter will trigger and convert the measurement into Fahrenheit. Once this is done, the new Measurement in degrees Fahrenheit will be send tot the App KB by the other rule. The App can now update its GUI with the latest measured temperature in degrees Fahrenheit.
 
 From these example it becomes clear that a reasoner can also be used to orchestrate data exchange between different Knowledge Bases. 
+
+## Full example
+In [`/examples/reasoner/`](/examples/reasoner/) in the Knowledge Engine repository, you can find a complete example in a Docker Compose project.
+
+## Performance warning
+When using large graph patterns and/or many bindings, the reasoner's time and memory consumption doesn't scale very well.
+In those cases, you may experience out-of-memory issues, or very long processing times.
+For this reason, it is advised to only use the reasoner with small graph patterns.
