@@ -42,6 +42,7 @@ public class RemoteKerConnection {
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
+	private final URI remoteKerUri;
 	private KnowledgeEngineRuntimeDetails remoteKerDetails;
 	private final MessageDispatcher dispatcher;
 
@@ -55,20 +56,27 @@ public class RemoteKerConnection {
 
 		var builder = HttpClient.newBuilder();
 
-		if (this.remoteKerConnectionDetails.getExposedUrl().getUserInfo() != null) {
-			String[] userInfo = this.remoteKerConnectionDetails.getExposedUrl().getUserInfo().split(":");
+		if (kerConnectionDetails.getExposedUrl().getUserInfo() != null) {
+			this.remoteKerUri = stripUserInfoFromURI(kerConnectionDetails.getExposedUrl());
+			String[] userInfo = kerConnectionDetails.getExposedUrl().getUserInfo().split(":");
 			if (userInfo.length == 2) {
+				String basicAuthUser = userInfo[0];
+				String basicAuthPass = userInfo[1];
+				LOG.debug("Configuring password authentication for HTTP client to {}", this.remoteKerUri);
 				builder.authenticator(new Authenticator() {
 					@Override
 					protected PasswordAuthentication getPasswordAuthentication() {
-
-						return new PasswordAuthentication(userInfo[0], userInfo[1].toCharArray());
+						return new PasswordAuthentication(basicAuthUser, basicAuthPass.toCharArray());
 					}
 				});
+			} else {
+				throw new IllegalArgumentException("Found user information in remote KER URL, but it does not have two parts. Make sure you don't use a colon inside the parts.");
 			}
+		} else {
+			this.remoteKerUri = kerConnectionDetails.getExposedUrl();
 		}
 
-		httpClient = builder.build();
+		this.httpClient = builder.build();
 
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
@@ -82,20 +90,20 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest
-				.newBuilder(new URI(this.remoteKerConnectionDetails.getExposedUrl() + "/runtimedetails"))
+				.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
 				.header("Content-Type", "application/json").GET().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
 						KnowledgeEngineRuntimeDetails.class);
-				LOG.info("Successfully received runtimedetails from " + stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()) + " with " + runtimeDetails.getSmartConnectorIds().size()
+				LOG.info("Successfully received runtimedetails from " + this.remoteKerUri + " with " + runtimeDetails.getSmartConnectorIds().size()
 						+ " Smart Connectors: " + runtimeDetails.getSmartConnectorIds());
 				// TODO validate
 				this.remoteKerDetails = runtimeDetails;
 				dispatcher.notifySmartConnectorsChanged();
 			} else {
-				LOG.warn("Failed to received runtimedetails from " + stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()) + ", got status code " + response.statusCode());
+				LOG.warn("Failed to received runtimedetails from " + this.remoteKerUri + ", got status code " + response.statusCode());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
 			LOG.warn("Failed to received runtimedetails from " + this.remoteKerConnectionDetails.getId(), e);
@@ -150,16 +158,16 @@ public class RemoteKerConnection {
 		try {
 			HttpRequest request = HttpRequest
 					.newBuilder(
-						new URI(this.remoteKerConnectionDetails.getExposedUrl() + "/runtimedetails/"
+						new URI(this.remoteKerUri + "/runtimedetails/"
 									+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
 					.header("Content-Type", "application/json").DELETE().build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
-				LOG.trace("Successfully said goodbye to {}", this.remoteKerConnectionDetails.getExposedUrl());
+				LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
 			} else {
 				LOG.warn("Failed to say goodbye to {}, got response {}: {}",
-						stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()),
+						this.remoteKerUri,
 						response.statusCode(), response.body());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
@@ -174,16 +182,16 @@ public class RemoteKerConnection {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 			HttpRequest request = HttpRequest
 					.newBuilder(
-							new URI(this.remoteKerConnectionDetails.getExposedUrl() + getPathForMessageType(message)))
+							new URI(this.remoteKerUri + getPathForMessageType(message)))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 202) {
 				LOG.trace("Successfully sent message {} to {}", message.getMessageId(),
-						this.remoteKerConnectionDetails.getExposedUrl());
+						this.remoteKerUri);
 			} else {
 				LOG.warn("Failed to send message {} to {}, got response {}: {}", message.getMessageId(),
-					stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()), response.statusCode(), response.body());
+					this.remoteKerUri, response.statusCode(), response.body());
 				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 						+ ", body " + response.body());
 			}
@@ -197,16 +205,16 @@ public class RemoteKerConnection {
 			String jsonMessage = objectMapper.writeValueAsString(details);
 			HttpRequest request = HttpRequest
 					.newBuilder(
-							new URI(this.remoteKerConnectionDetails.getExposedUrl() + "/runtimedetails"))
+							new URI(this.remoteKerUri + "/runtimedetails"))
 					.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
 				LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}",
-						this.remoteKerConnectionDetails.getExposedUrl());
+						this.remoteKerUri);
 			} else {
 				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}, got response {}: {}",
-					stripUserInfoFromURI(this.remoteKerConnectionDetails.getExposedUrl()), response.statusCode(), response.body());
+					this.remoteKerUri, response.statusCode(), response.body());
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
 			LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to "
