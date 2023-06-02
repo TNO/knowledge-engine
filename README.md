@@ -71,7 +71,7 @@ The easiest way to start a Knowledge Engine runtime is with Docker:
 ```bash
 docker run \
 	-p 8280:8280 \
-	ghcr.io/tno/knowledge-engine/smart-connector:1.2.0
+	ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
 ```
 
 The Knowledge Engine runtime is now available to use via the REST API at base URL `http://localhost:8280/rest` on your host machine.
@@ -93,7 +93,7 @@ docker run \
   -p 8081:8081 \
   -e KD_URL=https://knowledge-directory.example.org \
   -e KE_RUNTIME_EXPOSED_URL=https://your-domain.example.org:8081 \
-  ghcr.io/tno/knowledge-engine/smart-connector:1.2.0
+  ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
 ```
 
 ### Running with Java
@@ -111,7 +111,7 @@ export KE_RUNTIME_EXPOSED_URL=https://your-domain.example.org:8081
 # Start it. The argument (8280) denotes the port number at which it
 # will listen for connections to the Knowledge Engine REST API.
 java -jar -Dorg.slf4j.simpleLogger.logFile=smart-connector.log \
-  smart-connector-rest-dist-1.2.0-with-dependencies.jar 8280
+  smart-connector-rest-dist-1.2.1-with-dependencies.jar 8280
 ```
 
 The JAR can be retrieved by compiling the project:
@@ -202,14 +202,14 @@ These are instructions on what to do when we release a new version of the knowle
 3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
 4. Build and push the new Docker images:
 ```bash
-docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.2.0 --push
-docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.0 --push
-docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/admin-ui:1.2.0 --push
+docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.2.1 --push
+docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.1 --push
+docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/admin-ui:1.2.1 --push
 ```
 5. Prepare the next SNAPSHOT version and make a commit for that too.
 
 ## (advanced) Administering a Knowledge Engine runtime
-To start a new instance of the REST API knowledge engine version 1.2.0, make sure you have `git checkout 1.2.0` the tag `1.2.0`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
+To start a new instance of the REST API knowledge engine version 1.2.1, make sure you have `git checkout 1.2.1` the tag `1.2.1`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
 
 ### Starting the Knowledge Engine in local mode
 When no additional configuration parameters are provided, the Knowledge Engine will by default run in local mode. This means you can create multiple smart connectors that can communicate with each other through the REST API, but the Knowledge Engine will not connect to a knowledge directory and will not be able to connect with smart connectors running in other runtimes.
@@ -223,13 +223,13 @@ cd smart-connector-rest-dist/target
 Finally, start the server (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
 
 ```bash
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.0.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
 
 ```bash
-nohup java -cp "smart-connector-rest-dist-1.2.0.jar:dependency/*" eu.knowledge.engine.rest.Main 8280 > ke.log
+nohup java -cp "smart-connector-rest-dist-1.2.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280 > ke.log
 ```
 
 ### Starting the Knowledge Engine in distributed mode
