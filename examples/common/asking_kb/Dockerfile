@@ -11,6 +11,6 @@ WORKDIR /app/
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY ./kb2.py .
+COPY ./asking_kb.py .
 
-ENTRYPOINT [ "python", "kb2.py" ]
+ENTRYPOINT [ "python", "asking_kb.py" ]
