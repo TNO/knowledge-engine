@@ -19,7 +19,7 @@ cd knowledge-directory/target/
 java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.1.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
 ```
 
-As explained in the local mode section, `nohup` can be used to run the process in the background. On overview of the registered Knowledge Engine runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
+The `nohup` command can be used to run the process in the background. On overview of the registered Knowledge Engine runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
 
 Once the knowledge directory is up and running, the REST server can be started. It is configured through environment variables. It has the following configuration options:
 
@@ -44,4 +44,4 @@ java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.
 
 ### Using Basic Authentication to secure data exchange
 
-The communication in Figure 1 can be secured using Basic Authentication and HTTPS. This requires the usage of reverse proxies (like [NGINX](https://www.nginx.com/)) in front of the KD and KE runtimes. In such scenario, this reverse proxy handles all HTTPS and Basis Authentication configuration and forwards traffic over HTTP and without basic authentication to the KD and KE Runtime. To facilitate this, the KE supports conveying user credentials (username and password) within both the KD_URL and KE_RUNTIME_EXPOSED_URL environment variables like this `https://username:password@www.example.org/keruntime`. Whenever these URLs contains user credentials, the KER uses these credentials to connect to the Knowledge Directory or Knowledge Engine Runtime, respectively. An example of using Basic Authentication (with HTTPS) in distributed mode can be found in the [authentication example](../examples/authentication/).
+The communication in Figure 1 can be secured using Basic Authentication and HTTPS. This requires the usage of reverse proxies (like [NGINX](https://www.nginx.com/)) in front of the KD and KE runtimes. In such scenario, this reverse proxy handles all HTTPS and Basis Authentication configuration and forwards traffic over HTTP and without basic authentication to the KD and KE Runtime. To facilitate this, the KE supports conveying user credentials (username and password) within both the KD_URL and KE_RUNTIME_EXPOSED_URL environment variables like this `https://username:password@www.example.org/keruntime`. Whenever these URLs contains user credentials, the KER uses these credentials to connect to the Knowledge Directory or Knowledge Engine Runtime, respectively. An example of using Basic Authentication (without HTTPS) in distributed mode can be found in the [authentication example](../examples/authentication/).
