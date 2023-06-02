@@ -196,6 +196,7 @@ From these example it becomes clear that a reasoner can also be used to orchestr
 
 ## Full example
 In [`/examples/reasoner/`](/examples/reasoner/) in the Knowledge Engine repository, you can find a complete example in a Docker Compose project.
+That example is a variant on the unit conversion orchestration.
 
 ## Performance warning
 When using large graph patterns and/or many bindings, the reasoner's time and memory consumption doesn't scale very well.
