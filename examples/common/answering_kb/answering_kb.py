@@ -17,6 +17,11 @@ KE_URL = os.getenv("KE_URL")
 KB_ID = os.getenv("KB_ID")
 KB_NAME = KB_ID.split("/")[-1]
 KB_DATA = json.loads(os.getenv("KB_DATA"))
+if "PREFIXES" in os.environ:
+    PREFIXES = json.loads(os.getenv("PREFIXES"))
+else:
+    PREFIXES = None
+GRAPH_PATTERN = os.getenv("GRAPH_PATTERN")
 
 log = logging.getLogger(KB_NAME)
 log.setLevel(logging.INFO)
@@ -47,7 +52,7 @@ def answering_kb():
     log.info(f"registering ANSWER KI...")
     kb.register_knowledge_interaction(
         AnswerKnowledgeInteractionRegistrationRequest(
-            pattern="?a <http://example.org/relatedTo> ?b .", handler=handler
+            pattern=GRAPH_PATTERN, handler=handler, prefixes=PREFIXES
         )
     )
     log.info(f"ANSWER KI registered!")

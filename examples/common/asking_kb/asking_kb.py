@@ -1,6 +1,7 @@
 import os
 import logging
 import time
+import json
 
 from knowledge_mapper.tke_client import TkeClient
 from knowledge_mapper.knowledge_base import KnowledgeBaseRegistrationRequest
@@ -12,6 +13,11 @@ from knowledge_mapper.knowledge_interaction import (
 KE_URL = os.getenv("KE_URL")
 KB_ID = os.getenv("KB_ID")
 KB_NAME = KB_ID.split("/")[-1]
+if "PREFIXES" in os.environ:
+    PREFIXES = json.loads(os.getenv("PREFIXES"))
+else:
+    PREFIXES = None
+GRAPH_PATTERN = os.getenv("GRAPH_PATTERN")
 
 log = logging.getLogger(KB_NAME)
 log.setLevel(logging.INFO)
@@ -32,7 +38,7 @@ def kb_1():
     log.info(f"registering ASK KI...")
     ask: AskKnowledgeInteraction = kb.register_knowledge_interaction(
         AskKnowledgeInteractionRegistrationRequest(
-            pattern="?a <http://example.org/relatedTo> ?b ."
+            pattern=GRAPH_PATTERN, prefixes=PREFIXES
         )
     )
     log.info(f"ASK KI registered!")

@@ -1,0 +1,60 @@
+services:
+  knowledge-engine:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
+  kb1:
+    build: ../common/asking_kb
+    environment:
+      KE_URL: http://knowledge-engine:8280/rest
+      KB_ID: http://example.org/kb1
+      ENABLE_REASONER: true
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInCelsius ?celsius .
+  kb2:
+    build: ../common/answering_kb
+    environment:
+      KE_URL: http://knowledge-engine:8280/rest
+      KB_ID: http://example.org/kb2
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInFahrenheit ?fahrenheit .
+      KB_DATA: |
+        [
+          {
+            "m": "<http://example.org/data/measurement>",
+            "fahrenheit": "68.2"
+          }
+        ]
+  kb3:
+    build: ../common/react_function_kb
+    environment:
+      KE_URL: http://knowledge-engine:8280/rest
+      KB_ID: http://example.org/kb3
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInFahrenheit ?fahrenheit .
+      RESULT_GRAPH_PATTERN: |
+        ?m ex:hasValueInCelsius ?celsius .
+      REACT_FUNCTION_DEF: |
+        def react(bindings):
+          result = []
+          for binding in bindings:
+            fahrenheit = float(binding["fahrenheit"])
+            celsius = (fahrenheit - 32) / 1.8
+            result.append({"m": binding["m"], "celsius": str(celsius)})
+          return result

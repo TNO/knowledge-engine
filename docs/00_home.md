@@ -8,7 +8,7 @@ The Knowledge Engine provides this interoperability by using an ontology that de
 - Section 1: [Conceptual framework](01_concept.md)
 - Section 2: [How is reasoning used?](02_reasoning.md)
 - Section 3: [Java developer API](03_java_developer_api.md)
-- Section 4: [Test cases](04_test_cases.md)
+- Section 4: [Distributed mode](04_distributed_mode.md)
 
 - [Glossary](05_glossary.md)
 - [FAQ](06_faq.md)

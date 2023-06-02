@@ -1,4 +1,4 @@
-knowledge-mapper==0.0.19
+knowledge-mapper==0.0.23
 # certifi==2022.9.24 # Installed as dependency for requests
 # charset-normalizer==2.1.1 # Installed as dependency for requests
 # idna==3.4 # Installed as dependency for requests

@@ -42,8 +42,8 @@ where `graphPattern` is a string describing an RDF graph pattern where variables
 
 Graph patterns consist of one or more triples separated by a dot (.) and each triple consists of a subject, predicate and object node. Each node can be either a variable (using a question mark `?var` prefix), a URI (using the `<https://...>` or a literal (using quotes `"hello"`).
 More information on graph patterns can be found in:
-- the Knowledge Engine documentation: https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/master/docs/03_java_developer_api.md
 - this presentation (from slide 16 onwards): https://drive.inesctec.pt/f/16079670
+- Graph Pattern syntax is based on W3C's [SPARQL 1.1 graph pattern](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
 
 As an example, assume `graphPattern` is the following graph pattern:
 ```sparql
@@ -104,6 +104,54 @@ Two important things should be noted:
 ### Binding sets
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.
+
+## Expressibility
+
+The Graph Pattern syntax has a limited expressibility. This means there are certain things that you might want to express with them, but are unable to. Sometimes this means it limits the actual data exchange, but sometimes there are work-arounds. One of the limitations is related to one-to-many relations. Take the following RDF about parents and children in which a parent has a one-to-many relation with its children:
+
+```
+ex:parent1 rdf:type ex:Parent .
+
+ex:parent1 ex:hasChild ex:child1 .
+ex:child1 rdf:type ex:Child .
+
+ex:parent1 ex:hasChild ex:child2 .
+ex:child2 rdf:type ex:Child .
+
+ex:parent1 ex:hasChild ex:child3 .
+ex:child3 rdf:type ex:Child .
+```
+
+As you can see, RDF is perfectly capable of expressing one-to-many relations. Now imagine that you want to use the Interoperability layer to exchange information about parents and their children. For this you need to let the Interoperability layer know that you can participate in data exchanges about parents and their children. You do this using a graph pattern (and for example an AnswerKnowledgeInteraction). Let's take the following graph pattern:
+ 
+```
+?parent rdf:type ex:Parent .
+?parent ex:hasChild ?someChild .
+?someChild rdf:type ex:Child .
+```
+
+Since the syntax of graph patterns is limited, you cannot express that the `ex:hasChild` relation between a parent and a child is a one to many relation. So, how does the interoperability layer exchange the RDF data about parents and their children above? This is where bindingsets come in.
+
+A bindingset provides a collection of 'solutions' to the graph pattern, i.e. combinations of values for the available variables (those start with a question mark `?`) in the graph pattern. So, in the graph pattern above there are two variables (note that both variables occur twice). A binding set consists of zero or more bindings and each binding represents a single mapping of some or all of the variables to a value. For example, when the graph pattern above is applied to the RDF data above, this results in the following bindingset (note that we use JSON here to express the bindingset):
+
+```
+[
+  {
+    "parent": "<https://example.com/parent1>",
+    "someChild": "<https://example.com/child1>",
+  },
+  {
+    "parent": "<https://example.com/parent1>",
+    "someChild": "<https://example.com/child2>",
+  },
+  {
+    "parent": "<https://example.com/parent1>",
+    "someChild": "<https://example.com/child3>",
+  }
+]
+```
+
+As you can see, the one-to-many relations in the RDF data is represented in the bindingset by having 3 bindings. Note that all bindings have the same value for the `parent` variable.
 
 ### Hierarchy example
 

@@ -165,11 +165,13 @@ The simple temperature sensor in the example is unable to store much data, so it
 
 ## Knowledge Directory
 
-*Note: Developers using smart connectors do not need to know about the knowledge directory since the communication and synchronization is handled by the smart connectors internally.*
+Since all smart connectors need to know about each other to exchange knowledge, they need a way to know of each other. The current solution implements this with a centralized knowledge directory. The knowledge directory is aware of all KE runtimes. The KE runtimes communicate with each other to receive information about all smart connectors within a particular KE runtime.
 
-Since all smart connectors need to know about each other to exchange knowledge, they need a way to know of each other.
-The current solution implements this with a centralized knowledge directory.
-The knowledge directory is aware of all smart connectors and their knowledge Interactions.
+The Knowledge Engine runtimes can be started in distributive mode and non-distributive mode. In distributive mode, the KE runtime connects with a Knowledge Directory to discover other KE runtimes. In this mode, data exchange happens between smart connectors that live in any KE runtime that is registered with a particular Knowledge Directory. This is the preferred mode of the Knowledge Engine which is more decentralized because every actor hosts its own smart connector. More information about distributed mode can be found in the chapter on the [Distributed mode](04_distributed_mode.md).
+
+The knowledge engine can also be started in non-distributive mode in which it does not connect to a Knowledge Directory and also does not cooperate with other KE runtimes. In this mode, data exchange only happens between smart connectors that live in this single KE runtime. This mode is useful for getting started with the Knowledge Engine and for development and testing purposes.
+
+*Note: Developers using smart connectors do not need to know about the knowledge directory since the communication and synchronization is handled by the smart connectors internally.*
 
 ## Rules
 

@@ -1,65 +1,39 @@
-How is reasoning used?
-======================
+# How to use reasoning?
 
-This section explains how reasoning is used in the knowledge engine. We can distinguish between two types of reasoning as it happens within the knowledge engine: 1) reasoning to infer new data and 2) reasoning for orchestration of data exchange.
+This section explains how to use reasoning in the knowledge engine.
 
-Graph Patterns and bindings
----------------------------
+It is optional to use the reasoner, and you have to specifically opt in to enable it.
+If you don't opt in, the *matcher* is used, which simply only facilitates data exchange when graph patterns match exactly (except for order of triples and variable names).
 
-Graph Pattern syntax is based on W3C's [SPARQL 1.1 graph pattern](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
+## Enabling the reasoner when using the Java API
+If using the Java API, you can enable the reasoner in your `SmartConnector` by calling:
 
-TODO
-
-Expressibility
---------------
-The Graph Pattern syntax has a limited expressibility. This means there are certain things that you might want to express with them, but are unable to. Sometimes this means it limits the actual data exchange, but sometimes there are work-arounds. One of the limitations is related to one-to-many relations. Take the following RDF about parents and children in which a parent has a one-to-many relation with its children:
-
-```
-ex:parent1 rdf:type ex:Parent .
-
-ex:parent1 ex:hasChild child1 .
-ex:child1 rdf:type ex:Child .
-
-ex:parent1 ex:hasChild ex:child2 .
-ex:child2 rdf:type ex:Child .
-
-ex:parent1 ex:hasChild ex:child3 .
-ex:child3 rdf:type ex:Child .
+```java
+smartConnector.setReasonerEnabled(true);
 ```
 
-As you can see, RDF is perfectly capable of expressing one-to-many relations. Now imagine that you want to use the Interoperability layer to exchange information about parents and their children. For this you need to let the Interoperability layer know that you can participate in data exchanges about parents and their children. You do this using a graph pattern (and for example an AnswerKnowledgeInteraction). Let's take the following graph pattern:
- 
-```
-?parent rdf:type ex:Parent .
-?parent ex:hasChild ?someChild .
-?someChild rdf:type ex:Child .
-```
+Then, any **proactive** knowledge interaction that you trigger in the smart connector will use the reasoner.
 
-Since the syntax of graph patterns is limited, you cannot express that the `ex:hasChild` relation between a parent and a child is a one to many relation. So, how does the interoperability layer exchange the RDF data about parents and their children above? This is where bindingsets come in.
+## Enabling the reasoner when using the REST API
+If using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerEnabled` property during knowledge base registration:
 
-A bindingset provides a collection of 'solutions' to the graph pattern, i.e. combinations of values for the available variables (those start with a question mark `?`) in the graph pattern. So, in the graph pattern above there are two variables (note that both variables occur twice). A binding set consists of zero or more bindings and each binding represents a single mapping of some or all of the variables to a value. For example, when the graph pattern above is applied to the RDF data above, this results in the following bindingset (note that we use JSON here to express the bindingset):
-
-```
-[
-	{
-		"parent": "<https://example.com/parent1>",
-		"someChild": "<https://example.com/child1>",
-	},
-	{
-		"parent": "<https://example.com/parent1>",
-		"someChild": "<https://example.com/child2>",
-	},
-	{
-		"parent": "<https://example.com/parent1>",
-		"someChild": "<https://example.com/child3>",
-	}
-]
+```json
+{
+  "knowledgeBaseId": "http://example.org/kb-with-reasoner-enabled",
+  "knowledgeBaseName": "My reasonable knowledge base",
+  "knowledgeBaseDescription": "This is an example knowledge base with the reasoner turned on.",
+  "reasonerEnabled": true
+}
 ```
 
-As you can see, the one-to-many relations in the RDF data is represented in the bindingset by having 3 bindings. Note that all bindings have the same value for the `parent` variable.
+Subsequently, any **proactive** knowledge interaction that you register and use will use the reasoner.
 
-Reasoning to infer new data
----------------------------
+# What does the reasoner do?
+
+We can distinguish between two types of reasoning as it happens within the knowledge engine: 1) reasoning to infer new data and 2) reasoning for orchestration of data exchange.
+
+## Reasoning to infer new data
+
 This type of reasoning is what is usually meant when talking about a reasoning in the context of the Semantic Web. In such a scenario there is a collection of facts and a collection of rules and the reasoner uses the facts and rules to infer new facts. The original facts are called the _asserted facts_ and the derived facts are called the _inferred facts_ (see figure 1).
 
 ![alt text](./img/asserted-vs-inferred.png)*Figure 1: the difference between asserted and inferred facts.*
@@ -69,78 +43,80 @@ In the figure you see two databases with triples. The left database only contain
 Let's give an example. Imagine a smart home scenario where lights have a state of either 'on' or 'off'. In triples this looks like:
 
 ```
-:light1 rdf:type :Light .
-:light1 :hasState :on .
+ex:light1 rdf:type ex:Light .
+ex:light1 ex:hasState ex:on .
 ```
 
-Now imagine all the on/off states of all the lights in the home are maintained as asserted facts in a database. The home owner uses an app to check which lights she left on in her home and this app checks the on/off states using the asserted facts in the database. This all works perfect and the home owner buys and installs a new _dimmable_ light. Unfortunately, the app does not check whether the new dimmable light is on or off, since a dimmable light is not either on/off, but has an light intensity between 0 and 100. So, its triples look like:
+Now imagine all the on/off states of all the lights in the home are maintained as asserted facts in a database. The home owner uses an app to check which lights she left on in her home and this app checks the on/off states using the asserted facts in the database. This all works perfect and the home owner buys and installs a new _dimmable_ light. Unfortunately, the app does not check whether the new dimmable light is on or off, since a dimmable light is not either on/off, but has a light intensity between 0 and 100. So, its triples look like:
 
 ```
-:light2 rdf:type DimmableLight .
-:light2 :hasState "23"^^xsd:integer .
+ex:light2 rdf:type ex:DimmableLight .
+ex:light2 ex:hasIntensity "23"^^xsd:integer .
 ```
 
 Now, an update of the app to also check intensity levels of dimmable lights could solve this problem, but updates do not always happen. By using the reasoning capabilities, this problem can also be solved without any updates to the app. This solution would involve telling the reasoner that a DimmableLight (which is also a Light) is on if its light intensity level is larger than 0. Such a rule (which is typically part of the Knowledge Model) looks like:
 
 ```
 if
-	?light :rdf:type DimmableLight .
-	?light :hasState ?state .
-	largerThan(?state > 0)
+  ?light rdf:type ex:DimmableLight .
+  ?light ex:hasIntensity ?intensity .
+  ?intensity ex:isLargerThan 0 .
 then
-	?light :hasState :on .
+  ?light ex:hasState ex:on .
 else
-	?light :hasState :off .
+  ?light ex:hasState ex:off .
 end
 ```
 
 Now, the (legacy) app is able to check the dimmable light's on/off state. This can also be called 'forward compatibility', i.e. a legacy app is compatible with future developments.
 
-Reasoning to orchestrate data exchange
---------------------------------------------
+## Reasoning to orchestrate data exchange
+
 This type of reasoning is less obvious and requires some explanation. It is particularly useful in a scenario where data is scattered amongst heterogeneous knowledge bases. Instead of periodically transforming data from each of those knowledge bases into a uniform format and collecting it in a central database, this orchestration method allows the data to stay at its source and only retrieve those facts whenever they are needed.
 
-For the reasoner to orchestrate this, it requires an overview of all the currently available knowledge bases and their capabilities. These capabilities are called KnowledgeInteractions (see also [Conceptual framework](01_concept.md)) and each knowledge base typically has multiple of them. Each KnowledgeIO represents a single capability of a knowledge base and describes this capability using only the concepts and relations defined in the common Knowledge Model. Our assumption is that every capability of a possible knowledge base (i.e. a machine learning model, user app, database or service) can be described in such a way. For this a KnowledgeIO defines either an input knowledge or an output knowledge or both. For example, a user app that presents knowledge to its user in a table would define a KnowledgeIO in which only the input knowledge is defined. This should be read as: the app needs input data for it to function properly.
+For the reasoner to orchestrate this, it requires an overview of all the currently available knowledge bases and their capabilities. These capabilities are called knowledge interactions (see also [Conceptual framework](01_concept.md)) and each knowledge base typically has multiple of them. Each knowledge interaction represents a single capability of a knowledge base and describes this capability using only the concepts and relations defined in the common ontology. Our assumption is that every capability of a possible knowledge base (i.e. a machine learning model, user app, database or service) can be described in such a way.
 
-With this overview of the available capabilities, the reasoner is able to answer questions about knowledge that is scattered over multiple knowledge bases. This works as follows. For every KnowledgeIO of every available Knowledge Base, the Smart Connector determines whether it is relevant and if so, it updates its state accordingly. This state consists of a collection of rules that represent the available capabilities and whenever the reasoner applies such a rule to answer a certain question (i.e. using backward reasoning), during the execution of the rule the relevant Knowledge Base is contacted and the data is retrieved on the fly.
+With this overview of the available capabilities, the reasoner is able to answer questions about knowledge that is scattered over multiple knowledge bases. This works as follows. For every knowledge interaction of every available knowledge base, the Smart Connector determines whether it is relevant and if so, it updates its state accordingly. This state consists of a collection of rules that represent the available capabilities and whenever the reasoner applies such a rule to answer a certain question (i.e. using backward reasoning), during the execution of the rule the relevant Knowledge Base is contacted and the data is retrieved on the fly.
 
-For example, there are three Knowledge Bases called App, Measurements and Temperature Converter. The scenario is that the App gives the user access to all available measurements in degrees Fahrenheit. However, the Measurements Knowledge Base only stores measurements in degrees Celcius. The idea is that the reasoner is able to use the Temperature Converter Knowledge Base to convert the availble measurements in degrees Celcius into the requested measurements in degrees Fahrenheit. The KnowledgeIOs of the different Knowledge Bases are of the following:
-
-```
-
-App KnowledgeIO:
-  * input: ?meas rdf:type saref:Measurement . ?meas saref:tempInFahrenheit ?temp .
-  * output: <empty>
-
-Measurements KnowledgeIO:
-  * input: <empty>
-  * output: ?m rdf:type saref:Measurement . ?m saref:tempInCelcius ?t .
-  * requestable: true
-  * subscribable: false
-
-Temperature Converter KnowledgeIO:
-  * input: ?mm rdf:type saref:Measurement . ?mm saref:tempInFahrenheit ?tf .
-  * output:  ?mm rdf:type saref:Measurement . ?mm saref:tempInCelcius ?tc . 
+For example, there are three knowledge bases called App, Measurements and Temperature Converter. The scenario is that the App gives the user access to all available measurements in degrees Fahrenheit. However, the Measurements Knowledge Base only stores measurements in degrees Celcius. The idea is that the reasoner is able to use the Temperature Converter Knowledge Base to convert the availble measurements in degrees Celcius into the requested measurements in degrees Fahrenheit. The knowledge interactions of the different Knowledge Bases are of the following:
 
 ```
+App knowledge interaction (ASK):
+  pattern:
+    ?meas rdf:type saref:Measurement .
+    ?meas saref:tempInFahrenheit ?temp .
 
-Now, these KnowledgeIOs will result in the following backward rules (see also [Conceptual framework](01_concept.md)) in the App's Smart Connector:
+Measurements knowledge interaction (ANSWER):
+  pattern:
+    ?m rdf:type saref:Measurement .
+    ?m saref:tempInCelcius ?t .
+
+Temperature knowledge interaction (REACT):
+  argument pattern:
+    ?mm rdf:type saref:Measurement .
+    ?mm saref:tempInFahrenheit ?tf .
+  result pattern:
+    ?mm rdf:type saref:Measurement .
+    ?mm saref:tempInCelcius ?tc . 
+```
+
+Now, these knowledge interactions will result in the following backward rules (see also [Conceptual framework](01_concept.md)) in the App's Smart Connector:
 
 ```
 if
-	?m rdf:type saref:Measurement .
-	?m saref:tempInCelcius ?t .
+  ?m rdf:type saref:Measurement .
+  ?m saref:tempInCelcius ?t .
 then
-	retrieveDataFromKnowledgeBase(Measurements)
+  retrieveDataFromKnowledgeBase(Measurements)
 end
 
 if
-	?mm rdf:type saref:Measurement .
-	?mm saref:tempInFahrenheit ?tf .
+  ?mm rdf:type saref:Measurement .
+  ?mm saref:tempInFahrenheit ?tf .
 then
-	?mm rdf:type saref:Measurement .
-	?mm saref:tempInCelcius ?tc .
-	retrieveDataFromKnowledgeBase(Temperature Converter) 
+  ?mm rdf:type saref:Measurement .
+  ?mm saref:tempInCelcius ?tc .
+  retrieveDataFromKnowledgeBase(Temperature Converter) 
 end
 
 ```
@@ -149,46 +125,46 @@ The App asks its SmartConnector for measurements in degrees Fahrenheit, but the 
 
 ```
 :m1 rdf:type saref:Measurement .
-:m1 saref:tempInCelcius "21" .
+:m1 saref:tempInCelcius 21 .
 
 :m2 rdf:type saref:Measurement .
-:m2 saref:tempInCelcius "18" .
+:m2 saref:tempInCelcius 18 .
 
-:m3 rdf:type saref:measurement .
-:m3 saref:tempInCelcius "24" .
+:m3 rdf:type saref:Measurement .
+:m3 saref:tempInCelcius 24 .
 ```
 
 The Temperature Converter KB is able to convert this into:
 
 ```
 :m1 rdf:type saref:Measurement .
-:m1 saref:tempInCelcius "69.8" .
+:m1 saref:tempInCelcius 69.8 .
 
 :m2 rdf:type saref:Measurement .
-:m2 saref:tempInCelcius "64.4" .
+:m2 saref:tempInCelcius 64.4 .
 
-:m3 rdf:type saref:measurement .
-:m3 saref:tempInCelcius "75.2" .
+:m3 rdf:type saref:Measurement .
+:m3 saref:tempInCelcius 75.2 .
 ```
 
-Which is the data that can be returned by the Smart Connector to the App KB as the answer to its query. But data exchange does not only involve asking questions and getting answers (i.e. pulling data), it often also entails publishing data to subscribers (i.e. pushing data). If we modify the Measurements KB of the above example into a Temperature sensor that periodically publishes the latest measurement in degrees Celcius. The KnowledgeIOs of the App and Temperature Converter KBs remain the same and the Temperature Sensor KB has the following KnowledgeiO:
+Which is the data that can be returned by the Smart Connector to the App KB as the answer to its query. But data exchange does not only involve asking questions and getting answers (i.e. pulling data), it often also entails publishing data to subscribers (i.e. pushing data). If we modify the Measurements KB of the above example into a Temperature sensor that periodically publishes the latest measurement in degrees Celcius. The knowledge interactions of the App and Temperature Converter KBs remain the same and the Temperature Sensor KB has the following knowledge interaction:
 
 ```
-Temperature Sensor KnowledgeIO:
-  * input: <empty>
-  * output: ?m rdf:type saref:Measurement . ?m saref:tempInCelcius ?t .
-  * requestable: false
-  * subscribable: true
+Temperature Sensor knowledge interaction (POST):
+  argument pattern:
+    ?m rdf:type saref:Measurement .
+    ?m saref:tempInCelcius ?t .
 ```
 
-Note that the only difference with the KnowledgeIO of the Measurements KB is that the output knowledge is no longer requestable, but only subscribable. So, the `requestable` and `subscribable` attribute of a KnowledgeIO indicates whether the output data of the KB can be pulled by other KBs and/or whether it is automatically pushed to other KBs. In the case of the Temperature Sensor it is automatically pushed. This Temperature Sensor KnowledgeIO results in the following *forward* rule in the Smart Connector of the Temperature Sensor:
+Note that the only difference with the knowledge interaction of the Measurements KB is that the output knowledge is no longer requestable, but only subscribable.
+This Temperature Sensor knowledge interaction results in the following *forward* rule in the Smart Connector of the Temperature Sensor:
 
 ```
 if
-	?m rdf:type saref:Measurement .
-	?m saref:tempInCelcius ?t .
+  ?m rdf:type saref:Measurement .
+  ?m saref:tempInCelcius ?t .
 then
-	sendDataToOtherKnowledgeBases()
+  sendDataToOtherKnowledgeBases()
 end
 ```
 
@@ -197,19 +173,19 @@ This means that whenever the Temperature Sensor publishes a new measurement, it 
 ```
 
 if
-	?mm rdf:type saref:Measurement .
-	?mm saref:tempInCelcius ?tc .
+  ?mm rdf:type saref:Measurement .
+  ?mm saref:tempInCelcius ?tc .
 then
-	retrieveDataFromKnowledgeBase(Temperature Converter)
-	?mm rdf:type saref:Measurement .
-	?mm saref:tempInFahrenheit ?tf .
+  retrieveDataFromKnowledgeBase(Temperature Converter)
+  ?mm rdf:type saref:Measurement .
+  ?mm saref:tempInFahrenheit ?tf .
 end
 
 if
-	?m rdf:type saref:Measurement .
-	?m saref:tempInFahrenheit ?t .
+  ?m rdf:type saref:Measurement .
+  ?m saref:tempInFahrenheit ?t .
 then
-	sendDataToKnowledgeBase()
+  sendDataToKnowledgeBase()
 end
 
 ```
@@ -217,3 +193,12 @@ end
 Now, upon receiving the new measurement the rule for the Temperature Converter will trigger and convert the measurement into Fahrenheit. Once this is done, the new Measurement in degrees Fahrenheit will be send tot the App KB by the other rule. The App can now update its GUI with the latest measured temperature in degrees Fahrenheit.
 
 From these example it becomes clear that a reasoner can also be used to orchestrate data exchange between different Knowledge Bases. 
+
+## Full example
+In [`/examples/reasoner/`](/examples/reasoner/) in the Knowledge Engine repository, you can find a complete example in a Docker Compose project.
+That example is a variant on the unit conversion orchestration.
+
+## Performance warning
+When using large graph patterns and/or many bindings, the reasoner's time and memory consumption doesn't scale very well.
+In those cases, you may experience out-of-memory issues, or very long processing times.
+For this reason, it is advised to only use the reasoner with small graph patterns.
