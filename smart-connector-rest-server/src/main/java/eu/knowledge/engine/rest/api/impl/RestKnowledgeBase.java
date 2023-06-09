@@ -724,7 +724,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	public void stop() {
-		this.cancelAsyncResponse();
+		if (this.hasAsyncResponse())
+			this.cancelAsyncResponse();
 		this.cancelInactivityTimeout();
 		this.sc.stop();
 		this.cancelAndClearAllHandleRequests();
