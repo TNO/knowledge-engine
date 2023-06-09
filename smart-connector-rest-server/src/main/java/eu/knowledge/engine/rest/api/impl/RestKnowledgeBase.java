@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.model.KnowledgeInteractionBase;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnectorLease;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
@@ -238,7 +239,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
 		}
 		this.sc = smartConnectorProvider.create(this);
-		
+
 		if (scModel.getReasonerEnabled() != null)
 			this.sc.setReasonerEnabled(scModel.getReasonerEnabled());
 	}
@@ -261,17 +262,20 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					assert knowledgeInteractionId != null;
 
 					eu.knowledge.engine.rest.model.HandleRequest handleRequestModel = new eu.knowledge.engine.rest.model.HandleRequest()
-							.bindingSet(handleRequest.getBindingSet()).handleRequestId(handleRequest.getHandleRequestId())
+							.bindingSet(handleRequest.getBindingSet())
+							.handleRequestId(handleRequest.getHandleRequestId())
 							.knowledgeInteractionId(knowledgeInteractionId);
 
 					if (handleRequest.getRequestingKnowledgeBaseId() != null) {
-						handleRequestModel.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
+						handleRequestModel
+								.requestingKnowledgeBaseId(handleRequest.getRequestingKnowledgeBaseId().toString());
 					}
 
-					sentToKnowledgeBase = this.asyncResponse.resume(Response.status(200).entity(handleRequestModel).build());
+					sentToKnowledgeBase = this.asyncResponse
+							.resume(Response.status(200).entity(handleRequestModel).build());
 					// Even if unsuccesful, we want to reset the asyncResponse object, as it
 					// is somehow faulty. So we will wait for a new request.
-					this.resetAsyncResponse();	
+					this.resetAsyncResponse();
 				}
 			}
 		}
@@ -292,8 +296,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					// If this ALSO failed, we will cancel this new item as well and log.
 					handleRequest.getFuture().completeExceptionally(new KnowledgeEngineException(
 							new Exception("It was not possible to add this request to the knowledge base's queue.")));
-					LOG.warn(
-							"Could not add handle request to queue of knowledge base {}, even after removing an item.",
+					LOG.warn("Could not add handle request to queue of knowledge base {}, even after removing an item.",
 							this.knowledgeBaseId);
 					LOG.debug("This handle request couldn't be added: {}", handleRequest);
 				}
@@ -342,12 +345,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		synchronized (this.beingProcessedHandleRequests) {
 			hr = this.beingProcessedHandleRequests.get(handleRequestId);
 			bs = this.listToBindingSet(responseBody.getBindingSet());
-	
+
 			// TODO: Can this be moved to somewhere internal so that it can also be
 			// caught in the Java developer api?
 			// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
 			hr.validateBindings(bs);
-	
+
 			// Now that the validation is done, from the reactive side we are done, so
 			// we can remove the HandleRequest from our list.
 			this.beingProcessedHandleRequests.remove(handleRequestId);
@@ -384,7 +387,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
-			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()), ki.getKnowledgeInteractionName());
+			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
+					ki.getKnowledgeInteractionName());
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -394,7 +398,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ANSWER knowledge interactions.");
 			}
-			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()), ki.getKnowledgeInteractionName());
+			var answerKI = new AnswerKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
+					ki.getKnowledgeInteractionName());
 
 			kiId = this.sc.register(answerKI, this.answerHandler);
 
@@ -492,8 +497,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var act = ki.getAct();
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
-		var kiwid = new KnowledgeInteractionWithId()
-				.knowledgeInteractionId(kiId.toString())
+		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
 				.knowledgeInteractionName(ki.getName())
 				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
 						.satisfiedPurposes(satisfactions));
@@ -706,7 +710,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 	}
 
+	private void cancelAsyncResponse() {
+
+		var response = new ResponseMessage();
+		response.setMessageType("message");
+		response.setMessage(
+				"This long polling request is cancelled by the server because the Knowledge Base is stopping.");
+		boolean cancelledSucceeded = this.asyncResponse.resume(Response.status(410).entity(response).build());
+
+		if (!cancelledSucceeded) {
+			this.asyncResponse.cancel();
+		}
+	}
+
 	public void stop() {
+		this.cancelAsyncResponse();
 		this.cancelInactivityTimeout();
 		this.sc.stop();
 		this.cancelAndClearAllHandleRequests();
