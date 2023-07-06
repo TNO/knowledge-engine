@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -539,5 +540,46 @@ public class MatchTest {
 		System.out.println("BindingSet: " + tvbs2);
 
 		assertTrue(tvbs2.isEmpty());
+	}
+
+	@Test
+	public void testPloutosGPMatcher() {
+
+		String gp = """
+				?operation <type> <HarvestingOperation> .
+				?operation <hasOutput> ?output .
+				?operation <isOperatedOn> ?parcel .
+				?parcel <contains> ?crop .
+				?crop <type> ?cropType .
+				?cropType <label> ?cropName .
+				?parcel <hasArea> ?area .
+				?farm <type> <Farm> .
+				?farm <location> ?location .
+				?location <lat> ?latitude .
+				?location <long> ?longitude .
+				?farm <hasName> ?farmName .
+				?farm <contains> ?parcel .
+				?farmer <managesFarm> ?farm .
+				?association <type> <FarmAssociation> .
+				?farmer <isMemberOf> ?association .
+				?association <hasName> ?associationName .
+				?parcel <hasAdministrator> ?parcelAdminName .
+				?parcel <hasToponym> ?parcelToponym .
+				?parcel <inRegion> ?parcelRegion .
+				?output <isMeantFor> ?purpose .
+				?parcel <hasCultivator> ?cultivatorName .
+				?farm <hasCountry> ?country .
+				?country <name> ?countryLabel .""";
+
+		Set<TriplePattern> obj = Util.toGP(gp);
+
+		Rule r = new Rule(new HashSet<>(), obj);
+
+		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
+
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+
+		System.out.println("Size: " + findMatchesWithConsequent.size());
+
 	}
 }

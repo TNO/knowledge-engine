@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Node;
@@ -14,10 +16,6 @@ import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.sse.SSE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class Util {
 
@@ -92,7 +90,7 @@ public class Util {
 						if (b.get(n.getName()).isURI()) {
 							repr = "<" + b.get(n.getName()).toString() + ">";
 						} else {
-							repr = b.get(n.getName()).toString(); //"\"" + b.get(n.getName()).toString() + "\"";
+							repr = b.get(n.getName()).toString(); // "\"" + b.get(n.getName()).toString() + "\"";
 						}
 
 						LOG.trace("Parsing: {}", repr);
@@ -107,6 +105,33 @@ public class Util {
 			m.add(m.asStatement(new Triple(newNodes[0], newNodes[1], newNodes[2])));
 		}
 		return m;
+	}
+
+	/**
+	 * parses every line of the string into a triple pattern and combines them into
+	 * a set. Note that if it ends with a period (.) it will be removed.
+	 * 
+	 * @param gp
+	 * @return
+	 */
+	public static Set<TriplePattern> toGP(String gp) {
+
+		var set = new HashSet<TriplePattern>();
+		String[] lines = gp.split("\n");
+
+		for (String line : lines) {
+
+			String trimmed = line.strip();
+			if (trimmed.endsWith("."))
+				trimmed = trimmed.substring(0, trimmed.length() - 2);
+
+			if (!trimmed.isEmpty()) {
+				System.out.println("line: " + trimmed);
+				set.add(new TriplePattern(trimmed));
+			}
+		}
+
+		return set;
 	}
 
 }

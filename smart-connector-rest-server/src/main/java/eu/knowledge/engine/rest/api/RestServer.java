@@ -1,5 +1,7 @@
 package eu.knowledge.engine.rest.api;
 
+import java.net.InetSocketAddress;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -28,6 +30,7 @@ public class RestServer {
 		}
 
 		LOG.info("Starting Knowledge Engine REST API on port {}.", port);
+
 		Server server = new Server(port);
 		System.setProperty("org.jboss.logging.provider", "slf4j");
 		ServletContextHandler ctx = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
