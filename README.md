@@ -195,18 +195,41 @@ The Knowledge Engine project consists of the following Maven modules:
 These are instructions on what to do when we release a new version of the knowledge engine.
 
 1. Update all relevant version references and make sure they are correct and non-SNAPSHOT:
+	- this `README.md` file
 	- all `pom.xml` files
 	- `openapi-sc.yaml` version
-	- this `README.md` file
-2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}` in GitLab.
-3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
-4. Build and push the new Docker images:
+	- Docker image tags in the Docker Compose examples.
+2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}`.
+3. Push the commit and the tag.
+4. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
+5. Build and push the new Docker images to GitLab:
+
+```bash
+docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.2.1 --push
+docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.2.1 --push
+docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.2.1 --push
+```
+
+6. Build and push the new Docker images to GitHub:
+
 ```bash
 docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.2.1 --push
 docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.1 --push
 docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/admin-ui:1.2.1 --push
 ```
-5. Prepare the next SNAPSHOT version and make a commit for that too.
+
+7. Prepare the next SNAPSHOT version and make a commit for that too.
+   1. `openapi-sc.yaml`
+   2. `pom.xml`
+   3. Leave the non-SNAPSHOT version in this README, and in the Docker Compose examples.
+8. In GitLab, create a new release at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/releases
+   1. Use the new tag for the release
+   2. Write release notes
+   3. Find the latest version of the package at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/packages/976 and copy the link to the JAR with dependencies. Include it in "Release assets" with type "Package" and link title "Knowledge Engine REST server JAR (with dependencies)" (see previous releases)
+9. In GitHub, create a new release at https://github.com/TNO/knowledge-engine/releases/new
+   1. Use the new tag for the release
+   2. Include the same release notes
+10. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
 
 ## (advanced) Administering a Knowledge Engine runtime
 To start a new instance of the REST API knowledge engine version 1.2.1, make sure you have `git checkout 1.2.1` the tag `1.2.1`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
