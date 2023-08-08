@@ -476,8 +476,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
     post:
-      summary: Send the answer or reaction of the last long polling handle
-        request back to the Smart Connector of the given Knowledge-Base-Id.
+      summary: Send the answer or reaction of a specific long polling handle
+        request back to the Smart Connector of the given Knowledge-Base-Id. Note that an empty binding set object must be returned when the specific react knowledge interaction has no result graph pattern.
       tags:
         - reactive
       parameters:
