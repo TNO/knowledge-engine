@@ -464,7 +464,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
         '410':
-          description: This long polling connection has stopped because the server will shut down, please do __not__ reinitiate this request.
+          description: This long polling connection has stopped because either the server will shut down or the knowledge base is stopping, please do __not__ reinitiate this request.
           content:
             application/json; charset=UTF-8:
               schema:
