@@ -218,16 +218,28 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
-		return future.thenApply((b) -> {
-			LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
-			if (this.shouldValidateInputOutputBindings()) {
-				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
-						anAskMsg.getBindings(), b);
+		return future.handle((b, e) -> {
+			if (b != null && e == null) {
+				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+				if (this.shouldValidateInputOutputBindings()) {
+					var validator = new BindingValidator();
+					validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
+							anAskMsg.getBindings(), b);
+				}
+				return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+						anAskMsg.getMessageId(), b);
+			} else {
+				String errorMessage;
+				if (e == null)
+					errorMessage = "An error occurred while answering (because no BindingSet is available), but no exception was thrown.";
+				else
+					errorMessage = e.getMessage();
+
+				return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
+						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
+						anAskMsg.getMessageId(), errorMessage);
 			}
-			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
-					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
-					b);
 		}).exceptionally((e) -> {
 			LOG.error("An error occurred while answering a msg: ", e);
 			LOG.debug("The error occured while answering this message: {}", anAskMsg);
@@ -303,16 +315,29 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
-		return future.thenApply(b -> {
-			LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
-			if (this.shouldValidateInputOutputBindings()) {
-				var validator = new BindingValidator();
-				validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
-						reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+		return future.handle((b, e) -> {
+			if (b != null && e == null) {
+				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+				if (this.shouldValidateInputOutputBindings()) {
+					var validator = new BindingValidator();
+					validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
+							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+				}
+				return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
+						aPostMsg.getMessageId(), b);
+			} else {
+				String errorMessage;
+				if (e == null)
+					errorMessage = "An error occurred while reacting (because no BindingSet is available), but no exception was thrown.";
+				else
+					errorMessage = e.getMessage();
+
+				return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
+						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
+						aPostMsg.getMessageId(), errorMessage);
+
 			}
-			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
-					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
-					b);
 		}).exceptionally((e) -> {
 			LOG.error("An error occurred while reacting to a message:", e);
 			LOG.debug("The error occured while reacting to this message: {}", aPostMsg);

@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -129,15 +130,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionType.ANSWER, bindings, anAnswerExchangeInfo.getAskingKnowledgeBaseId(), future);
 
 			tryProcessHandleRequestElseEnqueue(hr);
-			return future.handle((r, e) -> {
-
-				if (r == null) {
-					LOG.error("An exception has occured while answering ", e);
-					return null;
-				} else {
-					return r;
-				}
-			});
+			return future;
 		}
 
 		/**
@@ -167,15 +160,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 					KnowledgeInteractionType.REACT, bindings, aReactExchangeInfo.getPostingKnowledgeBaseId(), future);
 
 			tryProcessHandleRequestElseEnqueue(hr);
-			return future.handle((r, e) -> {
-
-				if (r == null) {
-					LOG.error("An exception has occured while reacting ", e);
-					return null;
-				} else {
-					return r;
-				}
-			});
+			return future;
 		}
 
 		/**
@@ -732,11 +717,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	private void cancelAndClearAllHandleRequests() {
+		String cancelMessage = "This KB will no longer respond, because it is stopped.";
 		this.toBeProcessedHandleRequests.forEach(hr -> {
-			hr.getFuture().cancel(false);
+			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
 		this.beingProcessedHandleRequests.forEach((id, hr) -> {
-			hr.getFuture().cancel(false);
+			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
 
 		this.toBeProcessedHandleRequests.clear();
