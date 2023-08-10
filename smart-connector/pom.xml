@@ -175,7 +175,7 @@
 	</dependencies>
 
 	<properties>
-		<jetty-version>9.2.9.v20150224</jetty-version>
+		<jetty-version>9.4.51.v20230217</jetty-version>
 		<swagger-core-version>1.5.18</swagger-core-version>
 		<jersey2-version>2.35</jersey2-version>
 		<servlet-api-version>4.0.1</servlet-api-version>
