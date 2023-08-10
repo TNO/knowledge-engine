@@ -200,8 +200,8 @@ These are instructions on what to do when we release a new version of the knowle
 	- `openapi-sc.yaml` version
 	- Docker image tags in the Docker Compose examples.
 2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}`.
-3. Push the commit and the tag.
-4. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
+3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
+4. Push the commit and the tag.
 5. Build and push the new Docker images to GitLab:
 
 ```bash
