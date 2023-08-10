@@ -121,15 +121,12 @@ public class RestKnowledgeBaseManager {
 			if (rkb != null)
 				rkb.stop();
 			success = true;
+			this.restKnowledgeBases.remove(knowledgeBaseId);
+			LOG.info("Removed KB {}", knowledgeBaseId);
 		} catch (RuntimeException e) {
 			LOG.error("Could not stop knowledge base {}, so it stays in the list of knowledge bases", knowledgeBaseId);
 			LOG.error("Encountered exception while stopping knowledge base", e);
 			success = false;
-		}
-
-		if (success) {
-			this.restKnowledgeBases.remove(knowledgeBaseId);
-			LOG.info("Removed KB {}", knowledgeBaseId);
 		}
 
 		return success;
