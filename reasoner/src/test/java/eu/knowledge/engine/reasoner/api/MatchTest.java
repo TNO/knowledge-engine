@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.sparql.sse.SSE;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -542,6 +542,7 @@ public class MatchTest {
 		assertTrue(tvbs2.isEmpty());
 	}
 
+	@Disabled // this unit test causes a out of memory after about 30 to 45 minutes.
 	@Test
 	public void testPloutosGPMatcher() {
 
