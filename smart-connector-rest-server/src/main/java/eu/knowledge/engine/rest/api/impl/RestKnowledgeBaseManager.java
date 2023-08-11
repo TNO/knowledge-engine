@@ -121,11 +121,14 @@ public class RestKnowledgeBaseManager {
 			if (rkb != null)
 				rkb.stop();
 			success = true;
-		} catch (IllegalStateException e) {
+			this.restKnowledgeBases.remove(knowledgeBaseId);
+			LOG.info("Removed KB {}", knowledgeBaseId);
+		} catch (RuntimeException e) {
+			LOG.error("Could not stop knowledge base {}, so it stays in the list of knowledge bases", knowledgeBaseId);
+			LOG.error("Encountered exception while stopping knowledge base", e);
 			success = false;
 		}
-		this.restKnowledgeBases.remove(knowledgeBaseId);
-		LOG.info("Removed KB {}", knowledgeBaseId);
+
 		return success;
 	}
 
