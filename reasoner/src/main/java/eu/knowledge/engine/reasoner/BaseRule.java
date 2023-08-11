@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -22,6 +24,8 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 
 public class BaseRule {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BaseRule.class);
 
 	public static final String EMPTY = "";
 
@@ -178,7 +182,11 @@ public class BaseRule {
 			biggestMatches.addAll(matchIter.next().getValue());
 		}
 
+		int idx = 0;
 		while (matchIter.hasNext()) {
+			idx++;
+			LOG.trace("Processing triple pattern {}/{} with {} biggest and {} smaller matches.", idx,
+					matchesPerTriple.size(), biggestMatches.size(), smallerMatches.size());
 
 			long innerStart = System.currentTimeMillis();
 
