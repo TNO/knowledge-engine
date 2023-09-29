@@ -2,6 +2,7 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -74,7 +75,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * replying to this message. Instead, we wait until the (remote) known Smart
 	 * Connectors change, and then try again.
 	 */
-	private final List<KnowledgeMessage> undeliverableMail = new LinkedList<>();
+	private final List<KnowledgeMessage> undeliverableMail = Collections.synchronizedList(new LinkedList<>());
 
 	/**
 	 * Construct the {@link MessageDispatcher} in a distributed mode, with an
