@@ -88,6 +88,11 @@ public class RemoteKerConnection {
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 	}
+	
+	public URI getRemoteKerUri()
+	{
+		return this.remoteKerUri;
+	}
 
 	private void noError() {
 		this.errorCounter = 0;

@@ -116,14 +116,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 			if (!kerIds.contains(e.getKey())) {
 				// According the the Knowledge Directory, this KER doesn't exist (anymore)
-				KnowledgeEngineRuntimeDetails remoteKerDetails = e.getValue().getRemoteKerDetails();
-				String runtimeId;
-				if (remoteKerDetails == null)
-					runtimeId = "unavailable";
-				else
-					runtimeId = remoteKerDetails.getRuntimeId();
-
-				LOG.info("Removing peer that is now gone: " + runtimeId);
+				LOG.info("Removing peer that is now gone: {}", e.getValue().getRemoteKerUri());
 				e.getValue().stop();
 				it.remove();
 			}
@@ -170,7 +163,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		} else {
 			// The KER has changed its details
 			LOG.info("Received new or removed Smart Connectors from peer "
-					+ knowledgeEngineRuntimeDetails.getRuntimeId() + " with "
+					+ remoteKerConnection.getRemoteKerUri() + " with "
 					+ knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
 			remoteKerConnection.updateKerDetails(knowledgeEngineRuntimeDetails);
 		}
