@@ -53,7 +53,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	public void start() {
 		// Make a schedule to schedule a knowledge directory update every minute.
 		scheduledScheduleFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
-			scheduleQueryKnowledgeDirectory();
+			try {
+				scheduleQueryKnowledgeDirectory();
+			} catch (Throwable t) {
+				LOG.error("", t);
+			}
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
@@ -73,13 +77,18 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			// Cooldown already ended: schedule it on the KeRuntime right away.
 			LOG.debug("Scheduling to query the Knowledge Directory right away.");
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
+				try {
 				queryKnowledgeDirectory();
+				} catch (Throwable t) {
+					LOG.error("", t);
+				}
 				this.scheduledKnowledgeDirectoryQueryFuture = null;
 			}, 0, TimeUnit.MILLISECONDS);
 		} else {
 			// Cooldown not yet ended: schedule to update when the cooldown ends.
 			LOG.debug("Scheduling to query the Knowledge Directory when the cooldown ends (in {} ms).",
 					knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime());
+
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
 				queryKnowledgeDirectory();
 				this.scheduledKnowledgeDirectoryQueryFuture = null;
@@ -162,9 +171,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			KeRuntime.executorService().execute(() -> scheduleQueryKnowledgeDirectory());
 		} else {
 			// The KER has changed its details
-			LOG.info("Received new or removed Smart Connectors from peer "
-					+ remoteKerConnection.getRemoteKerUri() + " with "
-					+ knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
+			LOG.info("Received new or removed Smart Connectors from peer " + remoteKerConnection.getRemoteKerUri()
+					+ " with " + knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
 			remoteKerConnection.updateKerDetails(knowledgeEngineRuntimeDetails);
 		}
 		return Response.status(200).build();

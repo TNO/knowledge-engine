@@ -8,10 +8,12 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,9 +115,9 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.header("Content-Type", "application/json").GET().build();
+					.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).GET().build();
 
-			HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
 						KnowledgeEngineRuntimeDetails.class);
@@ -163,13 +165,15 @@ public class RemoteKerConnection {
 
 	private int getWaitTime(int i) {
 		if (i == 1)
-			return 1; // 1
+			return 1;
 		else if (i == 2)
-			return 2; // 5
+			return 2;
 		else if (i == 3)
-			return 5; // 10
-		else
-			return 10; // 15
+			return 5;
+		else if (i == 4)
+			return 10;
+		else 
+			return 15;
 	}
 
 	public List<URI> getRemoteSmartConnectorIds() {
@@ -185,7 +189,7 @@ public class RemoteKerConnection {
 			}
 		}
 
-		LOG.info("Returning {} SCs for {}.", list.size(), this.remoteKerUri);
+		LOG.debug("Returning {} SCs for {}.", list.size(), this.remoteKerUri);
 
 		return list;
 	}
@@ -218,9 +222,9 @@ public class RemoteKerConnection {
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
 								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
-						.header("Content-Type", "application/json").DELETE().build();
+						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).DELETE().build();
 
-				HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
 					LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
 				} else {
@@ -244,9 +248,10 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
-				HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
+				
 				if (response.statusCode() == 202) {
 					this.noError();
 					LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
@@ -284,9 +289,9 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
-				HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
 					this.noError();
 					LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}", this.remoteKerUri);
