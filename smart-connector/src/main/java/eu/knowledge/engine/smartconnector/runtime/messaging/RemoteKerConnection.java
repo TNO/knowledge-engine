@@ -115,7 +115,7 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).GET().build();
+					.header("Content-Type", "application/json").version(Version.HTTP_1_1).GET().build();
 
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -222,7 +222,7 @@ public class RemoteKerConnection {
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
 								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
-						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).DELETE().build();
+						.header("Content-Type", "application/json").version(Version.HTTP_1_1).DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
@@ -248,7 +248,7 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				
@@ -289,7 +289,7 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").header("Connection", "close").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
