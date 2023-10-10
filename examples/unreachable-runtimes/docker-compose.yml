@@ -17,7 +17,7 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
       ENABLE_REASONER: false
-      #JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
+      JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
   runtime-2:
     build: .
     cap_add:
@@ -27,7 +27,7 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
       ENABLE_REASONER: false
-      #JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
+      JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
   runtime-3:
     build: .
     cap_add:
@@ -37,7 +37,7 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
       KD_URL: http://knowledge-directory:8282
       ENABLE_REASONER: false
-      #JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
+      JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
      
   
   # These Knowledge Bases use the different runtimes, and exchange data with eachother.

@@ -5,20 +5,24 @@ To test this, we setup a distributed KER environment with 3 KER+KB combis that e
 
 Start the docker compose project: `docker compose up -d`
 
-Retrieve the internal IP address of the KB3 (because it needs to always be able to contact it `runtime-3` we need its IP to make an exception in `iptables`.
-`docker compose exec kb3 sh`
-`hostname -i`
+Retrieve the internal IP address of the KB3 (because it needs to always be able to contact it `runtime-3` we need its IP to make an exception in `iptables`). This is not really necessary if we use the hostname `kb3` of knowledge base 3 like we do below, but if you use an IP address there you should use the commands below to retrieve this IP. It changes everytime you restart the docker compose project.
 
-Make sure runtime-3 is configured to switch between being reachable to being unreachable.
-`docker compose exec runtime-3 bash`
-`apt update -y`
-`apt-get install iptables sudo -y`
+```
+> docker compose exec kb3 sh
+> hostname -i
+```
+
+Make sure runtime-3 is configured to switch between being reachable to being unreachable. First open a shell for runtime-3.
+
+```
+docker compose exec runtime-3 bash
+```
 
 Configure `iptables-legacy` to allow the following packets to go through when we block incoming traffic:
 
 ```
 iptables-legacy -A INPUT -i lo -j ACCEPT
-iptables-legacy -A INPUT -p tcp -s 172.32.5.6 -j ACCEPT
+iptables-legacy -A INPUT -p tcp -s kb3 -j ACCEPT
 iptables-legacy -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 ```
 
@@ -28,6 +32,16 @@ For example, if `iptables-legacy` is active and blocking all input traffic, you 
 
 You can quickly test from inside a container whether another container that contains a KER is reachable from there using the following command: `wget -qO- http://runtime-3:8081/runtimedetails`. You should receive some JSON that looks like:
  
- ```
+```
  {"runtimeId":"http://runtime-3:8081","smartConnectorIds":["http://example.org/kb3"]}
- ```
+```
+
+Now, keep an eye on the log file with `docker compose logs -f` and use the following `iptables-legacy` commands to switch between unreachable and reachable.
+
+```
+iptables-legacy -P INPUT DROP
+#runtime-3 is now unreachable for other KERs, but can still reach the Knowledge Directory (KD) and other KERs.
+
+iptables-legacy -P INPUT ACCEPT
+#runtime-3 is now reachable again for other KERs and can also reach the KD and other KERs.
+```
