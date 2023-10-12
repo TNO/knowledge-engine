@@ -103,7 +103,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				try {
 					messageDispatcher.send(reply);
 				} catch (Throwable e) {
-					this.LOG.warn("Could not send reply to message " + message.getMessageId(), e);
+					this.LOG.warn("Could not send reply to message " + message.getMessageId());
+					this.LOG.debug("", e);
 				}
 			}).handle((r, e) -> {
 

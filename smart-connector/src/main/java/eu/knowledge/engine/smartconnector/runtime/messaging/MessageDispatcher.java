@@ -2,12 +2,15 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import org.eclipse.jetty.server.Server;
@@ -74,7 +77,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * replying to this message. Instead, we wait until the (remote) known Smart
 	 * Connectors change, and then try again.
 	 */
-	private final List<KnowledgeMessage> undeliverableMail = new LinkedList<>();
+	private final List<KnowledgeMessage> undeliverableMail = Collections.synchronizedList(new LinkedList<>());
 
 	/**
 	 * Construct the {@link MessageDispatcher} in a distributed mode, with an
@@ -305,16 +308,19 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * comes.
 	 */
 	private void tryDeliverUndeliveredMail() throws IOException {
+
 		Iterator<KnowledgeMessage> it = undeliverableMail.iterator();
+		Set<KnowledgeMessage> toBeRemoved = new HashSet<>();
 		while (it.hasNext()) {
 			KnowledgeMessage message = it.next();
 			Set<URI> knowledgeBaseIds = this.getKnowledgeBaseIds();
 			if (knowledgeBaseIds.contains(message.getFromKnowledgeBase())) {
 				LOG.info("I can now deliver the message I received from " + message.getFromKnowledgeBase());
 				deliverToLocalSmartConnector(message);
-				it.remove();
+				toBeRemoved.add(message);
 			}
 		}
+		undeliverableMail.removeAll(toBeRemoved);
 	}
 
 	void notifySmartConnectorsChanged() {
