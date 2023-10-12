@@ -43,6 +43,11 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEn
  */
 public class RemoteKerConnection {
 
+	/**
+	 * A maximum amount of time to wait for othe HTTP REST call to fail/succeed.
+	 */
+	private static final int HTTP_TIMEOUT = 30;
+
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
@@ -84,15 +89,14 @@ public class RemoteKerConnection {
 			this.remoteKerUri = kerConnectionDetails.getExposedUrl();
 		}
 
-		this.httpClient = builder.build();
+		this.httpClient = builder.connectTimeout(Duration.ofSeconds(HTTP_TIMEOUT)).build();
 
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 	}
-	
-	public URI getRemoteKerUri()
-	{
+
+	public URI getRemoteKerUri() {
 		return this.remoteKerUri;
 	}
 
@@ -172,7 +176,7 @@ public class RemoteKerConnection {
 			return 5;
 		else if (i == 4)
 			return 10;
-		else 
+		else
 			return 15;
 	}
 
@@ -248,10 +252,11 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
+						.POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				
+
 				if (response.statusCode() == 202) {
 					this.noError();
 					LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
@@ -289,7 +294,8 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
+						.POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
