@@ -16,7 +16,7 @@ First of all, you need to start a knowledge directory. The desired port number f
 ```bash
 cd knowledge-directory/target/
 
-java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.1.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
+java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.2.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
 ```
 
 The `nohup` command can be used to run the process in the background. On overview of the registered Knowledge Engine runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
@@ -39,7 +39,7 @@ export KD_URL=http://localhost:8080
 export KE_RUNTIME_EXPOSED_URL=http://localhost:8081
 export KE_RUNTIME_PORT=8081
 
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.2.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 ### Using Basic Authentication to secure data exchange

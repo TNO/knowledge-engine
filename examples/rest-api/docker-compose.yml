@@ -1,6 +1,6 @@
 services:
   knowledge-engine:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.2
     healthcheck:
       test: curl -f http://localhost:8280/rest/sc
       interval: 1s
