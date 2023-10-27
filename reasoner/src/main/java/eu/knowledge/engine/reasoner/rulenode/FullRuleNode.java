@@ -29,6 +29,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	private TripleVarBindingSet resultBindingSetOutput;
 	private TripleVarBindingSet filterBindingSetOutput;
 
+	private TripleVarBindingSet previousBindingSetForDebugging;
+
 	public FullRuleNode(BaseRule aRule) {
 		super(aRule);
 		this.resultBindingSetInput = new BindingSetStore(aRule.getAntecedent(), this.antecedentNeighbours.keySet());
@@ -161,6 +163,10 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 		assert this.getRule() instanceof Rule;
 		var handler = ((Rule) this.getRule()).getBindingSetHandler();
 		TripleVarBindingSet fullBindingSet = this.resultBindingSetInput.get().getFullBindingSet();
+
+		boolean equal = fullBindingSet.equals(this.previousBindingSetForDebugging);
+
+		this.previousBindingSetForDebugging = fullBindingSet;
 
 		var previousBindingSetOutput = this.resultBindingSetOutput;
 
