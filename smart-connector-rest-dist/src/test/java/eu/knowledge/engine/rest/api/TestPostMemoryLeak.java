@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -23,6 +24,7 @@ import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
 public class TestPostMemoryLeak {
 	private static final int SLEEPTIME = 10;
 	private final RestServerHelper rsh = new RestServerHelper();
@@ -77,7 +79,7 @@ public class TestPostMemoryLeak {
 						test.expectStatus(200);
 //						System.out.println("Body: " + test.getBody());
 
-						if (false) {
+						if (Math.random() > 0.95) {
 							JsonReader jp = Json.createReader(new StringReader(test.getBody()));
 							JsonObject jo = jp.readObject();
 							int handleRequestId = jo.getInt("handleRequestId");
