@@ -236,7 +236,8 @@ public class RemoteKerConnection {
 							response.statusCode(), response.body());
 				}
 			} catch (IOException | URISyntaxException | InterruptedException e) {
-				LOG.warn("Failed to say goodby to " + remoteKerConnectionDetails.getId(), e);
+				LOG.warn("Failed to say goodbye to " + remoteKerConnectionDetails.getId());
+				LOG.debug("", e);
 			}
 		} else
 			LOG.info("Still ignoring KER {}.", this.remoteKerUri);
@@ -261,31 +262,25 @@ public class RemoteKerConnection {
 					this.noError();
 					LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
 				} else {
-					this.remoteKerDetails = null;
 					int time = this.errorOccurred();
 					LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
 							this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
 							response.body());
-					dispatcher.notifySmartConnectorsChanged();
 					throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 							+ ", body " + response.body());
 				}
 			} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
-				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
-				dispatcher.notifySmartConnectorsChanged();
 				throw new IOException("Could not send message to remote SmartConnector.", e);
 			} catch (IOException e) {
-				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
-				dispatcher.notifySmartConnectorsChanged();
 				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
 				throw e;
 			}
 		} else {
 			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
-			throw new IOException("KER " + this.remoteKerUri + " is currently unavalable. Trying again later.");
+			throw new IOException("KER " + this.remoteKerUri + " is currently unavailable. Trying again later.");
 		}
 	}
 
