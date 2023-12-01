@@ -2,6 +2,8 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -21,13 +23,48 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 	private final Logger LOG;
 
+	/**
+	 * In principle the open ask/post messages mappings should not have a max
+	 * capacity, but to prevent memory leaks we cap them at the number below.
+	 */
+	private static final int MAX_ENTRIES = 5000;
+
 	private final SmartConnectorImpl smartConnector;
-	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = new ConcurrentHashMap<>();
-	private final Map<UUID, CompletableFuture<ReactMessage>> openPostMessages = new ConcurrentHashMap<>();
+	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = Collections
+			.synchronizedMap(new LinkedHashMap<UUID, CompletableFuture<AnswerMessage>>() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected boolean removeEldestEntry(Map.Entry<UUID, CompletableFuture<AnswerMessage>> eldest) {
+					if (size() > MAX_ENTRIES) {
+						eldest.getValue().completeExceptionally(new Exception("There should not be " + MAX_ENTRIES
+								+ " open AskMessages. Oldest message with id " + eldest.getKey() + " removed."));
+						return true;
+					} else {
+						return false;
+					}
+				}
+			});
+	private final Map<UUID, CompletableFuture<ReactMessage>> openPostMessages = Collections
+			.synchronizedMap(new LinkedHashMap<UUID, CompletableFuture<ReactMessage>>() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected boolean removeEldestEntry(Map.Entry<UUID, CompletableFuture<ReactMessage>> eldest) {
+					if (size() > MAX_ENTRIES) {
+						eldest.getValue().completeExceptionally(new Exception("There should not be " + MAX_ENTRIES
+								+ " open PostMessages. Oldest message with id " + eldest.getKey() + " removed."));
+						return true;
+					} else {
+						return false;
+					}
+				}
+			});
 
 	private MessageDispatcherEndpoint messageDispatcherEndpoint = null;
-	
-	//TODO remove metaknowledgebase if it is no longer needed (since the interaction processor is now fully responsible for message handling).
+
+	// TODO remove metaknowledgebase if it is no longer needed (since the
+	// interaction processor is now fully responsible for message handling).
 	private MetaKnowledgeBase metaKnowledgeBase;
 	private InteractionProcessor interactionProcessor;
 
@@ -52,15 +89,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 
 		LOG.debug("Sent AskMessage: {}", askMessage);
 
-		return future.handle((r, e) -> {
-
-			if (r == null) {
-				LOG.error("An exception has occured while sending Ask Message ", e);
-				return null;
-			} else {
-				return r;
-			}
-		});
+		return future;
 	}
 
 	@Override
@@ -74,15 +103,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		messageDispatcher.send(postMessage);
 		LOG.debug("Sent PostMessage: {}", postMessage);
 
-		return future.handle((r, e) -> {
-
-			if (r == null) {
-				LOG.error("An exception has occured while sending Post Message ", e);
-				return null;
-			} else {
-				return r;
-			}
-		});
+		return future;
 	}
 
 	/**
