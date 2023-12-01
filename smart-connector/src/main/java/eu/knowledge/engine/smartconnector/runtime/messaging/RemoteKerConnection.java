@@ -241,6 +241,12 @@ public class RemoteKerConnection {
 			}
 		} else
 			LOG.info("Still ignoring KER {}.", this.remoteKerUri);
+
+		// if someone calls this stop method, all smart connectors should be removed
+		// from the other knowledge base store. We do this by removing the ker details
+		// and calling this method.
+		this.remoteKerDetails = null;
+		dispatcher.notifySmartConnectorsChanged();
 	}
 
 	public void sendToRemoteSmartConnector(KnowledgeMessage message) throws IOException {
