@@ -17,7 +17,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -743,7 +742,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	private void cancelAndClearAllHandleRequests() {
-		String cancelMessage = "This KB will no longer respond, because it is stopped.";
+		List<Integer> cancelledRequests = this.toBeProcessedHandleRequests.stream().map(HandleRequest::getHandleRequestId).toList();
+		LOG.warn("KB with id " + this.knowledgeBaseId+ " has stopped. The following handle requests will be cancelled: "+cancelledRequests);
+
+		String cancelMessage = "KB with id "+ this.knowledgeBaseId +" will no longer respond, because it stopped.";
 		this.toBeProcessedHandleRequests.forEach(hr -> {
 			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
