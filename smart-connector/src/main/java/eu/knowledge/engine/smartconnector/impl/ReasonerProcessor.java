@@ -432,7 +432,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), askMessage);
+				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), askMessage.getMessageId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -494,7 +494,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), postMessage);
+				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), postMessage.getMessageId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
