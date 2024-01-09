@@ -211,7 +211,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
 		// TODO This should happen in the single thread for the knowledge base
 
-		LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+		if (answerKnowledgeInteraction.isMeta()) {
+			LOG.debug("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+		} else {
+			LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+		}
 
 		var aei = new AnswerExchangeInfo(anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(),
 				anAskMsg.getFromKnowledgeInteraction());
@@ -311,7 +315,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				aPostMsg.getFromKnowledgeInteraction());
 
 		// TODO This should happen in the single thread for the knowledge base
-		LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+		if (reactKnowledgeInteraction.isMeta()) {
+			LOG.debug("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+		} else {
+			LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+		}
 
 		future = handler.reactAsync(reactKnowledgeInteraction, rei);
 
