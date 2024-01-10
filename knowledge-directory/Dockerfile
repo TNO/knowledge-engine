@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17
+FROM eclipse-temurin:21-alpine
 LABEL org.opencontainers.image.source https://github.com/tno/knowledge-engine
 LABEL org.opencontainers.image.description="Knowledge Engine: Knowledge Directory"
 LABEL org.opencontainers.image.licenses=Apache-2.0
