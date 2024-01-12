@@ -1,4 +1,4 @@
-bla*This software is in development ([TRL 6](https://en.wikipedia.org/wiki/Technology_readiness_level)).*
+*This software is in development ([TRL 6](https://en.wikipedia.org/wiki/Technology_readiness_level)).*
 
 # Knowledge Engine
 
