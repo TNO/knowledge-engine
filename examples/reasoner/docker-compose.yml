@@ -1,6 +1,6 @@
 services:
   knowledge-engine:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.1
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.3
   kb1:
     build: ../common/asking_kb
     environment:

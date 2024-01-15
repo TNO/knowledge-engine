@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -74,7 +73,8 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * replying to this message. Instead, we wait until the (remote) known Smart
 	 * Connectors change, and then try again.
 	 */
-	private final List<KnowledgeMessage> undeliverableMail = new LinkedList<>();
+	private final List<KnowledgeMessage> undeliverableMail = new CopyOnWriteArrayList<>();
+	private final static int MAX_ENTRIES_UNDELIVERABLE_MAIL = 5000;
 
 	/**
 	 * Construct the {@link MessageDispatcher} in a distributed mode, with an
@@ -234,6 +234,14 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			// might cause other Smart Connectors to wait for responses indefinately
 			LOG.warn("Received message from unknown Knowledge Base: " + message.getFromKnowledgeBase()
 					+ ", I only know " + knowledgeBaseIds);
+
+			if (this.undeliverableMail.size() >= MAX_ENTRIES_UNDELIVERABLE_MAIL) {
+				int numMessagesToRemove = this.undeliverableMail.size() - MAX_ENTRIES_UNDELIVERABLE_MAIL;
+				for (int i = 0; i <= numMessagesToRemove; i++) {
+					KnowledgeMessage removedMessage = this.undeliverableMail.remove(0);
+					LOG.warn("Too many undelivered messages. Removing the oldest message with ID " + removedMessage.getMessageId() + " to make space for a new message.");
+				}
+			}
 			this.undeliverableMail.add(message);
 
 			// Force a refresh of the KERs from the Knowledge Directory
@@ -306,15 +314,17 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 */
 	private void tryDeliverUndeliveredMail() throws IOException {
 		Iterator<KnowledgeMessage> it = undeliverableMail.iterator();
+		Set<KnowledgeMessage> toBeRemoved = new HashSet<>();
 		while (it.hasNext()) {
 			KnowledgeMessage message = it.next();
 			Set<URI> knowledgeBaseIds = this.getKnowledgeBaseIds();
 			if (knowledgeBaseIds.contains(message.getFromKnowledgeBase())) {
 				LOG.info("I can now deliver the message I received from " + message.getFromKnowledgeBase());
 				deliverToLocalSmartConnector(message);
-				it.remove();
+				toBeRemoved.add(message);
 			}
 		}
+		undeliverableMail.removeAll(toBeRemoved);
 	}
 
 	void notifySmartConnectorsChanged() {

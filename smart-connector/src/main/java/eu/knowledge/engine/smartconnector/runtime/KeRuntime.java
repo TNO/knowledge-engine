@@ -34,8 +34,10 @@ public class KeRuntime {
 
 	static {
 		if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL) && hasConfigProperty(CONF_KEY_MY_HOSTNAME)) {
-			LOG.error("KE runtime must be configured with {} or {}, not both.", CONF_KEY_MY_EXPOSED_URL, CONF_KEY_MY_HOSTNAME);
-			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.", CONF_KEY_MY_EXPOSED_URL);
+			LOG.error("KE runtime must be configured with {} or {}, not both.", CONF_KEY_MY_EXPOSED_URL,
+					CONF_KEY_MY_HOSTNAME);
+			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.",
+					CONF_KEY_MY_EXPOSED_URL);
 			System.exit(1);
 		}
 
@@ -45,9 +47,13 @@ public class KeRuntime {
 			@Override
 			public Thread newThread(Runnable r) {
 				Thread t = Executors.defaultThreadFactory().newThread(r);
+				t.setUncaughtExceptionHandler((aThread, e) -> {
+					LOG.error("The following uncaught exception should not occur in thread {}.", aThread.getName(), e);
+				});
 				t.setDaemon(true);
 				return t;
 			}
+
 		});
 
 		// Make sure the MessageDispatcher initializes
@@ -76,7 +82,7 @@ public class KeRuntime {
 				} else {
 					var myHostname = getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost");
 					var myPort = Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081"));
-					
+
 					URI myExposedUrl;
 					if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL)) {
 						myExposedUrl = new URI(getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null));
@@ -86,11 +92,8 @@ public class KeRuntime {
 						myExposedUrl = new URI(EXPOSED_URL_DEFAULT_PROTOCOL + "://" + myHostname + ":" + myPort);
 					}
 
-					messageDispatcher = new MessageDispatcher(
-						myPort,
-						myExposedUrl,
-						new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080"))
-					);
+					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl,
+							new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080")));
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);

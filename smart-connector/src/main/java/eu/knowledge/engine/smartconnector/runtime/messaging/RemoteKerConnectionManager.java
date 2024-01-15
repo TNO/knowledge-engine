@@ -53,29 +53,42 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	public void start() {
 		// Make a schedule to schedule a knowledge directory update every minute.
 		scheduledScheduleFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
-			scheduleQueryKnowledgeDirectory();
+			try {
+				scheduleQueryKnowledgeDirectory();
+			} catch (Throwable t) {
+				LOG.error("", t);
+			}
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 	}
 
 	public void scheduleQueryKnowledgeDirectory() {
-		if (this.scheduledKnowledgeDirectoryQueryFuture != null && !this.scheduledKnowledgeDirectoryQueryFuture.isDone()) {
+		if (this.scheduledKnowledgeDirectoryQueryFuture != null
+				&& !this.scheduledKnowledgeDirectoryQueryFuture.isDone()) {
 			// There was already a scheduled update, so we don't have to do anything.
-			LOG.debug("It was requested to schedule a query to the Knowledge Directory but there was already a scheduled query! Doing nothing. ");
+			LOG.debug(
+					"It was requested to schedule a query to the Knowledge Directory but there was already a scheduled query! Doing nothing. ");
 			return;
 		}
 
 		var now = new Date();
-		
-		if (knowledgeDirectoryUpdateCooldownEnds == null || knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime() < 0) {
+
+		if (knowledgeDirectoryUpdateCooldownEnds == null
+				|| knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime() < 0) {
 			// Cooldown already ended: schedule it on the KeRuntime right away.
 			LOG.debug("Scheduling to query the Knowledge Directory right away.");
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
+				try {
 				queryKnowledgeDirectory();
+				} catch (Throwable t) {
+					LOG.error("", t);
+				}
 				this.scheduledKnowledgeDirectoryQueryFuture = null;
 			}, 0, TimeUnit.MILLISECONDS);
 		} else {
 			// Cooldown not yet ended: schedule to update when the cooldown ends.
-			LOG.debug("Scheduling to query the Knowledge Directory when the cooldown ends (in {} ms).", knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime());
+			LOG.debug("Scheduling to query the Knowledge Directory when the cooldown ends (in {} ms).",
+					knowledgeDirectoryUpdateCooldownEnds.getTime() - now.getTime());
+
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
 				queryKnowledgeDirectory();
 				this.scheduledKnowledgeDirectoryQueryFuture = null;
@@ -87,8 +100,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		List<KnowledgeEngineRuntimeConnectionDetails> kerConnectionDetails;
 		try {
 			LOG.info("Querying Knowledge Directory for new peers");
-			kerConnectionDetails = messageDispatcher
-				.getKnowledgeDirectoryConnectionManager().getOtherKnowledgeEngineRuntimeConnectionDetails();
+			kerConnectionDetails = messageDispatcher.getKnowledgeDirectoryConnectionManager()
+					.getOtherKnowledgeEngineRuntimeConnectionDetails();
 			// Check if there are new KERs
 		} catch (Exception e) {
 			LOG.error("Error while querying the Knowledge Directory", e);
@@ -109,16 +122,18 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		for (Iterator<Entry<String, RemoteKerConnection>> it = remoteKerConnections.entrySet().iterator(); it
 				.hasNext();) {
 			Entry<String, RemoteKerConnection> e = it.next();
+
 			if (!kerIds.contains(e.getKey())) {
 				// According the the Knowledge Directory, this KER doesn't exist (anymore)
-				LOG.info("Removing peer that is now gone: " + e.getValue().getRemoteKerDetails().getRuntimeId());
+				LOG.info("Removing peer that is now gone: {}", e.getValue().getRemoteKerUri());
 				e.getValue().stop();
 				it.remove();
 			}
 		}
-		this.knowledgeDirectoryUpdateCooldownEnds = new Date(new Date().getTime() + KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN * 1000);
+		this.knowledgeDirectoryUpdateCooldownEnds = new Date(
+				new Date().getTime() + KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN * 1000);
 	}
-	
+
 	public void stop() {
 		this.scheduledScheduleFuture.cancel(false);
 	}
@@ -156,9 +171,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			KeRuntime.executorService().execute(() -> scheduleQueryKnowledgeDirectory());
 		} else {
 			// The KER has changed its details
-			LOG.info("Received new or removed Smart Connectors from peer "
-					+ knowledgeEngineRuntimeDetails.getRuntimeId() + " with "
-					+ knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
+			LOG.info("Received new or removed Smart Connectors from peer " + remoteKerConnection.getRemoteKerUri()
+					+ " with " + knowledgeEngineRuntimeDetails.getSmartConnectorIds().size() + " smart connectors");
 			remoteKerConnection.updateKerDetails(knowledgeEngineRuntimeDetails);
 		}
 		return Response.status(200).build();

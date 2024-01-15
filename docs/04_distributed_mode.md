@@ -16,7 +16,7 @@ First of all, you need to start a knowledge directory. The desired port number f
 ```bash
 cd knowledge-directory/target/
 
-java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.1.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
+java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.3.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
 ```
 
 The `nohup` command can be used to run the process in the background. On overview of the registered Knowledge Engine runtimes can be found on `http://localhost:8080/ker/` (or another host or port if you desire).
@@ -26,7 +26,7 @@ Once the knowledge directory is up and running, the REST server can be started. 
 | Key    | Descrption                                     |
 |--------|------------------------------------------------|
 | KD_URL | URL where the knowledge directory can be found. This url should not end with a slash (`/`).|
-| KE_RUNTIME_EXPOSED_URL | URL where other smart connectors (peers) can contact this Knowledge Engine runtime. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. Note that the URL should include the scheme like `http://...` or `https://...` and should not end with a slash (`/`).
+| KE_RUNTIME_EXPOSED_URL | URL where other smart connectors (peers) can contact this Knowledge Engine runtime. This allows your Knowledge Engine to be behind a reverse proxy and use TLS. Note that the URL should include the scheme like `http://...` or `https://...` and should not end with a slash (`/`).|
 | KE_RUNTIME_PORT | Port where where this Knowledge Engine instance will listen for new peer connections |
 | KE_RUNTIME_HOSTNAME (deprecated) | Hostname where other smart connectors (peers) can contact this Knowledge Engine instance. This variable is superseded by (and conflicts with) KE_RUNTIME_EXPOSED_URL|
 
@@ -39,7 +39,7 @@ export KD_URL=http://localhost:8080
 export KE_RUNTIME_EXPOSED_URL=http://localhost:8081
 export KE_RUNTIME_PORT=8081
 
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.3.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 ### Using Basic Authentication to secure data exchange
