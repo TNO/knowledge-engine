@@ -118,6 +118,18 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						try {
 							this.answerMessageFuture = this.messageRouter.sendAskMessage(askMessage);
 							this.previousSend = Instant.now();
+
+							answerMessageFuture.exceptionally(e -> {
+								this.LOG.warn("Error '{}' occurred while waiting for response to: {}",
+										e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+										askMessage.getMessageId());
+								this.LOG.debug("", e);
+
+								// continue with the work, otherwise this process will come to a halt.
+								this.checkOtherKnowledgeInteraction(bindingSet);
+								return null;
+							});
+
 							this.answerMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.answerMessageFuture = null;
@@ -137,8 +149,9 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("An error occured while sending and processing a message: {}", e);
-							this.LOG.debug("This is the message where the error occured: {}", askMessage);
+							this.LOG.warn("Error '{}' occurred while sending {}",
+									e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), askMessage.getClass().getSimpleName());
+							this.LOG.debug("", e);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);
@@ -152,7 +165,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 
 					PostKnowledgeInteraction pKI = (PostKnowledgeInteraction) this.myKnowledgeInteraction
 							.getKnowledgeInteraction();
-					if (this.matches(pKI.getArgument(), rKI.getArgument()) && this.matches(pKI.getResult(), rKI.getResult())) {
+					if (this.matches(pKI.getArgument(), rKI.getArgument())
+							&& this.matches(pKI.getResult(), rKI.getResult())) {
 
 						BindingSet transformedArgBindingSet = GraphPatternMatcher.transformBindingSet(pKI.getArgument(),
 								rKI.getArgument(), bindingSet);
@@ -163,6 +177,18 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						try {
 							this.reactMessageFuture = this.messageRouter.sendPostMessage(postMessage);
 							this.previousSend = Instant.now();
+
+							reactMessageFuture.exceptionally(e -> {
+								this.LOG.warn("Error '{}' occurred while waiting for response to: {}",
+										e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+										postMessage.getMessageId());
+								this.LOG.debug("", e);
+
+								// continue with the work, otherwise this process will come to a halt.
+								this.checkOtherKnowledgeInteraction(bindingSet);
+								return null;
+							});
+
 							this.reactMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.reactMessageFuture = null;
@@ -187,8 +213,11 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("An error occured while sending and processing a message: {}", e);
-							this.LOG.debug("This is the message where the error occured: {}", postMessage);
+
+							this.LOG.warn("Error '{}' occurred while sending {}",
+									e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+									postMessage.getClass().getSimpleName());
+							this.LOG.debug("", e);
 
 							// continue with the work, otherwise this process will come to a halt.
 							this.checkOtherKnowledgeInteraction(bindingSet);

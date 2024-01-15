@@ -3,9 +3,11 @@ package eu.knowledge.engine.rest.api.impl;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -15,7 +17,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -199,7 +200,31 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.knowledgeBaseDescription = scModel.getKnowledgeBaseDescription();
 		this.knowledgeInteractions = new HashMap<>();
 		this.toBeProcessedHandleRequests = new ArrayBlockingQueue<>(QUEUE_SIZE);
-		this.beingProcessedHandleRequests = new ConcurrentHashMap<Integer, HandleRequest>();
+
+		// use a mapping with a maximum capacity and removing the oldest one if new
+		// entries come in when the max capacity is reached. When a KB accepts many
+		// handle requests, but fails to respond to many of them, this causes a memory
+		// leak. With the following code we basically say that a KB is only allowed to
+		// have 100 parallel handle requests outstanding.
+		this.beingProcessedHandleRequests = Collections.synchronizedMap(new LinkedHashMap<Integer, HandleRequest>() {
+			private static final long serialVersionUID = 1L;
+			private static final int MAX_ENTRIES = 100;
+
+			@Override
+			protected boolean removeEldestEntry(Map.Entry<Integer, HandleRequest> eldest) {
+				if (size() > MAX_ENTRIES) {
+					eldest.getValue().getFuture()
+							.completeExceptionally(new KnowledgeEngineException(new Exception("Knowledge base "
+									+ RestKnowledgeBase.this.knowledgeBaseId + " should have max " + MAX_ENTRIES
+									+ " outstanding handle requests. Cancelling oldest handle request "
+									+ eldest.getValue().getHandleRequestId() + ".")));
+					return true;
+				} else {
+					return false;
+				}
+			}
+		});
+
 		this.handleRequestId = new AtomicInteger(0);
 		this.onReady = onReady;
 		this.leaseRenewalTime = scModel.getLeaseRenewalTime();
@@ -717,7 +742,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	private void cancelAndClearAllHandleRequests() {
-		String cancelMessage = "This KB will no longer respond, because it is stopped.";
+		List<Integer> cancelledRequests = this.toBeProcessedHandleRequests.stream().map(HandleRequest::getHandleRequestId).toList();
+		LOG.warn("KB with id " + this.knowledgeBaseId+ " has stopped. The following handle requests will be cancelled: "+cancelledRequests);
+
+		String cancelMessage = "KB with id "+ this.knowledgeBaseId +" will no longer respond, because it stopped.";
 		this.toBeProcessedHandleRequests.forEach(hr -> {
 			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
