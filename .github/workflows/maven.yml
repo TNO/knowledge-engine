@@ -27,15 +27,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Compile test source code with Maven
       run: mvn $MAVEN_CLI_OPTS test-compile
-  verify:
-    needs: [build]
-    runs-on: ubuntu-latest
-    container: maven:3.8.7-eclipse-temurin-17-alpine
-    
-    steps:
     - name: Run the Maven verify phase
       run: mvn $MAVEN_CLI_OPTS verify
-    
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
