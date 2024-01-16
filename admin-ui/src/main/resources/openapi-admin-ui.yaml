@@ -17,7 +17,7 @@ paths:
       parameters:
         - name: include-meta
           in: path
-          required: false
+          required: true
           description: Whether to include meta knowledge interactions.
           schema:
             type: boolean
