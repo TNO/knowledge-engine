@@ -118,18 +118,18 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 						try {
 							this.answerMessageFuture = this.messageRouter.sendAskMessage(askMessage);
 							this.previousSend = Instant.now();
-							
+
 							answerMessageFuture.exceptionally(e -> {
 								this.LOG.warn("Error '{}' occurred while waiting for response to: {}",
 										e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
-										askMessage);
+										askMessage.getMessageId());
 								this.LOG.debug("", e);
 
 								// continue with the work, otherwise this process will come to a halt.
 								this.checkOtherKnowledgeInteraction(bindingSet);
 								return null;
 							});
-							
+
 							this.answerMessageFuture.thenAccept(aMessage -> {
 								try {
 									this.answerMessageFuture = null;
@@ -149,8 +149,8 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 								}
 							});
 						} catch (IOException e) {
-							this.LOG.warn("Error '{}' occurred while sending: {}",
-									e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), askMessage);
+							this.LOG.warn("Error '{}' occurred while sending {}",
+									e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), askMessage.getClass().getSimpleName());
 							this.LOG.debug("", e);
 
 							// continue with the work, otherwise this process will come to a halt.
@@ -181,7 +181,7 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							reactMessageFuture.exceptionally(e -> {
 								this.LOG.warn("Error '{}' occurred while waiting for response to: {}",
 										e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
-										postMessage);
+										postMessage.getMessageId());
 								this.LOG.debug("", e);
 
 								// continue with the work, otherwise this process will come to a halt.
@@ -214,9 +214,9 @@ public class SerialMatchingProcessor extends SingleInteractionProcessor {
 							});
 						} catch (IOException e) {
 
-							this.LOG.warn("Error '{}' occurred while sending: {}",
+							this.LOG.warn("Error '{}' occurred while sending {}",
 									e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
-									postMessage);
+									postMessage.getClass().getSimpleName());
 							this.LOG.debug("", e);
 
 							// continue with the work, otherwise this process will come to a halt.

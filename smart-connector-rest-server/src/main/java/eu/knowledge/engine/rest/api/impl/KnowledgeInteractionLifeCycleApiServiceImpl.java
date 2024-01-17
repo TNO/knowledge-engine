@@ -68,7 +68,7 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		String kiId;
 		try {
 			kiId = restKb.register(knowledgeInteraction);
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalStateException | IllegalArgumentException e) {
 			var resposne = new ResponseMessage();
 			resposne.setMessageType("error");
 			resposne.setMessage(e.getMessage());

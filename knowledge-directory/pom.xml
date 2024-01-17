@@ -15,7 +15,7 @@
 	<properties>
 		<!-- TODO move some of these to ke-parent -->
 		<swagger-core-version>1.6.12</swagger-core-version>
-		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
+		<beanvalidation-version>2.0.1.Final</beanvalidation-version>
 		<jetty-version>9.4.51.v20230217</jetty-version>
 		<jersey2-version>2.35</jersey2-version>
 		<jackson-version>2.16.1</jackson-version>
@@ -155,7 +155,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>5.0.1</version>
+				<version>7.2.0</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -183,7 +183,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.5.0</version>
 				<executions>
 					<execution>
 						<id>add-source</id>
@@ -220,7 +220,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
+				<version>3.5.1</version>
 				<configuration>
 						<shadedArtifactAttached>true</shadedArtifactAttached>
 						<shadedClassifierName>with-dependencies</shadedClassifierName>
