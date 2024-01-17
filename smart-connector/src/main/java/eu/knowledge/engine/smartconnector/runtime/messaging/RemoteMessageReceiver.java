@@ -3,8 +3,8 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

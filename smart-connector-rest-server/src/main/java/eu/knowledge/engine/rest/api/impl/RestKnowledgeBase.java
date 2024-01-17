@@ -21,8 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -742,10 +742,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	}
 
 	private void cancelAndClearAllHandleRequests() {
-		List<Integer> cancelledRequests = this.toBeProcessedHandleRequests.stream().map(HandleRequest::getHandleRequestId).toList();
-		LOG.warn("KB with id " + this.knowledgeBaseId+ " has stopped. The following handle requests will be cancelled: "+cancelledRequests);
+		List<Integer> cancelledRequests = this.toBeProcessedHandleRequests.stream()
+				.map(HandleRequest::getHandleRequestId).toList();
+		LOG.warn("KB with id " + this.knowledgeBaseId
+				+ " has stopped. The following handle requests will be cancelled: " + cancelledRequests);
 
-		String cancelMessage = "KB with id "+ this.knowledgeBaseId +" will no longer respond, because it stopped.";
+		String cancelMessage = "KB with id " + this.knowledgeBaseId + " will no longer respond, because it stopped.";
 		this.toBeProcessedHandleRequests.forEach(hr -> {
 			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
