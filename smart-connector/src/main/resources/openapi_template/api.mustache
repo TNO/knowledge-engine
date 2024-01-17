@@ -60,7 +60,7 @@ public class {{classname}}  {
       }
 
       if (delegate == null) {
-         delegate = {{classname}}ServiceFactory.get{{classname}}();
+         delegate = {{classname}}ServiceFactory.get{{classname}}(servletContext);
       }
       this.delegate = delegate;
    }
