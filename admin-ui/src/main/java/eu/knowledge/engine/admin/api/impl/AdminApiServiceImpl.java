@@ -8,17 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -48,7 +37,22 @@ import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.MessageRouter;
 import eu.knowledge.engine.smartconnector.impl.MyKnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 @Path("/")
 public class AdminApiServiceImpl {
@@ -78,13 +82,12 @@ public class AdminApiServiceImpl {
 	@GET
 	@Path("/sc/all/{include-meta}")
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
-	@io.swagger.annotations.ApiOperation(value = "Get all smart connectors in the network.", notes = "", response = SmartConnector.class, responseContainer = "List", tags = {
-			"admin UI API", })
-	@io.swagger.annotations.ApiResponses(value = {
-			@io.swagger.annotations.ApiResponse(code = 200, message = "A list of smart connectors.", response = SmartConnector.class, responseContainer = "List"),
-			@io.swagger.annotations.ApiResponse(code = 500, message = "If a problem occurred.", response = String.class) })
+	@Operation(summary = "Get all smart connectors in the network.", description = "", tags = { "admin UI API", })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "A list of smart connectors.", content = @Content(schema = @Schema(implementation = SmartConnector.class))),
+			@ApiResponse(responseCode = "500", description = "If a problem occurred.", content = @Content(schema = @Schema(implementation = String.class))) })
 	public void getSCOverview(
-			@ApiParam(value = "Include Meta-Knowledge-Interactions.", defaultValue = "true") @PathParam("include-meta") boolean includeMeta,
+			@Parameter(description = "Include Meta-Knowledge-Interactions.", schema = @Schema(defaultValue = "true")) @PathParam("include-meta") boolean includeMeta,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException {
 		admin = AdminUI.newInstance(false);

@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -34,7 +34,7 @@ public class VersionInfoApiServiceImpl extends VersionInfoApiService {
 		}
 		return Response.status(Status.OK).entity(versionInfo).build();
 	}
-	
+
 	private void setVersionInfoFromFile() {
 		try {
 			MavenXpp3Reader reader = new MavenXpp3Reader();
@@ -42,7 +42,7 @@ public class VersionInfoApiServiceImpl extends VersionInfoApiService {
 
 			if ((new File(POM_LOCAL_PATH)).exists()) {
 				LOG.info("Reading POM from {}", POM_LOCAL_PATH);
-      	Model model = reader.read(new FileReader(POM_LOCAL_PATH));
+				Model model = reader.read(new FileReader(POM_LOCAL_PATH));
 				// If we're reading from POM_LOCAL_PATH, the $revision variable is not
 				// yet in the version field, so we have to read from the property
 				// directly..
@@ -51,10 +51,7 @@ public class VersionInfoApiServiceImpl extends VersionInfoApiService {
 			} else {
 				LOG.info("Reading POM from {}", POM_RESOURCE_PATH);
 				Model model = reader.read(
-					new InputStreamReader(
-						VersionInfoApiServiceImpl.class.getResourceAsStream(POM_RESOURCE_PATH)
-					)
-				);
+						new InputStreamReader(VersionInfoApiServiceImpl.class.getResourceAsStream(POM_RESOURCE_PATH)));
 				this.versionInfo = new VersionInfo().version(model.getVersion());
 				LOG.info("Successfully read version info from {}.", POM_RESOURCE_PATH);
 			}

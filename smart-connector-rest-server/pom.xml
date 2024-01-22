@@ -11,31 +11,19 @@
 	</parent>
 
 	<properties>
-		<swagger-core-version>1.6.12</swagger-core-version>
-		<jetty-version>9.4.51.v20230217</jetty-version>
-		<jersey2-version>2.35</jersey2-version>
+		<swagger-core-version>2.2.15</swagger-core-version>
+		<jetty-version>11.0.15</jetty-version>
+		<jersey3-version>3.1.3</jersey3-version>
 		<jackson-version>2.16.1</jackson-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-jersey2-jaxrs</artifactId>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2-jakarta</artifactId>
 			<scope>compile</scope>
 			<version>${swagger-core-version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.glassfish.jersey.containers</groupId>
-					<artifactId>
-						jersey-container-servlet-core
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.validation</groupId>
-					<artifactId>validation-api</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -72,39 +60,34 @@
 			<version>${jetty-version}</version>
 		</dependency>
 
-		<!-- Jersey2 -->
+		<!-- Jersey3 -->
 
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-jetty-servlet</artifactId>
-			<version>${jersey2-version}</version>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.inject</groupId>
 			<artifactId>jersey-hk2</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.ext</groupId>
-			<artifactId>jersey-bean-validation</artifactId>
-			<version>${jersey2-version}</version>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
-			<version>${jersey2-version}</version>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-jaxb</artifactId>
-			<version>${jersey2-version}</version>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey3-version}</version>
 		</dependency>
 
 		<!-- Add XML suport -->
 		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.1</version>
 		</dependency>
 
 
@@ -113,6 +96,12 @@
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
 			<type>pom</type>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.annotation</groupId>
+					<artifactId>javax.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- okhttp for example client -->
@@ -165,16 +154,20 @@
 							<packageName>eu.knowledge.engine.rest</packageName>
 							<apiPackage>eu.knowledge.engine.rest.api</apiPackage>
 							<modelPackage>eu.knowledge.engine.rest.model</modelPackage>
-							<inputSpec>${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
+							<inputSpec>
+								${project.basedir}/src/main/resources/openapi-sc.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease,VersionInfo</apisToGenerate>
+							<apisToGenerate>
+								KnowledgeInteractionLifeCycle,SmartConnectorLease,VersionInfo</apisToGenerate>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
+								<library>jersey3</library>
 								<useTags>true</useTags>
-								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
+								<additionalModelTypeAnnotations>
+									@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
 					</execution>
@@ -193,7 +186,8 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/target/generated-sources/openapi/src/gen/java</source>
+								<source>
+									${project.basedir}/target/generated-sources/openapi/src/gen/java</source>
 							</sources>
 						</configuration>
 					</execution>

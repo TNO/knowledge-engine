@@ -2,7 +2,7 @@ package eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.facto
 
 import java.util.HashMap;
 
-import javax.servlet.ServletConfig;
+import jakarta.servlet.ServletConfig;
 
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.MessagingApiService;
 

@@ -159,7 +159,8 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 		ctx.setContextPath("/");
 		httpServer.setHandler(ctx);
 
-		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/*");
+		ServletHolder serHol = new ServletHolder(ServletContainer.class);
+		ctx.addServlet(serHol, "/*");
 		serHol.setInitOrder(1);
 		serHol.setInitParameter("jersey.config.server.provider.packages",
 				"eu.knowledge.engine.smartconnector.runtime.messaging");
@@ -239,7 +240,8 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 				int numMessagesToRemove = this.undeliverableMail.size() - MAX_ENTRIES_UNDELIVERABLE_MAIL;
 				for (int i = 0; i <= numMessagesToRemove; i++) {
 					KnowledgeMessage removedMessage = this.undeliverableMail.remove(0);
-					LOG.warn("Too many undelivered messages. Removing the oldest message with ID " + removedMessage.getMessageId() + " to make space for a new message.");
+					LOG.warn("Too many undelivered messages. Removing the oldest message with ID "
+							+ removedMessage.getMessageId() + " to make space for a new message.");
 				}
 			}
 			this.undeliverableMail.add(message);
