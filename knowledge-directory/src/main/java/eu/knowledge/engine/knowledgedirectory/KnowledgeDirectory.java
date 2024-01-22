@@ -7,6 +7,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.servlet.Servlet;
+
 public class KnowledgeDirectory {
 
 	public static final Logger LOG = LoggerFactory.getLogger(KnowledgeDirectory.class);
@@ -39,10 +41,10 @@ public class KnowledgeDirectory {
 		ctx.setContextPath("/");
 		server.setHandler(ctx);
 
-		ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/*");
+		ServletHolder serHol = new ServletHolder(ServletContainer.class);
+		ctx.addServlet(serHol, "/*");
 		serHol.setInitOrder(1);
-		serHol.setInitParameter("jersey.config.server.provider.packages",
-				"eu.knowledge.engine.knowledgedirectory");
+		serHol.setInitParameter("jersey.config.server.provider.packages", "eu.knowledge.engine.knowledgedirectory");
 
 		server.start();
 	}
