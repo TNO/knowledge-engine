@@ -60,6 +60,7 @@ public class RemoteKerConnection {
 
 	private LocalDateTime tryAgainAfter = null;
 	private int errorCounter = 0;
+	private final String authToken = "Sup3rSecr#t";
 
 	public RemoteKerConnection(MessageDispatcher dispatcher,
 			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
@@ -119,7 +120,8 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.header("Content-Type", "application/json").version(Version.HTTP_1_1).GET().build();
+					.headers("Content-Type", "application/json",
+							"Authorization", authToken).version(Version.HTTP_1_1).GET().build();
 
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -226,7 +228,8 @@ public class RemoteKerConnection {
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
 								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1).DELETE().build();
+						.headers("Content-Type", "application/json",
+								"Authorization", authToken).version(Version.HTTP_1_1).DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
@@ -259,9 +262,10 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
+						.headers("Content-Type", "application/json",
+								"Authorization", authToken).version(Version.HTTP_1_1)
 						.POST(BodyPublishers.ofString(jsonMessage)).build();
-
+				LOG.info("Sending message with authorization header(s): "+request.headers().allValues("Authorization"));
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
 				if (response.statusCode() == 202) {
@@ -295,7 +299,8 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
+						.headers("Content-Type", "application/json",
+								"Authorization", authToken).version(Version.HTTP_1_1)
 						.POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());

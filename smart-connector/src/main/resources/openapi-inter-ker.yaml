@@ -75,6 +75,13 @@ paths:
       summary: Handle an AskMessage
       tags:
       - "messaging"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:

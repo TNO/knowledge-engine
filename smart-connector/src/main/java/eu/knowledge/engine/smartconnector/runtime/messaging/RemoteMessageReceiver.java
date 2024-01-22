@@ -3,6 +3,8 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -29,6 +31,9 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	private final MessageDispatcher messageDispatcher;
 
+	@Context
+	private HttpHeaders headers;
+
 	public RemoteMessageReceiver(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
 	}
@@ -51,9 +56,10 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingAskmessagePost(AskMessage askMessage, SecurityContext securityContext)
+	public Response messagingAskmessagePost(String authorizationToken, AskMessage askMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
+			LOG.info("Received ASK with header: "+authorizationToken);
 			return handleMessage(MessageConverter.fromJson(askMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			return createErrorResponse(e);
