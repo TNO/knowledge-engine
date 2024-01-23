@@ -240,7 +240,7 @@ public class RemoteKerConnection {
 				LOG.debug("", e);
 			}
 		} else
-			LOG.info("Still ignoring KER {}.", this.remoteKerUri);
+			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
 
 		// if someone calls this stop method, all smart connectors should be removed
 		// from the other knowledge base store. We do this by removing the ker details
@@ -316,7 +316,7 @@ public class RemoteKerConnection {
 				LOG.debug("", e);
 			}
 		} else
-			LOG.info("Still ignoring KER {}.", this.remoteKerUri);
+			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
 	}
 
 	private String getPathForMessageType(KnowledgeMessage message) {
