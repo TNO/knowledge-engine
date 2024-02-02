@@ -11,6 +11,13 @@ paths:
       summary: List all the Smart Connectors represented by THIS Smart Connector Runtime
       tags:
       - "smart connector management"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       responses:
         '200':
           description: A list of Smart Connector Runtimes
@@ -18,6 +25,8 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/KnowledgeEngineRuntimeDetails'
+        '403':
+          description: Invalid authorization token.
         '500':
           description: If a problem occurred.
           content:
@@ -28,6 +37,13 @@ paths:
       summary: Push a list of all the Smart Connectors that ANOTHER runtime represents. This can be done because the runtime is new or becaus its details have changed.
       tags:
       - "smart connector management"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -41,6 +57,8 @@ paths:
             text/plan; charset=UTF-8:
               schema:
                 type: string
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Provided data was not valid
           content:
@@ -54,6 +72,12 @@ paths:
       tags:
       - "smart connector management"
       parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Authorization token (EDC-IDS)
+        schema:
+          type: string
       - name: "ker_id"
         in: "path"
         description: ID of the Knowledge Engine Runtime
@@ -63,6 +87,8 @@ paths:
       responses:
         '204':
           description: Understood.
+        '403':
+          description: Invalid authorization token.
         '404':
           description: The Smart Connector Runtime not known
           content:
@@ -93,6 +119,8 @@ paths:
           description: Successfully received message
         '400':
           description: Messages not understood, don't try to resend message
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Server was not able to receive message at this time, try again later
   /messaging/answermessage:
@@ -100,6 +128,13 @@ paths:
       summary: Handle an AnswerMessage
       tags:
       - "messaging"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -111,6 +146,8 @@ paths:
           description: Successfully received message
         '400':
           description: Messages not understood, don't try to resend message
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Server was not able to receive message at this time, try again later
   /messaging/postmessage:
@@ -118,6 +155,13 @@ paths:
       summary: Handle a PostMessage
       tags:
       - "messaging"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -129,6 +173,8 @@ paths:
           description: Successfully received message
         '400':
           description: Messages not understood, don't try to resend message
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Server was not able to receive message at this time, try again later
   /messaging/reactmessage:
@@ -136,6 +182,13 @@ paths:
       summary: Handle a ReactMessage
       tags:
       - "messaging"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -147,6 +200,8 @@ paths:
           description: Successfully received message
         '400':
           description: Messages not understood, don't try to resend message
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Server was not able to receive message at this time, try again later
   /messaging/errormessage:
@@ -154,6 +209,13 @@ paths:
       summary: Handle an ErrorMessage
       tags:
       - "messaging"
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Authorization token (EDC-IDS)
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -165,6 +227,8 @@ paths:
           description: Successfully received message
         '400':
           description: Messages not understood, don't try to resend message
+        '403':
+          description: Invalid authorization token.
         '500':
           description: Server was not able to receive message at this time, try again later
 

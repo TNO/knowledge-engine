@@ -1,4 +1,49 @@
 services:
+
+  http-pull-provider:
+    image: openjdk:17
+    entrypoint: [ "/bin/sh","-c" ]
+    ports:
+      - "19191:19191"
+      - "19192:19192"
+      - "19193:19193"
+      - "19194:19194"
+    command:
+      - |
+        java -Dedc.keystore=/edc/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=/edc/provider/provider-vault.properties -Dedc.fs.config=/edc/provider/provider-configuration.properties -jar /edc/libs/pull-connector.jar
+    volumes:
+      - ./edc/certs:/edc/certs
+      - ./edc/http-pull-connector/build/libs:/edc/libs
+      - ./edc/http-pull-provider:/edc/provider
+
+  http-pull-consumer:
+    image: openjdk:17
+    entrypoint: [ "/bin/sh","-c" ]
+    ports:
+      - "29191:29191"
+      - "29192:29192"
+      - "29193:29193"
+      - "29194:29194"
+    command:
+      - |
+        java -Dedc.keystore=/edc/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=/edc/consumer/consumer-vault.properties -Dedc.fs.config=/edc/consumer/consumer-configuration.properties -jar /edc/libs/pull-connector.jar
+    volumes:
+      - ./edc/certs:/edc/certs
+      - ./edc/http-pull-connector/build/libs:/edc/libs
+      - ./edc/http-pull-consumer:/edc/consumer
+
+  consumer-pull-backend-service:
+    image: openjdk:17
+    entrypoint: [ "/bin/sh","-c" ]
+    ports:
+      - "4000:4000"
+    command:
+      - |
+        java -jar /edc/libs/consumer-pull-backend-service.jar
+    volumes:
+      - ./edc/consumer-pull-backend-service/build/libs:/edc/libs
+
+
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
@@ -8,19 +53,19 @@ services:
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port
   # number than the ones configured below. It is still the default 8280.
   runtime-1:
-    image: testsc:1.2.4
+    build: ker1
     environment:
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
   runtime-2:
-    image: testsc:1.2.4
+    build: ker2
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
   runtime-3:
-    image: testsc:1.2.4
+    build: ker3
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081

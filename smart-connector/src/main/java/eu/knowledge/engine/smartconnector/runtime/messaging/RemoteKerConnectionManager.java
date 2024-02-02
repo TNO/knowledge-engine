@@ -151,7 +151,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * Another KER would like to know our {@link KnowledgeEngineRuntimeDetails}.
 	 */
 	@Override
-	public Response runtimedetailsGet(SecurityContext securityContext) throws NotFoundException {
+	public Response runtimedetailsGet(String authorizationToken, SecurityContext securityContext) throws NotFoundException {
 		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher.getMyKnowledgeEngineRuntimeDetails();
 		return Response.status(200).entity(runtimeDetails).build();
 	}
@@ -161,7 +161,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * {@link KnowledgeEngineRuntimeDetails} have changed.
 	 */
 	@Override
-	public Response runtimedetailsPost(KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails,
+	public Response runtimedetailsPost(String authorizationToken, KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails,
 			SecurityContext securityContext) throws NotFoundException {
 		RemoteKerConnection remoteKerConnection = remoteKerConnections
 				.get(knowledgeEngineRuntimeDetails.getRuntimeId());
@@ -182,7 +182,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * Another KER lets us know it will leave.
 	 */
 	@Override
-	public Response runtimedetailsKerIdDelete(String kerId, SecurityContext securityContext) throws NotFoundException {
+	public Response runtimedetailsKerIdDelete(String authorizationToken, String kerId, SecurityContext securityContext) throws NotFoundException {
 		RemoteKerConnection kerConnection = remoteKerConnections.remove(kerId);
 		if (kerConnection == null) {
 			// That one didn't exist
@@ -220,4 +220,16 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		return list;
 	}
 
+	public boolean isTokenValid(String authorizationToken, URI fromKnowledgeBase) {
+		if (getRemoteKerConnection(fromKnowledgeBase) != null) {
+			LOG.info("RemoteKerConnection is not null");
+			if (getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken)) {
+				LOG.info("Authorization token is correct");
+				return true;
+			}
+			return false;
+		}
+		LOG.info("RemoteKerConnection is null");
+		return false;
+	}
 }

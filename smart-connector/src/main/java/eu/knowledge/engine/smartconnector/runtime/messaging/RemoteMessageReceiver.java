@@ -31,19 +31,29 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	private final MessageDispatcher messageDispatcher;
 
-	@Context
-	private HttpHeaders headers;
-
 	public RemoteMessageReceiver(MessageDispatcher messageDispatcher) {
 		this.messageDispatcher = messageDispatcher;
 	}
 
-	private Response handleMessage(KnowledgeMessage message) {
+	private Response handleMessage(String authorizationToken, KnowledgeMessage message) {
 		try {
+			LOG.info("Received {} with header: {}", message.getClass().getSimpleName(), authorizationToken);
 			LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
 					message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
-			messageDispatcher.deliverToLocalSmartConnector(message);
-			return Response.status(202).build();
+			//TODO: Hacky way to determine meta-ness of KI is not great, replace by more robust solution
+			if (message.getToKnowledgeInteraction().toURL().toString().contains("meta")) {
+				messageDispatcher.deliverToLocalSmartConnector(message);
+				return Response.status(202).build();
+			} else {
+				if (messageDispatcher.getRemoteSmartConnectorConnectionsManager().isTokenValid(authorizationToken, message.getFromKnowledgeBase())) {
+					LOG.info("Properly authorised!");
+					messageDispatcher.deliverToLocalSmartConnector(message);
+					return Response.status(202).build();
+				} else {
+					LOG.warn("INVALID TOKEN");
+					return Response.status(403).build();
+				}
+			}
 		} catch (IOException e) {
 			// Was not able to deliver message to the SmartConnector
 			return createErrorResponse(e);
@@ -59,18 +69,17 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	public Response messagingAskmessagePost(String authorizationToken, AskMessage askMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
-			LOG.info("Received ASK with header: "+authorizationToken);
-			return handleMessage(MessageConverter.fromJson(askMessage));
+			return handleMessage(authorizationToken, MessageConverter.fromJson(askMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			return createErrorResponse(e);
 		}
 	}
 
 	@Override
-	public Response messagingAnswermessagePost(AnswerMessage answerMessage, SecurityContext securityContext)
+	public Response messagingAnswermessagePost(String authorizationToken, AnswerMessage answerMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
-			return handleMessage(MessageConverter.fromJson(answerMessage));
+			return handleMessage(authorizationToken, MessageConverter.fromJson(answerMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			// Could not parse message
 			return createErrorResponse(e);
@@ -78,30 +87,30 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingPostmessagePost(PostMessage postMessage, SecurityContext securityContext)
+	public Response messagingPostmessagePost(String authorizationToken, PostMessage postMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
-			return handleMessage(MessageConverter.fromJson(postMessage));
+			return handleMessage(authorizationToken, MessageConverter.fromJson(postMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			return createErrorResponse(e);
 		}
 	}
 
 	@Override
-	public Response messagingReactmessagePost(ReactMessage reactMessage, SecurityContext securityContext)
+	public Response messagingReactmessagePost(String authorizationToken, ReactMessage reactMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
-			return handleMessage(MessageConverter.fromJson(reactMessage));
+			return handleMessage(authorizationToken, MessageConverter.fromJson(reactMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			return createErrorResponse(e);
 		}
 	}
 
 	@Override
-	public Response messagingErrormessagePost(ErrorMessage errorMessage, SecurityContext securityContext)
+	public Response messagingErrormessagePost(String authorizationToken, ErrorMessage errorMessage, SecurityContext securityContext)
 			throws NotFoundException {
 		try {
-			return handleMessage(MessageConverter.fromJson(errorMessage));
+			return handleMessage(authorizationToken, MessageConverter.fromJson(errorMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
 			return createErrorResponse(e);
 		}

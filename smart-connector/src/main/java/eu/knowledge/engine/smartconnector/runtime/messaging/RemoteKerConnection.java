@@ -2,6 +2,8 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
@@ -17,6 +19,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +63,9 @@ public class RemoteKerConnection {
 
 	private LocalDateTime tryAgainAfter = null;
 	private int errorCounter = 0;
-	private final String authToken = "Sup3rSecr#t";
+	private String authToken = "Sup3rSecr#t";
+	private String remoteAuthToken = "Sup3rSecr#t";
+	private String validationEndpoint;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher,
 			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
@@ -95,6 +100,23 @@ public class RemoteKerConnection {
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
+		remoteAuthToken = remoteAuthToken + getRemoteKerUri();
+		authToken = authToken + System.getenv("KE_RUNTIME_EXPOSED_URL");
+
+		FileInputStream configReader = null;
+		try {
+			configReader = new FileInputStream("./edc.properties");
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		Properties properties = new Properties();
+		try {
+			properties.load(configReader);
+			configReader.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		validationEndpoint = properties.getProperty("tokenValidationEndpoint");
 	}
 
 	public URI getRemoteKerUri() {
@@ -340,4 +362,28 @@ public class RemoteKerConnection {
 		}
 	}
 
+	public boolean checkAuthorizationToken(String authorizationToken) {
+		if (validationEndpoint != null) {
+			LOG.info("Contacting validation endpoint {}", validationEndpoint);
+			HttpRequest request = null;
+			try {
+				request = HttpRequest.newBuilder(new URI(validationEndpoint))
+						.headers("Content-Type", "application/json",
+								"Authorization", authorizationToken).GET().build();
+			} catch (URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
+
+			try {
+				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
+				if (response.statusCode() == 200) {
+					return true;
+				}
+			} catch (IOException | InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+
+        }
+		return false;
+	}
 }
