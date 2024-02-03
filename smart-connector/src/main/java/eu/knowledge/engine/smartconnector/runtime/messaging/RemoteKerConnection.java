@@ -46,7 +46,7 @@ public class RemoteKerConnection {
 	/**
 	 * A maximum amount of time to wait for othe HTTP REST call to fail/succeed.
 	 */
-	private static final int HTTP_TIMEOUT = 30;
+	private static final int HTTP_TIMEOUT = 10;
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
@@ -60,6 +60,7 @@ public class RemoteKerConnection {
 
 	private LocalDateTime tryAgainAfter = null;
 	private int errorCounter = 0;
+	private LocalDateTime logStillIgnoringAfter = null;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher,
 			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
@@ -103,6 +104,7 @@ public class RemoteKerConnection {
 	private void noError() {
 		this.errorCounter = 0;
 		this.tryAgainAfter = null;
+		this.logStillIgnoringAfter = null;
 	}
 
 	private int errorOccurred() {
@@ -119,7 +121,8 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.header("Content-Type", "application/json").version(Version.HTTP_1_1).GET().build();
+					.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
+					.version(Version.HTTP_1_1).GET().build();
 
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -153,6 +156,7 @@ public class RemoteKerConnection {
 			boolean after = LocalDateTime.now().isAfter(tryAgainAfter);
 			if (after) {
 				LOG.info("KER {} available again.", this.remoteKerUri);
+				this.tryAgainAfter = null;
 			}
 			return after;
 		} else
@@ -226,7 +230,8 @@ public class RemoteKerConnection {
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
 								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1).DELETE().build();
+						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
+						.version(Version.HTTP_1_1).DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
@@ -240,13 +245,23 @@ public class RemoteKerConnection {
 				LOG.debug("", e);
 			}
 		} else
-			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
+			logStillIgnoring();
 
 		// if someone calls this stop method, all smart connectors should be removed
 		// from the other knowledge base store. We do this by removing the ker details
 		// and calling this method.
 		this.remoteKerDetails = null;
 		dispatcher.notifySmartConnectorsChanged();
+	}
+
+	/**
+	 * To prevent many "Still ignoring" messages, we only log them once a minute.
+	 */
+	private void logStillIgnoring() {
+		if (logStillIgnoringAfter == null || logStillIgnoringAfter.isBefore(LocalDateTime.now())) {
+			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
+			logStillIgnoringAfter = LocalDateTime.now().plusMinutes(1);
+		}
 	}
 
 	public void sendToRemoteSmartConnector(KnowledgeMessage message) throws IOException {
@@ -259,8 +274,8 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
-						.POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
+						.version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
@@ -285,7 +300,7 @@ public class RemoteKerConnection {
 				throw e;
 			}
 		} else {
-			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
+			logStillIgnoring();
 			throw new IOException("KER " + this.remoteKerUri + " is currently unavailable. Trying again later.");
 		}
 	}
@@ -295,28 +310,28 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").version(Version.HTTP_1_1)
-						.POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
+						.version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
 					this.noError();
 					LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}", this.remoteKerUri);
 				} else {
-					this.remoteKerDetails = null;
-					this.errorOccurred();
-					LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}, got response {}: {}",
-							this.remoteKerUri, response.statusCode(), response.body());
+					int time = this.errorOccurred();
+					LOG.warn(
+							"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails, got response {}: {}",
+							this.remoteKerUri, time, response.statusCode(), response.body());
 				}
 			} catch (IOException | URISyntaxException | InterruptedException e) {
-				this.remoteKerDetails = null;
-				this.errorOccurred();
-				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to "
-						+ remoteKerConnectionDetails.getId());
+				int time = this.errorOccurred();
+				LOG.warn(
+						"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
+						this.remoteKerUri, time, e.getMessage());
 				LOG.debug("", e);
 			}
 		} else
-			LOG.warn("Still ignoring KER {}.", this.remoteKerUri);
+			logStillIgnoring();
 	}
 
 	private String getPathForMessageType(KnowledgeMessage message) {
