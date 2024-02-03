@@ -340,14 +340,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 							// condition that otherKnowledgeBase should NEVER be null.
 							return null;
 						}
-					}).handle((r, e) -> {
-
-						if (r == null) {
-							LOG.error("An exception has occured while getting Other Knowledge Base", e);
-							return null;
-						} else {
-							return r;
-						}
 					});
 			return future;
 		} catch (IOException e) {

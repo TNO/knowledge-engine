@@ -45,3 +45,9 @@ iptables-legacy -P INPUT DROP
 iptables-legacy -P INPUT ACCEPT
 #runtime-3 is now reachable again for other KERs and can also reach the KD and other KERs.
 ```
+
+Another scenario that you can check is when other KERs can access runtime-3, but it cannot send back a response to runtime-1. To do this, use the following filewall rule:
+
+```
+iptables-legacy -A OUTPUT -p tcp -d runtime-1 -m state --state NEW -j DROP
+```

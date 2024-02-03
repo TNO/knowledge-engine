@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
@@ -28,6 +29,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 * capacity, but to prevent memory leaks we cap them at the number below.
 	 */
 	private static final int MAX_ENTRIES = 5000;
+
+	private static final int WAIT_TIMEOUT = 30;
 
 	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = Collections
@@ -84,6 +87,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			throw new IOException("Not connected to MessageDispatcher");
 		}
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
+
+		// wait maximally WAIT_TIMEOUT for a return message.
+		future.orTimeout(WAIT_TIMEOUT, TimeUnit.SECONDS).whenComplete((m, e) -> {
+			this.openAskMessages.remove(askMessage.getMessageId());
+		});
+
 		this.openAskMessages.put(askMessage.getMessageId(), future);
 		messageDispatcher.send(askMessage);
 
@@ -99,6 +108,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			throw new IOException("Not connected to MessageDispatcher");
 		}
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
+
+		// wait maximally WAIT_TIMEOUT for a return message.
+		future.orTimeout(WAIT_TIMEOUT, TimeUnit.SECONDS).whenComplete((m, e) -> {
+			this.openAskMessages.remove(postMessage.getMessageId());
+		});
+
 		this.openPostMessages.put(postMessage.getMessageId(), future);
 		messageDispatcher.send(postMessage);
 		LOG.debug("Sent PostMessage: {}", postMessage);
