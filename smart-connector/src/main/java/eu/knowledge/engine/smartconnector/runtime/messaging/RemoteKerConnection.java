@@ -293,16 +293,12 @@ public class RemoteKerConnection {
 					throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 							+ ", body " + response.body());
 				}
-			} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
+			} catch (URISyntaxException | InterruptedException | IOException e) {
 				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
-				throw new IOException("Could not send message to remote SmartConnector.", e);
-			} catch (IOException e) {
-				this.remoteKerDetails = null;
-				int time = this.errorOccurred();
-				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
-				throw e;
+				this.dispatcher.notifySmartConnectorsChanged();
+				throw new IOException(e);
 			}
 		} else {
 			logStillIgnoring();
