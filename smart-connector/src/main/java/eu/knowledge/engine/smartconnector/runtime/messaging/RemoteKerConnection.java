@@ -237,10 +237,12 @@ public class RemoteKerConnection {
 				if (response.statusCode() == 200) {
 					LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
 				} else {
+					this.remoteKerDetails = null;
 					LOG.warn("Failed to say goodbye to {}, got response {}: {}", this.remoteKerUri,
 							response.statusCode(), response.body());
 				}
 			} catch (IOException | URISyntaxException | InterruptedException e) {
+				this.remoteKerDetails = null;
 				LOG.warn("Failed to say goodbye to " + remoteKerConnectionDetails.getId());
 				LOG.debug("", e);
 			}
@@ -283,6 +285,7 @@ public class RemoteKerConnection {
 					this.noError();
 					LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
 				} else {
+					this.remoteKerDetails = null;
 					int time = this.errorOccurred();
 					LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
 							this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
@@ -291,10 +294,12 @@ public class RemoteKerConnection {
 							+ ", body " + response.body());
 				}
 			} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
+				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
 				throw new IOException("Could not send message to remote SmartConnector.", e);
 			} catch (IOException e) {
+				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
 				throw e;
@@ -318,12 +323,14 @@ public class RemoteKerConnection {
 					this.noError();
 					LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}", this.remoteKerUri);
 				} else {
+					this.remoteKerDetails = null;
 					int time = this.errorOccurred();
 					LOG.warn(
 							"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails, got response {}: {}",
 							this.remoteKerUri, time, response.statusCode(), response.body());
 				}
 			} catch (IOException | URISyntaxException | InterruptedException e) {
+				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				LOG.warn(
 						"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
