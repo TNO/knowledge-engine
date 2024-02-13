@@ -1,4 +1,6 @@
-FROM ghcr.io/tno/knowledge-engine/smart-connector:1.2.3
+FROM ghcr.io/tno/knowledge-engine/smart-connector:1.2.4
 
-RUN apt update -y
-RUN apt-get install iptables sudo -y
+USER root
+
+RUN apk update
+RUN apk add iptables iptables-legacy sudo

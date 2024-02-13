@@ -1,0 +1,9 @@
+knowledge-mapper==0.0.23
+# certifi==2022.9.24 # Installed as dependency for requests
+# charset-normalizer==2.1.1 # Installed as dependency for requests
+# idna==3.4 # Installed as dependency for requests
+# json5==0.9.10 # Installed as dependency for knowledge-mapper
+# mysql-connector-python==8.0.30 # Installed as dependency for knowledge-mapper
+# protobuf==3.20.1 # Installed as dependency for mysql-connector-python
+# requests==2.28.1 # Installed as dependency for knowledge-mapper
+# urllib3==1.26.12 # Installed as dependency for requests
