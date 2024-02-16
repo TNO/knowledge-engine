@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -30,7 +29,13 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	private static final int MAX_ENTRIES = 5000;
 
-	private static final int WAIT_TIMEOUT = 30;
+	/**
+	 * How many seconds should the MessageRouter wait for ANSWER/REACT Message when
+	 * sending a ASK/POST Message? 0 means wait forever (useful when working with a
+	 * human KB)
+	 */
+	private static final String CONF_KEY_WAIT_TIMEOUT = "KE_KB_WAIT_TIMEOUT";
+	private static final int DEFAULT_WAIT_TIMEOUT = 10;
 
 	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = Collections
@@ -80,6 +85,10 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		this.smartConnector = smartConnector;
 	}
 
+	private int getWaitTimeout() {
+		return Integer.parseInt(this.getConfigProperty(CONF_KEY_WAIT_TIMEOUT, Integer.toString(DEFAULT_WAIT_TIMEOUT)));
+	}
+
 	@Override
 	public CompletableFuture<AnswerMessage> sendAskMessage(AskMessage askMessage) throws IOException {
 		MessageDispatcherEndpoint messageDispatcher = this.messageDispatcherEndpoint;
@@ -89,7 +98,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 
 		// wait maximally WAIT_TIMEOUT for a return message.
-		future.orTimeout(WAIT_TIMEOUT, TimeUnit.SECONDS).whenComplete((m, e) -> {
+		future.orTimeout(getWaitTimeout(), TimeUnit.SECONDS).whenComplete((m, e) -> {
 			this.openAskMessages.remove(askMessage.getMessageId());
 		});
 
@@ -110,7 +119,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
 
 		// wait maximally WAIT_TIMEOUT for a return message.
-		future.orTimeout(WAIT_TIMEOUT, TimeUnit.SECONDS).whenComplete((m, e) -> {
+		future.orTimeout(getWaitTimeout(), TimeUnit.SECONDS).whenComplete((m, e) -> {
 			this.openAskMessages.remove(postMessage.getMessageId());
 		});
 
@@ -139,7 +148,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 				try {
 					messageDispatcher.send(reply);
 				} catch (Throwable e) {
-					this.LOG.warn("Could not send reply to message " + message.getMessageId());
+					this.LOG.warn("Could not send reply to message " + message.getMessageId() + ": " + e.getMessage());
 					this.LOG.debug("", e);
 				}
 			}).handle((r, e) -> {
@@ -259,6 +268,21 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	@Override
 	public URI getKnowledgeBaseId() {
 		return this.smartConnector.getKnowledgeBaseId();
+	}
+
+	public String getConfigProperty(String key, String defaultValue) {
+		// We might replace this with something a bit more fancy in the future...
+		String value = System.getenv(key);
+		if (value == null) {
+			value = defaultValue;
+			LOG.trace("No value for the configuration parameter '{}' was provided, using the default value '{}'", key,
+					defaultValue);
+		}
+		return value;
+	}
+
+	public boolean hasConfigProperty(String key) {
+		return System.getenv(key) != null;
 	}
 
 	@Override

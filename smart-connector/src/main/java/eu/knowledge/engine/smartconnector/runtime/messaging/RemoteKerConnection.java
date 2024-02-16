@@ -46,7 +46,7 @@ public class RemoteKerConnection {
 	/**
 	 * A maximum amount of time to wait for othe HTTP REST call to fail/succeed.
 	 */
-	private static final int HTTP_TIMEOUT = 10;
+	private static final int HTTP_TIMEOUT = 5;
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
@@ -151,7 +151,7 @@ public class RemoteKerConnection {
 		dispatcher.notifySmartConnectorsChanged();
 	}
 
-	private boolean isAvailable() {
+	public boolean isAvailable() {
 		if (tryAgainAfter != null) {
 			boolean after = LocalDateTime.now().isAfter(tryAgainAfter);
 			if (after) {
@@ -290,6 +290,7 @@ public class RemoteKerConnection {
 					LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
 							this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
 							response.body());
+					this.dispatcher.notifySmartConnectorsChanged();
 					throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 							+ ", body " + response.body());
 				}
@@ -321,6 +322,7 @@ public class RemoteKerConnection {
 				} else {
 					this.remoteKerDetails = null;
 					int time = this.errorOccurred();
+					this.dispatcher.notifySmartConnectorsChanged();
 					LOG.warn(
 							"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails, got response {}: {}",
 							this.remoteKerUri, time, response.statusCode(), response.body());
@@ -328,6 +330,7 @@ public class RemoteKerConnection {
 			} catch (IOException | URISyntaxException | InterruptedException e) {
 				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
+				this.dispatcher.notifySmartConnectorsChanged();
 				LOG.warn(
 						"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
 						this.remoteKerUri, time, e.getMessage());

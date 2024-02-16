@@ -257,3 +257,6 @@ nohup java -cp "smart-connector-rest-dist-1.2.3.jar:dependency/*" eu.knowledge.e
 
 ### Starting the Knowledge Engine in distributed mode
 The Knowledge Engine can also start in distributed mode, where it connects with a remote knowledge directory and where different instances of the Knowledge Engine (each instance hosting one or more smart connectors) can communicate with each other. More information about starting the Knowledge Engine in distributed mode can be found in the [documentation](docs/04_distributed_mode.md).
+
+### Increasing the wait time for other KBs to respond
+By default, a Smart Connector waits `10` seconds max for a reply from another Smart Connector when sending an ASK/POST message. This time is configurable via the `KE_KB_WAIT_TIMEOUT` environment variable and setting it to `0` means the Smart Connector will wait indefinitely (this can be useful when dealing with Human KBs).
