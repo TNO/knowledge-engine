@@ -50,8 +50,6 @@ public class TestRegisterKnowledgeInteraction {
 
 	@AfterAll
 	public void cleanUp() {
-		System.out.println("Start clean up!");
 		rsh.cleanUp();
-		System.out.println("End clean up!");
 	}
 }
