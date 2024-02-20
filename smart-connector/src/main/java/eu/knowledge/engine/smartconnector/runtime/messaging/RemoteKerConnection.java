@@ -63,8 +63,7 @@ public class RemoteKerConnection {
 
 	private LocalDateTime tryAgainAfter = null;
 	private int errorCounter = 0;
-	private String authToken = "Sup3rSecr#t";
-	private String remoteAuthToken = "Sup3rSecr#t";
+	private String authToken;
 	private String validationEndpoint;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher,
@@ -100,8 +99,6 @@ public class RemoteKerConnection {
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
-		remoteAuthToken = remoteAuthToken + getRemoteKerUri();
-		authToken = authToken + System.getenv("KE_RUNTIME_EXPOSED_URL");
 
 		FileInputStream configReader = null;
 		try {
@@ -117,6 +114,8 @@ public class RemoteKerConnection {
 			throw new RuntimeException(e);
 		}
 		validationEndpoint = properties.getProperty("tokenValidationEndpoint");
+		authToken = properties.getProperty("authorizationToken");
+		LOG.info("Auth token uitgelezen uit file: "+authToken);
 	}
 
 	public URI getRemoteKerUri() {
@@ -371,7 +370,7 @@ public class RemoteKerConnection {
 						.headers("Content-Type", "application/json",
 								"Authorization", authorizationToken).GET().build();
 			} catch (URISyntaxException e) {
-				throw new RuntimeException(e);
+				LOG.warn("Invalid URI for the validationEndpoint: "+validationEndpoint);
 			}
 
 			try {
@@ -380,7 +379,7 @@ public class RemoteKerConnection {
 					return true;
 				}
 			} catch (IOException | InterruptedException e) {
-				throw new RuntimeException(e);
+				LOG.error("Encountered a problem during authenticating the EDC token");
 			}
 
         }
