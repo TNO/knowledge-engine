@@ -52,11 +52,11 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 		SmartConnectorEndpoint endpoint = smartConnector.getSmartConnectorEndpoint();
 		LocalSmartConnectorConnection connection = new LocalSmartConnectorConnection(messageDispatcher, endpoint);
 		this.localSmartConnectorConnections.put(endpoint.getKnowledgeBaseId(), connection);
-		connection.start();
 		if (messageDispatcher.runsInDistributedMode()) {
 			this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
-			this.messageDispatcher.notifySmartConnectorsChanged();
+//			this.messageDispatcher.notifySmartConnectorsChanged();
 		}
+		connection.start();
 	}
 
 	// Remove the LocalSmartConnectorMessageReceiver and detach it

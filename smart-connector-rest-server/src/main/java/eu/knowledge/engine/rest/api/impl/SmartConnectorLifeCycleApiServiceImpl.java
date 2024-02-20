@@ -145,7 +145,9 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 		final boolean reasonerEnabled = smartConnector.getReasonerEnabled() == null ? false
 				: smartConnector.getReasonerEnabled();
-
+		
+		LOG.info("Creating smart connector with ID {}.", kbId);
+		
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)
 				.knowledgeBaseDescription(kbDescription).leaseRenewalTime(smartConnector.getLeaseRenewalTime())
@@ -153,8 +155,6 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 					LOG.info("Returning response for smart connector with ID {}", kbId);
 					asyncResponse.resume(Response.ok().build());
 				});
-
-		LOG.info("Creating smart connector with ID {}.", kbId);
 
 		return;
 	}

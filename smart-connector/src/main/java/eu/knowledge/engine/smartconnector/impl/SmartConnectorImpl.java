@@ -480,14 +480,14 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		Instant beforePopulate = Instant.now();
 		LOG.info("Getting comms ready took {} ms", Duration.between(this.started, beforePopulate).toMillis());
 		// Populate the initial knowledge base store.
-		this.otherKnowledgeBaseStore.populate().thenRun(() -> {
+		this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
 			LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
 			Instant beforeAnnounce = Instant.now();
 			// Then tell the other knowledge bases about our existence.
-			this.metaKnowledgeBase.postNewKnowledgeBase().thenRun(() -> {
+			this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
 				LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
 				Instant beforeConstructorFinished = Instant.now();
-				this.constructorFinished.thenRun(() -> {
+				this.constructorFinished.handle((r3, e3) -> {
 					LOG.info("Constructor finished took {} ms",
 							Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 					// When that is done, and all peers have acknowledged our existence, we
@@ -500,8 +500,11 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 							LOG.error("KnowledgeBase threw exception", t);
 						}
 					});
+					return (Void) null;
 				});
+				return (Void) null;
 			});
+			return (Void) null;
 		}).exceptionally((Throwable t) -> {
 			LOG.error("Populating the Smart Connector should not result in errors.", t);
 			return null;

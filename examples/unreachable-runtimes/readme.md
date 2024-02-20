@@ -15,7 +15,7 @@ Retrieve the internal IP address of the KB3 (because it needs to always be able 
 Make sure runtime-3 is configured to switch between being reachable to being unreachable. First open a shell for runtime-3.
 
 ```
-docker compose exec runtime-3 bash
+docker compose exec runtime-3 sh
 ```
 
 Configure `iptables-legacy` to allow the following packets to go through when we block incoming traffic:
