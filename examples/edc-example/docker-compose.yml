@@ -3,7 +3,7 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: testkd:1.2.4
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.3
     networks:
       - tke-edc-manager_default
 

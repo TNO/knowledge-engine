@@ -17,9 +17,9 @@ Execute the following steps to run the example combined with them:
 7. Copy the `contractAgreementId` in the response from the `/negotiate-contract` request
 8. In your browser, execute a `/transfer-process` request with participant-id: `consumer`, counter-party-participant-id: `provider` and the contract-agreement-id set to the id copied in the previous step.
 9. Repeat steps 6-8 with the `provider` as participant-id, and `consumer` as counter-party-participant-id
-10. In your browser, execute a `/tokens` request where participant-id: `consumer` and counter-party-participant-id: `provider`
+10. In your browser, execute a `GET /tokens` request where participant-id: `consumer` and counter-party-participant-id: `provider`
 11. There should be two entries in the returned array. Each entry contains an `authCode` which should be copied to the properties file of the appropriate KER.
-12. Set the validationEndpoint token in the properties file of each KER.
+12. Set the `tokenValidationEndpoint` token in the properties file of each KER.
 13. In the edc-example directory in this project, execute `docker compose up`
 
 If you have run the example previously, execute `docker compose down` and `docker compose build` before `docker compose up`.
