@@ -36,6 +36,11 @@ public class RestServerHelper {
 
 	public void cleanUp() {
 		thread.interrupt();
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			LOG.info("Failed to join thread.");
+		}
 	}
 
 	private static boolean portAvailable(int port) {
