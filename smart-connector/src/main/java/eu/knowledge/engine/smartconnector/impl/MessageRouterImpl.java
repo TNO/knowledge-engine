@@ -98,7 +98,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 
 		// wait maximally WAIT_TIMEOUT for a return message.
-		future.orTimeout(getWaitTimeout(), TimeUnit.SECONDS).whenComplete((m, e) -> {
+		int waitInSeconds = this.getWaitTimeout();
+		if (waitInSeconds > 0) {
+			future = future.orTimeout(waitInSeconds, TimeUnit.SECONDS);
+		}
+
+		future.whenComplete((m, e) -> {
 			this.openAskMessages.remove(askMessage.getMessageId());
 		});
 
@@ -119,7 +124,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
 
 		// wait maximally WAIT_TIMEOUT for a return message.
-		future.orTimeout(getWaitTimeout(), TimeUnit.SECONDS).whenComplete((m, e) -> {
+		int waitInSeconds = this.getWaitTimeout();
+		if (waitInSeconds > 0) {
+			future = future.orTimeout(waitInSeconds, TimeUnit.SECONDS);
+		}
+
+		future.whenComplete((m, e) -> {
 			this.openAskMessages.remove(postMessage.getMessageId());
 		});
 

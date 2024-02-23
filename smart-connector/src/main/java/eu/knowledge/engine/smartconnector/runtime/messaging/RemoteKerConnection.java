@@ -8,7 +8,6 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
@@ -21,7 +20,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -44,9 +42,11 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEn
 public class RemoteKerConnection {
 
 	/**
-	 * A maximum amount of time to wait for othe HTTP REST call to fail/succeed.
+	 * How many seconds the HttpClient waits for a HTTP response when sending a HTTP
+	 * request. Default 5 seconds.
 	 */
-	private static final int HTTP_TIMEOUT = 5;
+	private static final String CONF_KEY_HTTP_TIMEOUT = "KE_HTTP_TIMEOUT";
+	private static final int DEFAULT_HTTP_TIMEOUT = 5;
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
@@ -90,11 +90,17 @@ public class RemoteKerConnection {
 			this.remoteKerUri = kerConnectionDetails.getExposedUrl();
 		}
 
-		this.httpClient = builder.connectTimeout(Duration.ofSeconds(HTTP_TIMEOUT)).build();
+		int httpTimeout = getHttpTimeout();
+
+		this.httpClient = builder.connectTimeout(Duration.ofSeconds(httpTimeout)).build();
 
 		objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
+	}
+
+	private int getHttpTimeout() {
+		return Integer.parseInt(this.getConfigProperty(CONF_KEY_HTTP_TIMEOUT, Integer.toString(DEFAULT_HTTP_TIMEOUT)));
 	}
 
 	public URI getRemoteKerUri() {
@@ -121,8 +127,7 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
-					.version(Version.HTTP_1_1).GET().build();
+					.header("Content-Type", "application/json").GET().build();
 
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -230,8 +235,7 @@ public class RemoteKerConnection {
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
 								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
-						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
-						.version(Version.HTTP_1_1).DELETE().build();
+						.header("Content-Type", "application/json").DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
@@ -276,8 +280,7 @@ public class RemoteKerConnection {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
-						.version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
@@ -312,8 +315,7 @@ public class RemoteKerConnection {
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.header("Content-Type", "application/json").timeout(Duration.ofSeconds(HTTP_TIMEOUT))
-						.version(Version.HTTP_1_1).POST(BodyPublishers.ofString(jsonMessage)).build();
+						.header("Content-Type", "application/json").POST(BodyPublishers.ofString(jsonMessage)).build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
@@ -354,6 +356,21 @@ public class RemoteKerConnection {
 		} else {
 			return null;
 		}
+	}
+
+	public String getConfigProperty(String key, String defaultValue) {
+		// We might replace this with something a bit more fancy in the future...
+		String value = System.getenv(key);
+		if (value == null) {
+			value = defaultValue;
+			LOG.trace("No value for the configuration parameter '{}' was provided, using the default value '{}'", key,
+					defaultValue);
+		}
+		return value;
+	}
+
+	public boolean hasConfigProperty(String key) {
+		return System.getenv(key) != null;
 	}
 
 }
