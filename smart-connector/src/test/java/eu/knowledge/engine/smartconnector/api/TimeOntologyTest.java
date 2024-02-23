@@ -1,5 +1,8 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.UUID;
@@ -252,7 +255,11 @@ public class TimeOntologyTest {
 
 		AskResult ar = app.ask(aAskKI, new BindingSet()).get();
 
-		LOG.info("Bindings: {}", ar.getBindings());
+		BindingSet bindings = ar.getBindings();
+		LOG.info("Bindings: {}", bindings);
+
+		assertTrue(bindings.size() > 0);
+		assertEquals("\"Meeting 2\"", bindings.iterator().next().get("topic"));
 
 		kn.stop().get();
 

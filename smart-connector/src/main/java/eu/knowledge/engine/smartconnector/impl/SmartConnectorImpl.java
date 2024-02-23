@@ -479,17 +479,18 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	void communicationReady() {
 		Instant beforePopulate = Instant.now();
 		LOG.info("Getting comms ready took {} ms", Duration.between(this.started, beforePopulate).toMillis());
-		// Populate the initial knowledge base store.
-		this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
-			LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
-			Instant beforeAnnounce = Instant.now();
-			// Then tell the other knowledge bases about our existence.
-			this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
-				LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
-				Instant beforeConstructorFinished = Instant.now();
-				this.constructorFinished.handle((r3, e3) -> {
-					LOG.info("Constructor finished took {} ms",
-							Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
+		Instant beforeConstructorFinished = Instant.now();
+		this.constructorFinished.handle((r3, e3) -> {
+			LOG.info("Constructor finished took {} ms",
+					Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
+			// Populate the initial knowledge base store.
+			this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
+				LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
+				Instant beforeAnnounce = Instant.now();
+				// Then tell the other knowledge bases about our existence.
+				this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
+					LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
+
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is
 					// ready for action!
@@ -503,11 +504,11 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 					return (Void) null;
 				});
 				return (Void) null;
+			}).exceptionally((Throwable t) -> {
+				LOG.error("Populating the Smart Connector should not result in errors.", t);
+				return null;
 			});
 			return (Void) null;
-		}).exceptionally((Throwable t) -> {
-			LOG.error("Populating the Smart Connector should not result in errors.", t);
-			return null;
 		});
 	}
 
