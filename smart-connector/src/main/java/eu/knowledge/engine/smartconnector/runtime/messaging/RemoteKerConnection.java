@@ -222,7 +222,7 @@ public class RemoteKerConnection {
 	public void updateKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
 		// TODO implement checks?
 		this.remoteKerDetails = kerDetails;
-//		dispatcher.notifySmartConnectorsChanged();
+		dispatcher.notifySmartConnectorsChanged();
 	}
 
 	public void start() {
