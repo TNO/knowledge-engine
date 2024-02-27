@@ -233,8 +233,7 @@ public class RemoteKerConnection {
 		if (this.isAvailable()) {
 			try {
 				HttpRequest request = HttpRequest
-						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
-								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
+						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + dispatcher.getMyExposedUrl()))
 						.header("Content-Type", "application/json").DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
