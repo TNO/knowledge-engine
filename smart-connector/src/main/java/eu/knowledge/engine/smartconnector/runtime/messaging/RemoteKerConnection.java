@@ -138,11 +138,11 @@ public class RemoteKerConnection {
 						"Failed to receive runtimedetails from {}, got status code {}. Trying KER again in {} minutes.",
 						this.remoteKerUri, response.statusCode(), waitTime);
 			}
-		} catch (IOException | URISyntaxException | InterruptedException e) {
+		} catch (IOException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
 			this.remoteKerDetails = null;
 			int waitTime = errorOccurred();
-			LOG.warn("Failed to receive runtimedetails from " + this.remoteKerConnectionDetails.getId()
-					+ ". Trying KER again in " + waitTime + " minutes.");
+			LOG.warn("Failed to receive runtimedetails from {}, got error '{}'. Trying KER again in {} minutes.",
+					this.remoteKerConnectionDetails.getId(), e.getMessage(), waitTime);
 			LOG.debug("", e);
 		}
 		dispatcher.notifySmartConnectorsChanged();
@@ -235,8 +235,9 @@ public class RemoteKerConnection {
 					LOG.warn("Failed to say goodbye to {}, got response {}: {}", this.remoteKerUri,
 							response.statusCode(), response.body());
 				}
-			} catch (IOException | URISyntaxException | InterruptedException e) {
-				LOG.warn("Failed to say goodbye to " + remoteKerConnectionDetails.getId());
+			} catch (IOException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
+				LOG.warn("Failed to say goodbye to {}, get error '{}'", remoteKerConnectionDetails.getId(),
+						e.getMessage());
 				LOG.debug("", e);
 			}
 		} else
@@ -275,13 +276,15 @@ public class RemoteKerConnection {
 					throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
 							+ ", body " + response.body());
 				}
-			} catch (JsonProcessingException | URISyntaxException | InterruptedException e) {
+			} catch (JsonProcessingException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
 				int time = this.errorOccurred();
-				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
+				LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time,
+						e.getMessage());
 				throw new IOException("Could not send message to remote SmartConnector.", e);
 			} catch (IOException e) {
 				int time = this.errorOccurred();
-				LOG.warn("Ignoring KER {} for {} minutes.", this.remoteKerUri, time);
+				LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time,
+						e.getMessage());
 				throw e;
 			}
 		} else {
@@ -308,11 +311,11 @@ public class RemoteKerConnection {
 					LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}, got response {}: {}",
 							this.remoteKerUri, response.statusCode(), response.body());
 				}
-			} catch (IOException | URISyntaxException | InterruptedException e) {
+			} catch (IOException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
 				this.remoteKerDetails = null;
 				this.errorOccurred();
-				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to "
-						+ remoteKerConnectionDetails.getId());
+				LOG.warn("Failed to send updated KnowledgeEngineRuntimeDetails to {}. Got error '{}'.",
+						remoteKerConnectionDetails.getId(), e.getMessage());
 				LOG.debug("", e);
 			}
 		} else
