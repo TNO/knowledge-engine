@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.jena.atlas.logging.Log;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -30,34 +31,19 @@ public class TestRegisterKnowledgeInteraction {
 	public void testRegisterKi() throws IOException {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
-		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST", "{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}", Map.of(
-			"Content-Type", "application/json",
-			"Accept", "*/*"
-		));
+		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
+				"{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
+				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 
-		HttpTester registerKiWithName = new HttpTester(
-			new URL(url + "/sc/ki"),
-			"POST",
-			"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"some-name\", \"graphPattern\": \"?a ?b ?c.\"}",
-			Map.of(
-				"Knowledge-Base-Id", "http://example.com/kb",
-				"Content-Type", "application/json",
-				"Accept", "*/*"
-			)
-		);
+		HttpTester registerKiWithName = new HttpTester(new URL(url + "/sc/ki"), "POST",
+				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"some-name\", \"graphPattern\": \"?a ?b ?c.\"}",
+				Map.of("Knowledge-Base-Id", "http://example.com/kb", "Content-Type", "application/json", "Accept",
+						"*/*"));
 		registerKiWithName.expectStatus(200);
 
-		HttpTester getKiWithName = new HttpTester(
-			new URL(url + "/sc/ki"),
-			"GET",
-			null,
-			Map.of(
-				"Knowledge-Base-Id", "http://example.com/kb",
-				"Content-Type", "application/json",
-				"Accept", "*/*"
-			)
-		);
+		HttpTester getKiWithName = new HttpTester(new URL(url + "/sc/ki"), "GET", null, Map.of("Knowledge-Base-Id",
+				"http://example.com/kb", "Content-Type", "application/json", "Accept", "*/*"));
 		var body = getKiWithName.getBody();
 		assertTrue(body.contains("\"http://example.com/kb/interaction/some-name\""));
 	}
