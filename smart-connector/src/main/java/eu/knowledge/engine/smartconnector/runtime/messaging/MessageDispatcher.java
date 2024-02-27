@@ -342,8 +342,4 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 		}
 	}
 
-	URI getMyExposedUrl() {
-		return myExposedUrl;
-	}
-
 }

@@ -3,15 +3,13 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -232,8 +230,9 @@ public class RemoteKerConnection {
 	public void stop() {
 		if (this.isAvailable()) {
 			try {
+				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(), StandardCharsets.UTF_8);
 				HttpRequest request = HttpRequest
-						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + dispatcher.getMyExposedUrl()))
+						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
 						.header("Content-Type", "application/json").DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
