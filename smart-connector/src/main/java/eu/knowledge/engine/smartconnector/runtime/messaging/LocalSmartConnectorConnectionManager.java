@@ -53,9 +53,9 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 		LocalSmartConnectorConnection connection = new LocalSmartConnectorConnection(messageDispatcher, endpoint);
 		this.localSmartConnectorConnections.put(endpoint.getKnowledgeBaseId(), connection);
 		connection.start();
+		
 		if (messageDispatcher.runsInDistributedMode()) {
 			this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
-			this.messageDispatcher.notifySmartConnectorsChanged();
 		}
 	}
 
@@ -68,7 +68,6 @@ public class LocalSmartConnectorConnectionManager implements SmartConnectorRegis
 
 		if (messageDispatcher.runsInDistributedMode()) {
 			this.messageDispatcher.getRemoteSmartConnectorConnectionsManager().notifyChangedLocalSmartConnectors();
-			this.messageDispatcher.notifySmartConnectorsChanged();
 		}
 	}
 
