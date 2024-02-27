@@ -222,14 +222,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	public boolean isTokenValid(String authorizationToken, URI fromKnowledgeBase) {
 		if (getRemoteKerConnection(fromKnowledgeBase) != null) {
-			LOG.info("RemoteKerConnection is not null");
-			if (getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken)) {
-				LOG.info("Authorization token is correct");
-				return true;
-			}
-			return false;
-		}
-		LOG.info("RemoteKerConnection is null");
+            return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
+        }
 		return false;
 	}
 }

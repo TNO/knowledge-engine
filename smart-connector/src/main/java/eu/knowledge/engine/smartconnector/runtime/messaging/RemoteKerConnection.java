@@ -100,7 +100,7 @@ public class RemoteKerConnection {
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 
-		FileInputStream configReader = null;
+		FileInputStream configReader;
 		try {
 			configReader = new FileInputStream("./edc.properties");
 		} catch (FileNotFoundException e) {
@@ -115,7 +115,6 @@ public class RemoteKerConnection {
 		}
 		validationEndpoint = properties.getProperty("tokenValidationEndpoint");
 		authToken = properties.getProperty("authorizationToken");
-		LOG.info("Auth token uitgelezen uit file: "+authToken);
 	}
 
 	public URI getRemoteKerUri() {
@@ -286,7 +285,6 @@ public class RemoteKerConnection {
 						.headers("Content-Type", "application/json",
 								"Authorization", authToken).version(Version.HTTP_1_1)
 						.POST(BodyPublishers.ofString(jsonMessage)).build();
-				LOG.info("Sending message with authorization header(s): "+request.headers().allValues("Authorization"));
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
 				if (response.statusCode() == 202) {

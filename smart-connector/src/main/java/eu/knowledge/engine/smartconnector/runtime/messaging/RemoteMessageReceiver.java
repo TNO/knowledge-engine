@@ -3,8 +3,6 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -37,7 +35,6 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	private Response handleMessage(String authorizationToken, KnowledgeMessage message) {
 		try {
-			LOG.info("Received {} with header: {}", message.getClass().getSimpleName(), authorizationToken);
 			LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
 					message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
 			//TODO: Hacky way to determine meta-ness of KI is not great, replace by more robust solution
@@ -46,12 +43,12 @@ public class RemoteMessageReceiver extends MessagingApiService {
 				return Response.status(202).build();
 			} else {
 				if (messageDispatcher.getRemoteSmartConnectorConnectionsManager().isTokenValid(authorizationToken, message.getFromKnowledgeBase())) {
-					LOG.info("Properly authorised!");
+					LOG.info("Authorization token has been validated");
 					messageDispatcher.deliverToLocalSmartConnector(message);
 					return Response.status(202).build();
 				} else {
-					LOG.warn("INVALID TOKEN");
-					return Response.status(403).build();
+					LOG.warn("Could not validate the authorization token");
+					return Response.status(403).entity("Invalid authorization token").build();
 				}
 			}
 		} catch (IOException e) {
