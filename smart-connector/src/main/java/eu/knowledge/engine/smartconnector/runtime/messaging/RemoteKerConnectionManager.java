@@ -139,9 +139,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			}
 
 			if (!kerIds.contains(e.getKey())) {
-				// According the the Knowledge Directory, this KER doesn't exist (anymore)
+				// According to the Knowledge Directory, this KER doesn't exist (anymore)
 				LOG.info("Removing peer that is now gone: {}", e.getValue().getRemoteKerUri());
-				e.getValue().stop();
 				it.remove();
 				this.unavailableRemoteKerConnections.remove(e.getKey());
 			}
