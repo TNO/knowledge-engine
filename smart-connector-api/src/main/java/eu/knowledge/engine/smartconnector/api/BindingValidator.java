@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.sse.SSE;
-import org.apache.jena.sparql.sse.SSEParseException;
+import org.apache.jena.sparql.sse.SSE_ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class BindingValidator {
 					throw new IllegalArgumentException(String.format("'%s' is not a valid unprefixed URI.", value));
 				}
 			}
-		} catch (SSEParseException spe) {
+		} catch (SSE_ParseException spe) {
 			LOG.debug("{} is not valid because Jena could not parse it", value);
 			throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
 		}
