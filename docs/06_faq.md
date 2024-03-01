@@ -384,3 +384,6 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 *Question*: What should our KB do When we receive a request for data (either via an ANSWER or REACT Knowledge Interaction), but we do not have a response?
 - *Answer*: You should send an empty binding set when you do not have a response. Also when your REACT Knowledge Interaction has no result graph pattern, you should always return an empty binding set to the Knowledge Engine. If an error occurs while responding, you can either return an empty BindingSet (although this does not give any information about the error occurring) or call the (in case you are using the asynchronous handler methods of the Java Developer API) `future.completeExceptionally(...)` method.
+
+*Question*: There are lots of 'HTTP/1.1 header parser received no bytes' errors in the logs. How do I prevent these?
+- *Answer*: This can be prevented by using a shorter timeout in the Java HTTP Client. Try using the following Java option: `-Djdk.httpclient.keepalive.timeout=3`. This can also be set in the docker configuration of a KER docker container by setting the JAVA_TOOL_OPTIONS as follows: `JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=3"`.
