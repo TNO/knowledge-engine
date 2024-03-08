@@ -387,3 +387,6 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 *Question*: There are lots of 'HTTP/1.1 header parser received no bytes' errors in the logs. How do I prevent these?
 - *Answer*: This can be prevented by using a shorter timeout in the Java HTTP Client. Try using the following Java option: `-Djdk.httpclient.keepalive.timeout=3`. This can also be set in the docker configuration of a KER docker container by setting the JAVA_TOOL_OPTIONS as follows: `JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=3"`.
+
+*Question*: Whenever I do a post or ask, the memory usage of the Knowledge Engine Runtime skyrockets and it fails with a error (`HTTP 500`) after a minute or two.
+- *Answer*: Double check whether you are enabling the reasoner when you create a Smart Connector for your Knowledge Base. When using the REST Developer API, you can disable the reasoner by setting the JSON property `reasonerEnabled` to `false` or leave the property out altogether because by default the reasoner is disabled. Currently, the reasoner is not usable for scenario's where graph patterns are more than about 5 or 6 triple patterns, because the algorithm for graph pattern matching uses too much memory. We are working on improving this algorithm and hopefully allow more use cases to enable the reasoner and benefit the increased interoperability.
