@@ -1,5 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>admin-ui</artifactId>
 	<packaging>jar</packaging>
@@ -14,10 +15,10 @@
 	<description>A user interface for managing a Knowledge Network.</description>
 
 	<properties>
-		<swagger-core-version>1.5.18</swagger-core-version>
-		<jetty-version>9.4.51.v20230217</jetty-version>
-		<jersey2-version>2.34</jersey2-version>
-		<jackson-version>2.9.9</jackson-version>
+		<swagger-core-version>2.2.20</swagger-core-version>
+		<jetty-version>11.0.15</jetty-version>
+		<jersey3-version>3.1.5</jersey3-version>
+		<jackson-version>2.16.1</jackson-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -29,22 +30,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-jersey2-jaxrs</artifactId>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2-jakarta</artifactId>
 			<scope>compile</scope>
 			<version>${swagger-core-version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.glassfish.jersey.containers</groupId>
-					<artifactId>
-						jersey-container-servlet-core
-					</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.validation</groupId>
-					<artifactId>validation-api</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -84,39 +73,34 @@
 			<version>${jetty-version}</version>
 		</dependency>
 
-		<!-- Jersey2 -->
+		<!-- Jersey3 -->
 
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-jetty-servlet</artifactId>
-			<version>${jersey2-version}</version>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.inject</groupId>
 			<artifactId>jersey-hk2</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.ext</groupId>
-			<artifactId>jersey-bean-validation</artifactId>
-			<version>${jersey2-version}</version>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
-			<version>${jersey2-version}</version>
+			<version>${jersey3-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-jaxb</artifactId>
-			<version>${jersey2-version}</version>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey3-version}</version>
 		</dependency>
 
 		<!-- Add XML support -->
 		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.1</version>
 		</dependency>
 
 
@@ -131,15 +115,22 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.7.0</version>
+			<version>5.10.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.7.0</version>
+			<version>5.10.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.10.2</version>
+			<scope>test</scope>
+		</dependency>
+		
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
 			<artifactId>smart-connector-rest-server</artifactId>
@@ -163,16 +154,20 @@
 							<packageName>eu.knowledge.engine.admin</packageName>
 							<apiPackage>eu.knowledge.engine.admin.api</apiPackage>
 							<modelPackage>eu.knowledge.engine.admin.model</modelPackage>
-							<inputSpec>${project.basedir}/src/main/resources/openapi-admin-ui.yaml</inputSpec>
+							<inputSpec>
+								${project.basedir}/src/main/resources/openapi-admin-ui.yaml</inputSpec>
 							<generatorName>jaxrs-jersey</generatorName>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<generateApis>true</generateApis>
-							<apisToGenerate>KnowledgeInteractionLifeCycle,SmartConnectorLease</apisToGenerate>
+							<apisToGenerate>
+								KnowledgeInteractionLifeCycle,SmartConnectorLease</apisToGenerate>
 							<configOptions>
 								<implFolder>dummy</implFolder>
 								<strictSpec>true</strictSpec>
 								<useTags>true</useTags>
-								<additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
+								<library>jersey3</library>
+								<additionalModelTypeAnnotations>
+									@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
 					</execution>
@@ -191,7 +186,8 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/target/generated-sources/openapi/src/gen/java</source>
+								<source>
+									${project.basedir}/target/generated-sources/openapi/src/gen/java</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -200,7 +196,8 @@
 
 			<!--
 			This plugin packages all dependencies in a so-called uber-jar. See also:
-			- https://stackoverflow.com/questions/58562397/org-apache-jena-shared-noreaderforlangexception-reader-not-found-nt
+			-
+			https://stackoverflow.com/questions/58562397/org-apache-jena-shared-noreaderforlangexception-reader-not-found-nt
 			- https://jena.apache.org/documentation/notes/jena-repack.html
 			-->
 			<plugin>
@@ -208,39 +205,45 @@
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
-						<shadedArtifactAttached>true</shadedArtifactAttached>
-						<shadedClassifierName>with-dependencies</shadedClassifierName>
-						<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-										<mainClass>eu.knowledge.engine.admin.api.RestServer</mainClass>
-								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-										<addHeader>false</addHeader>
-								</transformer>
-						</transformers>
-						<filters>
-								<filter>
-										<artifact>*:*</artifact>
-										<excludes>
-												<!-- Some jars are signed but shading breaks that.
+					<shadedArtifactAttached>true</shadedArtifactAttached>
+					<shadedClassifierName>with-dependencies</shadedClassifierName>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>eu.knowledge.engine.admin.api.RestServer</mainClass>
+						</transformer>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+							<addHeader>false</addHeader>
+						</transformer>
+					</transformers>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<!-- Some jars are signed but shading breaks
+								that.
 														Don't include signing files.
 												-->
-												<exclude>META-INF/*.SF</exclude>
-												<exclude>META-INF/*.DSA</exclude>
-												<exclude>META-INF/*.RSA</exclude>
-										</excludes>
-								</filter>
-						</filters>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
 				</configuration>
 				<executions>
-						<execution>
-								<phase>package</phase>
-								<goals>
-										<goal>shade</goal>
-								</goals>
-						</execution>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

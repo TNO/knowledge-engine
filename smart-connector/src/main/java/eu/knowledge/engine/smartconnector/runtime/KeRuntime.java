@@ -1,7 +1,9 @@
 package eu.knowledge.engine.smartconnector.runtime;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -39,6 +41,27 @@ public class KeRuntime {
 			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.",
 					CONF_KEY_MY_EXPOSED_URL);
 			System.exit(1);
+		}
+
+		// execute some validation on the EXPOSED URL, because it can have severe
+		// consequences
+		String url = getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null);
+		if (url != null) {
+			if (url.endsWith("/")) {
+				LOG.error(
+						"The '{}' environment variable's value '{}' should be a valid URL without a slash ('/') as the last character.",
+						CONF_KEY_MY_EXPOSED_URL, url);
+				System.exit(1);
+			}
+			try {
+				URL exposedUrl = new URL(url);
+
+			} catch (MalformedURLException e) {
+				LOG.error(
+						"The '{}' environment variable with value '{}' contains a malformed URL '{}'.",
+						CONF_KEY_MY_EXPOSED_URL, url, e.getMessage());
+				System.exit(1);
+			}
 		}
 
 		// we want to make sure that this threadpool does not keep the JVM alive. So we

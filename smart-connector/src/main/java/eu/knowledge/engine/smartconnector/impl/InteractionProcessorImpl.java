@@ -30,7 +30,6 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
-import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
@@ -203,6 +202,16 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
 				.getKnowledgeInteractionById(answerKnowledgeInteractionId);
 
+		if (knowledgeInteractionById == null) {
+			AnswerMessage m = new AnswerMessage(anAskMsg.getToKnowledgeBase(), anAskMsg.getToKnowledgeInteraction(),
+					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
+					"Received AskMessage wth unknown ToKnowledgeInteractionId");
+			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "+anAskMsg.getToKnowledgeInteraction().toString());
+			CompletableFuture<AnswerMessage> f = new CompletableFuture<>();
+			f.complete(m);
+			return f;
+		}
+
 		AnswerKnowledgeInteraction answerKnowledgeInteraction;
 		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
@@ -305,6 +314,17 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		URI reactKnowledgeInteractionId = aPostMsg.getToKnowledgeInteraction();
 		KnowledgeInteractionInfo knowledgeInteractionById = this.myKnowledgeBaseStore
 				.getKnowledgeInteractionById(reactKnowledgeInteractionId);
+
+		if (knowledgeInteractionById == null) {
+			ReactMessage m = new ReactMessage(aPostMsg.getToKnowledgeBase(), aPostMsg.getToKnowledgeInteraction(),
+					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
+					"Received PostMessage with unknown ToKnowledgeInteractionId");
+			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "+aPostMsg.getToKnowledgeInteraction().toString());
+			CompletableFuture<ReactMessage> f = new CompletableFuture<>();
+			f.complete(m);
+			return f;
+		}
+
 		ReactKnowledgeInteraction reactKnowledgeInteraction;
 		reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 

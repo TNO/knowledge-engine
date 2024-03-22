@@ -10,20 +10,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +24,20 @@ import eu.knowledge.engine.rest.model.PostResult;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
 
 @Path("/sc")
 public class ProactiveApiServiceImpl {
@@ -52,10 +51,10 @@ public class ProactiveApiServiceImpl {
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public void scAskPost(
-			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
-			@ApiParam(value = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
+			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Parameter(description = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 
-			@ApiParam(value = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
+			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
 		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
@@ -77,8 +76,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response).build());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
@@ -88,17 +86,15 @@ public class ProactiveApiServiceImpl {
 				this.manager.removeSuspendedKB(knowledgeBaseId);
 				var response = new ResponseMessage();
 				response.setMessageType("error");
-				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-						response)
-					.build());
+				response.setMessage(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			} else {
 				var response = new ResponseMessage();
 				response.setMessageType("error");
 				response.setMessage("Smart connector not found, because its ID is unknown.");
-				asyncResponse.resume(
-						Response.status(Status.NOT_FOUND).entity(response).build());
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		}
@@ -109,8 +105,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge interaction not found, because its ID must be a valid URI.");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response).build());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
@@ -118,8 +113,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge Interaction not found, because its ID is unknown.");
-			asyncResponse.resume(
-					Response.status(Status.NOT_FOUND).entity(response).build());
+			asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 			return;
 		}
 
@@ -128,10 +122,8 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
-				+ ki.getKnowledgeInteractionType() + ".");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response)
-					.build());
+					+ ki.getKnowledgeInteractionType() + ".");
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
@@ -164,8 +156,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Something went wrong while sending a POST or while waiting on the REACT.");
-			asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(response).build());
+			asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build());
 		} catch (IllegalArgumentException e) {
 			LOG.trace("", e);
 			var response = new ResponseMessage();
@@ -204,9 +195,9 @@ public class ProactiveApiServiceImpl {
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
 	public void scPostPost(
-			@ApiParam(value = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
-			@ApiParam(value = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
-			@ApiParam(value = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
+			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Parameter(description = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
+			@Parameter(description = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException {
 
@@ -229,8 +220,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response).build());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
@@ -240,17 +230,15 @@ public class ProactiveApiServiceImpl {
 				manager.removeSuspendedKB(knowledgeBaseId);
 				var response = new ResponseMessage();
 				response.setMessageType("error");
-				response.setMessage("This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(
-						response)
-					.build());
+				response.setMessage(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			} else {
 				var response = new ResponseMessage();
 				response.setMessageType("error");
 				response.setMessage("Smart connector not found, because its ID is unknown.");
-				asyncResponse.resume(
-					Response.status(Status.NOT_FOUND).entity(response).build());
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
 				return;
 			}
 		}
@@ -262,8 +250,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge interaction not found, because its ID must be a valid URI.");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response).build());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		}
 
@@ -271,8 +258,7 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge Interaction not found, because its ID is unknown.");
-			asyncResponse.resume(
-					Response.status(404).entity(response).build());
+			asyncResponse.resume(Response.status(404).entity(response).build());
 			return;
 		}
 
@@ -281,10 +267,8 @@ public class ProactiveApiServiceImpl {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Given Knowledge Interaction ID should have type PostKnowledgeInteraction and not "
-				+ ki.getKnowledgeInteractionType() + ".");
-			asyncResponse.resume(Response.status(Status.BAD_REQUEST)
-					.entity(response)
-					.build());
+					+ ki.getKnowledgeInteractionType() + ".");
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 			return;
 		} else {
 
@@ -320,8 +304,7 @@ public class ProactiveApiServiceImpl {
 				var response = new ResponseMessage();
 				response.setMessageType("error");
 				response.setMessage("Something went wrong while sending a POST or while waiting on the REACT.");
-				asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR)
-						.entity(response).build());
+				asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build());
 			} catch (IllegalArgumentException e) {
 				LOG.trace("", e);
 				var response = new ResponseMessage();

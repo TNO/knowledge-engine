@@ -12,8 +12,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +40,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private static final int KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN = 2;
 	private final RemoteMessageReceiver messageReceiver;
 	private final Map<String, RemoteKerConnection> remoteKerConnections = new ConcurrentHashMap<>();
+	private final Map<String, RemoteKerConnection> unavailableRemoteKerConnections = new ConcurrentHashMap<>();
 	private ScheduledFuture<?> scheduledScheduleFuture;
 	private ScheduledFuture<?> scheduledKnowledgeDirectoryQueryFuture;
 	private final MessageDispatcher messageDispatcher;
@@ -78,7 +79,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			LOG.debug("Scheduling to query the Knowledge Directory right away.");
 			this.scheduledKnowledgeDirectoryQueryFuture = KeRuntime.executorService().schedule(() -> {
 				try {
-				queryKnowledgeDirectory();
+					queryKnowledgeDirectory();
 				} catch (Throwable t) {
 					LOG.error("", t);
 				}
@@ -123,11 +124,25 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				.hasNext();) {
 			Entry<String, RemoteKerConnection> e = it.next();
 
+			// deal with unavailable remote kers
+			if (e.getValue().isAvailable() && this.unavailableRemoteKerConnections.containsKey(e.getKey())) {
+				// available again so make sure we get its current SCs
+				this.unavailableRemoteKerConnections.remove(e.getKey());
+				e.getValue().getRemoteKerDetails();
+			}
+
+			if (!e.getValue().isAvailable()) {
+				if (!this.unavailableRemoteKerConnections.containsKey(e.getKey())) {
+					// recently became unavailable
+					this.unavailableRemoteKerConnections.put(e.getKey(), e.getValue());
+				}
+			}
+
 			if (!kerIds.contains(e.getKey())) {
-				// According the the Knowledge Directory, this KER doesn't exist (anymore)
+				// According to the Knowledge Directory, this KER doesn't exist (anymore)
 				LOG.info("Removing peer that is now gone: {}", e.getValue().getRemoteKerUri());
-				e.getValue().stop();
 				it.remove();
+				this.unavailableRemoteKerConnections.remove(e.getKey());
 			}
 		}
 		this.knowledgeDirectoryUpdateCooldownEnds = new Date(

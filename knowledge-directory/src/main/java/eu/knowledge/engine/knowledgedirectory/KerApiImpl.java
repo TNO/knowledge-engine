@@ -6,8 +6,8 @@ import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +51,7 @@ public class KerApiImpl extends KerApiService {
 		cleanupExpired();
 
 		// Required data present?
-		if (knowledgeEngineRuntime.getExposedUrl() == null
-				|| knowledgeEngineRuntime.getProtocolVersion() == null) {
+		if (knowledgeEngineRuntime.getExposedUrl() == null || knowledgeEngineRuntime.getProtocolVersion() == null) {
 			return Response.status(400).entity("Data was not valid").build();
 		}
 
@@ -60,7 +59,9 @@ public class KerApiImpl extends KerApiService {
 		var uriWithCredentials = knowledgeEngineRuntime.getExposedUrl();
 		URI uriWithoutCredentials;
 		try {
-			uriWithoutCredentials = new URI(uriWithCredentials.getScheme(),null, uriWithCredentials.getHost(), uriWithCredentials.getPort(),uriWithCredentials.getPath(), uriWithCredentials.getQuery(), uriWithCredentials.getFragment());
+			uriWithoutCredentials = new URI(uriWithCredentials.getScheme(), null, uriWithCredentials.getHost(),
+					uriWithCredentials.getPort(), uriWithCredentials.getPath(), uriWithCredentials.getQuery(),
+					uriWithCredentials.getFragment());
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("Encountered invalid URI syntax while stripping userinfo from URI.");
 		}
