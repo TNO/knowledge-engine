@@ -129,7 +129,7 @@ public class RemoteKerConnection {
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 
-		String file = "./" + System.getenv("KER") + "/edc.properties";
+		String file = "./edc.properties";
 		Properties properties = new Properties();
 		FileInputStream configReader;
 		try {
