@@ -70,6 +70,23 @@ public class RemoteKerConnection {
 	private LocalDateTime tryAgainAfter = null;
 	private int errorCounter = 0;
 	private LocalDateTime logStillIgnoringAfter = null;
+
+	// edc info
+	/**
+	 * The transfer id of this KERs data transfer with this Remote KER.
+	 */
+	private String transferId;
+
+	/**
+	 * The contract agreement id this KERs EDC Connector agreed upon with this
+	 * Remote KERs EDC Connector.
+	 */
+	private String contractAgreementId;
+
+	/**
+	 * The authentication token which proves this KER has a valid EDC contract with
+	 * this remote KER.
+	 */
 	private String authToken;
 	private String validationEndpoint;
 
@@ -124,7 +141,7 @@ public class RemoteKerConnection {
 		}
 
 		validationEndpoint = properties.getProperty("tokenValidationEndpoint");
-		authToken = setupTransferProcess();
+		setupTransferProcess();
 	}
 
 	/**
@@ -132,18 +149,20 @@ public class RemoteKerConnection {
 	 * involves fetching their catalog, negotiating a contract, starting a transfer
 	 * process and receiving the token.
 	 */
-	private String setupTransferProcess() {
+	private void setupTransferProcess() {
 		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(this.myExposedUri.toString(),
 				this.remoteKerUri.toString(), TkeEdcConnectorService.ASSET_NAME);
-		String contractAgreement = this.edcService.negotiateContract(this.myExposedUri.toString(),
+		String contractAgreementJson = this.edcService.negotiateContract(this.myExposedUri.toString(),
 				this.remoteKerUri.toString(), assetId);
 
-		String contractAgreementId = findByJsonPointerExpression(contractAgreement, "/contractAgreementId");
+		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
 
-		this.edcService.transferProcess(this.myExposedUri.toString(), this.remoteKerUri.toString(), contractAgreementId,
-				assetId);
-		List<Token> tokens = this.tokenManager.getTokensFor(this.myExposedUri.toString(), this.remoteKerUri.toString());
-		return tokens.iterator().next().authCode();
+		String transferJson = this.edcService.transferProcess(this.myExposedUri.toString(),
+				this.remoteKerUri.toString(), this.contractAgreementId, assetId);
+		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
+
+		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
+				this.remoteKerUri.toString(), this.contractAgreementId, this.transferId);
 	}
 
 	private int getHttpTimeout() {
@@ -172,6 +191,10 @@ public class RemoteKerConnection {
 	 * {@link KnowledgeEngineRuntimeDetails}
 	 */
 	private void updateRemoteKerDataFromPeer() {
+		if (!tokenAvailable()) {
+			LOG.warn("No token available yet!");
+			return;
+		}
 		try {
 			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
 					.headers("Content-Type", "application/json", "Authorization", authToken).GET().build();
@@ -201,6 +224,10 @@ public class RemoteKerConnection {
 			LOG.debug("", e);
 		}
 		dispatcher.notifySmartConnectorsChanged();
+	}
+
+	private boolean tokenAvailable() {
+		return this.authToken != null;
 	}
 
 	public boolean isAvailable() {
@@ -278,6 +305,10 @@ public class RemoteKerConnection {
 
 	public void stop() {
 		if (this.isAvailable()) {
+			if (!tokenAvailable()) {
+				LOG.warn("No token available yet!");
+				return;
+			}
 			try {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
@@ -325,7 +356,10 @@ public class RemoteKerConnection {
 				: getRemoteKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString()));
 
 		if (this.isAvailable()) {
-
+			if (!tokenAvailable()) {
+				LOG.warn("No token available yet!");
+				return;
+			}
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
 				HttpRequest request = HttpRequest
@@ -364,6 +398,10 @@ public class RemoteKerConnection {
 
 	public void sendMyKerDetailsToPeer(KnowledgeEngineRuntimeDetails details) {
 		if (this.isAvailable()) {
+			if (!tokenAvailable()) {
+				LOG.warn("No token available yet!");
+				return;
+			}
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(details);
 				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
@@ -441,12 +479,28 @@ public class RemoteKerConnection {
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 200) {
 					return true;
+				} else {
+					LOG.warn("Validating failed with status code {} and message '{}'", response.statusCode(),
+							response.body());
 				}
 			} catch (IOException | InterruptedException e) {
-				LOG.error("Encountered a problem during authenticating the EDC token");
+				LOG.error("Encountered a problem during authenticating the EDC token.", e);
 			}
 
 		}
 		return false;
+	}
+
+	public String getTransferId() {
+		return this.transferId;
+	}
+
+	public String getContractAgreementId() {
+		return this.contractAgreementId;
+	}
+
+	public void setToken(String aToken) {
+		this.authToken = aToken;
+		this.updateRemoteKerDataFromPeer();
 	}
 }

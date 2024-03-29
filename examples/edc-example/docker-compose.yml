@@ -18,6 +18,9 @@ services:
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+    depends_on:
+      - edc-tke-consumer
   runtime-2:
     build: ker2
     networks:
@@ -26,6 +29,49 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+    depends_on:
+      - edc-tke-consumer
+  edc-tke-provider:
+    image: openjdk:17
+    entrypoint: ["/bin/sh","-c"]
+    hostname: provider
+    networks:
+      - tke-edc-manager_default
+    ports:
+      - "19191:19191"
+      - "19192:19192"
+      - "19193:19193"
+      - "19194:19194"
+    command:
+      - |
+        java -Dedc.keystore=/edc/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=/edc/configuration/provider-vault.properties -Dedc.fs.config=/edc/configuration/provider-configuration.properties -jar /edc/libs/connector.jar
+    volumes:
+      - ./connector/certs:/edc/certs
+      - ./connector/libs:/edc/libs
+      - ./connector/configuration:/edc/configuration
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  edc-tke-consumer:
+    image: openjdk:17
+    entrypoint: [ "/bin/sh","-c" ]
+    hostname: consumer
+    networks:
+      - tke-edc-manager_default
+    ports:
+      - "29191:29191"
+      - "29192:29192"
+      - "29193:29193"
+      - "29194:29194"
+    command:
+      - |
+        java -Dedc.keystore=/edc/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=/edc/configuration/consumer-vault.properties -Dedc.fs.config=/edc/configuration/consumer-configuration.properties -jar /edc/libs/connector.jar
+    volumes:
+      - ./connector/certs:/edc/certs
+      - ./connector/libs:/edc/libs
+      - ./connector/configuration:/edc/configuration
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # These Knowledge Bases use the different runtimes, and exchange data with eachother.
   kb1: # linked to edc consumer

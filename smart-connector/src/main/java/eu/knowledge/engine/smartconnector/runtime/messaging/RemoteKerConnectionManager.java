@@ -77,7 +77,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 */
 	private TkeEdcConnectorConfiguration loadConfig() {
 
-		String file = "./" + System.getenv("KER") + "/edc.properties";
+		String file = "./edc.properties";
 		LOG.info("Loading properties file: {}", file);
 		Properties properties = new Properties();
 		FileInputStream configReader;
@@ -95,6 +95,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		props.setDataPlaneControlUrl(properties.getProperty("dataPlaneControlUrl"));
 		props.setDataPlanePublicUrl(properties.getProperty("dataPlanePublicUrl"));
 		props.setManagementUrl(properties.getProperty("managementUrl"));
+
+		LOG.info("Setting management url to: {}", properties.getProperty("managementUrl"));
+
 		props.setProtocolUrl(properties.getProperty("protocolUrl"));
 
 		TkeEdcConnectorProperties props2 = new TkeEdcConnectorProperties();
@@ -276,9 +279,16 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	public Response tokenPost(String body, SecurityContext securityContext) throws NotFoundException {
 
 		LOG.info("Token JSON received: {}", body);
-		tokenManager.tokenReceived(new Token(body));
-
 		// TODO Change runtimeexception from new Token to something we can use?
+		tokenManager.tokenReceived(new Token(body));
+		Token t = new Token(body);
+
+		for (RemoteKerConnection ker : this.remoteKerConnections.values()) {
+			if (ker.getTransferId().equals(t.id()) && ker.getContractAgreementId().equals(t.contractId())) {
+				ker.setToken(t.authCode());
+			}
+		}
+
 		return Response.status(200).build();
 	}
 
