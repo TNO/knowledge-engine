@@ -177,6 +177,11 @@
 			<artifactId>ehcache</artifactId>
 			<version>3.9.9</version>
 		</dependency>
+		<dependency>
+			<groupId>nl.tno.tke.edc</groupId>
+			<artifactId>tke-edc-manager</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<properties>

@@ -120,7 +120,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			this.getKnowledgeDirectoryConnectionManager().start();
 
 			// Start the RemoteSmartConnnectorConnectionsManager
-			remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this);
+			remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this, this.myExposedUrl);
 			getRemoteSmartConnectorConnectionsManager().start();
 
 			// Start HTTP Server

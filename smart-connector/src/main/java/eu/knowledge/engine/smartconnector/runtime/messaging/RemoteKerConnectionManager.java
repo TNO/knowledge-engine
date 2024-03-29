@@ -1,22 +1,24 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.PropertySource;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
@@ -24,6 +26,13 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFou
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.SmartConnectorManagementApiService;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import nl.tno.tke.edc.TkeEdcConnectorConfiguration;
+import nl.tno.tke.edc.TkeEdcConnectorProperties;
+import nl.tno.tke.edc.TkeEdcConnectorService;
+import nl.tno.tke.edc.TkeEdcInMemoryTokenManager;
+import nl.tno.tke.edc.Token;
 
 /**
  * The class is responsible for detecting new or removed remote
@@ -32,6 +41,7 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEn
  * {@link RemoteKerConnection} for each remote runtime. In addition, it is also
  * responsible for notifying other KnowledgeEngineRuntimes of local changes.
  */
+@PropertySource("classpath:edc.properties")
 public class RemoteKerConnectionManager extends SmartConnectorManagementApiService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnectionManager.class);
@@ -45,10 +55,56 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private ScheduledFuture<?> scheduledKnowledgeDirectoryQueryFuture;
 	private final MessageDispatcher messageDispatcher;
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
+	private TkeEdcConnectorService edcService = null;
+	private TkeEdcInMemoryTokenManager tokenManager = null;
+	private URI myExposedUrl = null;
 
-	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher) {
+	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher, URI myExposedUrl) {
 		this.messageDispatcher = messageDispatcher;
+		this.myExposedUrl = myExposedUrl;
 		messageReceiver = new RemoteMessageReceiver(messageDispatcher);
+
+		TkeEdcConnectorConfiguration config = loadConfig();
+
+		this.edcService = new TkeEdcConnectorService(config);
+		this.tokenManager = new TkeEdcInMemoryTokenManager();
+	}
+
+	/**
+	 * TODO We do not want to load these manually, is there a better way?
+	 * 
+	 * @return A configuration object with properties for the two connectors.
+	 */
+	private TkeEdcConnectorConfiguration loadConfig() {
+
+		String file = "./" + System.getenv("KER") + "/edc.properties";
+		LOG.info("Loading properties file: {}", file);
+		Properties properties = new Properties();
+		FileInputStream configReader;
+		try {
+			configReader = new FileInputStream(file);
+			properties.load(configReader);
+			configReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		var config = new TkeEdcConnectorConfiguration();
+		TkeEdcConnectorProperties props = new TkeEdcConnectorProperties();
+		props.setParticipantId(this.myExposedUrl.toString());
+		props.setDataPlaneControlUrl(properties.getProperty("dataPlaneControlUrl"));
+		props.setDataPlanePublicUrl(properties.getProperty("dataPlanePublicUrl"));
+		props.setManagementUrl(properties.getProperty("managementUrl"));
+		props.setProtocolUrl(properties.getProperty("protocolUrl"));
+
+		TkeEdcConnectorProperties props2 = new TkeEdcConnectorProperties();
+		props2.setParticipantId(properties.getProperty("otherKerParticipantName"));
+		props2.setProtocolUrl(properties.getProperty("otherKerEndpointUrl"));
+
+		List<TkeEdcConnectorProperties> connectors = Arrays.asList(props, props2);
+
+		config.setConnector(connectors);
+		return config;
 	}
 
 	public void start() {
@@ -60,6 +116,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				LOG.error("", t);
 			}
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
+
+		// configure our EDC Connector with the TKE asset
+
+		edcService.configureConnector(this.myExposedUrl.toString());
 	}
 
 	public void scheduleQueryKnowledgeDirectory() {
@@ -113,7 +173,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
 				LOG.info("Discovered new peer " + knowledgeEngineRuntime.getId());
-				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime);
+				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
+						this.edcService, this.tokenManager, knowledgeEngineRuntime);
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
 			}
@@ -166,7 +227,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * Another KER would like to know our {@link KnowledgeEngineRuntimeDetails}.
 	 */
 	@Override
-	public Response runtimedetailsGet(String authorizationToken, SecurityContext securityContext) throws NotFoundException {
+	public Response runtimedetailsGet(String authorizationToken, SecurityContext securityContext)
+			throws NotFoundException {
 		KnowledgeEngineRuntimeDetails runtimeDetails = messageDispatcher.getMyKnowledgeEngineRuntimeDetails();
 		return Response.status(200).entity(runtimeDetails).build();
 	}
@@ -176,8 +238,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * {@link KnowledgeEngineRuntimeDetails} have changed.
 	 */
 	@Override
-	public Response runtimedetailsPost(String authorizationToken, KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails,
-			SecurityContext securityContext) throws NotFoundException {
+	public Response runtimedetailsPost(String authorizationToken,
+			KnowledgeEngineRuntimeDetails knowledgeEngineRuntimeDetails, SecurityContext securityContext)
+			throws NotFoundException {
 		RemoteKerConnection remoteKerConnection = remoteKerConnections
 				.get(knowledgeEngineRuntimeDetails.getRuntimeId());
 		if (remoteKerConnection == null) {
@@ -197,7 +260,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * Another KER lets us know it will leave.
 	 */
 	@Override
-	public Response runtimedetailsKerIdDelete(String authorizationToken, String kerId, SecurityContext securityContext) throws NotFoundException {
+	public Response runtimedetailsKerIdDelete(String authorizationToken, String kerId, SecurityContext securityContext)
+			throws NotFoundException {
 		RemoteKerConnection kerConnection = remoteKerConnections.remove(kerId);
 		if (kerConnection == null) {
 			// That one didn't exist
@@ -206,6 +270,16 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			// Done!
 			return Response.status(204).build();
 		}
+	}
+
+	@Override
+	public Response tokenPost(String body, SecurityContext securityContext) throws NotFoundException {
+
+		LOG.info("Token JSON received: {}", body);
+		tokenManager.tokenReceived(new Token(body));
+
+		// TODO Change runtimeexception from new Token to something we can use?
+		return Response.status(200).build();
 	}
 
 	/**
@@ -237,8 +311,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	public boolean isTokenValid(String authorizationToken, URI fromKnowledgeBase) {
 		if (getRemoteKerConnection(fromKnowledgeBase) != null) {
-            return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
-        }
+			return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
+		}
 		return false;
 	}
 }
