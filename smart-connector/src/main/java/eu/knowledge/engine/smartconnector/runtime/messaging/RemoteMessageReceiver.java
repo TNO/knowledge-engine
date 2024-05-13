@@ -42,13 +42,18 @@ public class RemoteMessageReceiver extends MessagingApiService {
 				messageDispatcher.deliverToLocalSmartConnector(message);
 				return Response.status(202).build();
 			} else {
-				if (messageDispatcher.getRemoteSmartConnectorConnectionsManager().isTokenValid(authorizationToken, message.getFromKnowledgeBase())) {
-					LOG.info("Authorization token has been validated");
+				if (this.messageDispatcher.usesEdc()) {
+					if (messageDispatcher.getRemoteSmartConnectorConnectionsManager().isTokenValid(authorizationToken, message.getFromKnowledgeBase())) {
+						LOG.info("Authorization token has been validated");
+						messageDispatcher.deliverToLocalSmartConnector(message);
+						return Response.status(202).build();
+					} else {
+						LOG.warn("Could not validate the authorization token");
+						return Response.status(403).entity("Invalid authorization token").build();
+					}
+				} else {
 					messageDispatcher.deliverToLocalSmartConnector(message);
 					return Response.status(202).build();
-				} else {
-					LOG.warn("Could not validate the authorization token");
-					return Response.status(403).entity("Invalid authorization token").build();
 				}
 			}
 		} catch (IOException e) {

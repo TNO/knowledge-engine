@@ -3,7 +3,7 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.3
+    image: testkd:1.2.5-SNAPSHOT
     networks:
       - tke-edc-manager_default
 
@@ -19,8 +19,9 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      USE_EDC: true
     depends_on:
-      - edc-tke-consumer
+      - tke-edc-one
   runtime-2:
     build: ker2
     networks:
@@ -30,12 +31,25 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      USE_EDC: true
     depends_on:
-      - edc-tke-consumer
-  edc-tke-provider:
+      - tke-edc-two
+  runtime-3:
+    build: ker3
+    networks:
+      - tke-edc-manager_default
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
+      KD_URL: http://knowledge-directory:8282
+      USE_EDC: true
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+    depends_on:
+      - tke-edc-three
+  tke-edc-one:
     image: openjdk:17
     entrypoint: ["/bin/sh","-c"]
-    hostname: provider
+    hostname: one
     networks:
       - tke-edc-manager_default
     ports:
@@ -52,10 +66,10 @@ services:
       - ./connector/configuration:/edc/configuration
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  edc-tke-consumer:
+  tke-edc-two:
     image: openjdk:17
     entrypoint: [ "/bin/sh","-c" ]
-    hostname: consumer
+    hostname: two
     networks:
       - tke-edc-manager_default
     ports:
@@ -72,7 +86,26 @@ services:
       - ./connector/configuration:/edc/configuration
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
+  tke-edc-three:
+    image: openjdk:17
+    entrypoint: [ "/bin/sh","-c" ]
+    hostname: three
+    networks:
+      - tke-edc-manager_default
+    ports:
+      - "39191:39191"
+      - "39192:39192"
+      - "39193:39193"
+      - "39194:39194"
+    command:
+      - |
+        java -Dedc.keystore=/edc/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=/edc/configuration/three-vault.properties -Dedc.fs.config=/edc/configuration/three-configuration.properties -jar /edc/libs/connector.jar
+    volumes:
+      - ./connector/certs:/edc/certs
+      - ./connector/libs:/edc/libs
+      - ./connector/configuration:/edc/configuration
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   # These Knowledge Bases use the different runtimes, and exchange data with eachother.
   kb1: # linked to edc consumer
     build: ../common/asking_kb
@@ -105,13 +138,28 @@ services:
           {
             "a": "<http://example.org/Math>",
             "b": "<http://example.org/Science>"
-          },
-          {
-            "a": "<http://example.org/Books>",
-            "b": "<http://example.org/Magazines>"
           }
         ]
-
+  kb3: # linked to edc provider
+    build: ../common/answering_kb
+    networks:
+      - tke-edc-manager_default
+    environment:
+      KE_URL: http://runtime-3:8280/rest
+      KB_ID: http://example.org/kb3
+      PREFIXES: |
+        {
+          "ex": "http://example.org/"
+        }
+      GRAPH_PATTERN: |
+        ?a ex:relatedTo ?b .
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Magazines>",
+            "b": "<http://example.org/Books>"
+          }
+        ]
 networks:
   tke-edc-manager_default:
-    external: true
+    external: false

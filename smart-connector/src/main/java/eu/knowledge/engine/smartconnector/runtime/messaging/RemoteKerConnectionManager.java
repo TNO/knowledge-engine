@@ -3,8 +3,8 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -57,17 +57,22 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
 	private TkeEdcConnectorService edcService = null;
 	private TkeEdcInMemoryTokenManager tokenManager = null;
-	private URI myExposedUrl = null;
+	private URI myExposedUrl;
+	private URI myEdcConnectorUrl = null;
+	private boolean useEdc;
 
-	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher, URI myExposedUrl) {
+	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher, URI myExposedUrl, boolean useEdc) {
 		this.messageDispatcher = messageDispatcher;
 		this.myExposedUrl = myExposedUrl;
 		messageReceiver = new RemoteMessageReceiver(messageDispatcher);
+		this.useEdc = useEdc;
 
-		TkeEdcConnectorConfiguration config = loadConfig();
+		if (this.useEdc) {
+			TkeEdcConnectorConfiguration config = loadConfig();
 
-		this.edcService = new TkeEdcConnectorService(config);
-		this.tokenManager = new TkeEdcInMemoryTokenManager();
+			this.edcService = new TkeEdcConnectorService(config);
+			this.tokenManager = new TkeEdcInMemoryTokenManager();
+		}
 	}
 
 	/**
@@ -99,12 +104,13 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		LOG.info("Setting management url to: {}", properties.getProperty("managementUrl"));
 
 		props.setProtocolUrl(properties.getProperty("protocolUrl"));
+		try {
+			this.myEdcConnectorUrl = new URI(props.getProtocolUrl());
+		} catch (URISyntaxException e) {
+			LOG.error("Invalid syntax for EDC Connector URL");
+		}
 
-		TkeEdcConnectorProperties props2 = new TkeEdcConnectorProperties();
-		props2.setParticipantId(properties.getProperty("otherKerParticipantName"));
-		props2.setProtocolUrl(properties.getProperty("otherKerEndpointUrl"));
-
-		List<TkeEdcConnectorProperties> connectors = Arrays.asList(props, props2);
+		List<TkeEdcConnectorProperties> connectors = List.of(props);
 
 		config.setConnector(connectors);
 		return config;
@@ -121,8 +127,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
 
 		// configure our EDC Connector with the TKE asset
-
-		edcService.configureConnector(this.myExposedUrl.toString());
+		if (useEdc) {
+			edcService.configureConnector(this.myExposedUrl.toString());
+		}
 	}
 
 	public void scheduleQueryKnowledgeDirectory() {
@@ -176,8 +183,19 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			if (!remoteKerConnections.containsKey(knowledgeEngineRuntime.getId())) {
 				// This must be a new remote KER
 				LOG.info("Discovered new peer " + knowledgeEngineRuntime.getId());
-				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
-						this.edcService, this.tokenManager, knowledgeEngineRuntime);
+
+				RemoteKerConnection messageSender;
+				if (useEdc) {
+					TkeEdcConnectorProperties prop = new TkeEdcConnectorProperties();
+					prop.setParticipantId(knowledgeEngineRuntime.getExposedUrl().toString());
+					prop.setProtocolUrl(knowledgeEngineRuntime.getEdcConnectorUrl().toString());
+					this.edcService.addConnector(prop);
+
+					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
+							this.edcService, this.tokenManager, knowledgeEngineRuntime);
+				} else {
+					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, null, null, knowledgeEngineRuntime);
+				}
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
 			}
@@ -280,12 +298,14 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		LOG.info("Token JSON received: {}", body);
 		// TODO Change runtimeexception from new Token to something we can use?
-		tokenManager.tokenReceived(new Token(body));
-		Token t = new Token(body);
+		if (tokenManager != null) {
+			tokenManager.tokenReceived(new Token(body));
+			Token t = new Token(body);
 
-		for (RemoteKerConnection ker : this.remoteKerConnections.values()) {
-			if (ker.getTransferId().equals(t.id()) && ker.getContractAgreementId().equals(t.contractId())) {
-				ker.setToken(t.authCode());
+			for (RemoteKerConnection ker : this.remoteKerConnections.values()) {
+				if (ker.getTransferId().equals(t.id()) && ker.getContractAgreementId().equals(t.contractId())) {
+					ker.setToken(t.authCode());
+				}
 			}
 		}
 
@@ -324,5 +344,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
 		}
 		return false;
+	}
+
+	URI getEdcConnectorUrl() {
+		return this.myEdcConnectorUrl;
 	}
 }

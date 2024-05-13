@@ -25,6 +25,7 @@ public class KeRuntime {
 	private static final String CONF_KEY_MY_PORT = "KE_RUNTIME_PORT";
 	private static final String CONF_KEY_KD_URL = "KD_URL";
 	private static final String CONF_KEY_MY_EXPOSED_URL = "KE_RUNTIME_EXPOSED_URL";
+	private static final String CONF_USE_EDC = "USE_EDC";
 
 	private static final String EXPOSED_URL_DEFAULT_PROTOCOL = "http";
 
@@ -115,8 +116,10 @@ public class KeRuntime {
 						myExposedUrl = new URI(EXPOSED_URL_DEFAULT_PROTOCOL + "://" + myHostname + ":" + myPort);
 					}
 
-					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl,
-							new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080")));
+					var useEdc = getConfigProperty(CONF_USE_EDC, "").equalsIgnoreCase("true");
+
+                    messageDispatcher = new MessageDispatcher(myPort, myExposedUrl,
+							new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080")), useEdc);
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);

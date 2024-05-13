@@ -4,7 +4,6 @@ import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUs
 import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.net.http.HttpClient;
@@ -37,7 +36,6 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.Know
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import nl.tno.tke.edc.TkeEdcConnectorService;
 import nl.tno.tke.edc.TkeEdcInMemoryTokenManager;
-import nl.tno.tke.edc.Token;
 
 /**
  * This class is responsible for sending messages to a single remote Knowledge
@@ -56,8 +54,8 @@ public class RemoteKerConnection {
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
 	private URI myExposedUri = null;
-	private TkeEdcConnectorService edcService = null;
-	private TkeEdcInMemoryTokenManager tokenManager = null;
+	private TkeEdcConnectorService edcService;
+	private TkeEdcInMemoryTokenManager tokenManager;
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
 	private final URI remoteKerUri;
@@ -129,19 +127,21 @@ public class RemoteKerConnection {
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 
-		String file = "./edc.properties";
-		Properties properties = new Properties();
-		FileInputStream configReader;
-		try {
-			configReader = new FileInputStream(file);
-			properties.load(configReader);
-			configReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		if (!(this.edcService == null || this.tokenManager == null)) {
+			String file = "./edc.properties";
+			Properties properties = new Properties();
+			FileInputStream configReader;
+			try {
+				configReader = new FileInputStream(file);
+				properties.load(configReader);
+				configReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
-		validationEndpoint = properties.getProperty("tokenValidationEndpoint");
-		setupTransferProcess();
+			validationEndpoint = properties.getProperty("tokenValidationEndpoint");
+			setupTransferProcess();
+		}
 	}
 
 	/**
@@ -191,13 +191,17 @@ public class RemoteKerConnection {
 	 * {@link KnowledgeEngineRuntimeDetails}
 	 */
 	private void updateRemoteKerDataFromPeer() {
-		if (!tokenAvailable()) {
+		if (this.edcService != null && !tokenAvailable()) {
 			LOG.warn("No token available yet!");
 			return;
 		}
 		try {
-			HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.headers("Content-Type", "application/json", "Authorization", authToken).GET().build();
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
+					.headers("Content-Type", "application/json").GET();
+			if (this.edcService != null) {
+				requestBuilder.setHeader("Authorization", authToken);
+			}
+			HttpRequest request = requestBuilder.build();
 
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -305,7 +309,7 @@ public class RemoteKerConnection {
 
 	public void stop() {
 		if (this.isAvailable()) {
-			if (!tokenAvailable()) {
+			if (this.edcService != null && !tokenAvailable()) {
 				LOG.warn("No token available yet!");
 				return;
 			}
@@ -356,16 +360,20 @@ public class RemoteKerConnection {
 				: getRemoteKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString()));
 
 		if (this.isAvailable()) {
-			if (!tokenAvailable()) {
+			if (this.edcService != null && !tokenAvailable()) {
 				LOG.warn("No token available yet!");
 				return;
 			}
 			try {
 				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
-				HttpRequest request = HttpRequest
+				HttpRequest.Builder requestBuilder = HttpRequest
 						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.headers("Content-Type", "application/json", "Authorization", authToken)
-						.POST(BodyPublishers.ofString(jsonMessage)).build();
+						.headers("Content-Type", "application/json")
+						.POST(BodyPublishers.ofString(jsonMessage));
+				if (this.edcService != null) {
+					requestBuilder.setHeader("Authorization", authToken);
+				}
+				HttpRequest request = requestBuilder.build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
@@ -398,7 +406,7 @@ public class RemoteKerConnection {
 
 	public void sendMyKerDetailsToPeer(KnowledgeEngineRuntimeDetails details) {
 		if (this.isAvailable()) {
-			if (!tokenAvailable()) {
+			if (this.edcService != null && !tokenAvailable()) {
 				LOG.warn("No token available yet!");
 				return;
 			}
