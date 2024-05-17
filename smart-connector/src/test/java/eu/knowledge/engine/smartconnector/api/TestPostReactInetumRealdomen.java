@@ -22,6 +22,51 @@ public class TestPostReactInetumRealdomen {
 	private static KnowledgeNetwork kn;
 
 	@Test
+	public void testPostReact2() throws InterruptedException, ExecutionException {
+		kn = new KnowledgeNetwork();
+		kb1 = new MockedKnowledgeBase("kb1");
+		kn.addKB(kb1);
+
+		kb2 = new MockedKnowledgeBase("kb2");
+		kb2.setReasonerEnabled(true);
+		kn.addKB(kb2);
+
+		GraphPattern gp1 = new GraphPattern(
+				"?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.mycompany.be/MyType> .");
+
+		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp1, null);
+		kb1.register(reactKI, (anRKI, aReactExchangeInfo) -> {
+
+			LOG.info("Binding: {}", aReactExchangeInfo.getArgumentBindings());
+
+			var bs = new BindingSet();
+			return bs;
+		});
+
+		GraphPattern gp2 = new GraphPattern("?x <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someType .");
+		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp2, null);
+		kb2.register(postKI);
+		kn.sync();
+		LOG.info("Everyone is up-to-date!");
+
+		BindingSet bs = new BindingSet();
+		var b = new Binding();
+		b.put("x", "<http://www.knowledge-engine.eu/test1>");
+		b.put("someType", "<http://www.mycompany.be/MyType>");
+		bs.add(b);
+
+		var b2 = new Binding();
+		b2.put("x", "<http://www.knowledge-engine.eu/test2>");
+		b2.put("someType", "<http://www.mycompany.be/Bla>");
+		bs.add(b2);
+
+		PostResult postResult = kb2.post(postKI, bs).get();
+
+		LOG.info("Result: {}", postResult);
+
+	}
+
+	@Test
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
