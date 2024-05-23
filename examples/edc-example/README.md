@@ -58,8 +58,8 @@ Execute the following steps to run the example:
 2. In this project, execute a `mvn clean install`.
 3. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.2.5-SNAPSHOT`.
 4. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.2.5-SNAPSHOT`.
-5. In the `edc-example` directory in this project, execute `docker compose build`. 
-6. In the `edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
+5. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
+6. In the `examples/edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
 7. Wait around 10 seconds to give the EDC Connectors time to finish setting up. Then, execute `docker compose up -d` to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
 
 You can inspect the logs with `docker compose logs -f`.
@@ -69,14 +69,14 @@ You can then see that one KER (`runtime-1`) asks for information, a second KER (
 To stop the example, execute `docker compose down`.
 
 ## Adding another participant to the network
-For each additional KER with an EDC-IDS Connector, we need the following files in the `edc-example` directory:
+For each additional KER with an EDC-IDS Connector, we need the following files in the `examples/edc-example` directory:
 - `connector/configuration/ker-configuration.properties` contains settings for the EDC-IDS Connector
 - `connector/configuration/ker-vault.properties` contains a public key
 - A new directory for this specific KER. Currently, they are named `ker1`, `ker2`, ..., containing:
   - `edc.properties` file containing several properties that are used in the communication between KERs
   - `Dockerfile` containing a Docker script that starts the KER. Note that this contains a link to the `edc.properties` file and thus is unique for each KER.
 
-The `docker-compose.yml` in `edc-example/` should also be modified to include:
+The `docker-compose.yml` in `examples/edc-example/` should also be modified to include:
 - An additional KER (currently named `runtime-1`, `runtime-2`, ...)
   - The `build` setting refers to the directory for the new KER.
   - The `depends_on` setting refers to the Docker component for the EDC-IDS Connector
