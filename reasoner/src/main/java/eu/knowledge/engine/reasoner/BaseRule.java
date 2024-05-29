@@ -392,6 +392,10 @@ public class BaseRule {
 		this.name = aName;
 	}
 
+	protected String getName() {
+		return name;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

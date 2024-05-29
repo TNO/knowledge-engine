@@ -120,9 +120,9 @@ public class ReasonerPlan {
 
 				// Ready, and current version of input has not been scheduled on taskboard? ->
 				// Add to taskboard otherwise -> Do not add to taskboard
-				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
+				if (current.readyForApplyRule() && !current.isResultBindingSetInputAlreadyScheduledOrDone()) {
 					this.scheduleOrDoTask(current, taskBoard);
-					current.setResultBindingSetInputScheduled(true);
+					current.setResultBindingSetInputAlreadyScheduledOrDone(true);
 				}
 
 				if (current.shouldPropagateFilterBindingSetOutput()) {
@@ -145,10 +145,18 @@ public class ReasonerPlan {
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
 								Match.invertAll(matches));
+
+						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
+						TripleVarBindingSet afterBindingSet = n.getResultBindingSetInput();
 						if (itChanged) {
 							changed.add(n);
-							n.setResultBindingSetInputScheduled(false);
+
+							// We should only set this to false if the actual binding set of the
+							// BindngSetStore.get() method changes. Otherwise rules get applied multiple
+							// times with the same binding set.
+							if (!beforeBindingSet.equals(afterBindingSet))
+								n.setResultBindingSetInputAlreadyScheduledOrDone(false);
 						}
 					});
 					current.setResultBindingSetOutputPropagated();
@@ -287,7 +295,6 @@ public class ReasonerPlan {
 	private void scheduleOrDoTask(RuleNode current, TaskBoard taskBoard) {
 		if (this.useTaskBoard) {
 			taskBoard.addTask(current);
-			current.setResultBindingSetInputScheduled(true);
 		} else {
 			try {
 				current.applyRule().get();
