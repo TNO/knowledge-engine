@@ -1,3 +1,7 @@
+---
+  sidebar_position: 9
+---
+
 Distributed mode
 ================
 
@@ -5,11 +9,11 @@ This section contains information about running the knowledge engine in distribu
 
 Figure 1 below illustrates an example of a distributed knowledge network consisting of multiple KE runtimes and a single KD. The KE runtimes register to the KD and regularly query it to discover updates to the KE runtimes. The KE runtimes communicate peer-2-peer with each other to discover new smart connectors (SCs) and to exchange actual data (requests) using the Inter-KER protocol.
 
-![alt text](./img/distributed-mode.png)*Figure 1: different KE runtimes with one or more smart connectors \(SCs\) connected to a centralized KD.*
+![Different KE runtimes with one or more smart connectors which are connected to a centralised Knowledge Directory](./../static/img/distributed-mode.png)*Figure 1: different KE runtimes with one or more smart connectors \(SCs\) connected to a centralized KD.*
 
 ### Starting the Knowledge Engine in distributed mode
 
-A minimal example showing how to configure it in distributed mode can be found in [`./examples/multiple-runtimes/`](./examples/multiple-runtimes/).
+A minimal example showing how to configure it in distributed mode can be found [here](https://github.com/TNO/knowledge-engine/tree/master/examples/multiple-runtimes).
 
 First of all, you need to start a knowledge directory. The desired port number for the knowledge directory can be configured using the command line argument (8080 in the example below).
 
@@ -44,4 +48,4 @@ java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.
 
 ### Using Basic Authentication to secure data exchange
 
-The communication in Figure 1 can be secured using Basic Authentication and HTTPS. This requires the usage of reverse proxies (like [NGINX](https://www.nginx.com/)) in front of the KD and KE runtimes. In such scenario, this reverse proxy handles all HTTPS and Basis Authentication configuration and forwards traffic over HTTP and without basic authentication to the KD and KE Runtime. To facilitate this, the KE supports conveying user credentials (username and password) within both the KD_URL and KE_RUNTIME_EXPOSED_URL environment variables like this `https://username:password@www.example.org/keruntime`. Whenever these URLs contains user credentials, the KER uses these credentials to connect to the Knowledge Directory or Knowledge Engine Runtime, respectively. An example of using Basic Authentication (without HTTPS) in distributed mode can be found in the [authentication example](../examples/authentication/).
+The communication in Figure 1 can be secured using Basic Authentication and HTTPS. This requires the usage of reverse proxies (like [NGINX](https://www.nginx.com/)) in front of the KD and KE runtimes. In such scenario, this reverse proxy handles all HTTPS and Basis Authentication configuration and forwards traffic over HTTP and without basic authentication to the KD and KE Runtime. To facilitate this, the KE supports conveying user credentials (username and password) within both the KD_URL and KE_RUNTIME_EXPOSED_URL environment variables like this `https://username:password@www.example.org/keruntime`. Whenever these URLs contains user credentials, the KER uses these credentials to connect to the Knowledge Directory or Knowledge Engine Runtime, respectively. An example of using Basic Authentication (without HTTPS) in distributed mode can be found in the [authentication example](https://github.com/TNO/knowledge-engine/tree/master/examples/authentication).

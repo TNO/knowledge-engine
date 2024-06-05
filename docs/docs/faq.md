@@ -1,3 +1,8 @@
+---
+  sidebar_position: 99
+---
+
+
 FAQ
 ===
 
@@ -53,9 +58,9 @@ SELECT ?sensor WHERE {
 	This tells the Knowledge Engine that you cannot send it an email address and receive the username.
 
 *Question*: Can you explain how to register the argument pattern and the result graph pattern? In the KE API I saw only one graph pattern in the register of a Knowledge interaction, and no parameter to indicate if it is an argument pattern or a result graph pattern.
-- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/PostKnowledgeInteraction.java#L45) and [ReactKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/ReactKnowledgeInteraction.java#L41) objects require both an argument and a result graph pattern.
+- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/PostKnowledgeInteraction.java) and [ReactKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/ReactKnowledgeInteraction.java) objects require both an argument and a result graph pattern.
 
-	In the JSON body of the [REST Developer API ](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/rest-api/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
+	In the JSON body of the [REST Developer API ](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
 
 	```
 	{
@@ -79,7 +84,7 @@ SELECT ?sensor WHERE {
 	3) Yes, the PostKnowledgeInteraction sends the argument and the ReactKnowledgeInteraction sends the (optional) result.
 	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
 
-*Question*: I successfully created smart connector (https://cybergrid.com/kb1") and the knowledge Interaction. When I wanted to execute the ask command with the following body:
+*Question*: I successfully created smart connector (https://cybergrid.com/kb1) and the knowledge Interaction. When I wanted to execute the ask command with the following body:
 ```
 [
   {
@@ -88,10 +93,8 @@ SELECT ?sensor WHERE {
 ]
 ```
 I received the following expectation from the knowladge-engine: ```400 Bad Request: ['device1' is not an unprefixed URI or literal.]```
-- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/docs/03_java_developer_api.md#bindings).
-
-
-	If you change your example value from 'device1' to something like '<http://www.example.org/device1>', this particular error should be resolved.
+- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](java_developer_api.md#bindings).
+	If you change your example value from `device1` to something like `<http://www.example.org/device1>`, this particular error should be resolved.
 
 *Question*: Do we need a long polling connection for every Knowledge Interaction? Doesn't that get very complicated?
 - *Answer*: No, per Smart Connector (or Knowledge Base) you need a single long polling connection to receive all interactions from the Knowledge Engine. Do remember that this long polling connection is returned with status code 202 every 29 seconds and also needs to be reestablished after you receive data via it.
@@ -142,7 +145,7 @@ In the ANWSER Knowledge interaction will the binding set be something like:
 ```
 
 Is the following statement right: the IRI is filled in by the service specific adapter?
-Can this IRI then be used to for example ask more info about <https://www.example.org/measurement-43> ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
+Can this IRI then be used to for example ask more info about `<https://www.example.org/measurement-43>` ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
 - *Answer*: You are correct with respect to `<https://www.example.org/measurement-43>`. Ideally you should be able to retrieve more information about it and the service should not randomly generate it, but use a stored id.
 
 
@@ -169,10 +172,12 @@ Is there a complete example available where the KE and the service store is comb
 *Question*: I use a very generic graph pattern like `?s ?p ?o` for my PostKnowledgeInteraction, but my other KB does not get a request. Or, you do get a request, but your post is not returning with the results.
 - *Answer*: We noticed multiple knowledge bases that register graph patterns like "?s ?p ?o" (i.e. from the examples we provided). If this is the case, it might occur that you ask a question or post some data and there are multiple KBs available that can answer or want to react to that type of data (i.e. they use a matching graph pattern). This means that you may not receive a request for data on your KB until one of the others has answered or reacted, or you might get a request, but you do not see the expected reaction in your other KB, because the Interoperability layer is waiting for the other matching KBs to answer/react.
 We have an issue #95 which would allow you to instruct the Knowledge Engine to not wait indefinitely for an answer, but this is still on our todo list. Until then, we recommend using more specific graph patterns for testing. For example:
+```
 {
   "knowledgeInteractionType": "ReactKnowledgeInteraction",
   "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
 }
+```
 
 *Question*: In a Ask/Answer interaction the bindingSet is a list of items. The items should stay in the order there are inserted on the Answer side. Currently it is not the case.
 - *Answer*:  The Knowledge Engine cannot guarantee the ordering of the Bindings in a  BindingSet due to several reasons. From a Semantic Technology perspective, the bindings are stored in a binding set in which the ordering is not fixed. Also, due to the matchers (and future reasoners) that mediate between different smart connectors and the fact that the response can be a union from BindingSets received from different knowledge bases, it is difficult to guarantee any ordering. Ideally, the ordering of the bindings can be derived from data, for example an ordering value or timestamps. This would allow the data to be sorted after receiving it from the interoperability layer.
@@ -315,8 +320,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 	6.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .`
 
 	Now, if we draw these triples as a graph figure, we get something like the following:
-
-	![fixed_iri_in_gp](/uploads/6cbb12403ebb8610271df081961cb368/fixed_iri_in_gp.png)
+	[Image no longer available]
 
 	Note:
 	- that there are 6 triples in the above graph pattern, but only 5 edges in this figure. This is caused by the fact that the 1st and 3rd triple of the graph pattern above are exactly the same and triples can only occur once in a graph. So, if you write them twice, they will still only occur once. 

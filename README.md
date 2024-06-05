@@ -4,7 +4,7 @@
 
 [![DOI](https://zenodo.org/badge/502097185.svg)](https://zenodo.org/badge/latestdoi/502097185)
 
-[![Knowledge Engine logo](./docs/img/ke_text_white_backdrop.png)](https://www.knowledge-engine.eu/)
+[![Knowledge Engine logo](docs/static/img/ke_text_white_backdrop.png)](https://www.knowledge-engine.eu/)
 
 Welcome to the source code repository of the Knowledge Engine.
 This README should help you understand what the Knowledge Engine is, and how to use it.
@@ -181,7 +181,7 @@ This section gives more detailed information about the project's structure, and 
 
 The Knowledge Engine project consists of the following Maven modules:
 - `smart-connector`
-  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/03_java_developer_api.md).
+  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/java_developer_api.md).
 - `smart-connector-api`
 	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
 - `smart-connector-rest-server`
@@ -256,7 +256,7 @@ nohup java -cp "smart-connector-rest-dist-1.2.4.jar:dependency/*" eu.knowledge.e
 ```
 
 ### Starting the Knowledge Engine in distributed mode
-The Knowledge Engine can also start in distributed mode, where it connects with a remote knowledge directory and where different instances of the Knowledge Engine (each instance hosting one or more smart connectors) can communicate with each other. More information about starting the Knowledge Engine in distributed mode can be found in the [documentation](docs/04_distributed_mode.md).
+The Knowledge Engine can also start in distributed mode, where it connects with a remote knowledge directory and where different instances of the Knowledge Engine (each instance hosting one or more smart connectors) can communicate with each other. More information about starting the Knowledge Engine in distributed mode can be found in the [documentation](docs/docs/distributed_mode.md).
 
 ### Additional configuration environment variables
 
