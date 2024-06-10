@@ -7,7 +7,7 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
-const config = {
+module.exports = {
   title: 'Knowledge Engine',
   tagline: 'Intelligently exchanging data',
   favicon: 'img/favicon.ico',
@@ -53,6 +53,18 @@ const config = {
         },
       }),
     ],
+  ],
+
+  themes: [
+    [
+        require.resolve("@easyops-cn/docusaurus-search-local"),
+        /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+        ({
+            hashed: true,
+            docsRouteBasePath: "/",
+            language: "en",
+        })
+    ]
   ],
 
   themeConfig:
@@ -137,4 +149,4 @@ const config = {
     }),
 };
 
-export default config;
+//export default config;
