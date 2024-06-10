@@ -24,21 +24,21 @@ In the figure you see two databases with triples. The left database only contain
 
 Let's give an example. Imagine a smart home scenario where lights have a state of either 'on' or 'off'. In triples this looks like:
 
-```
+```sparql
 ex:light1 rdf:type ex:Light .
 ex:light1 ex:hasState ex:on .
 ```
 
 Now imagine all the on/off states of all the lights in the home are maintained as asserted facts in a database. The home owner uses an app to check which lights she left on in her home and this app checks the on/off states using the asserted facts in the database. This all works perfect and the home owner buys and installs a new _dimmable_ light. Unfortunately, the app does not check whether the new dimmable light is on or off, since a dimmable light is not either on/off, but has a light intensity between 0 and 100. So, its triples look like:
 
-```
+```sparql
 ex:light2 rdf:type ex:DimmableLight .
 ex:light2 ex:hasIntensity "23"^^xsd:integer .
 ```
 
 Now, an update of the app to also check intensity levels of dimmable lights could solve this problem, but updates do not always happen. By using the reasoning capabilities, this problem can also be solved without any updates to the app. This solution would involve telling the reasoner that a DimmableLight (which is also a Light) is on if its light intensity level is larger than 0. Such a rule (which is typically part of the Knowledge Model) looks like:
 
-```
+```sparql
 if
   ?light rdf:type ex:DimmableLight .
   ?light ex:hasIntensity ?intensity .
@@ -62,7 +62,7 @@ With this overview of the available capabilities, the reasoner is able to answer
 
 For example, there are three knowledge bases called App, Measurements and Temperature Converter. The scenario is that the App gives the user access to all available measurements in degrees Fahrenheit. However, the Measurements Knowledge Base only stores measurements in degrees Celcius. The idea is that the reasoner is able to use the Temperature Converter Knowledge Base to convert the availble measurements in degrees Celcius into the requested measurements in degrees Fahrenheit. The knowledge interactions of the different Knowledge Bases are of the following:
 
-```
+```sparql
 App knowledge interaction (ASK):
   pattern:
     ?meas rdf:type saref:Measurement .
@@ -84,7 +84,7 @@ Temperature knowledge interaction (REACT):
 
 Now, these knowledge interactions will result in the following backward rules (see also (see also [Conceptual Framework](./conceptual_framework.md)) in the App's Smart Connector:
 
-```
+```sparql
 if
   ?m rdf:type saref:Measurement .
   ?m saref:tempInCelcius ?t .
@@ -105,7 +105,7 @@ end
 
 The App asks its SmartConnector for measurements in degrees Fahrenheit, but the Measurements Knowledge Base (KB) only contains measurements in degrees Celcius. The reasoner will therefore apply the backward rule of the Temperature Converter to every measurement that the Measurements KB returns. So, the Measurements KB returns the following RDF:
 
-```
+```sparql
 :m1 rdf:type saref:Measurement .
 :m1 saref:tempInCelcius 21 .
 
@@ -118,7 +118,7 @@ The App asks its SmartConnector for measurements in degrees Fahrenheit, but the 
 
 The Temperature Converter KB is able to convert this into:
 
-```
+```sparql
 :m1 rdf:type saref:Measurement .
 :m1 saref:tempInCelcius 69.8 .
 
@@ -131,7 +131,7 @@ The Temperature Converter KB is able to convert this into:
 
 Which is the data that can be returned by the Smart Connector to the App KB as the answer to its query. But data exchange does not only involve asking questions and getting answers (i.e. pulling data), it often also entails publishing data to subscribers (i.e. pushing data). If we modify the Measurements KB of the above example into a Temperature sensor that periodically publishes the latest measurement in degrees Celcius. The knowledge interactions of the App and Temperature Converter KBs remain the same and the Temperature Sensor KB has the following knowledge interaction:
 
-```
+```sparql
 Temperature Sensor knowledge interaction (POST):
   argument pattern:
     ?m rdf:type saref:Measurement .
@@ -141,7 +141,7 @@ Temperature Sensor knowledge interaction (POST):
 Note that the only difference with the knowledge interaction of the Measurements KB is that the output knowledge is no longer requestable, but only subscribable.
 This Temperature Sensor knowledge interaction results in the following *forward* rule in the Smart Connector of the Temperature Sensor:
 
-```
+```sparql
 if
   ?m rdf:type saref:Measurement .
   ?m saref:tempInCelcius ?t .
@@ -152,7 +152,7 @@ end
 
 This means that whenever the Temperature Sensor publishes a new measurement, it will get pushed to subscribed KBs (in this case the App KB). The Smart Connector of the App KB will receive this measurement where its reasoner works with the following *forward* rules:
 
-```
+```sparql
 
 if
   ?mm rdf:type saref:Measurement .

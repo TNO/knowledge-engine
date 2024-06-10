@@ -17,6 +17,11 @@ npm run build
 ```
 This will generate a `build/` directory containing all files for the website.
 
+Be careful when editing code blocks with tabs.
+Currently, it requires you to leave empty lines around the Markdown syntax
+
+
+
 ### Test the site locally
 
 If you're working on the documentation, you can locally run a serve so you can easily see what your changes look like.

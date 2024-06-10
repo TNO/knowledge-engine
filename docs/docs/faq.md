@@ -24,7 +24,7 @@ Currently, an instance of the Smart Connector is self contained, so no external 
 - *Answer*: Indeed, the FILTER keyword (of the SPARQL language) is not available. Although this is a very useful keyword and we would love to support something like that, there needs to be an equivalent of filtering in the reasoner and most of the time this is not there. We do keep this in mind when looking/making for a new reasoner, but I do not expect this to be available anytime soon (there is still research required, I think). Note that a Knowledge Interaction is more than a single Basic Graph Pattern (although it is the most important part of it). It also has a type (Ask/Answer or Post/React) and a Communicative Act (to convey the 'reason' for the interaction). Also, the Post/React KI have two graph patterns attached to them; the argument and the result graph pattern.
 
 *Question*: It means also that a SparQL query like you see below is a SparQL query and is not something that can be used at the KE REST API interface. Only the part within the brackets is a basic graph pattern. Is that right?
-```
+```sparql
 SELECT ?sensor WHERE {
 ?building a saref4bldg:Building.
 ?building bot:containsElement ?sensor.
@@ -38,20 +38,20 @@ SELECT ?sensor WHERE {
 *Question*: In POST /sc/ki one registers a Knowledge Interaction along with the knowledge interaction type. In POST /sc/ask one queries for some results by referring to a KI and providing an incomplete binding set. The result will be a complete binding set. In your presentation KE for dummies slide 12, you mentioned that one could restrict the question (at the react side). I didn’t find in the rest of the slides on how one can do that, except by having a literal in the registered KI. In your example a person has a name and a email address, but the logic only allows to ask for the email address associated with a person with a certain name, but it does not allow to get the name associated with a specific email address. How do we impose such a restriction, or we can’t do this at this stage?
 
 - *Answer*: If the logic does not allow the inverse, then you should not use an Ask/Answer Knowledge Interactions with a graph pattern like:
-	```
+	```sparql
 	?person :hasUsername ?userName .
 	?person :hasEmailaddress ?emailAddress .
 	```
 
 	In that case you want to use the Post/React Knowledge Interactions. These have two Graph Patterns and the *argument* graph pattern would look something like:
 
-	```
+	```sparql
 	?person :hasUsername ?userName .
 	```
 
 	and the *result* graph pattern would look something like:
 
-	```
+	```sparql
 	?person :hasEmailaddress ?emailAddress .
 	```
 
@@ -62,7 +62,7 @@ SELECT ?sensor WHERE {
 
 	In the JSON body of the [REST Developer API ](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
 
-	```
+	```json
 	{
 	"knowledgeInteractionType": "PostKnowledgeInteraction",
 	"argumentGraphPattern": "?s ?p ?o",
@@ -85,7 +85,7 @@ SELECT ?sensor WHERE {
 	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
 
 *Question*: I successfully created smart connector (https://cybergrid.com/kb1) and the knowledge Interaction. When I wanted to execute the ask command with the following body:
-```
+```json
 [
   {
    "deviceName": "device1" 
@@ -104,7 +104,7 @@ I received the following expectation from the knowladge-engine: ```400 Bad Reque
 For instance:
 Let's say we have some graph pattern like:
 
-```
+```sparql
 ?timeseries rdf:type ex:Timeseries .
 ?timeseries ex:hasMeasurement ?measurement .
 ?measurement rdf:type saref:Measurement .
@@ -172,7 +172,7 @@ Is there a complete example available where the KE and the service store is comb
 *Question*: I use a very generic graph pattern like `?s ?p ?o` for my PostKnowledgeInteraction, but my other KB does not get a request. Or, you do get a request, but your post is not returning with the results.
 - *Answer*: We noticed multiple knowledge bases that register graph patterns like "?s ?p ?o" (i.e. from the examples we provided). If this is the case, it might occur that you ask a question or post some data and there are multiple KBs available that can answer or want to react to that type of data (i.e. they use a matching graph pattern). This means that you may not receive a request for data on your KB until one of the others has answered or reacted, or you might get a request, but you do not see the expected reaction in your other KB, because the Interoperability layer is waiting for the other matching KBs to answer/react.
 We have an issue #95 which would allow you to instruct the Knowledge Engine to not wait indefinitely for an answer, but this is still on our todo list. Until then, we recommend using more specific graph patterns for testing. For example:
-```
+```json
 {
   "knowledgeInteractionType": "ReactKnowledgeInteraction",
   "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
@@ -190,7 +190,7 @@ Is the best approach to create a KI graph pattern per device type that returns a
 What if I'm only interested in one parameter (not possible now because an exact match is required in this version, but possible in a next version)?
 Result:
 
-```
+```json
 {
     "results": [
         {
@@ -222,7 +222,7 @@ Result:
 - *Answer*: This is indeed quite a generic approach that, unfortunately, cannot be done with the current version of the KE (as you already correctly mention: because of exact matching). You could in theory register a lot of Knowledge Interactions, although I am not sure that is the best approach. If there is a limited set of fields that are always available, I would recommend providing a single large knowledge interaction. This would, however, mean that the asker registers this large knowledge interaction as well.
 	An alternative approach, which maybe mimics the generic behaviour of the API, could be to provide a measurement graph pattern like:
 
-	```
+	```sparql
 	?deviceId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Device> .
 	?deviceId <https://saref.etsi.org/core/makesMeasurement> ?m .
 	?m <https://saref.etsi.org/core/relatesToProperty> ?p . 
@@ -233,7 +233,7 @@ Result:
 
 	This would allow the asking side to provide a binding set with a particular deviceId and 'fieldTypes':
 
-	```
+	```json
 	[
 		{
 			"deviceId": "<https://www.example.org/device1>",
@@ -277,14 +277,14 @@ Result:
 
 An example: the following graph pattern defines a **device** and the **type** of it’s **property**.
 
-```
+```sparql
 ?device <https://saref.etsi.org/core/measuresProperty> ?property .
 ?property a ?propertyType .
 ```
 
 The only parameters we need here are **device** and **propertyType**. The **property** variable is redundant, but it still needs to be in the graph pattern. What we decided to do, is replace this variable by a placeholder individual : `http://interconnectproject.eu/pilots/greek/property#property`. The resulting pattern would then look like this:
 
-```
+```sparql
 ?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 <http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
 ```
@@ -295,7 +295,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 - *Answer*: I think it helps if we distinguish between syntax and semantics here. Using a pattern like:
 
-	```
+	```sparql
 	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 	<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
 	```
@@ -328,7 +328,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 	Conclusion: while the fixed property is syntactically correct, it is semantically incorrect. So, using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected. This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and bindingset and when you ask something like:
 
-	```
+	```sparql
 	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 	<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .
 	```
