@@ -89,11 +89,11 @@ In the exchange phase, knowledge is consumed, produced, or published by the know
 A requirement for being able to use smart connectors in a domain is that all knowledge bases need to agree on a common language to exchange their knowledge in.
 This language is different for every domain.
 (In the thermostat example above, this language should include concepts like measurements, temperature, and preferences.)
-In the knowledge engine, this language can be expressed in the form of an ontology or knowledge model, which is explained further in [a following section](#knowledge-model).
+In the Knowledge Engine, this language can be expressed in the form of an ontology or knowledge model, which is explained further in [a following section](#knowledge-model).
 
 The domain's knowledge model is written in RDF/OWL, which allows us to take advantage of the reasoning capabilities that are available for these models.
 
-Since the knowledge engine internally knows about the supply and demand of knowledge in the network, it can use reasoning to orchestrate of knowledge supply on-demand.
+Since the Knowledge Engine internally knows about the supply and demand of knowledge in the network, it can use reasoning to orchestrate of knowledge supply on-demand.
 
 Critically, this means that, given a specification of knowledge that is requested, a smart connector **can figure out for you where to get it**!
 The developer of a knowledge base doesn't have to know or care about the specifics of all other knowledge bases.

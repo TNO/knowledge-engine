@@ -1,9 +1,12 @@
 ---
  sidebar_position: 10
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Reasoning
-# What does the reasoner do?
+
+## What does the reasoner do?
 
 We can distinguish between two types of reasoning as it happens within the knowledge engine:
 1. reasoning to infer new data, and 
@@ -181,18 +184,19 @@ In `examples/reasoner/` in the Knowledge Engine repository, you can find a compl
 That example is a variant on the unit conversion orchestration.
 
 
-## Enabling the reasoner when using the Java API
-### Java
-If using the Java API, you can enable the reasoner in your `SmartConnector` by calling:
+## Enabling the reasoner
+
+<Tabs groupId="tke-usage">
+<TabItem value="java" label="Java">
 
 ```java
 smartConnector.setReasonerEnabled(true);
 ```
 
-Then, any **proactive** knowledge interaction that you trigger in the smart connector will use the reasoner.
+</TabItem>
+<TabItem value="bash" label="Rest API">
 
-### REST API
-If using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerEnabled` property during knowledge base registration:
+When using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerEnabled` property during knowledge base registration:
 
 ```json
 {
@@ -203,7 +207,10 @@ If using the REST API, you can enable the reasoner in your smart connector by ad
 }
 ```
 
-Subsequently, any **proactive** knowledge interaction that you register and use will use the reasoner.
+</TabItem>
+</Tabs>
+When reasoning is enabled, any **proactive** Knowledge Interaction (i.e. ASK and POST) that you trigger in the smart connector will use the reasoner.
+
 
 ## Performance warning
 When using large graph patterns and/or many bindings, the reasoner's time and memory consumption doesn't scale very well.
