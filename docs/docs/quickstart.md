@@ -14,7 +14,7 @@ Start the Knowledge Directory on ports 8080:
 ```bash
 cd knowledge-directory/target/
 
-java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.4.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
+java -Dorg.slf4j.simpleLogger.logFile=kd.log -cp "knowledge-directory-1.2.5.jar:dependency/*" eu.knowledge.engine.knowledgedirectory.Main 8080
 ```
 You can of course run the Knowledge Directory on another port by replacing 8080 by your preferred port number.
 
@@ -27,7 +27,7 @@ export KD_URL=http://localhost:8080
 export KE_RUNTIME_EXPOSED_URL=http://localhost:8081
 export KE_RUNTIME_PORT=8081
 
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.4.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.5.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 ## Registering Knowledge Interactions
