@@ -5,7 +5,7 @@ info:
   description:
     This API provides information on Knowledge Engine Runtimes (todo), Smart Connectors, Knowledge Bases, and Knowledge
     Interactions in a Knowledge Engine Network.
-  version: 1.2.5
+  version: 1.2.6-SNAPSHOT
   
 paths:
   /rest/admin/sc/all/{include-meta}:
