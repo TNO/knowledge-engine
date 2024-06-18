@@ -124,11 +124,17 @@
 			<version>${jackson-version}</version>
 		</dependency>
 
-		<!--<dependency>
+		<!-- jersey -->
+		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
 			<version>${jersey3-version}</version>
-		</dependency> -->
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>${jersey3-version}</version>
+		</dependency>
 
 		<!-- Jetty -->
 		<dependency>
