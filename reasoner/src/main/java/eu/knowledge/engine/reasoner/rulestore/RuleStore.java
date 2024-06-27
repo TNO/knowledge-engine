@@ -4,7 +4,9 @@
 package eu.knowledge.engine.reasoner.rulestore;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -88,19 +90,45 @@ public class RuleStore {
 
 		assert aRuleNode != null;
 
-		for (BaseRule someRule : this.getRules()) {
-			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getConsequent().isEmpty()
-					&& !aRuleNode.getAntecedentNeighbors(aStrategy).containsKey(someRule)) {
-				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(), aStrategy);
-				if (!someMatches.isEmpty()) {
-					aRuleNode.setAntecedentNeighbor(someRule, someMatches, aStrategy);
-					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-				}
+		Set<Map<BaseRule, Match>> mappings = BaseRule.findMatches(aRule.getAntecedent(),
+				new ArrayList<BaseRule>(this.getRules()), aStrategy, true);
 
+		Map<BaseRule, Set<Match>> newMapping = new HashMap<>();
+
+		for (Map<BaseRule, Match> mapping : mappings) {
+			for (Map.Entry<BaseRule, Match> entry : mapping.entrySet()) {
+				addToNewMapping(newMapping, entry);
 			}
 		}
+
+		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
+			aRuleNode.setAntecedentNeighbor(entry.getKey(), entry.getValue(), aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, Match.invertAll(entry.getValue()), aStrategy);
+		}
+
+// old code
+//		for (BaseRule someRule : this.getRules()) {
+//			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
+//			if (!someRule.getConsequent().isEmpty()
+//					&& !aRuleNode.getAntecedentNeighbors(aStrategy).containsKey(someRule)) {
+//				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(), aStrategy);
+//				if (!someMatches.isEmpty()) {
+//					aRuleNode.setAntecedentNeighbor(someRule, someMatches, aStrategy);
+//					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
+//				}
+//
+//			}
+//		}
 		return aRuleNode.getAntecedentNeighbors(aStrategy);
+	}
+
+	public void addToNewMapping(Map<BaseRule, Set<Match>> newMapping, Map.Entry<BaseRule, Match> entryToAdd) {
+		// check if rule already has entry in newMapping
+		if (!newMapping.containsKey(entryToAdd.getKey())) {
+			newMapping.put(entryToAdd.getKey(), new HashSet<>());
+		}
+		Set<Match> matches = newMapping.get(entryToAdd.getKey());
+		matches.add(entryToAdd.getValue());
 	}
 
 	/**
@@ -126,18 +154,35 @@ public class RuleStore {
 
 		assert aRuleNode != null;
 
-		for (BaseRule someRule : this.getRules()) {
-			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getAntecedent().isEmpty()
-					&& !aRuleNode.getConsequentNeighbors(aStrategy).containsKey(someRule)) {
-				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(), aStrategy);
-				if (!someMatches.isEmpty()) {
-					aRuleNode.setConsequentNeighbor(someRule, someMatches, aStrategy);
-					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-				}
+		Set<Map<BaseRule, Match>> mappings = BaseRule.findMatches(aRule.getConsequent(),
+				new ArrayList<BaseRule>(this.getRules()), aStrategy, false);
 
+		Map<BaseRule, Set<Match>> newMapping = new HashMap<>();
+
+		for (Map<BaseRule, Match> mapping : mappings) {
+			for (Map.Entry<BaseRule, Match> entry : mapping.entrySet()) {
+				addToNewMapping(newMapping, entry);
 			}
 		}
+
+		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
+			aRuleNode.setConsequentNeighbor(entry.getKey(), entry.getValue(), aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, Match.invertAll(entry.getValue()), aStrategy);
+		}
+		
+// old code
+//		for (BaseRule someRule : this.getRules()) {
+//			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
+//			if (!someRule.getAntecedent().isEmpty()
+//					&& !aRuleNode.getConsequentNeighbors(aStrategy).containsKey(someRule)) {
+//				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(), aStrategy);
+//				if (!someMatches.isEmpty()) {
+//					aRuleNode.setConsequentNeighbor(someRule, someMatches, aStrategy);
+//					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
+//				}
+//
+//			}
+//		}
 		return aRuleNode.getConsequentNeighbors(aStrategy);
 
 	}
