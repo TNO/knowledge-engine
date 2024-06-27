@@ -102,8 +102,8 @@ public class RuleStore {
 		}
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setAntecedentNeighbor(entry.getKey(), entry.getValue(), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, Match.invertAll(entry.getValue()), aStrategy);
+			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(), aStrategy);
 		}
 
 // old code
@@ -166,10 +166,10 @@ public class RuleStore {
 		}
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setConsequentNeighbor(entry.getKey(), entry.getValue(), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, Match.invertAll(entry.getValue()), aStrategy);
+			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue(), aStrategy);
 		}
-		
+
 // old code
 //		for (BaseRule someRule : this.getRules()) {
 //			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
