@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
@@ -431,6 +432,58 @@ public class BaseRule {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param aGraphPattern      The graph pattern for which we want to find
+	 *                           matches.
+	 * @param otherGraphPatterns The other graph patterns that we want to check
+	 *                           whether and how they match to
+	 *                           {@code aGraphPattern}.
+	 * @param antecedent         Whether
+	 * @return A set of matches that all contribute to some full matche.
+	 */
+
+	/**
+	 * This method finds matches of {@code otherGraphPatterns} on
+	 * {@code aGraphPattern} that are part of a full match of {@code aGraphPattern}.
+	 * 
+	 * @param aRule
+	 * @param otherRules
+	 * @param antecedent
+	 * @return
+	 */
+	public static Map<BaseRule, Set<Match>> getFullMatches(BaseRule aRule, Set<BaseRule> otherRules, boolean antecedent) {
+
+		/*
+		 * we use a list instead of a set for performance reasons. The list does not
+		 * call Match#equals(...) method often everytime we add an entry. The algorithm
+		 * makes sure matches that are added do not already exist.
+		 */
+		List<RuleMatchCombi> allMatches = new ArrayList<RuleMatchCombi>();
+
+		
+		
+		
+		// TODO first find all triples in the otherGraphPatterns that match each triple
+		// in aGraphPattern
+
+		// TODO 
+
+		return convertToMap(allMatches);
+	}
+
+	private static Map<BaseRule, Set<Match>> convertToMap(List<RuleMatchCombi> matches) {
+		return matches.stream().collect(Collectors.<RuleMatchCombi, BaseRule, Set<Match>>toMap(
+				ruleMatch -> ruleMatch.rule, ruleMatch -> new HashSet<Match>(ruleMatch.matches)));
+	}
+
+	private static class RuleMatchCombi {
+		public BaseRule rule;
+		public List<Match> matches;
 	}
 
 }
