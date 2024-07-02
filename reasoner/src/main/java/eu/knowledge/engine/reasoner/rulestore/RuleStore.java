@@ -74,7 +74,7 @@ public class RuleStore {
 	 * @see #getAntecedentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-		return this.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+		return this.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 	}
 
 	/**
@@ -90,36 +90,16 @@ public class RuleStore {
 
 		assert aRuleNode != null;
 
-		Set<Map<BaseRule, Match>> mappings = BaseRule.findMatches(aRule.getAntecedent(),
-				new ArrayList<BaseRule>(this.getRules()), aStrategy, true);
-
-		Map<BaseRule, Set<Match>> newMapping = new HashMap<>();
-
-		for (Map<BaseRule, Match> mapping : mappings) {
-			for (Map.Entry<BaseRule, Match> entry : mapping.entrySet()) {
-				addToNewMapping(newMapping, entry);
-			}
-		}
-
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aStrategy);
+		
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
 			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(), aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(),
+					aStrategy);
 		}
 
-// old code
-//		for (BaseRule someRule : this.getRules()) {
-//			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-//			if (!someRule.getConsequent().isEmpty()
-//					&& !aRuleNode.getAntecedentNeighbors(aStrategy).containsKey(someRule)) {
-//				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(), aStrategy);
-//				if (!someMatches.isEmpty()) {
-//					aRuleNode.setAntecedentNeighbor(someRule, someMatches, aStrategy);
-//					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-//				}
-//
-//			}
-//		}
-		return aRuleNode.getAntecedentNeighbors(aStrategy);
+		return newMapping;
+
 	}
 
 	public void addToNewMapping(Map<BaseRule, Set<Match>> newMapping, Map.Entry<BaseRule, Match> entryToAdd) {
@@ -135,7 +115,7 @@ public class RuleStore {
 	 * @see #getConsequentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
-		return this.getConsequentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+		return this.getConsequentNeighbors(aRule, MatchStrategy.FIND_ONLY_FULL_MATCHES);
 
 	}
 
@@ -154,37 +134,14 @@ public class RuleStore {
 
 		assert aRuleNode != null;
 
-		Set<Map<BaseRule, Match>> mappings = BaseRule.findMatches(aRule.getConsequent(),
-				new ArrayList<BaseRule>(this.getRules()), aStrategy, false);
-
-		Map<BaseRule, Set<Match>> newMapping = new HashMap<>();
-
-		for (Map<BaseRule, Match> mapping : mappings) {
-			for (Map.Entry<BaseRule, Match> entry : mapping.entrySet()) {
-				addToNewMapping(newMapping, entry);
-			}
-		}
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), false, aStrategy);
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
 			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
 			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue(), aStrategy);
 		}
 
-// old code
-//		for (BaseRule someRule : this.getRules()) {
-//			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-//			if (!someRule.getAntecedent().isEmpty()
-//					&& !aRuleNode.getConsequentNeighbors(aStrategy).containsKey(someRule)) {
-//				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(), aStrategy);
-//				if (!someMatches.isEmpty()) {
-//					aRuleNode.setConsequentNeighbor(someRule, someMatches, aStrategy);
-//					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-//				}
-//
-//			}
-//		}
-		return aRuleNode.getConsequentNeighbors(aStrategy);
-
+		return newMapping;
 	}
 
 	/**
@@ -207,7 +164,7 @@ public class RuleStore {
 		String width = "2";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("Visualize on website: http://viz-js.com/\n");
+		sb.append("Visualize on website: https://dreampuf.github.io/GraphvizOnline/\n");
 		sb.append("digraph {").append("\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
 

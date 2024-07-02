@@ -91,7 +91,7 @@ public class MatchNode {
 
 	public void setConsequentNeighbor(BaseRule aRule, Set<Match> someMatches, MatchStrategy aStrategy) {
 		Map<BaseRule, Set<Match>> neighbors;
-		if (aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+		if (aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES) || aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_NON_COMBI_MATCHES)) {
 			neighbors = this.consequentNeighborsFull;
 		} else if (aStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)) {
 			neighbors = this.consequentNeighborsBiggest;
@@ -109,7 +109,7 @@ public class MatchNode {
 
 	public void setAntecedentNeighbor(BaseRule aRule, Set<Match> someMatches, MatchStrategy aStrategy) {
 		Map<BaseRule, Set<Match>> neighbors;
-		if (aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
+		if (aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES) || aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_NON_COMBI_MATCHES)) {
 			neighbors = this.antecedentNeighborsFull;
 		} else if (aStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)) {
 			neighbors = this.antecedentNeighborsBiggest;

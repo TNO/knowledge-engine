@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Disabled;
@@ -19,9 +20,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MatchTest {
@@ -582,5 +586,78 @@ public class MatchTest {
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
+	}
+
+	@Test
+	public void testPloutosGPMatcher2() {
+
+		String gp = """
+				?operation <type> <HarvestingOperation> .
+				?operation <hasOutput> ?output .
+				?operation <isOperatedOn> ?parcel .
+				?parcel <contains> ?crop .
+				?crop <type> ?cropType .
+				?cropType <label> ?cropName .
+				?parcel <hasArea> ?area .
+				?farm <type> <Farm> .
+				?farm <location> ?location .
+				?location <lat> ?latitude .
+				?location <long> ?longitude .
+				?farm <hasName> ?farmName .
+				?farm <contains> ?parcel .
+				?farmer <managesFarm> ?farm .
+				?association <type> <FarmAssociation> .
+				?farmer <isMemberOf> ?association .
+				?association <hasName> ?associationName .
+				?parcel <hasAdministrator> ?parcelAdminName .
+				?parcel <hasToponym> ?parcelToponym .
+				?parcel <inRegion> ?parcelRegion .
+				?output <isMeantFor> ?purpose .
+				?parcel <hasCultivator> ?cultivatorName .
+				?farm <hasCountry> ?country .
+				?country <name> ?countryLabel .""";
+
+		Set<TriplePattern> obj = Util.toGP(gp);
+
+		BaseRule r1 = new ProactiveRule(new HashSet<>(), obj);
+		BaseRule r2 = new Rule(obj, new SinkBindingSetHandler() {
+
+			@Override
+			public CompletableFuture<Void> handle(BindingSet aBindingSet) {
+				System.out.println("bla");
+				return null;
+			}
+		});
+
+		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
+
+		var findMatchesWithConsequent = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), false,
+				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+
+		System.out.println("Size: " + findMatchesWithConsequent.size());
+		assertEquals(findMatchesWithConsequent.size(), 1);
+	}
+
+	@Test
+	public void testNewGPMatcher1() {
+		TriplePattern tp1_1 = new TriplePattern("?p <type> ?t");
+		TriplePattern tp1_2 = new TriplePattern("?p <hasV> ?q");
+		Set<TriplePattern> tp1 = new HashSet<>(Arrays.asList(tp1_1, tp1_2));
+
+		TriplePattern tp2_1 = new TriplePattern("?s <type> <Sensor>");
+		TriplePattern tp2_2 = new TriplePattern("?s <hasV> ?val");
+		TriplePattern tp2_3 = new TriplePattern("?s <type> <Device>");
+		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1, tp2_2, tp2_3));
+
+		BaseRule r1 = new ProactiveRule(tp1, new HashSet<>());
+
+		BaseRule r2 = new Rule(new HashSet<>(), tp2);
+
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
+				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+
+		System.out.println(matches);
+
+		assertEquals(matches.size(), 1);
 	}
 }

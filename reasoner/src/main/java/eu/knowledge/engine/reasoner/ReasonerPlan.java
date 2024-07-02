@@ -1,11 +1,11 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -130,7 +130,7 @@ public class ReasonerPlan {
 					assert current instanceof AntSide;
 					((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
 						var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(),
-								Match.invertAll(matches));
+								matches);
 						boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, translated);
 						if (itChanged) {
 							changed.add(n);
@@ -144,7 +144,7 @@ public class ReasonerPlan {
 					assert current instanceof ConsSide;
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
-								Match.invertAll(matches));
+								matches);
 
 						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
@@ -267,8 +267,8 @@ public class ReasonerPlan {
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
 			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
-				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule.getAntecedent(),
-						aParent.getConsequent(), this.getMatchStrategy());
+				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
+						this.strategy);
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
@@ -312,20 +312,26 @@ public class ReasonerPlan {
 	 * that if the antecedent is a subset of the consequent this method also return
 	 * true.
 	 * 
-	 * @param consequent
-	 * @param antecedent
+	 * @param consequentRule
+	 * @param antecedentRule
 	 * @return
 	 */
-	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
+	private boolean antecedentFullyMatchesConsequent(BaseRule antecedentRule, BaseRule consequentRule,
 			MatchStrategy aMatchStrategy) {
 
+		var antecedent = antecedentRule.getAntecedent();
+		var consequent = consequentRule.getConsequent();
+		
 		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
+		
 
 		if (antecedent.size() > consequent.size())
 			return false;
 
-		Set<Match> matches = BaseRule.matches(antecedent, consequent, aMatchStrategy);
+		Set<Match> matches = BaseRule
+				.getMatches(antecedentRule, new HashSet<>(Arrays.asList(consequentRule)), true, aMatchStrategy).values()
+				.iterator().next();
 
 		for (Match m : matches) {
 			// check if there is a match that is full

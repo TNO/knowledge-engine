@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ public class BaseRule {
 	public static final String ARROW = "->";
 
 	public static enum MatchStrategy {
-		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES
+		FIND_ALL_MATCHES, FIND_ONLY_BIGGEST_MATCHES, FIND_ONLY_FULL_MATCHES, FIND_ONLY_FULL_NON_COMBI_MATCHES
 	}
 
 	public static class TrivialBindingSetHandler implements TransformBindingSetHandler {
@@ -434,223 +433,10 @@ public class BaseRule {
 		return true;
 	}
 
-	
-	
-	// old implementation of matching towards full match
-	
-	/**
-	 * Try if we can match with better heuristics: try to work towards full matches
-	 * of the graph pattern using all the rules at once. This way, hopefully, a lot
-	 * of matches can already be discarded and do not slow down the process further
-	 * down the line.
-	 * 
-	 * How do we know whether we should match the antecedent or consequent of those
-	 * rules?
-	 * 
-	 * @param aFirstPattern
-	 * @param allRules
-	 * @param aMatchStrategy
-	 * @return a set of mappings from a rule to a match.
-	 */
-	public static Set<Map<BaseRule, Match>> findMatches(Set<TriplePattern> aFirstPattern, List<BaseRule> allRules,
-			MatchStrategy aMatchStrategy, boolean useConsequent) {
-
-		List<Map<BaseRule, Match>> allMatches = new ArrayList<>();
-
-		Map<TriplePattern, Set<Map<BaseRule, Match>>> matchesPerTriplePerRule = getMatchesPerTriplePerRule(aFirstPattern,
-				allRules, useConsequent);
-
-		// if not every triple pattern can be matched, we stop the process if we require
-		// a full match.
-		if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
-				&& matchesPerTriplePerRule.keySet().size() < aFirstPattern.size())
-			return new HashSet<>();
-
-		// now combine all found matches.
-		List<Map<BaseRule, Match>> biggestRuleMatches = new ArrayList<>();
-		List<Map<BaseRule, Match>> smallerMatches = new ArrayList<>();
-		Match mergedMatch = null;
-		List<Map<BaseRule, Match>> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
-		Set<Integer> toBeDemotedMatchIndices = null;
-
-		Iterator<Map.Entry<TriplePattern, Set<Map<BaseRule, Match>>>> matchesPerTripleIter = matchesPerTriplePerRule
-				.entrySet().iterator();
-
-		// always add all matches of first triple
-		if (matchesPerTripleIter.hasNext()) {
-			biggestRuleMatches.addAll(matchesPerTripleIter.next().getValue());
-		}
-
-		while (matchesPerTripleIter.hasNext()) {
-
-			Set<Map<BaseRule, Match>> matchesForCurrentTriple = matchesPerTripleIter.next().getValue();
-
-			// keep a set of new/removed matches, so we can add/remove them at the end of
-			// this loop
-
-			assert matchesForCurrentTriple != null;
-
-			toBeAddedToBiggestMatches = new ArrayList<>();
-			toBeAddedToSmallerMatches = new ArrayList<>();
-			toBeDemotedMatchIndices = new HashSet<>();
-			for (Map<BaseRule, Match> matchForCurrentTriple : matchesForCurrentTriple) {
-				// see if this next match can be merged with one of the existing biggest matches
-				for (Map.Entry<BaseRule, Match> m1entry : matchForCurrentTriple.entrySet()) {
-					Match m1 = m1entry.getValue();
-
-					// check if we need to merge with existing matches
-					boolean hasMerged = false;
-					// first check if m1 can be merged with any of the existing biggest matches.
-					for (int i = 0; i < biggestRuleMatches.size(); i++) {
-
-						Map<BaseRule, Match> existingBiggestRuleMatch = biggestRuleMatches.get(i);
-
-						Match m2 = existingBiggestRuleMatch.get(m1entry.getKey());
-
-						if (m2 != null) {
-
-							mergedMatch = m2.merge(m1);
-							if (mergedMatch != null) {
-								hasMerged = true;
-								HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(existingBiggestRuleMatch);
-								newRuleMatch.put(m1entry.getKey(), mergedMatch);
-								toBeAddedToBiggestMatches.add(newRuleMatch);
-								toBeDemotedMatchIndices.add(i);
-							} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-								toBeDemotedMatchIndices.add(i);
-							}
-						} else {
-							toBeDemotedMatchIndices.add(i);
-							HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(existingBiggestRuleMatch);
-							newRuleMatch.put(m1entry.getKey(), m1);
-							hasMerged = true;
-							if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-								toBeAddedToBiggestMatches.add(newRuleMatch);
-							} else {
-								toBeAddedToSmallerMatches.add(newRuleMatch);
-							}
-						}
-					}
-
-					// then check if m1 can be merged with any of the existing smaller matches
-					if (!aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-
-						for (Map<BaseRule, Match> ruleMatch2 : smallerMatches) {
-							Match m2 = ruleMatch2.get(m1entry.getKey());
-
-							if (m2 != null) {
-
-								mergedMatch = m2.merge(m1);
-								if (mergedMatch != null) {
-
-									if (hasMerged) {
-										// add to smallerMatches and sometimes to biggestMatches.
-										if (isSubMatch2(ruleMatch2, toBeAddedToBiggestMatches)) {
-											// add to smaller matches
-											HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-											newRuleMatch.put(m1entry.getKey(), mergedMatch);
-											toBeAddedToSmallerMatches.add(newRuleMatch);
-										} else {
-											// add to biggest matches
-											HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-											newRuleMatch.put(m1entry.getKey(), mergedMatch);
-											toBeAddedToBiggestMatches.add(newRuleMatch);
-										}
-									} else {
-										// add to biggestMatches
-										hasMerged = true;
-										HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-										newRuleMatch.put(m1entry.getKey(), mergedMatch);
-										toBeAddedToBiggestMatches.add(newRuleMatch);
-									}
-								}
-							} else {
-
-								if (hasMerged) {
-
-									// TODO probably we need to check for isSubMatch2() here too?
-									// yes, if the current ruleMatch2 is a submatch of one of the
-									// toBeAddedToBiggestMatches
-
-									if (isSubMatch2(ruleMatch2, toBeAddedToBiggestMatches)) {
-										HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-										newRuleMatch.put(m1entry.getKey(), m1);
-										toBeAddedToSmallerMatches.add(newRuleMatch);
-									} else {
-										HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-										newRuleMatch.put(m1entry.getKey(), m1);
-										toBeAddedToBiggestMatches.add(newRuleMatch);
-									}
-								} else {
-									HashMap<BaseRule, Match> newRuleMatch = new HashMap<>(ruleMatch2);
-									newRuleMatch.put(m1entry.getKey(), m1);
-									toBeAddedToBiggestMatches.add(newRuleMatch);
-								}
-							}
-						}
-					}
-
-					if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-						toBeAddedToBiggestMatches.add(matchForCurrentTriple);
-					} else {
-						toBeAddedToSmallerMatches.add(matchForCurrentTriple);
-					}
-				}
-			}
-			// remove all toBeDemotedMatches from the biggestMatches and add them to the
-			// smallerMatches.
-
-			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
-			Collections.sort(sortedList, Collections.reverseOrder());
-			for (int i : sortedList) {
-				smallerMatches.add(biggestRuleMatches.get(i));
-				biggestRuleMatches.remove(i);
-			}
-
-			// add all toBeAddedMatches
-			biggestRuleMatches.addAll(toBeAddedToBiggestMatches);
-			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			long innerEnd = System.currentTimeMillis();
-			toBeAddedToBiggestMatches = null;
-			toBeDemotedMatchIndices = null;
-			toBeAddedToSmallerMatches = null;
-
-		}
-		if (aMatchStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
-			allMatches.addAll(biggestRuleMatches);
-			allMatches.addAll(smallerMatches);
-		} else if (aMatchStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES)
-				|| aMatchStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)) {
-			allMatches.addAll(biggestRuleMatches);
-		}
-
-		return new HashSet<>(allMatches);
-
-	}
-	
-	
-	
-	private static boolean isSubMatch2(Map<BaseRule, Match> aRuleMatch, List<Map<BaseRule, Match>> toBeAddedToBiggestMatches) {
-
-		for (Map<BaseRule, Match> ruleMatch : toBeAddedToBiggestMatches) {
-			boolean foundAll = true;
-			for (Map.Entry<BaseRule, Match> rm : aRuleMatch.entrySet()) {
-
-				if (!ruleMatch.containsKey(rm.getKey()) || !ruleMatch.get(rm.getKey()).isSubMatch(rm.getValue())) {
-					foundAll = false;
-					break;
-				}
-			}
-			if (foundAll)
-				return true;
-		}
-		return false;
-	}
-
-	public static Map<TriplePattern, Set<Map<BaseRule, Match>>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
+	public static Map<TriplePattern, Set<CombiMatch>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
 			List<BaseRule> allRules, boolean useConsequent) {
-		Map<TriplePattern, Set<Map<BaseRule, Match>>> matchesPerRule = new HashMap<>();
+
+		Map<TriplePattern, Set<CombiMatch>> matchesPerRule = new HashMap<>();
 
 		for (BaseRule r : allRules) {
 			// first find all triples in the consequent that match each triple in the
@@ -662,13 +448,13 @@ public class BaseRule {
 					foundMatches = findMatches(tripleP, useConsequent ? r.consequent : r.antecedent);
 					if (!foundMatches.isEmpty()) {
 
-						Set<Map<BaseRule, Match>> ruleMatches = matchesPerRule.get(tripleP);
+						Set<CombiMatch> ruleMatches = matchesPerRule.get(tripleP);
 						if (ruleMatches == null) {
 							ruleMatches = new HashSet<>();
 							matchesPerRule.put(tripleP, ruleMatches);
 						}
 						for (Match m : foundMatches) {
-							HashMap<BaseRule, Match> hashMap = new HashMap<BaseRule, Match>();
+							CombiMatch hashMap = new CombiMatch();
 							hashMap.put(r, m);
 							ruleMatches.add(hashMap);
 						}
@@ -678,61 +464,209 @@ public class BaseRule {
 		}
 		return matchesPerRule;
 	}
-	
-	
-	//new implementation of matching towards full match
-	
-	
+
+	// new implementation of matching towards full match
+
 	/**
-	 * 
-	 * 
+	 * This method finds matches of {@code otherGraphPatterns} on
+	 * {@code aGraphPattern} that are part of a full match of {@code aGraphPattern}.
 	 * 
 	 * @param aGraphPattern      The graph pattern for which we want to find
 	 *                           matches.
 	 * @param otherGraphPatterns The other graph patterns that we want to check
 	 *                           whether and how they match to
 	 *                           {@code aGraphPattern}.
-	 * @param antecedent         Whether
+	 * @param antecedentOfTarget Whether to match the antecedent or consequent of
+	 *                           the target rule.
 	 * @return A set of matches that all contribute to some full matche.
 	 */
+	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
+			boolean antecedentOfTarget, MatchStrategy aStrategy) {
 
-	/**
-	 * This method finds matches of {@code otherGraphPatterns} on
-	 * {@code aGraphPattern} that are part of a full match of {@code aGraphPattern}.
-	 * 
-	 * @param aRule
-	 * @param otherRules
-	 * @param antecedent
-	 * @return
-	 */
-	public static Map<BaseRule, Set<Match>> getFullMatches(BaseRule aRule, Set<BaseRule> otherRules, boolean antecedent) {
+		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
 
 		/*
 		 * we use a list instead of a set for performance reasons. The list does not
 		 * call Match#equals(...) method often everytime we add an entry. The algorithm
 		 * makes sure matches that are added do not already exist.
 		 */
-		List<RuleMatchCombi> allMatches = new ArrayList<RuleMatchCombi>();
+		List<CombiMatch> allMatches = new ArrayList<CombiMatch>();
 
-		
-		
-		
-		// TODO first find all triples in the otherGraphPatterns that match each triple
-		// in aGraphPattern
+		// first find all triples in the someCandidateRules that match each triple
+		// in targetGP
+		Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple = getMatchesPerTriplePerRule(targetGP,
+				new ArrayList<>(someCandidateRules), antecedentOfTarget);
 
-		// TODO 
+		// if not every triple pattern can be matched, we stop the process if we require
+		// a full match.
+		if ((aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
+				|| aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_NON_COMBI_MATCHES))
+				&& combiMatchesPerTriple.keySet().size() < targetGP.size())
+			return new HashMap<>();
+
+		List<CombiMatch> biggestMatches = new ArrayList<>();
+		List<CombiMatch> smallerMatches = new ArrayList<>();
+		List<CombiMatch> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
+		Set<Integer> toBeDemotedMatchIndices = null;
+
+		Iterator<Map.Entry<TriplePattern, Set<CombiMatch>>> triplePatternMatchesIter = combiMatchesPerTriple.entrySet()
+				.iterator();
+
+		if (triplePatternMatchesIter.hasNext()) {
+			biggestMatches.addAll(triplePatternMatchesIter.next().getValue());
+		}
+
+		int cnt = 1;
+		// iterate all (except the first) triple patterns of the target graph pattern.
+		while (triplePatternMatchesIter.hasNext()) {
+			Map.Entry<TriplePattern, Set<CombiMatch>> currentTriplePatternMatches = triplePatternMatchesIter.next();
+			LOG.trace("{}/{} ({}): biggest: {}, smaller: {}", ++cnt, combiMatchesPerTriple.size(),
+					currentTriplePatternMatches.getValue().size(), biggestMatches.size(), smallerMatches.size());
+
+			Set<CombiMatch> candidateCombiMatches = currentTriplePatternMatches.getValue();
+
+			toBeAddedToBiggestMatches = new ArrayList<>();
+			toBeAddedToSmallerMatches = new ArrayList<>();
+			toBeDemotedMatchIndices = new HashSet<>();
+
+			// try to merge with biggest combi matches
+			for (int i = 0; i < biggestMatches.size(); i++) {
+				CombiMatch aBiggestMatch = biggestMatches.get(i);
+				// iterate all candidates for current triple pattern
+				for (CombiMatch candidateCombiMatch : candidateCombiMatches) {
+
+					// compare/combine combimatches. Can we do this in a separate method? Or do we
+					// need to pass on too much state information for this to make it worth it?
+					boolean allowCombi = !aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_NON_COMBI_MATCHES);
+					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, allowCombi);
+
+					if (newCombiMatch != null) {
+						// successful merge add new biggest
+						toBeAddedToBiggestMatches.add(newCombiMatch);
+					}
+				}
+
+				toBeDemotedMatchIndices.add(i);
+
+			}
+
+			// update all collections
+
+			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
+			Collections.sort(sortedList, Collections.reverseOrder());
+			for (int i : sortedList) {
+				if (!fullOnly(aStrategy)) {
+					smallerMatches.add(biggestMatches.get(i));
+				}
+				biggestMatches.remove(i);
+			}
+
+			// add all toBeAddedMatches
+			biggestMatches.addAll(toBeAddedToBiggestMatches);
+			smallerMatches.addAll(toBeAddedToSmallerMatches);
+
+			toBeAddedToBiggestMatches = null;
+			toBeDemotedMatchIndices = null;
+			toBeAddedToSmallerMatches = null;
+		}
+
+		if (aStrategy.equals(MatchStrategy.FIND_ALL_MATCHES)) {
+			allMatches.addAll(biggestMatches);
+			allMatches.addAll(smallerMatches);
+		} else if (aStrategy.equals(MatchStrategy.FIND_ONLY_BIGGEST_MATCHES) || fullOnly(aStrategy)) {
+			allMatches.addAll(biggestMatches);
+		}
 
 		return convertToMap(allMatches);
 	}
 
-	private static Map<BaseRule, Set<Match>> convertToMap(List<RuleMatchCombi> matches) {
-		return matches.stream().collect(Collectors.<RuleMatchCombi, BaseRule, Set<Match>>toMap(
-				ruleMatch -> ruleMatch.rule, ruleMatch -> new HashSet<Match>(ruleMatch.matches)));
+	private static boolean fullOnly(MatchStrategy aStrategy) {
+		return aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_MATCHES)
+				|| aStrategy.equals(MatchStrategy.FIND_ONLY_FULL_NON_COMBI_MATCHES);
 	}
 
-	private static class RuleMatchCombi {
-		public BaseRule rule;
-		public List<Match> matches;
+	private static void printCombiMatchesPerTriple(Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {
+		StringBuilder sb = new StringBuilder();
+
+		int total = 1;
+		for (Set<CombiMatch> combiMatch : combiMatchesPerTriple.values()) {
+			total = total * combiMatch.size();
+			sb.append(combiMatch.size()).append(" * ");
+		}
+
+		LOG.trace("{} = {}", total, sb.toString());
+
 	}
 
+	/**
+	 * Tries to merge the singleton candidate combi match with the given biggest
+	 * match.
+	 * 
+	 * @param candidateCombiMatch The candidate combi match
+	 * @param aBiggestCombiMatch  The biggest match to merge with
+	 * @return a new CombiMatch if merge is possible, {@code null} otherwise.
+	 */
+	private static CombiMatch mergeCombiMatches(CombiMatch candidateCombiMatch, CombiMatch aBiggestCombiMatch,
+			boolean allowCombi) {
+
+		assert candidateCombiMatch.keySet().size() == 1;
+
+		Map.Entry<BaseRule, Match> entry = candidateCombiMatch.entrySet().iterator().next();
+
+		BaseRule candidateRule = entry.getKey();
+		Match candidateMatch = entry.getValue();
+
+		if (aBiggestCombiMatch.containsKey(candidateRule)) {
+			// rule already present, try to merge matches.
+			Match biggestMatch = aBiggestCombiMatch.get(candidateRule);
+			Match newMatch = biggestMatch.merge(candidateMatch);
+
+			if (newMatch != null) {
+				// merge successful
+				CombiMatch newCombiMatch = new CombiMatch(aBiggestCombiMatch);
+				newCombiMatch.put(candidateRule, newMatch);
+				return newCombiMatch;
+			}
+		} else if (allowCombi) {
+			// rule not yet present, add new entry for rule.
+			CombiMatch newCombiMatch = new CombiMatch(aBiggestCombiMatch);
+			newCombiMatch.put(candidateRule, candidateMatch);
+			return newCombiMatch;
+		}
+
+		return null;
+	}
+
+	private static Map<BaseRule, Set<Match>> convertToMap(List<CombiMatch> combiMatches) {
+		Map<BaseRule, Set<Match>> matchesPerRule = new HashMap<>();
+		for (CombiMatch combiMatch : combiMatches) {
+			for (Map.Entry<BaseRule, Match> ruleMatch : combiMatch.entrySet()) {
+
+				// create if not already exists
+				if (!matchesPerRule.containsKey(ruleMatch.getKey())) {
+					matchesPerRule.put(ruleMatch.getKey(), new HashSet<>());
+				}
+				assert matchesPerRule.containsKey(ruleMatch.getKey());
+				matchesPerRule.get(ruleMatch.getKey()).add(ruleMatch.getValue());
+			}
+		}
+
+		return matchesPerRule;
+	}
+
+	/**
+	 * This class represents a single combi match which consists of one or more
+	 * rules mapped to a single Match object.
+	 */
+	private static class CombiMatch extends HashMap<BaseRule, Match> {
+		private static final long serialVersionUID = 1L;
+
+		public CombiMatch() {
+			super();
+		}
+
+		public CombiMatch(CombiMatch aBiggestCombiMatch) {
+			super(aBiggestCombiMatch);
+		}
+	}
 }
