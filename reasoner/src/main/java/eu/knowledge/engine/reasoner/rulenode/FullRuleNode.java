@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import org.apache.jena.atlas.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ConsSide;
@@ -23,6 +27,8 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  *
  */
 public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
+
+	private static final Logger LOG = LoggerFactory.getLogger(FullRuleNode.class);
 
 	private BindingSetStore resultBindingSetInput;
 	private BindingSetStore filterBindingSetInput;
@@ -135,8 +141,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 				this.isFilterBindingSetOutputDirty = true;
 
 		} catch (InterruptedException | ExecutionException e) {
-			// TODO
-			e.printStackTrace();
+			LOG.error("{}", e);
 		}
 	}
 
