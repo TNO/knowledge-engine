@@ -1,0 +1,46 @@
+services:
+  knowledge-directory:
+    image: knowledge-directory
+
+  runtime-1:
+    image: smart-connector
+    environment: 
+      KE_RUNTIME_PORT: 8081 
+      KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 
+      KD_URL: http://knowledge-directory:8282
+  runtime-2:
+    image: smart-connector
+    environment: 
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
+      KD_URL: http://knowledge-directory:8282
+  
+  kb1:
+    build: ../../examples/common/asking_kb
+    environment:
+      KE_URL: http://runtime-1:8280/rest
+      KB_ID: http://example.org/kb1
+      PREFIXES: |
+        {
+          "ex": "http://example.org/"
+        }
+      GRAPH_PATTERN: |
+        ?a ex:relatedTo ?b .
+  kb2:
+    build: ../../examples/common/answering_kb
+    environment:
+      KE_URL: http://runtime-2:8280/rest
+      KB_ID: http://example.org/kb2
+      PREFIXES: |
+        {
+          "ex": "http://example.org/"
+        }
+      GRAPH_PATTERN: |
+        ?a ex:relatedTo ?b .
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Math>",
+            "b": "<http://example.org/Science>"
+          }
+        ]
