@@ -52,11 +52,11 @@ public abstract class RuleNode {
 
 	public abstract Set<RuleNode> getAllSameLoopNeighbors();
 
-	public void setResultBindingSetInputScheduled(boolean b) {
+	public void setResultBindingSetInputAlreadyScheduledOrDone(boolean b) {
 		this.resultBindingSetOutputScheduled = b;
 	}
 
-	public boolean isResultBindingSetInputScheduled() {
+	public boolean isResultBindingSetInputAlreadyScheduledOrDone() {
 		return this.resultBindingSetOutputScheduled;
 	}
 

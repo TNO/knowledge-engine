@@ -14,6 +14,7 @@ import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
@@ -265,13 +266,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a reasoner bindingset
 	 * @return a ke bindingset
 	 */
-	private BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
+	protected BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
 		BindingSet newBS = new BindingSet();
 		Binding newB;
+
+		SerializationContext context = new SerializationContext();
+		context.setUsePlainLiterals(false);
+
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
 			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
-				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue()));
+				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
 			}
 			newBS.add(newB);
 		}
@@ -284,7 +289,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a ke bindingset
 	 * @return a reasoner bindingset
 	 */
-	private eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
+	protected eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
 
 		eu.knowledge.engine.reasoner.api.BindingSet newBindingSet = new eu.knowledge.engine.reasoner.api.BindingSet();
 		eu.knowledge.engine.reasoner.api.Binding newBinding;
@@ -432,7 +437,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), askMessage.getMessageId());
+				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
+						askMessage.getMessageId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -494,7 +500,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), postMessage.getMessageId());
+				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
+						postMessage.getMessageId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());

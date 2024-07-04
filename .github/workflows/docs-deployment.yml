@@ -1,0 +1,32 @@
+name: Deploy documentation website
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - docs/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install Node.js
+        uses: actions/setup-node@master
+      - name: Install dependencies
+        working-directory: ./docs
+        run: npm install
+      - name: Build documentation website
+        working-directory: ./docs
+        run: npm run build
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'placeholder'
+      - name: Add known hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Deploy to server
+        working-directory: ./docs
+        run: scp -r build/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DOCS_PATH }}

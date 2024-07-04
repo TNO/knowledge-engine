@@ -124,7 +124,6 @@
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
 			<version>${beanvalidation-version}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- Logging -->
