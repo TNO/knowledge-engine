@@ -17,9 +17,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - run: git checkout 48fb295
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Run the Maven verify phase
