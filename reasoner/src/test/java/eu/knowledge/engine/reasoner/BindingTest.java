@@ -60,7 +60,7 @@ public class BindingTest {
 
 		BaseRule r = new BaseRule("test", toTriplePattern(gp2), new HashSet<>());
 
-		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), MatchStrategy.ULTRA_LEVEL);
 
 		LOG.info("matches size: {}", matches.size());
 

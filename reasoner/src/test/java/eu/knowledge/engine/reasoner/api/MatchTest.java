@@ -55,7 +55,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -70,7 +70,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -87,7 +87,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -101,7 +101,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 
 		// there should be a match, but its mapping should be empty nothing needs to
 		// happen to translate one to the other.
@@ -118,7 +118,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 
 		// there should be a match and its mapping should be empty because nothing needs
 		// to happen to translate one to the other.
@@ -138,7 +138,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -165,7 +165,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), obj);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.NORMAL_LEVEL);
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
 		for (Match m : findMatchesWithConsequent) {
@@ -187,7 +187,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), tp2);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.ULTRA_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -205,7 +205,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), tp2);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, MatchStrategy.ADVANCED_LEVEL);
 		System.out.println(findMatchesWithConsequent);
 	}
 
@@ -269,8 +269,8 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), obj);
 		Rule r2 = new Rule(new HashSet<>(), obj2);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
-		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.NORMAL_LEVEL);
+		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println("Size 1: " + findMatchesWithConsequent.size());
 		System.out.println(findMatchesWithConsequent);
@@ -302,8 +302,8 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), obj);
 		Rule r2 = new Rule(new HashSet<>(), obj2);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_FULL_MATCHES);
-		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.NORMAL_LEVEL);
+		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2, MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println("Size 1: " + findMatchesWithConsequent.size());
 		System.out.println(findMatchesWithConsequent);
@@ -334,7 +334,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(
-				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.FIND_ALL_MATCHES);
+				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.ULTRA_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -422,7 +422,7 @@ public class MatchTest {
 			Rule r = new Rule(new HashSet<>(), obj);
 
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
-					MatchStrategy.FIND_ALL_MATCHES);
+					MatchStrategy.ULTRA_LEVEL);
 
 			System.out.println("graph pattern size " + gpSize + " gives matches size "
 					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
@@ -472,7 +472,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 
 		BindingSet bs = Util.toBindingSet("s=<n2>,p=<p>,o=<n3>");
 
@@ -495,7 +495,7 @@ public class MatchTest {
 
 		Rule r = new Rule(new HashSet<>(), rhs);
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ALL_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 
 		BindingSet bs = Util.toBindingSet("p=<sensor1>,q=\"22.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 
@@ -582,7 +582,7 @@ public class MatchTest {
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ADVANCED_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
@@ -619,8 +619,36 @@ public class MatchTest {
 
 		Set<TriplePattern> obj = Util.toGP(gp);
 
+		String gp2 = """
+				?operation2 <type> <HarvestingOperation> .
+				?operation2 <hasOutput> ?output2 .
+				?operation2 <isOperatedOn> ?parcel2 .
+				?parcel2 <contains> ?crop2 .
+				?crop2 <type> ?cropType2 .
+				?cropType2 <label> ?cropName2 .
+				?parcel2 <hasArea> ?area2 .
+				?farm2 <type> <Farm> .
+				?farm2 <location> ?location2 .
+				?location2 <lat> ?latitude2 .
+				?location2 <long> ?longitude2 .
+				?farm2 <hasName> ?farmName2 .
+				?farm2 <contains> ?parcel2 .
+				?farmer2 <managesFarm> ?farm2 .
+				?association2 <type> <FarmAssociation> .
+				?farmer2 <isMemberOf> ?association2 .
+				?association2 <hasName> ?associationName2 .
+				?parcel2 <hasAdministrator> ?parcelAdminName2 .
+				?parcel2 <hasToponym> ?parcelToponym2 .
+				?parcel2 <inRegion> ?parcelRegion2 .
+				?output2 <isMeantFor> ?purpose2 .
+				?parcel2 <hasCultivator> ?cultivatorName2 .
+				?farm2 <hasCountry> ?country2 .
+				?country2 <name> ?countryLabel2 .""";
+
+		Set<TriplePattern> obj2 = Util.toGP(gp2);
+
 		BaseRule r1 = new ProactiveRule(new HashSet<>(), obj);
-		BaseRule r2 = new Rule(obj, new SinkBindingSetHandler() {
+		BaseRule r2 = new Rule(obj2, new SinkBindingSetHandler() {
 
 			@Override
 			public CompletableFuture<Void> handle(BindingSet aBindingSet) {
@@ -632,7 +660,7 @@ public class MatchTest {
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
 		var findMatchesWithConsequent = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), false,
-				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+				MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 		assertEquals(findMatchesWithConsequent.size(), 1);
@@ -654,10 +682,53 @@ public class MatchTest {
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
-				MatchStrategy.FIND_ONLY_FULL_MATCHES);
+				MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println(matches);
 
 		assertEquals(matches.size(), 1);
+	}
+
+	@Test
+	public void testNewGPMatcherTransitivity() {
+		TriplePattern tp1_1 = new TriplePattern("?x <hasAncestor> ?y");
+		TriplePattern tp1_2 = new TriplePattern("?y <hasAncestor> ?z");
+		Set<TriplePattern> tp1 = new HashSet<>(Arrays.asList(tp1_1, tp1_2));
+
+		TriplePattern tp2_1 = new TriplePattern("?a <hasAncestor> ?b");
+		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1));
+
+		BaseRule r1 = new ProactiveRule(tp1, new HashSet<>());
+
+		BaseRule r2 = new Rule(new HashSet<>(), tp2);
+
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
+				MatchStrategy.ADVANCED_LEVEL);
+
+		System.out.println(matches);
+		assertEquals(1, matches.size());
+
+	}
+
+	@Test
+	public void testNewGPMatcher2() {
+		TriplePattern tp1_1 = new TriplePattern("?x <hasP1> ?y");
+		TriplePattern tp1_2 = new TriplePattern("?y <hasP2> ?z");
+		TriplePattern tp1_3 = new TriplePattern("?z <hasP1> ?w");
+		Set<TriplePattern> tp1 = new HashSet<>(Arrays.asList(tp1_1, tp1_2, tp1_3));
+
+		TriplePattern tp2_1 = new TriplePattern("?a ?b ?c");
+		Set<TriplePattern> tp2 = new HashSet<>(Arrays.asList(tp2_1));
+
+		BaseRule r1 = new ProactiveRule(tp1, new HashSet<>());
+
+		BaseRule r2 = new Rule(new HashSet<>(), tp2);
+
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
+				MatchStrategy.ADVANCED_LEVEL);
+
+		System.out.println(matches);
+		assertEquals(1, matches.size());
+
 	}
 }

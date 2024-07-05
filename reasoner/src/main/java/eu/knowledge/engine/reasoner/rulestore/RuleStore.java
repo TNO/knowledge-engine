@@ -74,7 +74,7 @@ public class RuleStore {
 	 * @see #getAntecedentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-		return this.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		return this.getAntecedentNeighbors(aRule, MatchStrategy.NORMAL_LEVEL);
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class RuleStore {
 	 * @see #getConsequentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
-		return this.getConsequentNeighbors(aRule, MatchStrategy.FIND_ONLY_FULL_MATCHES);
+		return this.getConsequentNeighbors(aRule, MatchStrategy.NORMAL_LEVEL);
 
 	}
 
@@ -202,7 +202,7 @@ public class RuleStore {
 			}
 
 			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule(),
-					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.FIND_ONLY_FULL_MATCHES).keySet();
+					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.NORMAL_LEVEL).keySet();
 			String neighName;
 			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);

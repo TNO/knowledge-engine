@@ -39,7 +39,7 @@ public class ReasonerPlan {
 	private final ProactiveRule start;
 	private final Map<BaseRule, RuleNode> ruleToRuleNode;
 	private boolean done;
-	private MatchStrategy strategy = MatchStrategy.FIND_ALL_MATCHES;
+	private MatchStrategy strategy = MatchStrategy.ULTRA_LEVEL;
 	private boolean useTaskBoard = true;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {

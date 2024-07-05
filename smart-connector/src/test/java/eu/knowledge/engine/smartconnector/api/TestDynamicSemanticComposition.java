@@ -201,7 +201,7 @@ public class TestDynamicSemanticComposition {
 					Rule r = new Rule(translateGraphPatternTo(ki.getArgument()),
 							translateGraphPatternTo(ki.getResult()));
 
-					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.ADVANCED_LEVEL);
 
 					if (!matches.isEmpty()) {
 						kn.addKB(kb);
