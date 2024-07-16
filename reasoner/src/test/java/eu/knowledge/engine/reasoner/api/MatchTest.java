@@ -334,7 +334,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), obj);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(
-				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.ULTRA_LEVEL);
+				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.ADVANCED_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -681,8 +681,7 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
-				MatchStrategy.NORMAL_LEVEL);
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println(matches);
 
@@ -702,8 +701,7 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
-				MatchStrategy.ADVANCED_LEVEL);
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ADVANCED_LEVEL);
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());
@@ -724,8 +722,7 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
-				MatchStrategy.ADVANCED_LEVEL);
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ADVANCED_LEVEL);
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -50,7 +51,8 @@ public class BaseRule {
 
 		/**
 		 * Only look for combi matches in which a candidate triple pattern can only map
-		 * to a single target triple pattern.
+		 * to a single target triple pattern. Note that setting this flag prevents some
+		 * transitivity rules to correctly match (x p y . y p z . -> x p z)
 		 */
 		ONE_TO_ONE,
 
@@ -151,187 +153,27 @@ public class BaseRule {
 	}
 
 	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, MatchStrategy aMatchStrategy) {
-		if (!this.consequent.isEmpty())
-			return matches(anAntecedent, this.consequent, aMatchStrategy);
+		if (!this.consequent.isEmpty()) {
+			Rule r = new Rule(anAntecedent, new SinkBindingSetHandler() {
+
+				@Override
+				public CompletableFuture<Void> handle(BindingSet aBindingSet) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			});
+			return getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchStrategy).get(r);
+
+		}
 		return new HashSet<>();
 	}
 
 	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, MatchStrategy aMatchStrategy) {
-		if (!this.antecedent.isEmpty())
-			return matches(aConsequent, this.antecedent, aMatchStrategy);
+		if (!this.antecedent.isEmpty()) {
+			Rule r = new Rule(new HashSet<>(), aConsequent);
+			return getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchStrategy).get(r);
+		}
 		return new HashSet<>();
-	}
-
-	/**
-	 * FInd the biggest matches bewteen two graph patterns.
-	 * 
-	 * @param aFirstPattern
-	 * @param aSecondPattern
-	 * @param aMatchStrategy
-	 * @return
-	 */
-	public static Set<Match> matches(Set<TriplePattern> aFirstPattern, Set<TriplePattern> aSecondPattern,
-			MatchStrategy aMatchStrategy) {
-
-		assert aFirstPattern != null;
-		assert aSecondPattern != null;
-		assert !aFirstPattern.isEmpty();
-		assert !aSecondPattern.isEmpty();
-
-		long start = System.currentTimeMillis();
-
-		List<Match> allMatches = new ArrayList<>();
-
-		// first find all triples in the consequent that match each triple in the
-		// antecedent
-		Map<TriplePattern, List<Match>> matchesPerTriple = new HashMap<>();
-		List<Match> findMatches;
-		for (TriplePattern anteTriple : aFirstPattern) {
-			// find all possible matches of the current antecedent triple in the consequent
-			findMatches = findMatches(anteTriple, aSecondPattern);
-			if (!findMatches.isEmpty())
-				matchesPerTriple.put(anteTriple, findMatches);
-		}
-
-		// if not every triple pattern can be matched, we stop the process if we require
-		// a full match.
-		if (aMatchStrategy.equals(MatchStrategy.NORMAL_LEVEL)
-				&& matchesPerTriple.keySet().size() < aFirstPattern.size())
-			return new HashSet<>();
-
-		// next, correctly combine all found matches
-		List<Match> biggestMatches = new ArrayList<>();
-		List<Match> smallerMatches = new ArrayList<>();
-		Match mergedMatch = null;
-		List<Match> matches = null;
-		List<Match> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
-		Set<Integer> toBeDemotedMatchIndices = null;
-
-		Iterator<Map.Entry<TriplePattern, List<Match>>> matchIter = matchesPerTriple.entrySet().iterator();
-
-		// always add first matches
-		if (matchIter.hasNext()) {
-			biggestMatches.addAll(matchIter.next().getValue());
-		}
-
-		int idx = 0;
-		while (matchIter.hasNext()) {
-			idx++;
-			LOG.trace("Processing triple pattern {}/{} with {} biggest and {} smaller matches.", idx,
-					matchesPerTriple.size(), biggestMatches.size(), smallerMatches.size());
-
-			long innerStart = System.currentTimeMillis();
-
-			Map.Entry<TriplePattern, List<Match>> entry = matchIter.next();
-
-			// keep a set of new/remove matches, so we can add/remove them at the end of
-			// this loop
-			toBeAddedToBiggestMatches = new ArrayList<>();
-			toBeAddedToSmallerMatches = new ArrayList<>();
-			toBeDemotedMatchIndices = new HashSet<>();
-
-			matches = entry.getValue();
-			assert matches != null;
-
-			for (Match m1 : matches) {
-				// check if we need to merge with existing matches
-				boolean hasMerged = false;
-				// first check if m1 can be merged with any of the existing biggest matches.
-				int biggestMatchesSize = biggestMatches.size();
-				for (int i = 0; i < biggestMatchesSize; i++) {
-					Match m2 = biggestMatches.get(i);
-					mergedMatch = m2.merge(m1);
-					if (mergedMatch != null) {
-						hasMerged = true;
-						toBeAddedToBiggestMatches.add(mergedMatch);
-						toBeDemotedMatchIndices.add(i);
-					} else if (aMatchStrategy.equals(MatchStrategy.NORMAL_LEVEL)) {
-						toBeDemotedMatchIndices.add(i);
-					}
-				}
-
-				// then check if m1 can be merged with any of the existing smaller matches
-				if (!aMatchStrategy.equals(MatchStrategy.NORMAL_LEVEL)) {
-					for (Match m2 : smallerMatches) {
-						mergedMatch = m2.merge(m1);
-						if (mergedMatch != null) {
-
-							if (hasMerged) {
-								// add to smallerMatches and sometimes to biggestMatches.
-								if (isSubMatch(m2, toBeAddedToBiggestMatches)) {
-									// add to smaller matches
-									toBeAddedToSmallerMatches.add(mergedMatch);
-								} else {
-									// add to biggest matches
-									toBeAddedToBiggestMatches.add(mergedMatch);
-								}
-							} else {
-								// add to biggestMatches
-								hasMerged = true;
-								toBeAddedToBiggestMatches.add(mergedMatch);
-							}
-						}
-					}
-				}
-
-				if (!hasMerged && !aMatchStrategy.equals(MatchStrategy.NORMAL_LEVEL)) {
-					toBeAddedToBiggestMatches.add(m1);
-				} else {
-					toBeAddedToSmallerMatches.add(m1);
-				}
-			}
-
-			// remove all toBeDemotedMatches from the biggestMatches and add them to the
-			// smallerMatches.
-
-			List<Integer> sortedList = new ArrayList<>(toBeDemotedMatchIndices);
-			Collections.sort(sortedList, Collections.reverseOrder());
-			for (int i : sortedList) {
-				smallerMatches.add(biggestMatches.get(i));
-				biggestMatches.remove(i);
-			}
-
-			// add all toBeAddedMatches
-			biggestMatches.addAll(toBeAddedToBiggestMatches);
-			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			long innerEnd = System.currentTimeMillis();
-			toBeAddedToBiggestMatches = null;
-			toBeDemotedMatchIndices = null;
-			toBeAddedToSmallerMatches = null;
-		}
-
-		assert biggestMatches != null;
-
-		long finalEnd = System.currentTimeMillis();
-
-		if (aMatchStrategy.equals(MatchStrategy.ULTRA_LEVEL)) {
-			allMatches.addAll(biggestMatches);
-			allMatches.addAll(smallerMatches);
-		} else if (aMatchStrategy.equals(MatchStrategy.ADVANCED_LEVEL)
-				|| aMatchStrategy.equals(MatchStrategy.NORMAL_LEVEL)) {
-			allMatches.addAll(biggestMatches);
-		}
-
-		return new HashSet<>(allMatches);
-	}
-
-	/**
-	 * Go over all matches in toBeaddedToBiggesetMatches and check if aMatch is a
-	 * subMatch of one of those.
-	 * 
-	 * @param aMatch
-	 * @param toBeAddedToBiggestMatches
-	 * @return
-	 */
-	private static boolean isSubMatch(Match aMatch, List<Match> toBeAddedToBiggestMatches) {
-
-		for (Match m : toBeAddedToBiggestMatches) {
-			if (m.isSubMatch(aMatch)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static List<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
@@ -566,24 +408,52 @@ public class BaseRule {
 			toBeAddedToSmallerMatches = new ArrayList<>();
 			toBeDemotedMatchIndices = new HashSet<>();
 
-			// try to merge with biggest combi matches
-			for (int i = 0; i < biggestMatches.size(); i++) {
-				CombiMatch aBiggestMatch = biggestMatches.get(i);
-				// iterate all candidates for current triple pattern
-				for (CombiMatch candidateCombiMatch : candidateCombiMatches) {
+			// iterate all candidates for current triple pattern
+			for (CombiMatch candidateCombiMatch : candidateCombiMatches) {
 
-					// compare/combine combimatches. Can we do this in a separate method? Or do we
-					// need to pass on too much state information for this to make it worth it?
+				boolean candidateWasMerged = false;
+
+				// try to merge with biggest combi matches
+				for (int i = 0; i < biggestMatches.size(); i++) {
+					CombiMatch aBiggestMatch = biggestMatches.get(i);
+					// compare/combine combimatches.
 					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, config);
 
 					if (newCombiMatch != null) {
-						// successful merge add new biggest
+						// successful merge add new biggest and demote old biggest
 						toBeAddedToBiggestMatches.add(newCombiMatch);
+						candidateWasMerged = true;
+						toBeDemotedMatchIndices.add(i);
+					} else if (config.contains(MatchFlag.FULLY_COVERED))
+						toBeDemotedMatchIndices.add(i);
+				}
+
+				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+					// try to merge with smaller combi matches
+					for (CombiMatch aSmallerMatch : smallerMatches) {
+						CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
+						if (newCombiMatch != null) {
+							// merge successful, add to smaller matches
+							if (candidateWasMerged) {
+								if (isSubCombiMatch(aSmallerMatch, toBeAddedToBiggestMatches)) {
+									toBeAddedToSmallerMatches.add(newCombiMatch);
+								} else {
+									toBeAddedToBiggestMatches.add(newCombiMatch);
+								}
+							} else {
+								// add to biggest matches
+								candidateWasMerged = true;
+								toBeAddedToBiggestMatches.add(newCombiMatch);
+							}
+
+						}
 					}
 				}
 
-				toBeDemotedMatchIndices.add(i);
-
+				if (!candidateWasMerged && !config.contains(MatchFlag.FULLY_COVERED))
+					toBeAddedToBiggestMatches.add(candidateCombiMatch);
+				else
+					toBeAddedToSmallerMatches.add(candidateCombiMatch);
 			}
 
 			// update collections
@@ -600,11 +470,11 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			toBeAddedToBiggestMatches = null;
-			toBeDemotedMatchIndices = null;
-			toBeAddedToSmallerMatches = null;
 		}
+
+		toBeAddedToBiggestMatches = null;
+		toBeDemotedMatchIndices = null;
+		toBeAddedToSmallerMatches = null;
 
 		allMatches.addAll(biggestMatches);
 
@@ -612,7 +482,34 @@ public class BaseRule {
 			allMatches.addAll(smallerMatches);
 		}
 
+//		printAllMatches(allMatches);
+
 		return convertToMap(allMatches);
+	}
+
+	private static void printAllMatches(List<CombiMatch> allMatches) {
+
+		for (CombiMatch cm : allMatches) {
+			System.out.println("--------- combi match ------------");
+			for (Map.Entry<BaseRule, Set<Match>> entry : cm.entrySet()) {
+				BaseRule key = entry.getKey();
+				System.out.println(key.getAntecedent() + " -> " + key.getConsequent() + ":");
+				for (Match m : entry.getValue()) {
+					System.out.println("\t" + m);
+				}
+			}
+		}
+	}
+
+	private static boolean isSubCombiMatch(CombiMatch aSmallerMatch, List<CombiMatch> toBeAddedToBiggestMatches) {
+
+		for (CombiMatch combiMatch : toBeAddedToBiggestMatches) {
+			if (combiMatch.isSubMatch(aSmallerMatch)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static EnumSet<MatchFlag> fromStrategyToConfig(MatchStrategy aStrategy) {
@@ -629,7 +526,8 @@ public class BaseRule {
 			config = EnumSet.of(MatchFlag.FULLY_COVERED, MatchFlag.ONLY_BIGGEST);
 			break;
 		case ULTRA_LEVEL:
-			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+//			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+			config = EnumSet.noneOf(MatchFlag.class);
 			break;
 		default:
 			config = EnumSet.noneOf(MatchFlag.class);
@@ -757,6 +655,41 @@ public class BaseRule {
 
 		public CombiMatch() {
 			super();
+		}
+
+		/**
+		 * @param aMatch a combi match object to check whether it is a sub combi match
+		 *               of this combi match.
+		 * @return {@code true} when {@code aMatch} is a sub combi match of this combi
+		 *         match and {@code false} otherwise.
+		 */
+		public boolean isSubMatch(CombiMatch aMatch) {
+
+			for (Map.Entry<BaseRule, Set<Match>> entry : aMatch.entrySet()) {
+
+				if (!this.containsKey(entry.getKey())) {
+					return false;
+				} else if (!isSubSetMatch(entry.getValue(), this.get(entry.getKey()))) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private boolean isSubSetMatch(Set<Match> candidateMatches, Set<Match> targetMatches) {
+
+			for (Match candidateMatch : candidateMatches) {
+				boolean found = false;
+				for (Match targetMatch : targetMatches) {
+					found |= targetMatch.isSubMatch(candidateMatch);
+				}
+
+				if (!found) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		public CombiMatch(CombiMatch aBiggestCombiMatch) {

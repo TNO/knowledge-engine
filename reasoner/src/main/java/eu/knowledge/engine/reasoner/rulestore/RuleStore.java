@@ -4,7 +4,8 @@
 package eu.knowledge.engine.reasoner.rulestore;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -91,11 +92,10 @@ public class RuleStore {
 		assert aRuleNode != null;
 
 		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aStrategy);
-		
+
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
 			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(),
-					aStrategy);
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(), aStrategy);
 		}
 
 		return newMapping;
@@ -164,8 +164,8 @@ public class RuleStore {
 		String width = "2";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("Visualize on website: https://dreampuf.github.io/GraphvizOnline/\n");
-		sb.append("digraph {").append("\n");
+
+		sb.append("digraph {\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
 
 		int ruleNumber = 1;
@@ -247,7 +247,10 @@ public class RuleStore {
 		}
 
 		sb.append("}");
-		LOG.info(sb.toString());
+
+		LOG.info("Visualize on website: https://dreampuf.github.io/GraphvizOnline/#"
+				+ URLEncoder.encode(sb.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20") + "\n"
+				+ sb.toString());
 	}
 
 	private String toStringRule(BaseRule neighR) {
