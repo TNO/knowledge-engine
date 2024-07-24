@@ -1,0 +1,45 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
+  MAVEN_CLI_OPTS: --batch-mode --errors --fail-at-end --show-version
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - uses: actions/checkout@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Run the Maven verify phase
+      run: mvn $MAVEN_CLI_OPTS verify
+    - name: Build Docker image for Knowledge Directory
+      uses: docker/build-push-action@v6
+      with:
+        context: ./knowledge-directory
+        platforms: linux/amd64
+        tags: knowledge-directory
+        load: true
+    - name: Build Docker image for Smart Connector
+      uses: docker/build-push-action@v6
+      with:
+        context: ./smart-connector-rest-dist
+        platforms: linux/amd64
+        tags: smart-connector
+        load: true
+    - name: Build and start smoke test
+      run: docker compose -f ".github/workflows/docker-smoke-test" up -d --build
+    - name: Check smoke test status
+      run: sleep 60s && test $(docker info --format '{{json .ContainersRunning}}') == 5
+      shell: bash
