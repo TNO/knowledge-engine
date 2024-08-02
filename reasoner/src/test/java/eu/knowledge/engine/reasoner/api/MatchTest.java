@@ -422,7 +422,7 @@ public class MatchTest {
 			Rule r = new Rule(new HashSet<>(), obj);
 
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
-					MatchStrategy.ULTRA_LEVEL);
+					MatchStrategy.SUPREME_LEVEL);
 
 			System.out.println("graph pattern size " + gpSize + " gives matches size "
 					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
@@ -546,7 +546,7 @@ public class MatchTest {
 		assertTrue(tvbs2.isEmpty());
 	}
 
-	@Disabled // this unit test causes a out of memory after about 30 to 45 minutes.
+//	@Disabled // this unit test caused an out of memory after about 30 to 45 minutes with the old graph pattern matching algorithm
 	@Test
 	public void testPloutosGPMatcher() {
 
@@ -701,7 +701,7 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ADVANCED_LEVEL);
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ULTRA_LEVEL);
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());
@@ -722,7 +722,7 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ADVANCED_LEVEL);
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, MatchStrategy.ULTRA_LEVEL);
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());

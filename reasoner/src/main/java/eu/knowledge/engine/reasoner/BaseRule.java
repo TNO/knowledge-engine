@@ -66,7 +66,7 @@ public class BaseRule {
 	}
 
 	public static enum MatchStrategy {
-		ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL
+		SUPREME_LEVEL, ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL
 	}
 
 	public static class TrivialBindingSetHandler implements TransformBindingSetHandler {
@@ -176,18 +176,18 @@ public class BaseRule {
 		return new HashSet<>();
 	}
 
-	private static List<Match> findMatches(TriplePattern antecedent, Set<TriplePattern> consequent) {
+	private static List<Match> findMatches(TriplePattern targetTriple, Set<TriplePattern> someCandidateTriplePatterns) {
 
-		assert consequent != null;
-		assert antecedent != null;
-		assert !consequent.isEmpty();
+		assert someCandidateTriplePatterns != null;
+		assert targetTriple != null;
+		assert !someCandidateTriplePatterns.isEmpty();
 
 		List<Match> matchingTriplePatterns = new ArrayList<>();
 		Map<TripleNode, TripleNode> map;
-		for (TriplePattern tp : consequent) {
-			map = antecedent.findMatches(tp);
+		for (TriplePattern candidateTriple : someCandidateTriplePatterns) {
+			map = targetTriple.findMatches(candidateTriple);
 			if (map != null) {
-				matchingTriplePatterns.add(new Match(antecedent, tp, map));
+				matchingTriplePatterns.add(new Match(candidateTriple, targetTriple, map));
 			}
 		}
 
@@ -307,32 +307,34 @@ public class BaseRule {
 		return true;
 	}
 
-	public static Map<TriplePattern, Set<CombiMatch>> getMatchesPerTriplePerRule(Set<TriplePattern> aFirstPattern,
-			List<BaseRule> allRules, boolean useConsequent) {
+	public static Map<TriplePattern, Set<CombiMatch>> getMatchesPerTriplePerRule(Set<TriplePattern> aTargetPattern,
+			List<BaseRule> allCandidateRules, boolean useCandidateConsequent) {
 
 		Map<TriplePattern, Set<CombiMatch>> matchesPerRule = new HashMap<>();
 
-		for (BaseRule r : allRules) {
+		for (BaseRule candidateRule : allCandidateRules) {
 			// first find all triples in the consequent that match each triple in the
 			// antecedent
 			List<Match> foundMatches;
-			for (TriplePattern tripleP : aFirstPattern) {
+			for (TriplePattern tripleTarget : aTargetPattern) {
 				// find all possible matches of the current antecedent triple in the consequent
-				if (useConsequent ? !r.consequent.isEmpty() : !r.antecedent.isEmpty()) {
-					foundMatches = findMatches(tripleP, useConsequent ? r.consequent : r.antecedent);
+				if (useCandidateConsequent ? !candidateRule.consequent.isEmpty()
+						: !candidateRule.antecedent.isEmpty()) {
+					foundMatches = findMatches(tripleTarget,
+							useCandidateConsequent ? candidateRule.consequent : candidateRule.antecedent);
 					if (!foundMatches.isEmpty()) {
 
-						Set<CombiMatch> ruleMatches = matchesPerRule.get(tripleP);
+						Set<CombiMatch> ruleMatches = matchesPerRule.get(tripleTarget);
 						if (ruleMatches == null) {
 							ruleMatches = new HashSet<>();
-							matchesPerRule.put(tripleP, ruleMatches);
+							matchesPerRule.put(tripleTarget, ruleMatches);
 						}
 
 						for (Match m : foundMatches) {
 							CombiMatch newCombiMatch = new CombiMatch();
 							Set<Match> newMatchSet = new HashSet<>();
 							newMatchSet.add(m);
-							newCombiMatch.put(r, newMatchSet);
+							newCombiMatch.put(candidateRule, newMatchSet);
 							ruleMatches.add(newCombiMatch);
 						}
 					}
@@ -354,7 +356,7 @@ public class BaseRule {
 	 *                           whether and how they match to
 	 *                           {@code aGraphPattern}.
 	 * @param antecedentOfTarget Whether to match the antecedent or consequent of
-	 *                           the target rule.
+	 *                           the target rule
 	 * @return A set of matches that all contribute to some full matche.
 	 */
 	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
@@ -526,7 +528,9 @@ public class BaseRule {
 			config = EnumSet.of(MatchFlag.FULLY_COVERED, MatchFlag.ONLY_BIGGEST);
 			break;
 		case ULTRA_LEVEL:
-//			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+			break;
+		case SUPREME_LEVEL:
 			config = EnumSet.noneOf(MatchFlag.class);
 			break;
 		default:

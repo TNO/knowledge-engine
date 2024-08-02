@@ -130,7 +130,7 @@ public class ReasonerPlan {
 					assert current instanceof AntSide;
 					((AntSide) current).getAntecedentNeighbours().forEach((n, matches) -> {
 						var translated = toBeFilterPropagated.translate(n.getRule().getConsequent(),
-								matches);
+								Match.invertAll(matches));
 						boolean itChanged = ((ConsSide) n).addFilterBindingSetInput(current, translated);
 						if (itChanged) {
 							changed.add(n);
@@ -144,7 +144,7 @@ public class ReasonerPlan {
 					assert current instanceof ConsSide;
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
-								matches);
+								Match.invertAll(matches));
 
 						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
