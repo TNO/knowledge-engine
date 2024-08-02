@@ -70,6 +70,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
+	private MatchStrategy defaultStrategy = MatchStrategy.ULTRA_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -144,7 +145,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					new HashSet<>());
 			this.store.addRule(aRule);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.fullMatchOnly() ? MatchStrategy.ENTRY_LEVEL : MatchStrategy.ULTRA_LEVEL);
+					ki.fullMatchOnly() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -210,7 +211,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			store.addRule(aRule);
 
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.fullMatchOnly() ? MatchStrategy.ENTRY_LEVEL : MatchStrategy.ULTRA_LEVEL);
+					pki.fullMatchOnly() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -568,5 +569,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public ReasonerPlan getReasonerPlan() {
 		return this.reasonerPlan;
+	}
+
+	public void setDefaultReasoningStrategy(MatchStrategy aStrategy) {
+		this.defaultStrategy = aStrategy;
 	}
 }
