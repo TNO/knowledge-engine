@@ -70,7 +70,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
-	private MatchStrategy defaultStrategy = MatchStrategy.ULTRA_LEVEL;
+	private MatchStrategy defaultStrategy = MatchStrategy.NORMAL_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
