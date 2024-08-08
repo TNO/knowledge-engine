@@ -121,7 +121,7 @@ public class RuleStore {
 
 	/**
 	 * Calculate the consequent neighbors of this rule. That means all the other
-	 * rules in {@code store} whose antecedent matches this rule's antecedent. Note
+	 * rules in {@code store} whose antecedent matches this rule's consequent. Note
 	 * that it also adds the same information to the neighbor.<br />
 	 * 
 	 * This method is cached to improve performance.

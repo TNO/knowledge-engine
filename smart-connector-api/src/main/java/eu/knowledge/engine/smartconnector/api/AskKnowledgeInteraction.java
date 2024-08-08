@@ -34,18 +34,18 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 		this(act, pattern, name, false, false);
 	}
 
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
-		this(act, pattern, null, false, anIsFullMatch);
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIncludeMetaKIs) {
+		this(act, pattern, null, false, anIncludeMetaKIs);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
-			boolean anIsFullMatch) {
-		this(act, pattern, null, anisMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		this(act, pattern, null, anisMeta, anIncludeMetaKIs);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIsFullMatch) {
-		super(act, name, anisMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		super(act, name, anisMeta, anIncludeMetaKIs);
 		this.pattern = pattern;
 	}
 

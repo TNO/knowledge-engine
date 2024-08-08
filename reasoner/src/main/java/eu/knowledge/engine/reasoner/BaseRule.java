@@ -162,8 +162,11 @@ public class BaseRule {
 					return null;
 				}
 			});
-			return getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchStrategy).get(r);
+			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), false,
+					aMatchStrategy);
 
+			if (matches.containsKey(r))
+				return matches.get(r);
 		}
 		return new HashSet<>();
 	}
@@ -171,7 +174,9 @@ public class BaseRule {
 	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, MatchStrategy aMatchStrategy) {
 		if (!this.antecedent.isEmpty()) {
 			Rule r = new Rule(new HashSet<>(), aConsequent);
-			return getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchStrategy).get(r);
+			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchStrategy);
+			if (matches.containsKey(r))
+				return matches.get(r);
 		}
 		return new HashSet<>();
 	}
@@ -394,7 +399,10 @@ public class BaseRule {
 				.iterator();
 
 		if (triplePatternMatchesIter.hasNext()) {
-			biggestMatches.addAll(triplePatternMatchesIter.next().getValue());
+			Set<CombiMatch> value = triplePatternMatchesIter.next().getValue();
+			LOG.trace("{}/{} ({}): biggest: {}, smaller: {}", 1, combiMatchesPerTriple.size(), value.size(),
+					biggestMatches.size(), smallerMatches.size());
+			biggestMatches.addAll(value);
 		}
 
 		int cnt = 1;

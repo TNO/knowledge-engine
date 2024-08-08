@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,6 +102,7 @@ public class ReasonerPlan {
 		Set<RuleNode> changed = new HashSet<>();
 
 		do {
+			LOG.trace("New round.");
 			stack.clear();
 			visited.clear();
 			changed.clear();
@@ -268,7 +270,7 @@ public class ReasonerPlan {
 
 			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
 				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
-						this.strategy);
+						this.store.getAntecedentNeighbors(aRule, this.strategy).get(aParent), this.strategy);
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
@@ -317,23 +319,18 @@ public class ReasonerPlan {
 	 * @return
 	 */
 	private boolean antecedentFullyMatchesConsequent(BaseRule antecedentRule, BaseRule consequentRule,
-			MatchStrategy aMatchStrategy) {
+			Set<Match> someMatches, MatchStrategy aMatchStrategy) {
 
 		var antecedent = antecedentRule.getAntecedent();
 		var consequent = consequentRule.getConsequent();
-		
+
 		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
-		
 
 		if (antecedent.size() > consequent.size())
 			return false;
 
-		Set<Match> matches = BaseRule
-				.getMatches(antecedentRule, new HashSet<>(Arrays.asList(consequentRule)), true, aMatchStrategy).values()
-				.iterator().next();
-
-		for (Match m : matches) {
+		for (Match m : someMatches) {
 			// check if there is a match that is full
 			boolean allFound = true;
 			for (TriplePattern tp : antecedent) {

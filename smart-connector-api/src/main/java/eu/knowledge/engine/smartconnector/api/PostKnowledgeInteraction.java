@@ -47,18 +47,18 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	}
 
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, false, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, false, anIncludeMetaKIs);
 	}
 
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, anIsMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, anIsMeta, anIncludeMetaKIs);
 	}
 
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		super(act, name, anIsMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		super(act, name, anIsMeta, anIncludeMetaKIs);
 		this.argument = argument;
 		this.result = result;
 	}

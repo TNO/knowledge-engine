@@ -121,6 +121,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
 				return communicativeActMatcher(anAKI, r);
+			}).filter((r) -> {
+				return anAKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
@@ -288,6 +290,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
 				return communicativeActMatcher(aPKI, r);
+			}).filter((r) -> {
+				return aPKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
