@@ -83,12 +83,12 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
 
 		TripleVarBindingSet filteredBS = bs;
-		if (this.filterBindingSetOutput != null) {
+		if (this.filterBindingSetOutput != null && !this.hasProactiveParent(aNeighbor)) {
 			filteredBS = bs.keepCompatible(this.filterBindingSetOutput);
 		}
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
-		if (changed && this.filterBindingSetOutput == null) {
+		if (changed && this.filterBindingSetOutput == null && this.hasProactiveParent(aNeighbor)) {
 			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
 

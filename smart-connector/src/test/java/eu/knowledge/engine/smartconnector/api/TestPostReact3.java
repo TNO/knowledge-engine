@@ -120,13 +120,22 @@ public class TestPostReact3 {
 			PostResult result = plan.execute(bindingSet).get();
 
 			assertTrue(this.kb2Received, "KB2 should have received the posted data.");
-			assertFalse(this.kb3Received, "KB3 should not have received the posted data.");
+			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
 			BindingSet bs = result.getBindings();
 			LOG.info("received post results: {}", bs);
-			assertTrue(bs.size() == 1);
-			bs.forEach(b -> {
-				assertEquals(new HashSet<String>(Arrays.asList("c", "d")), b.getVariables());
-			});
+			assertTrue(bs.size() == 2);
+
+			BindingSet expected = new BindingSet();
+			Binding b = new Binding();
+			b.put("c", "<https://example.org/example/c1>");
+			b.put("d", "<https://example.org/example/d1>");
+			expected.add(b);
+			b = new Binding();
+			b.put("c", "<https://example.org/example/c2>");
+			b.put("d", "<https://example.org/example/d2>");
+			expected.add(b);
+
+			assertEquals(expected, bs);
 		} catch (Exception e) {
 			LOG.error("Error", e);
 		}

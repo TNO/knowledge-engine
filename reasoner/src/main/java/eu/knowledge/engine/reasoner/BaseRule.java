@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,13 +35,29 @@ public class BaseRule {
 	public static final String ARROW = "->";
 
 	/**
+	 * A comparator to make sure the smaller matches collection is ordered from big
+	 * to small.
+	 */
+	public static class CombiMatchSizeComparator implements Comparator<CombiMatch> {
+		public int compare(CombiMatch object1, CombiMatch object2) {
+			return object2.getSize() - object1.getSize();
+		}
+	}
+
+	/**
 	 * Some flags used during the matching process. It is targeted to the internally
 	 * generated combi matches.
 	 */
 	public static enum MatchFlag {
 
 		/**
-		 * Only look for combi matches that fully cover the target graph pattern.
+		 * Only look for combi matches that fully cover the target graph pattern. Note
+		 * that for backward reasoning (where we match neighbors to antecedents) this is
+		 * an essential configuration property to improve performance, however, for
+		 * backward reasoning (where we match consequent neighbors) this leaves out
+		 * matches to neighbors. The reason is that when forward reasoning, the
+		 * consequent graph pattern can match partially so only part of the forwarded
+		 * data is being used.
 		 */
 		FULLY_COVERED,
 
@@ -367,7 +384,7 @@ public class BaseRule {
 	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
 			boolean antecedentOfTarget, MatchStrategy aStrategy) {
 
-		EnumSet<MatchFlag> config = fromStrategyToConfig(aStrategy);
+		EnumSet<MatchFlag> config = fromStrategyToConfig(aStrategy, antecedentOfTarget);
 
 		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
 
@@ -383,7 +400,7 @@ public class BaseRule {
 		Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple = getMatchesPerTriplePerRule(targetGP,
 				new ArrayList<>(someCandidateRules), antecedentOfTarget);
 
-//		printCombiMatchesPerTriple(combiMatchesPerTriple);
+		printCombiMatchesPerTriple(combiMatchesPerTriple);
 
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
@@ -439,13 +456,17 @@ public class BaseRule {
 				}
 
 				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+
+					// we need to sort the smaller matches on size (from big to small)
+					// to make sure the isSubCombiMatch method works correctly in this algo
+
 					// try to merge with smaller combi matches
 					for (CombiMatch aSmallerMatch : smallerMatches) {
 						CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
 						if (newCombiMatch != null) {
 							// merge successful, add to smaller matches
 							if (candidateWasMerged) {
-								if (isSubCombiMatch(aSmallerMatch, toBeAddedToBiggestMatches)) {
+								if (isSubCombiMatch(newCombiMatch, toBeAddedToBiggestMatches)) {
 									toBeAddedToSmallerMatches.add(newCombiMatch);
 								} else {
 									toBeAddedToBiggestMatches.add(newCombiMatch);
@@ -480,6 +501,8 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
+
+			Collections.sort(smallerMatches, new CombiMatchSizeComparator());
 		}
 
 		toBeAddedToBiggestMatches = null;
@@ -522,7 +545,7 @@ public class BaseRule {
 		return false;
 	}
 
-	private static EnumSet<MatchFlag> fromStrategyToConfig(MatchStrategy aStrategy) {
+	private static EnumSet<MatchFlag> fromStrategyToConfig(MatchStrategy aStrategy, boolean antecedentOfTarget) {
 		EnumSet<MatchFlag> config;
 		switch (aStrategy) {
 		case ENTRY_LEVEL:
@@ -530,10 +553,18 @@ public class BaseRule {
 					MatchFlag.SINGLE_RULE);
 			break;
 		case NORMAL_LEVEL:
-			config = EnumSet.of(MatchFlag.FULLY_COVERED, MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
+			config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
+
+			// disable fully covered when matching consequents.
+			if (antecedentOfTarget)
+				config.add(MatchFlag.FULLY_COVERED);
 			break;
 		case ADVANCED_LEVEL:
-			config = EnumSet.of(MatchFlag.FULLY_COVERED, MatchFlag.ONLY_BIGGEST);
+			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+
+			// disable fully covered when matching consequents.
+			if (antecedentOfTarget)
+				config.add(MatchFlag.FULLY_COVERED);
 			break;
 		case ULTRA_LEVEL:
 			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
@@ -706,6 +737,30 @@ public class BaseRule {
 
 		public CombiMatch(CombiMatch aBiggestCombiMatch) {
 			super(aBiggestCombiMatch);
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("{");
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.entrySet()) {
+				sb.append(entry.getValue()).append("=").append(entry.getKey());
+			}
+			sb.append("}");
+			return sb.toString();
+		}
+
+		public int getSize() {
+
+			Set<TriplePattern> tps = new HashSet<TriplePattern>();
+			for (Map.Entry<BaseRule, Set<Match>> entry : this.entrySet()) {
+
+				for (Match m : entry.getValue()) {
+					tps.addAll(m.getMatchingPatterns().values());
+				}
+			}
+
+			return tps.size();
 		}
 	}
 }

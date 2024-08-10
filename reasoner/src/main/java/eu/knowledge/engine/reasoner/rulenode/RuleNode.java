@@ -1,14 +1,18 @@
 package eu.knowledge.engine.reasoner.rulenode;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
@@ -113,6 +117,34 @@ public abstract class RuleNode {
 	 */
 	public void setResultBindingSetOutputPropagated() {
 		this.isResultBindingSetOutputDirty = false;
+	}
+
+	/**
+	 * Follows the antecedents of this neighbor until they are all visited. If one
+	 * of the antecedent neighbors is a ProactiveRule returns {@code true}, {@code
+	 * false} otherwise.
+	 */
+	protected boolean hasProactiveParent(RuleNode aNeighbor) {
+
+		Set<RuleNode> visited = new HashSet<>();
+		Deque<RuleNode> stack = new LinkedList<>();
+
+		stack.push(aNeighbor);
+
+		while (!stack.isEmpty()) {
+			var current = stack.pop();
+			if (visited.contains(current))
+				continue;
+
+			if (aNeighbor.getRule() instanceof ProactiveRule) {
+				return true;
+			} else if (aNeighbor instanceof AntSide) {
+				stack.addAll(((AntSide) aNeighbor).getAntecedentNeighbours().keySet());
+			}
+			visited.add(current);
+		}
+
+		return false;
 	}
 
 }

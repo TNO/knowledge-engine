@@ -331,16 +331,18 @@ public class MatchTest {
 
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3));
 
-		Rule r = new Rule(new HashSet<>(), obj);
+		Rule r = new Rule(obj, (SinkBindingSetHandler) aBindingSet -> {
+			return new CompletableFuture<Void>();
+		});
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(
+		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(
 				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), MatchStrategy.ADVANCED_LEVEL);
 
-		System.out.println("Size: " + findMatchesWithConsequent.size());
+		System.out.println("Size: " + findMatchesWithAntecedent.size());
 //		System.out.println(findMatchesWithConsequent);
 
 		int count = 0;
-		for (Match m : findMatchesWithConsequent) {
+		for (Match m : findMatchesWithAntecedent) {
 //			System.out.println(m.getMatchingPatterns());
 
 			if (m.getMatchingPatterns().size() == 3) {
@@ -546,7 +548,8 @@ public class MatchTest {
 		assertTrue(tvbs2.isEmpty());
 	}
 
-//	@Disabled // this unit test caused an out of memory after about 30 to 45 minutes with the old graph pattern matching algorithm
+	@Disabled // this unit test caused an out of memory after about 30 to 45 minutes with the
+				// old graph pattern matching algorithm
 	@Test
 	public void testPloutosGPMatcher() {
 
@@ -582,12 +585,13 @@ public class MatchTest {
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ADVANCED_LEVEL);
+		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
 	}
 
+	@Disabled
 	@Test
 	public void testPloutosGPMatcher2() {
 
