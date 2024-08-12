@@ -3,10 +3,12 @@ package eu.knowledge.engine.reasoner.api;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Match;
 
@@ -16,17 +18,17 @@ public class TripleVarBindingSet {
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TripleVarBindingSet.class);
+
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
 		this.graphPattern = aGraphPattern;
-		bindings = new HashSet<>();
+		bindings = ConcurrentHashMap.newKeySet();
 	}
 
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern, BindingSet aBindingSet) {
 
-		this.graphPattern = aGraphPattern;
-
-		this.bindings = new HashSet<>();
+		this(aGraphPattern);
 
 		for (Binding b : aBindingSet) {
 			this.add(new TripleVarBinding(this.graphPattern, b));
@@ -160,21 +162,17 @@ public class TripleVarBindingSet {
 			}
 		} else {
 			// Cartesian product is the base case
-			boolean firstTime = true;
-			for (TripleVarBinding tvb1 : this.bindings) {
-				gbs.add(tvb1);
+			gbs.addAll(aGraphBindingSet.getBindings());
+			gbs.addAll(this.bindings);
+			this.bindings.stream().parallel().forEach(tvb1 -> {
 
 				for (TripleVarBinding otherB : aGraphBindingSet.getBindings()) {
-					if (firstTime)
-						gbs.add(otherB);
-
 					// always add a merged version of the two bindings, except when they conflict.
 					if (!tvb1.isConflicting(otherB)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}
-				firstTime = false;
-			}
+			});
 		}
 
 		return gbs;
@@ -199,6 +197,10 @@ public class TripleVarBindingSet {
 	 * @return
 	 */
 	public TripleVarBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
+		LOG.trace("Translating binding set with '{}' bindings and '{}' matches.", this.bindings.size(), match.size());
+
+		long start = System.currentTimeMillis();
+
 		TripleVarBindingSet newOne = new TripleVarBindingSet(graphPattern);
 		TripleVarBinding toB;
 		for (TripleVarBinding fromB : this.bindings) {
@@ -247,6 +249,7 @@ public class TripleVarBindingSet {
 					newOne.add(toB);
 			}
 		}
+
 		return newOne;
 
 	}
