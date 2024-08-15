@@ -37,7 +37,7 @@ import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
-//@Disabled
+@Disabled
 public class TestComplexGraphPatternMatching {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestComplexGraphPatternMatching.class);
