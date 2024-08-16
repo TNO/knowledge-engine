@@ -94,4 +94,12 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 		return null;
 	}
 
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printResultBindingSetInputStore() {
+		this.resultBindingSetInput.printDebuggingTable();
+	}
+
 }

@@ -264,4 +264,21 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean shouldPropagateResultBindingSetOutput() {
 		return this.isResultBindingSetOutputDirty;
 	}
+
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printResultBindingSetInputStore() {
+		this.resultBindingSetInput.printDebuggingTable();
+	}
+
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printFilterBindingSetInputStore() {
+		this.filterBindingSetInput.printDebuggingTable();
+	}
+
 }

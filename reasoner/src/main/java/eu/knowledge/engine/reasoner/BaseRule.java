@@ -288,7 +288,7 @@ public class BaseRule {
 		this.name = aName;
 	}
 
-	protected String getName() {
+	public String getName() {
 		return name;
 	}
 

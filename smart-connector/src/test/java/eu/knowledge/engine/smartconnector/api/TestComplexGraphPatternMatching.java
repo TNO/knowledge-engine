@@ -37,7 +37,6 @@ import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
-@Disabled
 public class TestComplexGraphPatternMatching {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestComplexGraphPatternMatching.class);
@@ -81,29 +80,6 @@ public class TestComplexGraphPatternMatching {
 
 			result = askPlan.execute(new BindingSet()).get();
 
-			int max = 0;
-			TripleVarBindingSet bindingSet = askPlan.getReasonerPlan().getStartNode().getResultBindingSetInput();
-			for (TripleVarBinding tvb : bindingSet.getBindings()) {
-
-				int size = tvb.getTripleVars().size();
-
-				LOG.info("TripleVar size: {}", size);
-				if (size == 47) {
-
-					LOG.info("TVB: {}", tvb.toBinding());
-
-					Set<TriplePattern> aSet = new HashSet<>();
-					for (TripleNode tn : tvb.getTripleVars()) {
-						aSet.add(tn.tp);
-					}
-
-//					assertEquals(bindingSet.getGraphPattern(), aSet);
-
-					findMissingVars(bindingSet.getGraphPattern(), tvb);
-				}
-			}
-			LOG.info("Max: {}", max);
-
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
@@ -115,6 +91,7 @@ public class TestComplexGraphPatternMatching {
 							Arrays.asList(devicesKB.getKnowledgeBaseId(), observationsKB.getKnowledgeBaseId())),
 					kbIds, "The result should come from observationsKB and devicesKB not: " + kbIds);
 
+			LOG.info("Bindings: {}", bindings);
 			assertEquals(1, bindings.size());
 
 		} catch (InterruptedException | ExecutionException e) {
@@ -225,6 +202,7 @@ public class TestComplexGraphPatternMatching {
 						fahrenheit = (Float) fahrenheitObj;
 					}
 					LOG.info("Converting fahrenheit '{}' to celcius.", fahrenheit);
+					binding.put("r", FmtUtils.stringForNode(b.get("r"), new PrefixMappingZero()));
 					binding.put("v2", "\"" + convert(fahrenheit) + "\"^^<http://www.w3.org/2001/XMLSchema#float>");
 					binding.put("p2",
 							FmtUtils.stringForNode(b.get("p1"), new PrefixMappingZero()).replace(">", "_new>"));

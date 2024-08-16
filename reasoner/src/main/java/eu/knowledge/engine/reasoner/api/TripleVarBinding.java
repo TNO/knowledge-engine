@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner.api;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -139,6 +140,16 @@ public class TripleVarBinding {
 
 	public boolean containsKey(TripleNode key) {
 		return this.tripleVarMapping.containsKey(key);
+	}
+
+	public Set<TripleNode> getTripleNodes(TriplePattern aTriplePattern) {
+		Set<TripleNode> nodes = new HashSet<TripleNode>();
+		for (TripleNode tv : this.tripleVarMapping.keySet()) {
+			if (tv.tp.equals(aTriplePattern)) {
+				nodes.add(tv);
+			}
+		}
+		return nodes;
 	}
 
 	public boolean containsVar(Var aVar) {
