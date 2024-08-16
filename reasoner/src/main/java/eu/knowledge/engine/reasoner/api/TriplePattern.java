@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
@@ -26,7 +27,11 @@ public class TriplePattern {
 	}
 
 	public TriplePattern(String string) {
-		Triple t = SSE.parseTriple("(" + string + ")", new PrefixMappingZero());
+		this(new PrefixMappingZero(), string);
+	}
+
+	public TriplePattern(PrefixMapping prefixes, String aPattern) {
+		Triple t = SSE.parseTriple("(" + aPattern + ")", prefixes);
 		this.subject = t.getSubject();
 		this.predicate = t.getPredicate();
 		this.object = t.getObject();
