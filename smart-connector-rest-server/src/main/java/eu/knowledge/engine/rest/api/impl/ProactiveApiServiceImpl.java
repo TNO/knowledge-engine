@@ -47,17 +47,17 @@ public class ProactiveApiServiceImpl {
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@POST
-	@Path("/ask")
+	@Path("/askwithgaps")
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
-	public void scAskPost(
+	public void scAskWithGapsPost(
 			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@Parameter(description = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 
 			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+		LOG.info("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
 
 		RecipientAndBindingSet recipientAndBindingSetObject;
@@ -133,7 +133,127 @@ public class ProactiveApiServiceImpl {
 
 			askFuture.thenAccept(askResult -> {
 
-				LOG.debug("AskResult received, resuming async response: {}", askResult);
+				LOG.info("AskResult received, resuming async response: {}", askResult);
+				List<AskExchangeInfo> infos = askResult.getExchangeInfoPerKnowledgeBase().stream()
+						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
+								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
+								.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
+								.exchangeStart(Date.from(aei.getExchangeStart()))
+								.exchangeStart(Date.from(aei.getExchangeStart()))
+								.initiator(toInitiatorEnumAsk(aei.getInitiator()))
+								.exchangeEnd(Date.from(aei.getExchangeEnd())).status(aei.getStatus().toString())
+								.failedMessage(aei.getFailedMessage()))
+						.collect(Collectors.toList());
+
+				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
+						.exchangeInfo(infos);
+
+				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
+			});
+
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+			LOG.trace("", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Something went wrong while sending a POST or while waiting on the REACT.");
+			asyncResponse.resume(Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build());
+		} catch (IllegalArgumentException e) {
+			LOG.trace("", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+		}
+	}
+
+	@POST
+	@Path("/ask")
+	@Consumes({ "application/json; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
+	public void scAskPost(
+			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Parameter(description = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
+
+			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
+			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
+
+		LOG.info("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+				recipientAndBindingSet);
+
+		RecipientAndBindingSet recipientAndBindingSetObject;
+		try {
+			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
+		} catch (IllegalArgumentException e) {
+			LOG.debug("", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+			return;
+		}
+
+		if (knowledgeBaseId == null || knowledgeInteractionId == null) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Both Knowledge-Base-Id and Knowledge-Interaction-Id headers should be non-null.");
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+			return;
+		}
+
+		var kb = this.manager.getKB(knowledgeBaseId);
+		if (kb == null) {
+			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
+				this.manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+				return;
+			} else {
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Smart connector not found, because its ID is unknown.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+				return;
+			}
+		}
+
+		try {
+			new URI(knowledgeInteractionId);
+		} catch (URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge interaction not found, because its ID must be a valid URI.");
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+			return;
+		}
+
+		if (!kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge Interaction not found, because its ID is unknown.");
+			asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+			return;
+		}
+
+		KnowledgeInteractionWithId ki = kb.getKnowledgeInteraction(knowledgeInteractionId);
+		if (!ki.getKnowledgeInteractionType().equals("AskKnowledgeInteraction")) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Given Knowledge Interaction ID should have type AskKnowledgeInteraction and not "
+					+ ki.getKnowledgeInteractionType() + ".");
+			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+			return;
+		}
+
+		try {
+			var askFuture = kb.ask(knowledgeInteractionId, recipientAndBindingSetObject.recipient,
+					recipientAndBindingSetObject.bindingSet);
+
+			askFuture.thenAccept(askResult -> {
+
+				LOG.info("AskResult received, resuming async response: {}", askResult);
 				List<AskExchangeInfo> infos = askResult.getExchangeInfoPerKnowledgeBase().stream()
 						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
 								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
