@@ -21,7 +21,7 @@
 		<jackson-version>2.16.1</jackson-version>
 		<junit-version>4.13.1</junit-version>
 		<logback-version>1.4.14</logback-version>
-		<servlet-api-version>5.0.0</servlet-api-version>
+		<servlet-api-version>6.1.0</servlet-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
