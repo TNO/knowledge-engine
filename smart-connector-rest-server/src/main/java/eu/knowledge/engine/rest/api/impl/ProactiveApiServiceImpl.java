@@ -57,7 +57,7 @@ public class ProactiveApiServiceImpl {
 			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.info("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+		LOG.info("scAskWithGapsPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
 
 		RecipientAndBindingSet recipientAndBindingSetObject;

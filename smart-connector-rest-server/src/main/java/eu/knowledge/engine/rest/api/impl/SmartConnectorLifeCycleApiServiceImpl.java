@@ -143,10 +143,15 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return;
 		}
 
+		// set reasoner enabled to true for testing
+		smartConnector.setReasonerEnabled(true); // TODO: this should come from the caller!!
+		LOG.info("Setting reasoner to enabled in order to activate the creation of a reasoner plan.");
+		// end set reasoner enabled to true for testing
+		
 		final boolean reasonerEnabled = smartConnector.getReasonerEnabled() == null ? false
 				: smartConnector.getReasonerEnabled();
-		
-		LOG.info("Creating smart connector with ID {}.", kbId);
+				
+		LOG.info("Creating smart connector with ID {} and reasoner enabled {}.", kbId, reasonerEnabled);
 		
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)
