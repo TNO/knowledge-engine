@@ -1,8 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
  * This class contains the plan of the Smart Connector for executing a
@@ -30,4 +32,12 @@ public interface AskPlan {
 	 *         reasoning was disabled.
 	 */
 	public ReasonerPlan getReasonerPlan();
+
+	/**
+	 * Get the possible knowledge gaps in the reasoning plan
+	 * 
+	 * @return A set of knowledge gaps in the reasoning plan, or {@code null} if
+	 *         reasoning was disabled.
+	 */
+	public Set<Set<TriplePattern>> findKnowledgeGaps();
 }
