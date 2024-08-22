@@ -201,8 +201,9 @@ public class RuleStore {
 
 			}
 
-			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule(),
-					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.NORMAL_LEVEL).keySet();
+			Map<BaseRule, Set<Match>> antecedentNeighbors = this.getAntecedentNeighbors(r.getRule(),
+					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.NORMAL_LEVEL);
+			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
 			String neighName;
 			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);
@@ -240,8 +241,10 @@ public class RuleStore {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\"";
 				}
 
-				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[").append(pen).append("]")
-						.append("\n");
+				int nrOfMatches = antecedentNeighbors.get(neighR).size();
+
+				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[label=").append(nrOfMatches)
+						.append(" ").append(pen).append("]").append("\n");
 
 			}
 		}
