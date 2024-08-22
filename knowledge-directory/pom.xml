@@ -21,7 +21,6 @@
 		<jackson-version>2.16.1</jackson-version>
 		<junit-version>4.13.1</junit-version>
 		<logback-version>1.4.14</logback-version>
-		<servlet-api-version>5.0.0</servlet-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -60,11 +59,6 @@
 			<artifactId>junit-jupiter</artifactId>
 			<version>5.10.2</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<version>${servlet-api-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
