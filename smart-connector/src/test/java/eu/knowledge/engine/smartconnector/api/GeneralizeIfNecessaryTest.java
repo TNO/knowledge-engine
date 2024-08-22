@@ -1,13 +1,10 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -22,12 +19,14 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 /**
- * This test tries to illustrate <i>forward compatibility</i>. We instantiate an
- * App KB and a Lamp1 KB that exchange data about the on/off state of the lamp.
- * When a new Lamp2 KB is introduced that does not support on/off because it is
- * dimmable, we should how the reasoner+domain knowledge combination is able to
- * make the app work with the new dimmable type of lamp although it was not
- * designed to work with those types.
+ * This test tries to illustrate <i>generalize if necessary</i>. We instantiate
+ * an App KB and a Sensor1 and Sensor2 KB that exchange data about the value of
+ * the sensors and their location in the building. Then the App KB asks for all
+ * sensors in the building and we expect the Knowledge Engine to return both
+ * sensors although they are not directly said to be located in the building,
+ * but rather in two separate rooms that are part of a floor that is part of
+ * that particular building. So, this tests whether the knowledge engine can
+ * deal with transitivity and use it to its advantage.
  * 
  * @author nouwtb
  *
@@ -69,6 +68,19 @@ public class GeneralizeIfNecessaryTest {
 		AskResult result = pp.execute(argument).get();
 
 		LOG.info("Result bindings: {}", result.getBindings());
+
+		BindingSet expectedBS = new BindingSet();
+		Binding expectedB = new Binding();
+		expectedB.put("s", "<http://example.org/sensor1>");
+		expectedB.put("value", "\"10\"^^<http://www.w3.org/2001/XMLSchema#integer>");
+		expectedBS.add(expectedB);
+
+		expectedB = new Binding();
+		expectedB.put("s", "<http://example.org/sensor2>");
+		expectedB.put("value", "\"20\"^^<http://www.w3.org/2001/XMLSchema#integer>");
+		expectedBS.add(expectedB);
+
+		assertEquals(expectedBS, result.getBindings());
 
 	}
 
