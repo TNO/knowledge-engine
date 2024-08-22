@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.ReasonerPlan;
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 /**
  * An {@link AskResult} contains the result of the
@@ -26,6 +27,8 @@ public class AskResult {
 	 * Can be null, if the matcher is used instead of the reasoner.
 	 */
 	private ReasonerPlan reasonerPlan;
+	
+	private Set<Set<TriplePattern>> knowledgeGaps;
 
 	private final Set<AskExchangeInfo> exchangeInfos;
 
@@ -38,14 +41,15 @@ public class AskResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode) {
+	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode, Set<Set<TriplePattern>> kGaps) {
 		this.bindings = someBindings;
 		this.exchangeInfos = askExchangeInfos;
 		this.reasonerPlan = aRootNode;
+		this.knowledgeGaps = kGaps;
 	}
 
 	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos) {
-		this(someBindings, askExchangeInfos, null);
+		this(someBindings, askExchangeInfos, null, null);
 	}
 
 	/**
@@ -99,8 +103,12 @@ public class AskResult {
 		return this.reasonerPlan;
 	}
 
+	public Set<Set<TriplePattern>> getKnowledgeGaps() {
+		return this.knowledgeGaps;
+	}
+
 	@Override
 	public String toString() {
-		return "AskResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfos + "]";
+		return "AskResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfos + ", knowledgeGaps=" + knowledgeGaps + "]";
 	}
 }
