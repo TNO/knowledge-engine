@@ -304,17 +304,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public CompletableFuture<AskResult> ask(AskKnowledgeInteraction anAKI, RecipientSelector aSelector,
 			BindingSet aBindingSet) {
 
-		// new code to test gaps
-		AskPlan plan = this.planAsk(anAKI, aSelector);
-		ReasonerPlan rn = plan.getReasonerPlan();
-		if (rn == null)
-			LOG.info("ReasonerPlan is empty");
-		else {
-			// check for knowledge gaps
-			Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
-			LOG.info("Found gaps: " + gaps); }
-		// end new code to test gaps
-		
 		return this.planAsk(anAKI, aSelector).execute(aBindingSet).exceptionally((Throwable t) -> {
 			LOG.error("Processing an Ask should not result in errors.", t);
 			return null;
