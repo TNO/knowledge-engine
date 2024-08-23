@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.sparql.sse.SSE;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -163,9 +162,9 @@ public class MatchTest {
 		Set<TriplePattern> obj = new HashSet<>(
 				Arrays.asList(t1, t2, t3, t4, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16));
 
-		Rule r = new Rule(new HashSet<>(), obj);
+		BaseRule r = new ProactiveRule(obj, new HashSet<>());
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.NORMAL_LEVEL);
+		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj, MatchStrategy.NORMAL_LEVEL);
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
 		for (Match m : findMatchesWithConsequent) {
@@ -548,8 +547,6 @@ public class MatchTest {
 		assertTrue(tvbs2.isEmpty());
 	}
 
-	@Disabled // this unit test caused an out of memory after about 30 to 45 minutes with the
-				// old graph pattern matching algorithm
 	@Test
 	public void testPloutosGPMatcher() {
 
@@ -581,17 +578,23 @@ public class MatchTest {
 
 		Set<TriplePattern> obj = Util.toGP(gp);
 
-		Rule r = new Rule(new HashSet<>(), obj);
+		Rule r = new Rule(obj, new SinkBindingSetHandler() {
+
+			@Override
+			public CompletableFuture<Void> handle(BindingSet aBindingSet) {
+				System.out.println("bla");
+				return null;
+			}
+		});
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, MatchStrategy.ULTRA_LEVEL);
+		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj, MatchStrategy.ADVANCED_LEVEL);
 
-		System.out.println("Size: " + findMatchesWithConsequent.size());
+		System.out.println("Size: " + findMatchesWithAntecedent.size());
 
 	}
 
-	@Disabled
 	@Test
 	public void testPloutosGPMatcher2() {
 
@@ -651,23 +654,17 @@ public class MatchTest {
 
 		Set<TriplePattern> obj2 = Util.toGP(gp2);
 
-		BaseRule r1 = new ProactiveRule(new HashSet<>(), obj);
-		BaseRule r2 = new Rule(obj2, new SinkBindingSetHandler() {
+		BaseRule r1 = new ProactiveRule(obj, new HashSet<>());
 
-			@Override
-			public CompletableFuture<Void> handle(BindingSet aBindingSet) {
-				System.out.println("bla");
-				return null;
-			}
-		});
+		BaseRule r2 = new Rule(new HashSet<>(), obj2);
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		var findMatchesWithConsequent = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), false,
+		var findMatchesWithConsequent = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
 				MatchStrategy.NORMAL_LEVEL);
 
 		System.out.println("Size: " + findMatchesWithConsequent.size());
-		assertEquals(findMatchesWithConsequent.size(), 1);
+		assertEquals(1, findMatchesWithConsequent.size());
 	}
 
 	@Test
