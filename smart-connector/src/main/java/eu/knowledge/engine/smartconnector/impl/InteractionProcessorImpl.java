@@ -31,6 +31,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
@@ -120,6 +121,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
 				return communicativeActMatcher(anAKI, r);
+			}).filter((r) -> {
+				return anAKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
@@ -130,8 +133,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
 					this.additionalDomainKnowledge);
 		} else {
-			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
-					this.messageRouter);
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
+					this.additionalDomainKnowledge);
+			((ReasonerProcessor) processor).setDefaultReasoningStrategy(MatchStrategy.ENTRY_LEVEL);
 		}
 
 		// give the caller something to chew on while it waits. This method starts the
@@ -206,7 +210,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			AnswerMessage m = new AnswerMessage(anAskMsg.getToKnowledgeBase(), anAskMsg.getToKnowledgeInteraction(),
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					"Received AskMessage wth unknown ToKnowledgeInteractionId");
-			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "+anAskMsg.getToKnowledgeInteraction().toString());
+			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "
+					+ anAskMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<AnswerMessage> f = new CompletableFuture<>();
 			f.complete(m);
 			return f;
@@ -236,6 +241,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(answerKnowledgeInteraction.getPattern(), b);
 					validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
 							anAskMsg.getBindings(), b);
 				}
@@ -285,6 +291,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
 				// But filter on the communicative act. These have to match!
 				return communicativeActMatcher(aPKI, r);
+			}).filter((r) -> {
+				return aPKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
@@ -295,8 +303,9 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
 					this.additionalDomainKnowledge);
 		} else {
-			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
-					this.messageRouter);
+			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
+					this.additionalDomainKnowledge);
+			((ReasonerProcessor) processor).setDefaultReasoningStrategy(MatchStrategy.ENTRY_LEVEL);
 		}
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -319,7 +328,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			ReactMessage m = new ReactMessage(aPostMsg.getToKnowledgeBase(), aPostMsg.getToKnowledgeInteraction(),
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					"Received PostMessage with unknown ToKnowledgeInteractionId");
-			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "+aPostMsg.getToKnowledgeInteraction().toString());
+			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "
+					+ aPostMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<ReactMessage> f = new CompletableFuture<>();
 			f.complete(m);
 			return f;
@@ -348,6 +358,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(reactKnowledgeInteraction.getResult(), b);
 					validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
 							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 				}

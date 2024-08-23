@@ -424,7 +424,6 @@ public class TestUtils {
 				trimmed = trimmed.substring(0, trimmed.length() - 2);
 
 			if (!trimmed.isEmpty()) {
-				System.out.println("line: " + trimmed);
 				set.add(new TriplePattern(prefixes, trimmed));
 			}
 		}

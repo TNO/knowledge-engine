@@ -109,8 +109,9 @@ public class TriplePattern {
 				return uri.getFragment();
 			}
 			var path = uri.getPath();
-			if (path != null)
+			if (path != null && path.substring(path.lastIndexOf('/') + 1).length() > 0)
 				return path.substring(path.lastIndexOf('/') + 1);
+
 		} else if (n.isLiteral()) {
 			return n.getLiteralLexicalForm();
 		}

@@ -18,7 +18,13 @@ public abstract class KnowledgeInteraction {
 	 */
 	private final CommunicativeAct act;
 
-	private final boolean fullMatchOnly;
+	/**
+	 * When executing this knowledge interaction, should the meta knowledge
+	 * interactions of the smart connectors be taken into account. This can reduce
+	 * performance considerably, because meta KIs have graph patterns that match on
+	 * many other graph patterns.
+	 */
+	private final boolean includeMetaKIs;
 
 	/**
 	 * {@code true} if this Knowledge Interaction is used for internal knowledge
@@ -53,16 +59,16 @@ public abstract class KnowledgeInteraction {
 		this(act, null, isMeta, false);
 	}
 
-	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean aFullMatchOnly) {
-		this(act, null, isMeta, aFullMatchOnly);
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean anIncludeMetaKIs) {
+		this(act, null, isMeta, anIncludeMetaKIs);
 	}
 
-	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean aFullMatchOnly) {
+	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean anIncludeMetaKIs) {
 		this.validateName(name);
 		this.act = act;
 		this.name = name;
 		this.isMeta = isMeta;
-		this.fullMatchOnly = aFullMatchOnly;
+		this.includeMetaKIs = anIncludeMetaKIs;
 	}
 
 	public String getName() {
@@ -80,8 +86,8 @@ public abstract class KnowledgeInteraction {
 		return this.isMeta;
 	}
 
-	public boolean fullMatchOnly() {
-		return this.fullMatchOnly;
+	public boolean includeMetaKIs() {
+		return this.includeMetaKIs;
 	}
 
 	/**
@@ -92,7 +98,8 @@ public abstract class KnowledgeInteraction {
 	 */
 	private void validateName(String name) {
 		if (name != null && !name.matches("[a-zA-Z0-9-]*")) {
-			throw new IllegalArgumentException("Knowledge Interaction names can only contain alphanumeric characters and hyphens.");
+			throw new IllegalArgumentException(
+					"Knowledge Interaction names can only contain alphanumeric characters and hyphens.");
 		}
 	}
 }

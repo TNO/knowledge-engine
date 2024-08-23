@@ -37,7 +37,6 @@ import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
-@Disabled
 public class TestComplexGraphPatternMatching {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestComplexGraphPatternMatching.class);
@@ -81,29 +80,6 @@ public class TestComplexGraphPatternMatching {
 
 			result = askPlan.execute(new BindingSet()).get();
 
-			int max = 0;
-			TripleVarBindingSet bindingSet = askPlan.getReasonerPlan().getStartNode().getResultBindingSetInput();
-			for (TripleVarBinding tvb : bindingSet.getBindings()) {
-
-				int size = tvb.getTripleVars().size();
-
-				LOG.info("TripleVar size: {}", size);
-				if (size == 47) {
-
-					LOG.info("TVB: {}", tvb.toBinding());
-
-					Set<TriplePattern> aSet = new HashSet<>();
-					for (TripleNode tn : tvb.getTripleVars()) {
-						aSet.add(tn.tp);
-					}
-
-//					assertEquals(bindingSet.getGraphPattern(), aSet);
-
-					findMissingVars(bindingSet.getGraphPattern(), tvb);
-				}
-			}
-			LOG.info("Max: {}", max);
-
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
@@ -115,6 +91,7 @@ public class TestComplexGraphPatternMatching {
 							Arrays.asList(devicesKB.getKnowledgeBaseId(), observationsKB.getKnowledgeBaseId())),
 					kbIds, "The result should come from observationsKB and devicesKB not: " + kbIds);
 
+			LOG.info("Bindings: {}", bindings);
 			assertEquals(1, bindings.size());
 
 		} catch (InterruptedException | ExecutionException e) {
@@ -225,6 +202,7 @@ public class TestComplexGraphPatternMatching {
 						fahrenheit = (Float) fahrenheitObj;
 					}
 					LOG.info("Converting fahrenheit '{}' to celcius.", fahrenheit);
+					binding.put("r", FmtUtils.stringForNode(b.get("r"), new PrefixMappingZero()));
 					binding.put("v2", "\"" + convert(fahrenheit) + "\"^^<http://www.w3.org/2001/XMLSchema#float>");
 					binding.put("p2",
 							FmtUtils.stringForNode(b.get("p1"), new PrefixMappingZero()).replace(">", "_new>"));
@@ -282,7 +260,6 @@ public class TestComplexGraphPatternMatching {
 				?propVal saref:isMeasuredIn <https://qudt.org/2.1/vocab/unit/DEG_C> .
 
 				""";
-		// ?propVal saref:isMeasuredIn <https://qudt.org/2.1/vocab/unit/DEG_C> .
 
 		GraphPattern gp2 = new GraphPattern(prefixes, TestUtils.convertGP(pattern));
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
@@ -323,8 +300,7 @@ public class TestComplexGraphPatternMatching {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 
-//			binding.put("type", "<https://saref.etsi.org/core/Thermostat>");
-			binding.put("type", "<https://saref.etsi.org/core/Sensor>");
+			binding.put("type", "<https://saref.etsi.org/core/Thermostat>");
 			binding.put("d", "<thermostat1>");
 			binding.put("l", "\"Thermostat 1\"");
 			binding.put("c", "\"The thermostat in the bathroom.\"");
@@ -347,8 +323,7 @@ public class TestComplexGraphPatternMatching {
 			bindingSet.add(binding);
 
 			binding = new Binding();
-//			binding.put("type", "<https://www.tno.nl/example/OpenCloseSensor>");
-			binding.put("type", "<https://www.tno.nl/example/Sensor>");
+			binding.put("type", "<https://www.tno.nl/example/OpenCloseSensor>");
 			binding.put("d", "<openclose1>");
 			binding.put("l", "\"Open Close Sensor 1\"");
 			binding.put("c", "\"The open close sensor of the front door.\"");

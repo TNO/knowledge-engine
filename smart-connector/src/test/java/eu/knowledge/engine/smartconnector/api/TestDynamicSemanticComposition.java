@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,8 +21,8 @@ import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,23 +40,23 @@ public class TestDynamicSemanticComposition {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
 
-	private static MockedKnowledgeBase kbTargetObserver;
-	private static MockedKnowledgeBase kbHVTSearcher;
-	private static MockedKnowledgeBase kbTargetCountrySupplier;
-	private static MockedKnowledgeBase kbTargetLanguageSupplier;
-	private static MockedKnowledgeBase kbTargetAgeSupplier;
+	private MockedKnowledgeBase kbTargetObserver;
+	private MockedKnowledgeBase kbHVTSearcher;
+	private MockedKnowledgeBase kbTargetCountrySupplier;
+	private MockedKnowledgeBase kbTargetLanguageSupplier;
+	private MockedKnowledgeBase kbTargetAgeSupplier;
 
-	private static KnowledgeNetwork kn;
+	private KnowledgeNetwork kn;
 
-	private static PrefixMappingMem prefixes;
+	private PrefixMappingMem prefixes;
 
 	private AskKnowledgeInteraction askKI;
 	private PostKnowledgeInteraction postKI;
 
-	private static Set<Rule> ruleSet;
+	private Set<Rule> ruleSet;
 
-	@BeforeAll
-	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
+	@BeforeEach
+	public void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -98,6 +97,7 @@ public class TestDynamicSemanticComposition {
 
 	}
 
+//	@RepeatedTest(100)
 	@Test
 	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
@@ -161,6 +161,7 @@ public class TestDynamicSemanticComposition {
 					postKI.getArgument(), result.getReasonerPlan(), prefixes);
 		} catch (Exception e) {
 			LOG.error("Error", e);
+			fail(e);
 		}
 	}
 
@@ -201,7 +202,7 @@ public class TestDynamicSemanticComposition {
 					Rule r = new Rule(translateGraphPatternTo(ki.getArgument()),
 							translateGraphPatternTo(ki.getResult()));
 
-					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.ADVANCED_LEVEL);
 
 					if (!matches.isEmpty()) {
 						kn.addKB(kb);
@@ -398,8 +399,8 @@ public class TestDynamicSemanticComposition {
 
 	}
 
-	@AfterAll
-	public static void cleanup() throws InterruptedException, ExecutionException {
+	@AfterEach
+	public void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestDynamicSemanticComposition.class.getSimpleName());
 		kn.stop().get();
 	}

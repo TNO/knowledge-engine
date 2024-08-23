@@ -70,6 +70,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
+	private MatchStrategy defaultStrategy = MatchStrategy.NORMAL_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -144,7 +145,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					new HashSet<>());
 			this.store.addRule(aRule);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
+					ki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -210,7 +211,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			store.addRule(aRule);
 
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
+					pki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -419,8 +420,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Instant aPreviousSend = Instant.now();
 
 				bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					LOG.warn("Error '{}' occurred while waiting for response to: {}",
+							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+							askMessage.getMessageId());
+					LOG.debug("", t);
+					return null;
 				}).thenApply((answerMessage) -> {
 					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = null;
@@ -437,8 +441,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
-						askMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						askMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -483,8 +488,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
 				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					LOG.warn("Error '{}' occurred while waiting for response to: {}",
+							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+							postMessage.getMessageId());
+					LOG.debug("", t);
+					return null;
 				}).thenApply((reactMessage) -> {
 					BindingSet resultBindingSet = null;
 					if (reactMessage != null)
@@ -500,8 +508,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
-						postMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						postMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -568,5 +577,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public ReasonerPlan getReasonerPlan() {
 		return this.reasonerPlan;
+	}
+
+	public void setDefaultReasoningStrategy(MatchStrategy aStrategy) {
+		this.defaultStrategy = aStrategy;
 	}
 }

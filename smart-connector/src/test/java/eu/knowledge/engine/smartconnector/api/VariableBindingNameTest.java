@@ -77,7 +77,7 @@ class VariableBindingNameTest {
 
 					String temp = b.get("temp2");
 
-					assertEquals("21.5", temp);
+					assertEquals("\"21.5\"^^<http://www.w3.org/2001/XMLSchema#decimal>", temp);
 
 					Binding binding = new Binding();
 					binding.put("s2", "<https://www.tno.nl/example/subject>");

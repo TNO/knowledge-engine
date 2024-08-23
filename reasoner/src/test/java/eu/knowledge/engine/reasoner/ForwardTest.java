@@ -12,16 +12,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Literal;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
-import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,12 +22,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
-import eu.knowledge.engine.reasoner.TaskBoard;
-import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -666,5 +652,107 @@ public class ForwardTest {
 		System.out.println(aBindingSetHandler1.getBindingSet());
 		assertNotNull(aBindingSetHandler1.getBindingSet());
 		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
+	}
+
+	/**
+	 * This test checks whether combining results from two antecedent succeeds.
+	 * 
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	@Test
+	public void testCorrectlyCombineMultipleNeighbors() throws InterruptedException, ExecutionException {
+
+		var aStore = new RuleStore();
+
+		TriplePattern tp1 = new TriplePattern("?s1 <pred> ?o1");
+		TriplePattern tp2 = new TriplePattern("?s2 <pred> ?o2");
+		TriplePattern tp21 = new TriplePattern("?s2 <pred1> ?o2");
+		TriplePattern tp3 = new TriplePattern("?s3 <pred> ?o3");
+		TriplePattern tp31 = new TriplePattern("?s3 <pred1> ?o3");
+		TriplePattern tp4 = new TriplePattern("?s4 <pred1> ?o4");
+
+		// rule 1
+		Set<TriplePattern> aConsequent = new HashSet<>();
+		aConsequent.add(tp1);
+		ProactiveRule r1 = new ProactiveRule(new HashSet<>(), aConsequent);
+		aStore.addRule(r1);
+
+		// rule 2
+		var hashSet = new HashSet<TriplePattern>();
+		hashSet.add(tp2);
+		var hashSet2 = new HashSet<TriplePattern>();
+		hashSet2.add(tp21);
+		Rule r2 = new Rule(hashSet, hashSet2, bs -> {
+
+			BindingSet aBS = new BindingSet();
+
+			Binding e = new Binding("s2", "<s2>");
+			e.put("o2", "<o2>");
+			aBS.add(e);
+
+			var future = new CompletableFuture<BindingSet>();
+			future.complete(aBS);
+
+			return future;
+
+		});
+		aStore.addRule(r2);
+
+		// rule 3
+		hashSet = new HashSet<TriplePattern>();
+		hashSet.add(tp3);
+		hashSet2 = new HashSet<TriplePattern>();
+		hashSet2.add(tp31);
+		Rule r3 = new Rule(hashSet, hashSet2, bs -> {
+
+			BindingSet aBS = new BindingSet();
+
+			Binding e = new Binding("s3", "<s3>");
+			e.put("o3", "<o3>");
+			aBS.add(e);
+
+			var future = new CompletableFuture<BindingSet>();
+			future.complete(aBS);
+
+			return future;
+
+		});
+		aStore.addRule(r3);
+
+		// rule 4
+		Set<TriplePattern> anAntecedent = new HashSet<>();
+		anAntecedent.add(tp4);
+		MyBindingSetHandler aSinkBindingSetHandler = new MyBindingSetHandler();
+		Rule r4 = new Rule(anAntecedent, aSinkBindingSetHandler);
+		aStore.addRule(r4);
+
+		ReasonerPlan rp = new ReasonerPlan(aStore, r1);
+
+		aStore.printGraphVizCode(rp);
+
+		BindingSet bindingSet = new BindingSet();
+		Binding e = new Binding("s1", "<s1>");
+		e.put("o1", "<o1>");
+		bindingSet.add(e);
+
+		TaskBoard tb;
+		while ((tb = rp.execute(bindingSet)).hasTasks()) {
+			tb.executeScheduledTasks().get();
+		}
+
+		BindingSet bindingSet2 = aSinkBindingSetHandler.getBindingSet();
+		System.out.println(bindingSet2);
+
+		Binding e1 = new Binding("o4", "<o3>");
+		e1.put("s4", "<s3>");
+
+		Binding e2 = new Binding("s4", "<s2>");
+		e2.put("o4", "<o2>");
+
+		assertFalse(bindingSet2.isEmpty());
+		assertTrue(bindingSet2.contains(e1));
+		assertTrue(bindingSet2.contains(e2));
+
 	}
 }

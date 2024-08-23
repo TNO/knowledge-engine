@@ -5,7 +5,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -39,7 +38,7 @@ public class ReasonerPlan {
 	private final ProactiveRule start;
 	private final Map<BaseRule, RuleNode> ruleToRuleNode;
 	private boolean done;
-	private MatchStrategy strategy = MatchStrategy.FIND_ALL_MATCHES;
+	private MatchStrategy strategy = MatchStrategy.ULTRA_LEVEL;
 	private boolean useTaskBoard = true;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
@@ -101,6 +100,7 @@ public class ReasonerPlan {
 		Set<RuleNode> changed = new HashSet<>();
 
 		do {
+			LOG.trace("New round.");
 			stack.clear();
 			visited.clear();
 			changed.clear();
@@ -267,8 +267,8 @@ public class ReasonerPlan {
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
 			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
-				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule.getAntecedent(),
-						aParent.getConsequent(), this.getMatchStrategy());
+				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
+						this.store.getAntecedentNeighbors(aRule, this.strategy).get(aParent), this.strategy);
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
@@ -312,12 +312,15 @@ public class ReasonerPlan {
 	 * that if the antecedent is a subset of the consequent this method also return
 	 * true.
 	 * 
-	 * @param consequent
-	 * @param antecedent
+	 * @param consequentRule
+	 * @param antecedentRule
 	 * @return
 	 */
-	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
-			MatchStrategy aMatchStrategy) {
+	private boolean antecedentFullyMatchesConsequent(BaseRule antecedentRule, BaseRule consequentRule,
+			Set<Match> someMatches, MatchStrategy aMatchStrategy) {
+
+		var antecedent = antecedentRule.getAntecedent();
+		var consequent = consequentRule.getConsequent();
 
 		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
@@ -325,9 +328,7 @@ public class ReasonerPlan {
 		if (antecedent.size() > consequent.size())
 			return false;
 
-		Set<Match> matches = BaseRule.matches(antecedent, consequent, aMatchStrategy);
-
-		for (Match m : matches) {
+		for (Match m : someMatches) {
 			// check if there is a match that is full
 			boolean allFound = true;
 			for (TriplePattern tp : antecedent) {
