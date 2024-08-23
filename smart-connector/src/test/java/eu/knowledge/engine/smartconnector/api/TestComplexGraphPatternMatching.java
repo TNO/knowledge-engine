@@ -260,7 +260,6 @@ public class TestComplexGraphPatternMatching {
 				?propVal saref:isMeasuredIn <https://qudt.org/2.1/vocab/unit/DEG_C> .
 
 				""";
-		// ?propVal saref:isMeasuredIn <https://qudt.org/2.1/vocab/unit/DEG_C> .
 
 		GraphPattern gp2 = new GraphPattern(prefixes, TestUtils.convertGP(pattern));
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
@@ -301,8 +300,7 @@ public class TestComplexGraphPatternMatching {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 
-//			binding.put("type", "<https://saref.etsi.org/core/Thermostat>");
-			binding.put("type", "<https://saref.etsi.org/core/Sensor>");
+			binding.put("type", "<https://saref.etsi.org/core/Thermostat>");
 			binding.put("d", "<thermostat1>");
 			binding.put("l", "\"Thermostat 1\"");
 			binding.put("c", "\"The thermostat in the bathroom.\"");
@@ -325,8 +323,7 @@ public class TestComplexGraphPatternMatching {
 			bindingSet.add(binding);
 
 			binding = new Binding();
-//			binding.put("type", "<https://www.tno.nl/example/OpenCloseSensor>");
-			binding.put("type", "<https://www.tno.nl/example/Sensor>");
+			binding.put("type", "<https://www.tno.nl/example/OpenCloseSensor>");
 			binding.put("d", "<openclose1>");
 			binding.put("l", "\"Open Close Sensor 1\"");
 			binding.put("c", "\"The open close sensor of the front door.\"");

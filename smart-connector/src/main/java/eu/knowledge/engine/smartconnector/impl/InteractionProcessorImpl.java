@@ -241,6 +241,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(answerKnowledgeInteraction.getPattern(), b);
 					validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
 							anAskMsg.getBindings(), b);
 				}
@@ -357,6 +358,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(reactKnowledgeInteraction.getResult(), b);
 					validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
 							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 				}

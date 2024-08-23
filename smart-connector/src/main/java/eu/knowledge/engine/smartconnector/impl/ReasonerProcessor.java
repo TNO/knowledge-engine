@@ -420,8 +420,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Instant aPreviousSend = Instant.now();
 
 				bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					LOG.warn("Error '{}' occurred while waiting for response to: {}",
+							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+							askMessage.getMessageId());
+					LOG.debug("", t);
+					return null;
 				}).thenApply((answerMessage) -> {
 					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = null;
@@ -438,8 +441,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
-						askMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						askMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -484,8 +488,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
 				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					LOG.warn("Error '{}' occurred while waiting for response to: {}",
+							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+							postMessage.getMessageId());
+					LOG.debug("", t);
+					return null;
 				}).thenApply((reactMessage) -> {
 					BindingSet resultBindingSet = null;
 					if (reactMessage != null)
@@ -501,8 +508,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(),
-						postMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						postMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
