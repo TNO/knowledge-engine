@@ -11,7 +11,7 @@
 	</parent>
 
 	<properties>
-		<swagger-core-version>2.2.20</swagger-core-version>
+		<swagger-core-version>2.2.22</swagger-core-version>
 		<jetty-version>11.0.15</jetty-version>
 		<jersey3-version>3.1.7</jersey3-version>
 		<jackson-version>2.16.1</jackson-version>
