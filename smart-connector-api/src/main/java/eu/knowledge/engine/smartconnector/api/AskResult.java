@@ -28,7 +28,7 @@ public class AskResult {
 	 */
 	private ReasonerPlan reasonerPlan;
 	
-	private Set<Set<TriplePattern>> knowledgeGaps;
+	private KnowledgeGapSet knowledgeGaps;
 
 	private final Set<AskExchangeInfo> exchangeInfos;
 
@@ -41,7 +41,7 @@ public class AskResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode, Set<Set<TriplePattern>> kGaps) {
+	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode, KnowledgeGapSet kGaps) {
 		this.bindings = someBindings;
 		this.exchangeInfos = askExchangeInfos;
 		this.reasonerPlan = aRootNode;
@@ -103,7 +103,7 @@ public class AskResult {
 		return this.reasonerPlan;
 	}
 
-	public Set<Set<TriplePattern>> getKnowledgeGaps() {
+	public KnowledgeGapSet getKnowledgeGaps() {
 		return this.knowledgeGaps;
 	}
 
