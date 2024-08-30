@@ -106,8 +106,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				store.addRule(new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
-						new AnswerBindingSetHandler(kii)));
+				Rule aRule = new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
+						new AnswerBindingSetHandler(kii));
+				store.addRule(aRule);
+				LOG.debug("Adding ANSWER to store: {}", aRule);
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
 				GraphPattern argGp = rki.getArgument();
@@ -124,6 +126,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 
 				store.addRule(aRule);
+				LOG.debug("Adding REACT to store: {}", aRule);
 			}
 
 		}
@@ -144,8 +147,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+			MatchStrategy aStrategy = ki.isMeta() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy);
+
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -210,8 +215,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+			MatchStrategy aStrategy = pki.isMeta() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());

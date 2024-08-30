@@ -356,4 +356,9 @@ public class ReasonerPlan {
 		return this.store;
 	}
 
+	@Override
+	public String toString() {
+		return "ReasonerPlan [link=" + this.store.getGraphVizCode(this, true) + "]";
+	}
+
 }

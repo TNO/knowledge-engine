@@ -154,11 +154,19 @@ public class RuleStore {
 		}
 	}
 
+	public void printGraphVizCode(ReasonerPlan aPlan) {
+		LOG.info(getGraphVizCode(aPlan, false));
+	}
+
 	/**
 	 * Prints all the rules and the connections between them in GraphViz encoding.
-	 * Use code in: {@link http://viz-js.com/}
+	 * Use code in: {@link https://dreampuf.github.io/GraphvizOnline/}
 	 */
-	public void printGraphVizCode(ReasonerPlan aPlan) {
+	public void printGraphVizCode(ReasonerPlan aPlan, boolean urlOnly) {
+		LOG.info(getGraphVizCode(aPlan, urlOnly));
+	}
+
+	public String getGraphVizCode(ReasonerPlan aPlan, boolean urlOnly) {
 
 		String color = "red";
 		String width = "2";
@@ -251,9 +259,9 @@ public class RuleStore {
 
 		sb.append("}");
 
-		LOG.info("Visualize on website: https://dreampuf.github.io/GraphvizOnline/#"
-				+ URLEncoder.encode(sb.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20") + "\n"
-				+ sb.toString());
+		return "Visualize on website: https://dreampuf.github.io/GraphvizOnline/#"
+				+ URLEncoder.encode(sb.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20")
+				+ (urlOnly ? "" : "\n" + sb.toString());
 	}
 
 	private String toStringRule(BaseRule neighR) {
