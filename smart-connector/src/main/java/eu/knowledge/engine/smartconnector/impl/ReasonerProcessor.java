@@ -77,8 +77,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
-	//private Set<Set<TriplePattern>> knowledgeGaps;
-	private KnowledgeGapSet knowledgeGaps;
+	private Set<KnowledgeGap> knowledgeGaps;
+	//private KnowledgeGapSet knowledgeGaps;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -185,8 +185,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 		
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			//this.knowledgeGaps = new HashSet<>();
-			this.knowledgeGaps = new KnowledgeGapSet();
+			this.knowledgeGaps = new HashSet<KnowledgeGap>();
+			//this.knowledgeGaps = new KnowledgeGapSet();
 			// if the binding set is empty, check for knowledge gaps
 			if (bs.isEmpty()) {
 				this.knowledgeGaps = getKnowledgeGaps(this.reasonerPlan.getStartNode());
@@ -625,13 +625,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 *         gap.
 	 */
 	//public Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
-	public KnowledgeGapSet getKnowledgeGaps(RuleNode plan) {
+	public Set<KnowledgeGap> getKnowledgeGaps(RuleNode plan) {
 
 		assert plan instanceof AntSide;
 
 		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
 		// new
-		KnowledgeGapSet existingOrGaps1 = new KnowledgeGapSet();
+		Set<KnowledgeGap> existingOrGaps1 = new HashSet<KnowledgeGap>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
 		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
@@ -641,7 +641,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
 
 		//new
-		KnowledgeGapSet collectedOrGaps1, someGaps1 = new KnowledgeGapSet();
+		Set<KnowledgeGap> collectedOrGaps1, someGaps1 = new HashSet<KnowledgeGap>();
 
 		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
 
@@ -650,7 +650,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			
 			collectedOrGaps = new HashSet<>();
 			// new 
-			collectedOrGaps1 = new KnowledgeGapSet();
+			collectedOrGaps1 = new HashSet<KnowledgeGap>();
 			boolean foundNeighborWithoutGap = false;
 			for (RuleNode neighbor : entry.getValue()) {
 				LOG.info("Neighbor is {}", neighbor);
@@ -715,7 +715,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 
 				//new
-				KnowledgeGapSet newExistingOrGaps1 = new KnowledgeGapSet();
+				Set<KnowledgeGap> newExistingOrGaps1 = new HashSet<KnowledgeGap>();
 				if (existingOrGaps1.isEmpty()) {
 					existingOrGaps1.addAll(collectedOrGaps1);
 					LOG.info("Added collectedOrGaps1 to existingOrGaps1");
