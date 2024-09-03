@@ -45,7 +45,6 @@ import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeGap;
-import eu.knowledge.engine.smartconnector.api.KnowledgeGapSet;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
@@ -186,8 +185,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			this.knowledgeGaps = new HashSet<KnowledgeGap>();
-			//this.knowledgeGaps = new KnowledgeGapSet();
-			// if the binding set is empty, check for knowledge gaps
+			// TODO: make the calculation of knowledge gaps configurable.
+			// For now, if the binding set is empty, check for knowledge gaps
 			if (bs.isEmpty()) {
 				this.knowledgeGaps = getKnowledgeGaps(this.reasonerPlan.getStartNode());
 			}			
@@ -629,35 +628,28 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		assert plan instanceof AntSide;
 
-		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
-		// new
-		Set<KnowledgeGap> existingOrGaps1 = new HashSet<KnowledgeGap>();
+		Set<KnowledgeGap> existingOrGaps = new HashSet<KnowledgeGap>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
 		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
 				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
 
 		// collect triple patterns that have an empty set
-		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
-
-		//new
-		Set<KnowledgeGap> collectedOrGaps1, someGaps1 = new HashSet<KnowledgeGap>();
+		Set<KnowledgeGap> collectedOrGaps, someGaps = new HashSet<KnowledgeGap>();
 
 		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
 
-			LOG.info("Entry key is {}", entry.getKey());
-			LOG.info("Entry value is {}", entry.getValue());
+			LOG.debug("Entry key is {}", entry.getKey());
+			LOG.debug("Entry value is {}", entry.getValue());
 			
-			collectedOrGaps = new HashSet<>();
-			// new 
-			collectedOrGaps1 = new HashSet<KnowledgeGap>();
+			collectedOrGaps = new HashSet<KnowledgeGap>();
 			boolean foundNeighborWithoutGap = false;
 			for (RuleNode neighbor : entry.getValue()) {
-				LOG.info("Neighbor is {}", neighbor);
+				LOG.debug("Neighbor is {}", neighbor);
 				
 				if (!neighbor.getRule().getAntecedent().isEmpty()) {
 					// make sure neighbor has no knowledge gaps
-					LOG.info("Neighbor has antecedents, so check if the neighbor has gaps");
+					LOG.debug("Neighbor has antecedents, so check if the neighbor has gaps");
 
 					// knowledge engine specific code. We ignore meta knowledge interactions when
 					// looking for knowledge gaps, because they are very generic and make finding
@@ -665,81 +657,51 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					boolean isMeta = isMetaKI(neighbor);
 
 					//TODO what if the graph contains loops?
-					//if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
-					if (!isMeta && (someGaps1 = getKnowledgeGaps(neighbor)).isEmpty()) {
+					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
 						// found neighbor without knowledge gaps for the current triple, so current triple is covered.
-						LOG.info("Neighbor has no gaps");
+						LOG.debug("Neighbor has no gaps");
 						foundNeighborWithoutGap = true;
 						break;
 					}
-					LOG.info("Neighbor has someGaps {}", someGaps);
+					LOG.debug("Neighbor has someGaps {}", someGaps);
 					collectedOrGaps.addAll(someGaps);
-					//new
-					collectedOrGaps1.addAll(someGaps1);
 				} else
 					foundNeighborWithoutGap = true;
 			}
-			LOG.info("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
+			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
 			if (!foundNeighborWithoutGap) {
 				// there is a gap here, either in the current node or in a neighbor.
 
 				if (collectedOrGaps.isEmpty()) {
-					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
-				}
-				LOG.info("CollectedOrGaps is {}", collectedOrGaps);
-
-				if (collectedOrGaps1.isEmpty()) {
 					KnowledgeGap kg = new KnowledgeGap();
 					kg.add(entry.getKey());
-					collectedOrGaps1.add(kg);
+					collectedOrGaps.add(kg);
 				}
-				LOG.info("CollectedOrGaps1 is {}", collectedOrGaps1);
+				LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
 
-				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
+				Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
 				if (existingOrGaps.isEmpty()) {
 					existingOrGaps.addAll(collectedOrGaps);
-					LOG.info("Added collectedOrGaps to existingOrGaps");
+					LOG.debug("Added collectedOrGaps to existingOrGaps");
 				} else {
-					Set<TriplePattern> newGap;
-					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
-						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
-							newGap = new HashSet<>();
+					KnowledgeGap newGap;
+					for (KnowledgeGap existingOrGap : existingOrGaps) {
+						for (KnowledgeGap collectedOrGap : collectedOrGaps) {
+							newGap = new KnowledgeGap();
 							newGap.addAll(existingOrGap);
 							newGap.addAll(collectedOrGap);
-							LOG.info("Found newGap {}", newGap);
+							LOG.debug("Found newGap {}", newGap);
 							newExistingOrGaps.add(newGap);
 						}
 					}
 					existingOrGaps = newExistingOrGaps;
 				}
-
-				//new
-				Set<KnowledgeGap> newExistingOrGaps1 = new HashSet<KnowledgeGap>();
-				if (existingOrGaps1.isEmpty()) {
-					existingOrGaps1.addAll(collectedOrGaps1);
-					LOG.info("Added collectedOrGaps1 to existingOrGaps1");
-				} else {
-					KnowledgeGap newGap1;
-					for (KnowledgeGap existingOrGap1 : existingOrGaps1) {
-						for (KnowledgeGap collectedOrGap1 : collectedOrGaps1) {
-							newGap1 = new KnowledgeGap();
-							newGap1.addAll(existingOrGap1);
-							newGap1.addAll(collectedOrGap1);
-							LOG.info("Found newGap1 {}", newGap1);
-							newExistingOrGaps1.add(newGap1);
-						}
-					}
-					existingOrGaps1 = newExistingOrGaps1;
-				}
-				// end new
 				
 			}
 		}
 		LOG.info("Found existingOrGaps {}", existingOrGaps);
-		LOG.info("Found existingOrGaps1 {}", existingOrGaps1);
-		//return existingOrGaps;
-		return existingOrGaps1;
+		return existingOrGaps;
 	}
 
 	private boolean isMetaKI(RuleNode neighbor) {
