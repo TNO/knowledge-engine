@@ -49,17 +49,17 @@ public class ProactiveApiServiceImpl {
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
 
 	@POST
-	@Path("/askwithgaps")
+	@Path("/ask")
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
-	public void scAskWithGapsPost(
+	public void scAskPost(
 			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@Parameter(description = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 
 			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.debug("scAskWithGapsPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
 
 		RecipientAndBindingSet recipientAndBindingSetObject;
@@ -184,10 +184,10 @@ public class ProactiveApiServiceImpl {
 	}
 
 	@POST
-	@Path("/ask")
+	@Path("/askold")
 	@Consumes({ "application/json; charset=UTF-8" })
 	@Produces({ "application/json; charset=UTF-8", "text/plain; charset=UTF-8" })
-	public void scAskPost(
+	public void scAskOldPost(
 			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@Parameter(description = "The Ask Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 
