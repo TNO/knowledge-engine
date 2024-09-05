@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ import eu.knowledge.engine.rest.model.PostResult;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
+import eu.knowledge.engine.smartconnector.api.KnowledgeGap;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -133,7 +135,7 @@ public class ProactiveApiServiceImpl {
 
 			askFuture.thenAccept(askResult -> {
 
-				LOG.info("AskResult received, resuming async response: {}", askResult);
+				LOG.debug("AskResult received, resuming async response: {}", askResult);
 				List<AskExchangeInfo> infos = askResult.getExchangeInfoPerKnowledgeBase().stream()
 						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
 								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
@@ -145,7 +147,10 @@ public class ProactiveApiServiceImpl {
 								.failedMessage(aei.getFailedMessage()))
 						.collect(Collectors.toList());
 
+				LOG.info("Bindings in result is {}", askResult.getBindings());
+				LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
 				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
+						.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()))
 						.exchangeInfo(infos);
 
 				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
@@ -164,6 +169,18 @@ public class ProactiveApiServiceImpl {
 			response.setMessage(e.getMessage());
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
 		}
+	}
+
+	private List<List<String>> knowledgeGapsToList(Set<KnowledgeGap> knowledgeGaps) {
+		List<List<String>> listKnowledgeGaps = new ArrayList<List<String>>(knowledgeGaps.size());
+		knowledgeGaps.forEach((kg) -> {
+			List<String> listKnowledgeGap = new ArrayList<String>();
+			kg.forEach((tp) -> {
+				listKnowledgeGap.add(tp.toString());
+			});
+			listKnowledgeGaps.add(listKnowledgeGap);
+		});
+		return listKnowledgeGaps;
 	}
 
 	@POST
