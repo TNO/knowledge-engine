@@ -678,7 +678,7 @@ components:
             type: string
     AskResult:
       type: object
-      required: [bindingSet, exchangeInfo]
+      required: [bindingSet, exchangeInfo, knowledgeGaps]
       properties:
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
@@ -686,6 +686,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AskExchangeInfo'
+        knowledgeGaps:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeGap'
     PostResult:
       type: object
       required: [resultBindingSet, exchangeInfo]
@@ -735,6 +739,11 @@ components:
               $ref: '#/components/schemas/BindingSet'
             resultBindingSet:
               $ref: '#/components/schemas/BindingSet'
+    KnowledgeGap:
+      type: array
+      items:
+        nullable: false # Enforced manually, but kept here nonetheless.
+        type: string
     HandleRequest:
       type: object
       properties:
