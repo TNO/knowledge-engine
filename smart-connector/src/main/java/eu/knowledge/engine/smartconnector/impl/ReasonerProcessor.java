@@ -77,7 +77,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
 	private Set<KnowledgeGap> knowledgeGaps;
-	//private KnowledgeGapSet knowledgeGaps;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
