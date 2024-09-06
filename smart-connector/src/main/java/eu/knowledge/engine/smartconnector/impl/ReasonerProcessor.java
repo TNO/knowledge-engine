@@ -147,7 +147,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			MatchStrategy aStrategy = ki.isMeta() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
+			MatchStrategy aStrategy = ki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
 			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy);
 
@@ -215,7 +215,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			MatchStrategy aStrategy = pki.isMeta() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
+			MatchStrategy aStrategy = pki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy;
 			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy);
 
