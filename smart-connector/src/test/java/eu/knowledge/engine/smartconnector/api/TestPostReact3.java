@@ -138,6 +138,7 @@ public class TestPostReact3 {
 			assertEquals(expected, bs);
 		} catch (Exception e) {
 			LOG.error("Error", e);
+			fail();
 		}
 	}
 

@@ -113,7 +113,8 @@ public class TestPostReact2 {
 
 			LOG.info("After post!");
 		} catch (Exception e) {
-			LOG.error("Erorr", e);
+			LOG.error("Error", e);
+			fail();
 		}
 	}
 

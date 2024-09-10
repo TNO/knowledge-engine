@@ -150,6 +150,7 @@ class VariableBindingNameTest {
 			assertEquals("<https://www.tno.nl/example/object>", b2.get("o2"));
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("{}", e);
+			fail();
 		}
 
 	}

@@ -93,7 +93,8 @@ public class TestPostReactPerformance {
 //				});
 
 			} catch (Exception e) {
-				LOG.error("Erorr", e);
+				LOG.error("Error", e);
+				fail();
 			}
 		}
 

@@ -38,25 +38,23 @@ public class TestReactMetadata {
 
 		kn.sync();
 
-		GraphPattern gp2 = new GraphPattern(prefixes, 
-			"""
-				?kb rdf:type kb:KnowledgeBase .
-				?kb kb:hasName ?name .
-				?kb kb:hasDescription ?description .
-				?kb kb:hasKnowledgeInteraction ?ki .
-				?ki rdf:type ?kiType .
-				?ki kb:isMeta ?isMeta .
-				?ki kb:hasCommunicativeAct ?act .
-				?act rdf:type kb:CommunicativeAct .
-				?act kb:hasRequirement ?req .
-				?act kb:hasSatisfaction ?sat .
-				?req rdf:type ?reqType .
-				?sat rdf:type ?satType .
-				?ki kb:hasGraphPattern ?gp .
-				?gp rdf:type ?patternType .
-				?gp kb:hasPattern ?pattern .
-			"""
-		);
+		GraphPattern gp2 = new GraphPattern(prefixes, """
+					?kb rdf:type kb:KnowledgeBase .
+					?kb kb:hasName ?name .
+					?kb kb:hasDescription ?description .
+					?kb kb:hasKnowledgeInteraction ?ki .
+					?ki rdf:type ?kiType .
+					?ki kb:isMeta ?isMeta .
+					?ki kb:hasCommunicativeAct ?act .
+					?act rdf:type kb:CommunicativeAct .
+					?act kb:hasRequirement ?req .
+					?act kb:hasSatisfaction ?sat .
+					?req rdf:type ?reqType .
+					?sat rdf:type ?satType .
+					?ki kb:hasGraphPattern ?gp .
+					?gp rdf:type ?patternType .
+					?gp kb:hasPattern ?pattern .
+				""");
 
 		var ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, new ReactHandler() {

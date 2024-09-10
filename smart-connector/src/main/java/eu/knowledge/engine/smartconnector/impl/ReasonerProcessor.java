@@ -19,6 +19,7 @@ import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
@@ -47,6 +48,7 @@ import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
+import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
 import eu.knowledge.engine.smartconnector.messaging.PostMessage;
 import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 
@@ -420,19 +422,22 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Instant aPreviousSend = Instant.now();
 
 				bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
-					LOG.warn("Error '{}' occurred while waiting for response to: {}",
-							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
-							askMessage.getMessageId());
-					LOG.debug("", t);
-					return null;
-				}).thenApply((answerMessage) -> {
-					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
-					BindingSet resultBindingSet = null;
-					if (answerMessage != null)
-						resultBindingSet = answerMessage.getBindings();
 
-					if (resultBindingSet == null)
-						resultBindingSet = new BindingSet();
+					String failedMessage = MessageFormatter
+							.basicArrayFormat("Error '{}' occurred while waiting for response to message: {}",
+									new String[] {
+											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+											askMessage.getMessageId().toString() });
+
+					LOG.warn(failedMessage);
+					LOG.debug("", t);
+					return ReasonerProcessor.this
+							.<AskMessage, AnswerMessage>createFailedResponseMessageFromRequestMessage(askMessage,
+									failedMessage);
+				}).thenApply((answerMessage) -> {
+					assert answerMessage != null;
+					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
+					BindingSet resultBindingSet = answerMessage.getBindings();
 
 					ReasonerProcessor.this.askExchangeInfos
 							.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage, aPreviousSend));
@@ -450,6 +455,28 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			return bsFuture;
 		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends KnowledgeMessage, S extends KnowledgeMessage> S createFailedResponseMessageFromRequestMessage(
+			T incomingMessage, String failedMessage) {
+
+		S outgoingMessage = null;
+		if (incomingMessage instanceof AskMessage) {
+
+			outgoingMessage = (S) new AnswerMessage(incomingMessage.getToKnowledgeBase(),
+					incomingMessage.getToKnowledgeInteraction(), incomingMessage.getFromKnowledgeBase(),
+					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
+
+		} else if (incomingMessage instanceof PostMessage) {
+			outgoingMessage = (S) new AnswerMessage(incomingMessage.getToKnowledgeBase(),
+					incomingMessage.getToKnowledgeInteraction(), incomingMessage.getFromKnowledgeBase(),
+					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
+		}
+
+		assert outgoingMessage != null;
+		return outgoingMessage;
 	}
 
 	/**
@@ -488,18 +515,19 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
 				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-					LOG.warn("Error '{}' occurred while waiting for response to: {}",
-							t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
-							postMessage.getMessageId());
+					String failedMessage = MessageFormatter
+							.basicArrayFormat("Error '{}' occurred while waiting for response to message: {}",
+									new String[] {
+											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+											postMessage.getMessageId().toString() });
+					LOG.warn(failedMessage);
 					LOG.debug("", t);
-					return null;
+					return ReasonerProcessor.this
+							.<PostMessage, ReactMessage>createFailedResponseMessageFromRequestMessage(postMessage,
+									failedMessage);
 				}).thenApply((reactMessage) -> {
-					BindingSet resultBindingSet = null;
-					if (reactMessage != null)
-						resultBindingSet = reactMessage.getResult();
-
-					if (resultBindingSet == null)
-						resultBindingSet = new BindingSet();
+					assert reactMessage != null;
+					BindingSet resultBindingSet = reactMessage.getResult();
 
 					ReasonerProcessor.this.postExchangeInfos.add(
 							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
