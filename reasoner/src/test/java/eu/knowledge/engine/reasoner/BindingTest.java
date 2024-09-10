@@ -3,6 +3,7 @@ package eu.knowledge.engine.reasoner;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
@@ -60,7 +61,7 @@ public class BindingTest {
 
 		BaseRule r = new BaseRule("test", toTriplePattern(gp2), new HashSet<>());
 
-		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), MatchStrategy.ULTRA_LEVEL);
+		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
 		LOG.info("matches size: {}", matches.size());
 

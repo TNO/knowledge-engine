@@ -1,7 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import org.apache.jena.ext.xerces.impl.xpath.regex.RegularExpression;
-
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
  * knowledge between the {@link SmartConnectorImpl} and the

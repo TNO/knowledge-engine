@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -66,13 +67,59 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerProcessor.class);
 
+	// the match strategy determines how many matches will be found between graph
+	// patterns. This is a very costly operation (especially with bigger (10+)
+	// triples per graph pattern. For some use cases it suffices to use ENTRY_LEVEL
+	// matching which is much faster, while others require SUPREME_LEVEL, which is
+	// extremely slow and often throws out of memory exceptions.
+	public static enum MatchStrategy {
+		SUPREME_LEVEL, ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL;
+
+		private EnumSet<MatchFlag> toConfig(boolean antecedentOfTarget) {
+			EnumSet<MatchFlag> config;
+			switch (this) {
+			case ENTRY_LEVEL:
+				config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.SINGLE_RULE);
+
+				// disable fully covered when matching consequents.
+				if (antecedentOfTarget)
+					config.add(MatchFlag.FULLY_COVERED);
+				break;
+			case NORMAL_LEVEL:
+				config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
+
+				// disable fully covered when matching consequents.
+				if (antecedentOfTarget)
+					config.add(MatchFlag.FULLY_COVERED);
+				break;
+			case ADVANCED_LEVEL:
+				config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+
+				// disable fully covered when matching consequents.
+				if (antecedentOfTarget)
+					config.add(MatchFlag.FULLY_COVERED);
+				break;
+			case ULTRA_LEVEL:
+				config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
+				break;
+			case SUPREME_LEVEL:
+				config = EnumSet.noneOf(MatchFlag.class);
+				break;
+			default:
+				config = EnumSet.noneOf(MatchFlag.class);
+			}
+			return config;
+		}
+	}
+
 	private RuleStore store;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
 	private final Set<AskExchangeInfo> askExchangeInfos;
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
-	private MatchStrategy defaultStrategy = MatchStrategy.NORMAL_LEVEL;
+
+	private MatchStrategy matchStrategy = MatchStrategy.NORMAL_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -146,8 +193,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+
+			EnumSet<MatchFlag> config = this.matchStrategy.toConfig(true);
+
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -212,8 +261,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+			EnumSet<MatchFlag> config = this.matchStrategy.toConfig(false);
+
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -607,7 +657,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return this.reasonerPlan;
 	}
 
-	public void setDefaultReasoningStrategy(MatchStrategy aStrategy) {
-		this.defaultStrategy = aStrategy;
+	public void setMatchStrategy(MatchStrategy aStrategy) {
+		this.matchStrategy = aStrategy;
 	}
 }

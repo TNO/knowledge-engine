@@ -31,7 +31,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
@@ -135,7 +134,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		} else {
 			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
 					this.additionalDomainKnowledge);
-			((ReasonerProcessor) processor).setDefaultReasoningStrategy(MatchStrategy.ENTRY_LEVEL);
+			((ReasonerProcessor) processor).setMatchStrategy(ReasonerProcessor.MatchStrategy.ENTRY_LEVEL);
 		}
 
 		// give the caller something to chew on while it waits. This method starts the
@@ -305,7 +304,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		} else {
 			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
 					this.additionalDomainKnowledge);
-			((ReasonerProcessor) processor).setDefaultReasoningStrategy(MatchStrategy.ENTRY_LEVEL);
+			((ReasonerProcessor) processor).setMatchStrategy(ReasonerProcessor.MatchStrategy.ENTRY_LEVEL);
 		}
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for

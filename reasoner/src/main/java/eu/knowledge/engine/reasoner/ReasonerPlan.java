@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -38,7 +39,7 @@ public class ReasonerPlan {
 	private final ProactiveRule start;
 	private final Map<BaseRule, RuleNode> ruleToRuleNode;
 	private boolean done;
-	private MatchStrategy strategy = MatchStrategy.ULTRA_LEVEL;
+	private EnumSet<MatchFlag> matchConfig = EnumSet.noneOf(MatchFlag.class);
 	private boolean useTaskBoard = true;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
@@ -48,11 +49,11 @@ public class ReasonerPlan {
 		createOrGetReasonerNode(this.start, null);
 	}
 
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, MatchStrategy aStrategy) {
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, EnumSet<MatchFlag> aConfig) {
 		this.store = aStore;
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
-		this.strategy = aStrategy;
+		this.matchConfig = aConfig;
 		createOrGetReasonerNode(this.start, null);
 	}
 
@@ -231,7 +232,7 @@ public class ReasonerPlan {
 			// for now we only are interested in antecedent neighbors.
 			// TODO for looping we DO want to consider consequent neighbors as well.
 
-			this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+			this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert reasonerNode instanceof AntSide;
 					var newNode = createOrGetReasonerNode(rule, aRule);
@@ -247,7 +248,7 @@ public class ReasonerPlan {
 			});
 		} else {
 			// interested in both consequent and antecedent neighbors
-			this.store.getConsequentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert reasonerNode instanceof ConsSide;
 					var newNode = createOrGetReasonerNode(rule, aRule);
@@ -266,13 +267,13 @@ public class ReasonerPlan {
 			// determine whether our parent matches us partially
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
-			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
+			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.matchConfig).containsKey(aParent)) {
 				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
-						this.store.getAntecedentNeighbors(aRule, this.strategy).get(aParent), this.strategy);
+						this.store.getAntecedentNeighbors(aRule, this.matchConfig).get(aParent));
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
-				this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+				this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 					if (!(rule instanceof ProactiveRule)) {
 						assert reasonerNode instanceof AntSide;
 						var newNode = createOrGetReasonerNode(rule, aRule);
@@ -317,7 +318,7 @@ public class ReasonerPlan {
 	 * @return
 	 */
 	private boolean antecedentFullyMatchesConsequent(BaseRule antecedentRule, BaseRule consequentRule,
-			Set<Match> someMatches, MatchStrategy aMatchStrategy) {
+			Set<Match> someMatches) {
 
 		var antecedent = antecedentRule.getAntecedent();
 		var consequent = consequentRule.getConsequent();
@@ -348,8 +349,8 @@ public class ReasonerPlan {
 		return false;
 	}
 
-	public MatchStrategy getMatchStrategy() {
-		return this.strategy;
+	public EnumSet<MatchFlag> getMatchConfig() {
+		return this.matchConfig;
 	}
 
 	public RuleStore getStore() {
