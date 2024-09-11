@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -41,6 +42,7 @@ import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
@@ -72,7 +74,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
-	private MatchStrategy defaultStrategy = MatchStrategy.NORMAL_LEVEL;
+
+	private MatchStrategy matchStrategy = MatchStrategy.NORMAL_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -146,8 +149,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+
+			EnumSet<MatchFlag> config;
+			if (aAKI.getKnowledgeInteraction().getMatchStrategy() == null)
+				config = this.matchStrategy.toConfig(true);
+			else
+				config = aAKI.getKnowledgeInteraction().getMatchStrategy().toConfig(true);
+
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -212,8 +221,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.includeMetaKIs() ? MatchStrategy.ENTRY_LEVEL : this.defaultStrategy);
+			EnumSet<MatchFlag> config;
+			if (aPKI.getKnowledgeInteraction().getMatchStrategy() == null)
+				config = this.matchStrategy.toConfig(false);
+			else
+				config = aPKI.getKnowledgeInteraction().getMatchStrategy().toConfig(false);
+
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -607,7 +621,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return this.reasonerPlan;
 	}
 
-	public void setDefaultReasoningStrategy(MatchStrategy aStrategy) {
-		this.defaultStrategy = aStrategy;
+	public void setMatchStrategy(MatchStrategy aStrategy) {
+		this.matchStrategy = aStrategy;
 	}
 }

@@ -82,10 +82,6 @@ public class BaseRule {
 		public static final EnumSet<MatchFlag> ALL_OPTS = EnumSet.allOf(MatchFlag.class);
 	}
 
-	public static enum MatchStrategy {
-		SUPREME_LEVEL, ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL
-	}
-
 	public static class TrivialBindingSetHandler implements TransformBindingSetHandler {
 
 		private Set<TriplePattern> consequent;
@@ -169,7 +165,7 @@ public class BaseRule {
 		return this.consequent;
 	}
 
-	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, MatchStrategy aMatchStrategy) {
+	public Set<Match> consequentMatches(Set<TriplePattern> anAntecedent, EnumSet<MatchFlag> aMatchConfig) {
 		if (!this.consequent.isEmpty()) {
 			Rule r = new Rule(anAntecedent, new SinkBindingSetHandler() {
 
@@ -179,8 +175,7 @@ public class BaseRule {
 					return null;
 				}
 			});
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), false,
-					aMatchStrategy);
+			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchConfig);
 
 			if (matches.containsKey(r))
 				return matches.get(r);
@@ -188,10 +183,10 @@ public class BaseRule {
 		return new HashSet<>();
 	}
 
-	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, MatchStrategy aMatchStrategy) {
+	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, EnumSet<MatchFlag> aMatchConfig) {
 		if (!this.antecedent.isEmpty()) {
 			Rule r = new Rule(new HashSet<>(), aConsequent);
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchStrategy);
+			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchConfig);
 			if (matches.containsKey(r))
 				return matches.get(r);
 		}
@@ -382,9 +377,7 @@ public class BaseRule {
 	 * @return A set of matches that all contribute to some full matche.
 	 */
 	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
-			boolean antecedentOfTarget, MatchStrategy aStrategy) {
-
-		EnumSet<MatchFlag> config = fromStrategyToConfig(aStrategy, antecedentOfTarget);
+			boolean antecedentOfTarget, EnumSet<MatchFlag> config) {
 
 		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
 
@@ -417,8 +410,8 @@ public class BaseRule {
 
 		if (triplePatternMatchesIter.hasNext()) {
 			Set<CombiMatch> value = triplePatternMatchesIter.next().getValue();
-			LOG.trace("{}/{} ({}): biggest: {}, smaller: {}", 1, combiMatchesPerTriple.size(), value.size(),
-					biggestMatches.size(), smallerMatches.size());
+			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
+					biggestMatches.size(), smallerMatches.size(), config);
 			biggestMatches.addAll(value);
 		}
 
@@ -543,39 +536,6 @@ public class BaseRule {
 		}
 
 		return false;
-	}
-
-	private static EnumSet<MatchFlag> fromStrategyToConfig(MatchStrategy aStrategy, boolean antecedentOfTarget) {
-		EnumSet<MatchFlag> config;
-		switch (aStrategy) {
-		case ENTRY_LEVEL:
-			config = EnumSet.of(MatchFlag.FULLY_COVERED, MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST,
-					MatchFlag.SINGLE_RULE);
-			break;
-		case NORMAL_LEVEL:
-			config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
-
-			// disable fully covered when matching consequents.
-			if (antecedentOfTarget)
-				config.add(MatchFlag.FULLY_COVERED);
-			break;
-		case ADVANCED_LEVEL:
-			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
-
-			// disable fully covered when matching consequents.
-			if (antecedentOfTarget)
-				config.add(MatchFlag.FULLY_COVERED);
-			break;
-		case ULTRA_LEVEL:
-			config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
-			break;
-		case SUPREME_LEVEL:
-			config = EnumSet.noneOf(MatchFlag.class);
-			break;
-		default:
-			config = EnumSet.noneOf(MatchFlag.class);
-		}
-		return config;
 	}
 
 	private static void printCombiMatchesPerTriple(Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {

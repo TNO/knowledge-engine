@@ -262,7 +262,8 @@ public class TestComplexGraphPatternMatching {
 				""";
 
 		GraphPattern gp2 = new GraphPattern(prefixes, TestUtils.convertGP(pattern));
-		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
+		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, null, false, false,
+				MatchStrategy.NORMAL_LEVEL);
 		dashboardKB.setDomainKnowledge(new HashSet<>(
 				Arrays.asList(locatedInRule, thermostatSensorRule, opencloseSensorRule, fahrenheitConverterRule)));
 		dashboardKB.register(askKI);

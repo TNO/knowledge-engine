@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -202,7 +203,7 @@ public class TestDynamicSemanticComposition {
 					Rule r = new Rule(translateGraphPatternTo(ki.getArgument()),
 							translateGraphPatternTo(ki.getResult()));
 
-					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.ADVANCED_LEVEL);
+					Set<Match> matches = r.consequentMatches(gap, EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
 					if (!matches.isEmpty()) {
 						kn.addKB(kb);
