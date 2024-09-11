@@ -6,6 +6,7 @@ package eu.knowledge.engine.reasoner.rulestore;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
@@ -75,7 +76,7 @@ public class RuleStore {
 	 * @see #getAntecedentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-		return this.getAntecedentNeighbors(aRule, MatchStrategy.NORMAL_LEVEL);
+		return this.getAntecedentNeighbors(aRule, EnumSet.noneOf(MatchFlag.class));
 	}
 
 	/**
@@ -86,16 +87,16 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its consequent matches
 	 *         this rule's antecedent.
 	 */
-	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
-		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aStrategy);
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aConfig);
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue(), aStrategy);
+			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue());
 		}
 
 		return newMapping;
@@ -115,7 +116,7 @@ public class RuleStore {
 	 * @see #getConsequentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
-		return this.getConsequentNeighbors(aRule, MatchStrategy.NORMAL_LEVEL);
+		return this.getConsequentNeighbors(aRule, EnumSet.noneOf(MatchFlag.class));
 
 	}
 
@@ -129,16 +130,16 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its antecedent matches
 	 *         this rule's consequent.
 	 */
-	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
-		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), false, aStrategy);
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()), aStrategy);
-			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue(), aStrategy);
+			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
 		}
 
 		return newMapping;
@@ -208,9 +209,8 @@ public class RuleStore {
 				ruleToName.put(r.getRule(), currentName);
 
 			}
-
-			Map<BaseRule, Set<Match>> antecedentNeighbors = this.getAntecedentNeighbors(r.getRule(),
-					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.NORMAL_LEVEL);
+			
+			Map<BaseRule, Set<Match>> antecedentNeighbors = r.getAntecedentNeighbors();
 			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
 			String neighName;
 			for (BaseRule neighR : anteNeigh) {
