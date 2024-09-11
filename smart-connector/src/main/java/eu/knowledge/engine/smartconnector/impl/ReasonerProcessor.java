@@ -42,6 +42,7 @@ import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
@@ -66,51 +67,6 @@ import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ReasonerProcessor.class);
-
-	// the match strategy determines how many matches will be found between graph
-	// patterns. This is a very costly operation (especially with bigger (10+)
-	// triples per graph pattern. For some use cases it suffices to use ENTRY_LEVEL
-	// matching which is much faster, while others require SUPREME_LEVEL, which is
-	// extremely slow and often throws out of memory exceptions.
-	public static enum MatchStrategy {
-		SUPREME_LEVEL, ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL;
-
-		private EnumSet<MatchFlag> toConfig(boolean antecedentOfTarget) {
-			EnumSet<MatchFlag> config;
-			switch (this) {
-			case ENTRY_LEVEL:
-				config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.SINGLE_RULE);
-
-				// disable fully covered when matching consequents.
-				if (antecedentOfTarget)
-					config.add(MatchFlag.FULLY_COVERED);
-				break;
-			case NORMAL_LEVEL:
-				config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
-
-				// disable fully covered when matching consequents.
-				if (antecedentOfTarget)
-					config.add(MatchFlag.FULLY_COVERED);
-				break;
-			case ADVANCED_LEVEL:
-				config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
-
-				// disable fully covered when matching consequents.
-				if (antecedentOfTarget)
-					config.add(MatchFlag.FULLY_COVERED);
-				break;
-			case ULTRA_LEVEL:
-				config = EnumSet.of(MatchFlag.ONLY_BIGGEST);
-				break;
-			case SUPREME_LEVEL:
-				config = EnumSet.noneOf(MatchFlag.class);
-				break;
-			default:
-				config = EnumSet.noneOf(MatchFlag.class);
-			}
-			return config;
-		}
-	}
 
 	private RuleStore store;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
@@ -194,7 +150,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					new HashSet<>());
 			this.store.addRule(aRule);
 
-			EnumSet<MatchFlag> config = this.matchStrategy.toConfig(true);
+			EnumSet<MatchFlag> config;
+			if (aAKI.getKnowledgeInteraction().getMatchStrategy() == null)
+				config = this.matchStrategy.toConfig(true);
+			else
+				config = aAKI.getKnowledgeInteraction().getMatchStrategy().toConfig(true);
 
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 		} else {
@@ -261,7 +221,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			EnumSet<MatchFlag> config = this.matchStrategy.toConfig(false);
+			EnumSet<MatchFlag> config;
+			if (aPKI.getKnowledgeInteraction().getMatchStrategy() == null)
+				config = this.matchStrategy.toConfig(false);
+			else
+				config = aPKI.getKnowledgeInteraction().getMatchStrategy().toConfig(false);
 
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
 

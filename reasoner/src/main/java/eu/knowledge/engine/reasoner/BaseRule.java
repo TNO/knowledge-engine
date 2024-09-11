@@ -410,8 +410,8 @@ public class BaseRule {
 
 		if (triplePatternMatchesIter.hasNext()) {
 			Set<CombiMatch> value = triplePatternMatchesIter.next().getValue();
-			LOG.trace("{}/{} ({}): biggest: {}, smaller: {}", 1, combiMatchesPerTriple.size(), value.size(),
-					biggestMatches.size(), smallerMatches.size());
+			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
+					biggestMatches.size(), smallerMatches.size(), config);
 			biggestMatches.addAll(value);
 		}
 

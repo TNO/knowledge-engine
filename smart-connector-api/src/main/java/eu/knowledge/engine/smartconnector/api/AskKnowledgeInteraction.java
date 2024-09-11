@@ -16,36 +16,33 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern pattern;
 
-	/**
-	 * Create a {@link AskKnowledgeInteraction}.
-	 *
-	 * @param act     The {@link CommunicativeAct} of this
-	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *                'purpose' of the data exchange and whether it has side-effects
-	 *                or not.
-	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
-	 *                that this {@link KnowledgeInteraction} asks for.
-	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false);
+		this(act, pattern, null, false, false, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false);
+		this(act, pattern, name, false, false, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIncludeMetaKIs) {
-		this(act, pattern, null, false, anIncludeMetaKIs);
+		this(act, pattern, null, false, anIncludeMetaKIs, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
 			boolean anIncludeMetaKIs) {
-		this(act, pattern, null, anisMeta, anIncludeMetaKIs);
+		this(act, pattern, null, anisMeta, anIncludeMetaKIs, null);
 	}
 
+	/**
+	 * Create a {@link AskKnowledgeInteraction}. See
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)
+	 *
+	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
+	 *                that this {@link KnowledgeInteraction} asks for.
+	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIncludeMetaKIs) {
-		super(act, name, anisMeta, anIncludeMetaKIs);
+			boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
+		super(act, name, anisMeta, anIncludeMetaKIs, aMatchStrategy);
 		this.pattern = pattern;
 	}
 

@@ -201,8 +201,8 @@ public class RuleStore {
 				ruleToName.put(r.getRule(), currentName);
 
 			}
-
-			Map<BaseRule, Set<Match>> antecedentNeighbors = this.getAntecedentNeighbors(r.getRule());
+			
+			Map<BaseRule, Set<Match>> antecedentNeighbors = r.getAntecedentNeighbors();
 			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
 			String neighName;
 			for (BaseRule neighR : anteNeigh) {

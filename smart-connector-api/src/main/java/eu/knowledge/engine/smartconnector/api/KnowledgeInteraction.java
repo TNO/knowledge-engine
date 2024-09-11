@@ -1,5 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import com.fasterxml.jackson.core.format.MatchStrength;
+
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
  * knowledge between the {@link SmartConnectorImpl} and the
@@ -14,7 +16,7 @@ public abstract class KnowledgeInteraction {
 	 * the intent/purpose or goal of this interaction and whether it has
 	 * side-effects.
 	 */
-	private final CommunicativeAct act;
+	private final CommunicativeAct anAct;
 
 	/**
 	 * When executing this knowledge interaction, should the meta knowledge
@@ -30,6 +32,17 @@ public abstract class KnowledgeInteraction {
 	 */
 	private final boolean isMeta;
 
+	/**
+	 * Optionally configure the matching strategy (which has a large impact on the
+	 * performance) to a different level than the one configured at the smart
+	 * connector level.
+	 * 
+	 * For example, this configuration option is used to set the matching process on
+	 * all internal (meta) KIs to {@link MatchStrategy#ENTRY_LEVEL}, because we can
+	 * make certain assumptions to increase the performance.
+	 */
+	private MatchStrategy matchStrategy = null;
+
 	protected final String name;
 
 	/**
@@ -40,33 +53,45 @@ public abstract class KnowledgeInteraction {
 	 *            whether it has side-effects or not.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act) {
-		this(act, null, false, false);
+		this(act, null, false, false, null);
+	}
+
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
+		this(act, null, isMeta, false, null);
+	}
+
+	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean anIncludeMetaKIs) {
+		this(act, null, isMeta, anIncludeMetaKIs, null);
 	}
 
 	/**
 	 * Create a {@link KnowledgeInteraction}.
 	 *
-	 * @param act    The {@link CommunicativeAct} of this
-	 *               {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *               'purpose' of the data exchange and whether it has side-effects
-	 *               or not.
-	 * @param isMeta Whether or not this knowledge interaction contains metadata
-	 *               about the knowledge base itself.
+	 * @param act              The {@link CommunicativeAct} of this
+	 *                         {@link KnowledgeInteraction}. It can be read as the
+	 *                         'goal' or 'purpose' of the data exchange and whether
+	 *                         it has side-effects or not.
+	 * @param name             An optional name for the KI (that also influences and
+	 *                         stabilize the URI).
+	 * @param isMeta           Whether or not this knowledge interaction contains
+	 *                         metadata about the knowledge base itself.
+	 * @param anIncludeMetaKIs When processing this knowledge interaction, do we
+	 *                         need to include the meta KIs of the SCs within the
+	 *                         network? This needs to be set to {@code true} if this
+	 *                         KI relies on exchanging KE metadata.
+	 * @param aMatchConfig     Optionally configure the match strategy that will be
+	 *                         used when executing this KI. If set to {@code null}
+	 *                         the match strategy configured at the SC level will be
+	 *                         used.
 	 */
-	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
-		this(act, null, isMeta, false);
-	}
-
-	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean anIncludeMetaKIs) {
-		this(act, null, isMeta, anIncludeMetaKIs);
-	}
-
-	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean anIncludeMetaKIs) {
+	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean anIncludeMetaKIs,
+			MatchStrategy aMatchConfig) {
 		this.validateName(name);
-		this.act = act;
+		this.anAct = act;
 		this.name = name;
 		this.isMeta = isMeta;
 		this.includeMetaKIs = anIncludeMetaKIs;
+		this.matchStrategy = aMatchConfig;
 	}
 
 	public String getName() {
@@ -77,7 +102,7 @@ public abstract class KnowledgeInteraction {
 	 * @return The {@link CommunicativeAct} of this {@link KnowledgeInteraction}.
 	 */
 	public CommunicativeAct getAct() {
-		return this.act;
+		return this.anAct;
 	}
 
 	public boolean isMeta() {
@@ -86,6 +111,10 @@ public abstract class KnowledgeInteraction {
 
 	public boolean includeMetaKIs() {
 		return this.includeMetaKIs;
+	}
+
+	public MatchStrategy getMatchStrategy() {
+		return this.matchStrategy;
 	}
 
 	/**

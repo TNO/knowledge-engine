@@ -22,43 +22,42 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern result;
 
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
+		this(act, argument, result, null, false, false, null);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
+		this(act, argument, result, name, false, false, null);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, false, anIncludeMetaKIs, null);
+	}
+
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, anIsMeta, anIncludeMetaKIs, null);
+	}
+
 	/**
-	 * Create a {@link PostKnowledgeInteraction}.
+	 * Create a {@link PostKnowledgeInteraction}. See
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)}
 	 *
-	 * @param act      The {@link CommunicativeAct} of this
-	 *                 {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *                 'purpose' of the data exchange and whether it has
-	 *                 side-effects or not.
+	 * 
 	 * @param argument The {@code argument} of this
 	 *                 {@link PostKnowledgeInteraction}. It can be seen as the
 	 *                 argument of a function call.
 	 * @param result   The {@code result} of this {@link PostKnowledgeInteraction}.
 	 *                 It can be seen as the result of a function call. Can be
 	 *                 {@code null} if this interaction does not expect any result.
-	 * @apiNote TODO Can {@code argument} also be {@code null}? Note that not both
+	 * @apiNote Can {@code argument} also be {@code null}? No, only the
+	 *          {@code result} graph pattern can be {@code null}. Note that not both
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
-	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		this(act, argument, result, null, false, false);
-	}
-
-	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
-		this(act, argument, result, name, false, false);
-	}
-
-	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
-			boolean anIncludeMetaKIs) {
-		this(act, argument, result, null, false, anIncludeMetaKIs);
-	}
-
-	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
-			boolean anIncludeMetaKIs) {
-		this(act, argument, result, null, anIsMeta, anIncludeMetaKIs);
-	}
-
-	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name, boolean anIsMeta,
-			boolean anIncludeMetaKIs) {
-		super(act, name, anIsMeta, anIncludeMetaKIs);
+	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name,
+			boolean anIsMeta, boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
+		super(act, name, anIsMeta, anIncludeMetaKIs, aMatchStrategy);
 		this.argument = argument;
 		this.result = result;
 	}
