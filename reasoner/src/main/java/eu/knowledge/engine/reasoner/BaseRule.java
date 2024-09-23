@@ -35,6 +35,11 @@ public class BaseRule {
 	public static final String ARROW = "->";
 
 	/**
+	 * Precalculated hashcode to improve performance of the matching algorithm.
+	 */
+	private int hashCodeValue;
+
+	/**
 	 * A comparator to make sure the smaller matches collection is ordered from big
 	 * to small.
 	 */
@@ -147,6 +152,7 @@ public class BaseRule {
 
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
+		this.hashCodeValue = this.calcHashCode();
 	}
 
 	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
@@ -287,14 +293,18 @@ public class BaseRule {
 		return name;
 	}
 
-	@Override
-	public int hashCode() {
+	private int calcHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
 		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.hashCodeValue;
 	}
 
 	@Override
@@ -393,12 +403,13 @@ public class BaseRule {
 		Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple = getMatchesPerTriplePerRule(targetGP,
 				new ArrayList<>(someCandidateRules), antecedentOfTarget);
 
-		printCombiMatchesPerTriple(combiMatchesPerTriple);
-
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
-		if (config.contains(MatchFlag.FULLY_COVERED) && combiMatchesPerTriple.keySet().size() < targetGP.size())
+		if (targetGP.isEmpty() || (config.contains(MatchFlag.FULLY_COVERED)
+				&& combiMatchesPerTriple.keySet().size() < targetGP.size()))
 			return new HashMap<>();
+
+		printCombiMatchesPerTriple(aTargetRule, combiMatchesPerTriple);
 
 		List<CombiMatch> biggestMatches = new ArrayList<>();
 		List<CombiMatch> smallerMatches = new ArrayList<>();
@@ -474,10 +485,12 @@ public class BaseRule {
 					}
 				}
 
-				if (!candidateWasMerged && !config.contains(MatchFlag.FULLY_COVERED))
-					toBeAddedToBiggestMatches.add(candidateCombiMatch);
-				else
-					toBeAddedToSmallerMatches.add(candidateCombiMatch);
+				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+					if (!candidateWasMerged)
+						toBeAddedToBiggestMatches.add(candidateCombiMatch);
+					else
+						toBeAddedToSmallerMatches.add(candidateCombiMatch);
+				}
 			}
 
 			// update collections
@@ -538,7 +551,8 @@ public class BaseRule {
 		return false;
 	}
 
-	private static void printCombiMatchesPerTriple(Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {
+	private static void printCombiMatchesPerTriple(BaseRule aTargetRule,
+			Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {
 		StringBuilder sb = new StringBuilder();
 
 		int total = 1;
@@ -547,7 +561,7 @@ public class BaseRule {
 			sb.append(combiMatch.size()).append(" * ");
 		}
 
-		LOG.trace("{} = {}", total, sb.toString());
+		LOG.trace("{}: {} = {}", aTargetRule.getName(), total, sb.toString());
 
 	}
 
