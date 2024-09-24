@@ -13,8 +13,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
@@ -464,23 +466,26 @@ public class BaseRule {
 					// we need to sort the smaller matches on size (from big to small)
 					// to make sure the isSubCombiMatch method works correctly in this algo
 
-					// try to merge with smaller combi matches
-					for (CombiMatch aSmallerMatch : smallerMatches) {
-						CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
-						if (newCombiMatch != null) {
-							// merge successful, add to smaller matches
-							if (candidateWasMerged) {
-								if (isSubCombiMatch(newCombiMatch, toBeAddedToBiggestMatches)) {
-									toBeAddedToSmallerMatches.add(newCombiMatch);
-								} else {
-									toBeAddedToBiggestMatches.add(newCombiMatch);
-								}
-							} else {
-								// add to biggest matches
-								candidateWasMerged = true;
-								toBeAddedToBiggestMatches.add(newCombiMatch);
-							}
+					// do this 'costly' merge operation in parallel
+					var newCombiMatches = smallerMatches.stream().parallel().map(aSmallerMatch -> {
+						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
+					}).filter(Objects::nonNull).sorted(new CombiMatchSizeComparator()).collect(Collectors.toList());
 
+					// determine where to add new combi matches
+					for (CombiMatch newCombiMatch : newCombiMatches) {
+
+						// merge successful, add to smaller matches
+						if (candidateWasMerged) {
+							if (isSubCombiMatch(newCombiMatch, toBeAddedToBiggestMatches)) {
+								toBeAddedToSmallerMatches.add(newCombiMatch);
+							} else {
+								toBeAddedToBiggestMatches.add(newCombiMatch);
+								candidateWasMerged = true;
+							}
+						} else {
+							// add to biggest matches
+							candidateWasMerged = true;
+							toBeAddedToBiggestMatches.add(newCombiMatch);
 						}
 					}
 				}
@@ -507,8 +512,6 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			Collections.sort(smallerMatches, new CombiMatchSizeComparator());
 		}
 
 		toBeAddedToBiggestMatches = null;
