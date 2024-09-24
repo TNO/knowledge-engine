@@ -176,4 +176,9 @@ public class TriplePattern {
 		return true;
 	}
 
+	public Triple asTriple() {
+		return Triple.create(this.getSubject(), this.getPredicate(), this.getObject());
+		//return null;
+	}
+
 }

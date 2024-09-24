@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,7 +190,8 @@ public class ProactiveApiServiceImpl {
 		knowledgeGaps.forEach((kg) -> {
 			List<String> listKnowledgeGap = new ArrayList<String>();
 			kg.forEach((tp) -> {
-				listKnowledgeGap.add(tp.toString());
+				String tpString = FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingZero());
+				listKnowledgeGap.add(tpString);
 			});
 			listKnowledgeGaps.add(listKnowledgeGap);
 		});

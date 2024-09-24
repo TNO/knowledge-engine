@@ -601,17 +601,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 	
 	/**
-	 * Returns the knowledge gap of this reasoning node. A knowledge gap is a subset
+	 * Returns the knowledge gaps of this reasoning node. A knowledge gap is a subset
 	 * of this node's antecedent triple patterns that do not match any neighbor that
 	 * has no knowledge gaps.
-	 * 
-	 * Currently, this method does not show how the knowledge gaps influence each
-	 * other. Some knowledge gaps might have an {@code or}-relation (namely those
-	 * that occur on the same triple) and some might have {@code and}-relations
-	 * (i.e. those that do not occur on the same triple). This information is
-	 * important if you want to know how to solve the gaps because 2 gaps related by
-	 * {@code or} do not both need to be solved, but only one of them. While 2 gaps
-	 * related by {@code and} both need to be solved to solve the gap.
 	 * 
 	 * @return returns all triples that have no matching nodes (and for which there
 	 *         are no alternatives). Note that it returns a set of sets. Where every
@@ -622,7 +614,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
 	 *         gap.
 	 */
-	//public Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
 	public Set<KnowledgeGap> getKnowledgeGaps(RuleNode plan) {
 
 		assert plan instanceof AntSide;
