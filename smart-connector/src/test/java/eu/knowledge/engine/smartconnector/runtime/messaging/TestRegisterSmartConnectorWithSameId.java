@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.concurrent.Phaser;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -14,10 +15,11 @@ import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestRegisterSmartConnectorWithSameId {
   private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
-
+  private Phaser readyPhaser = new Phaser(1);
   @Test
   public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() {
     var kb1 = new MockedKnowledgeBase("http://example.org/kb1");
+    kb1.setPhaser(this.readyPhaser);
     kb1.start();
 
     var kb1AsWell = new MockedKnowledgeBase("http://example.org/kb1");
