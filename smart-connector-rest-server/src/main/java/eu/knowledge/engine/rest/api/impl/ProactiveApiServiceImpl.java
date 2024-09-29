@@ -149,12 +149,16 @@ public class ProactiveApiServiceImpl {
 								.failedMessage(aei.getFailedMessage()))
 						.collect(Collectors.toList());
 
-				LOG.info("Bindings in result is {}", askResult.getBindings());
-				LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
-				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
-						.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()))
-						.exchangeInfo(infos);
+				LOG.debug("Bindings in result is {}", askResult.getBindings());
+				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);
 
+				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
+				// add knowledge gaps if knowledgeGapsEnabled is true
+				if (ki.getKnowledgeGapsEnabled()) {
+					//LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
+					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));					
+				}
+				
 				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
 			});
 
