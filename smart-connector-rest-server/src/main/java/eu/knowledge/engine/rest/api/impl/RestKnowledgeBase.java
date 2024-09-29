@@ -388,6 +388,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			prefixMapping = new PrefixMappingZero();
 		}
 
+		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false
+				: ki.getKnowledgeGapsEnabled();
+		
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
@@ -398,7 +401,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
 			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
-					ki.getKnowledgeInteractionName());
+					ki.getKnowledgeInteractionName(), knowledgeGapsEnabled);
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -508,7 +511,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
-				.knowledgeInteractionName(ki.getName())
+				.knowledgeInteractionName(ki.getName()).knowledgeGapsEnabled(ki.knowledgeGapsEnabled())
 				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
 						.satisfiedPurposes(satisfactions));
 
