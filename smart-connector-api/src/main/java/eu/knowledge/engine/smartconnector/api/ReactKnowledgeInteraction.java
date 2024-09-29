@@ -54,7 +54,7 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name, boolean anIsMeta,
 			boolean anIsFullMatch) {
-		super(act, name, anIsMeta, anIsFullMatch);
+		super(act, name, anIsMeta, anIsFullMatch, false);
 		this.argument = argument;
 		this.result = result;
 	}
