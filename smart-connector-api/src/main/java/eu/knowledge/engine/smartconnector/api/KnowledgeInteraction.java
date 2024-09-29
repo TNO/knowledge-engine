@@ -1,7 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import org.apache.jena.ext.xerces.impl.xpath.regex.RegularExpression;
-
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
  * knowledge between the {@link SmartConnectorImpl} and the
@@ -20,6 +18,8 @@ public abstract class KnowledgeInteraction {
 
 	private final boolean fullMatchOnly;
 
+	private final boolean knowledgeGapsEnabled;
+
 	/**
 	 * {@code true} if this Knowledge Interaction is used for internal knowledge
 	 * engine communication.
@@ -36,7 +36,7 @@ public abstract class KnowledgeInteraction {
 	 *            whether it has side-effects or not.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act) {
-		this(act, null, false, false);
+		this(act, null, false, false, false);
 	}
 
 	/**
@@ -50,19 +50,20 @@ public abstract class KnowledgeInteraction {
 	 *               about the knowledge base itself.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
-		this(act, null, isMeta, false);
+		this(act, null, isMeta, false, false);
 	}
 
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean aFullMatchOnly) {
-		this(act, null, isMeta, aFullMatchOnly);
+		this(act, null, isMeta, aFullMatchOnly, false);
 	}
 
-	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean aFullMatchOnly) {
+	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean aFullMatchOnly, boolean aKnowledgeGapsEnabled) {
 		this.validateName(name);
 		this.act = act;
 		this.name = name;
 		this.isMeta = isMeta;
 		this.fullMatchOnly = aFullMatchOnly;
+		this.knowledgeGapsEnabled = aKnowledgeGapsEnabled;
 	}
 
 	public String getName() {
@@ -84,6 +85,9 @@ public abstract class KnowledgeInteraction {
 		return this.fullMatchOnly;
 	}
 
+	public boolean knowledgeGapsEnabled() {
+		return this.knowledgeGapsEnabled;
+	}
 	/**
 	 * Throws an exception if {@code name} does not conform to the requirements of
 	 * knowledge interaction names.
