@@ -216,6 +216,18 @@ paths:
                   prefixes:
                     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                     ex: "http://example.org/"
+              ASK with knowledge gaps enabled:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+                  knowledgeGapsEnabled: "true"
+                description:
+                  The knowledge gap enabled option is disabled by default. If enabled,
+                  each activation of the knowledge interaction will provide a set of 
+                  knowledge gaps as part of the result. If this set is empty, the 
+                  binding set of the result contains the answer. If not empty,
+                  one or more of the knowledge gaps need to be fixed for the
+                  knowledge interaction to produce an answer. 
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -608,6 +620,8 @@ components:
         knowledgeInteractionName:
           type: string
           pattern: '^[a-zA-Z0-9-]*$'
+        knowledgeGapsEnabled:
+          type: boolean
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
@@ -678,7 +692,7 @@ components:
             type: string
     AskResult:
       type: object
-      required: [bindingSet, exchangeInfo, knowledgeGaps]
+      required: [bindingSet, exchangeInfo]
       properties:
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
