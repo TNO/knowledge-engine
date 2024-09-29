@@ -690,7 +690,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				
 			}
 		}
-		LOG.info("Found existingOrGaps {}", existingOrGaps);
+		LOG.debug("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
 	}
 
