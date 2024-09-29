@@ -27,25 +27,28 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 *                that this {@link KnowledgeInteraction} asks for.
 	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false);
+		this(act, pattern, null, false, false, false);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false);
+		this(act, pattern, name, false, false, false);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean aKnowledgeGapsEnabled) {
+		this(act, pattern, name, false, false, aKnowledgeGapsEnabled);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
-		this(act, pattern, null, false, anIsFullMatch);
+		this(act, pattern, null, false, anIsFullMatch, false);
 	}
 
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
-			boolean anIsFullMatch) {
-		this(act, pattern, null, anisMeta, anIsFullMatch);
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta, boolean anIsFullMatch) {
+		this(act, pattern, null, anisMeta, anIsFullMatch, false);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIsFullMatch) {
-		super(act, name, anisMeta, anIsFullMatch);
+			boolean anIsFullMatch, boolean aKnowledgeGapsEnabled) {
+		super(act, name, anisMeta, anIsFullMatch, aKnowledgeGapsEnabled);
 		this.pattern = pattern;
 	}
 
