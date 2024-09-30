@@ -13,8 +13,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
@@ -33,6 +35,11 @@ public class BaseRule {
 	public static final String EMPTY = "";
 
 	public static final String ARROW = "->";
+
+	/**
+	 * Precalculated hashcode to improve performance of the matching algorithm.
+	 */
+	private int hashCodeValue;
 
 	/**
 	 * A comparator to make sure the smaller matches collection is ordered from big
@@ -147,6 +154,7 @@ public class BaseRule {
 
 		this.antecedent = anAntecedent;
 		this.consequent = aConsequent;
+		this.hashCodeValue = this.calcHashCode();
 	}
 
 	public static Set<Var> getVars(Set<TriplePattern> aPattern) {
@@ -287,14 +295,18 @@ public class BaseRule {
 		return name;
 	}
 
-	@Override
-	public int hashCode() {
+	private int calcHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((antecedent == null) ? 0 : antecedent.hashCode());
 		result = prime * result + ((consequent == null) ? 0 : consequent.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.hashCodeValue;
 	}
 
 	@Override
@@ -393,12 +405,13 @@ public class BaseRule {
 		Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple = getMatchesPerTriplePerRule(targetGP,
 				new ArrayList<>(someCandidateRules), antecedentOfTarget);
 
-		printCombiMatchesPerTriple(combiMatchesPerTriple);
-
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
-		if (config.contains(MatchFlag.FULLY_COVERED) && combiMatchesPerTriple.keySet().size() < targetGP.size())
+		if (targetGP.isEmpty() || (config.contains(MatchFlag.FULLY_COVERED)
+				&& combiMatchesPerTriple.keySet().size() < targetGP.size()))
 			return new HashMap<>();
+
+		printCombiMatchesPerTriple(aTargetRule, combiMatchesPerTriple);
 
 		List<CombiMatch> biggestMatches = new ArrayList<>();
 		List<CombiMatch> smallerMatches = new ArrayList<>();
@@ -453,31 +466,36 @@ public class BaseRule {
 					// we need to sort the smaller matches on size (from big to small)
 					// to make sure the isSubCombiMatch method works correctly in this algo
 
-					// try to merge with smaller combi matches
-					for (CombiMatch aSmallerMatch : smallerMatches) {
-						CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
-						if (newCombiMatch != null) {
-							// merge successful, add to smaller matches
-							if (candidateWasMerged) {
-								if (isSubCombiMatch(newCombiMatch, toBeAddedToBiggestMatches)) {
-									toBeAddedToSmallerMatches.add(newCombiMatch);
-								} else {
-									toBeAddedToBiggestMatches.add(newCombiMatch);
-								}
-							} else {
-								// add to biggest matches
-								candidateWasMerged = true;
-								toBeAddedToBiggestMatches.add(newCombiMatch);
-							}
+					// do this 'costly' merge operation in parallel
+					var newCombiMatches = smallerMatches.stream().parallel().map(aSmallerMatch -> {
+						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
+					}).filter(Objects::nonNull).sorted(new CombiMatchSizeComparator()).collect(Collectors.toList());
 
+					// determine where to add new combi matches
+					for (CombiMatch newCombiMatch : newCombiMatches) {
+
+						// merge successful, add to smaller matches
+						if (candidateWasMerged) {
+							if (isSubCombiMatch(newCombiMatch, toBeAddedToBiggestMatches)) {
+								toBeAddedToSmallerMatches.add(newCombiMatch);
+							} else {
+								toBeAddedToBiggestMatches.add(newCombiMatch);
+								candidateWasMerged = true;
+							}
+						} else {
+							// add to biggest matches
+							candidateWasMerged = true;
+							toBeAddedToBiggestMatches.add(newCombiMatch);
 						}
 					}
 				}
 
-				if (!candidateWasMerged && !config.contains(MatchFlag.FULLY_COVERED))
-					toBeAddedToBiggestMatches.add(candidateCombiMatch);
-				else
-					toBeAddedToSmallerMatches.add(candidateCombiMatch);
+				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+					if (!candidateWasMerged)
+						toBeAddedToBiggestMatches.add(candidateCombiMatch);
+					else
+						toBeAddedToSmallerMatches.add(candidateCombiMatch);
+				}
 			}
 
 			// update collections
@@ -494,8 +512,6 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
-
-			Collections.sort(smallerMatches, new CombiMatchSizeComparator());
 		}
 
 		toBeAddedToBiggestMatches = null;
@@ -538,7 +554,8 @@ public class BaseRule {
 		return false;
 	}
 
-	private static void printCombiMatchesPerTriple(Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {
+	private static void printCombiMatchesPerTriple(BaseRule aTargetRule,
+			Map<TriplePattern, Set<CombiMatch>> combiMatchesPerTriple) {
 		StringBuilder sb = new StringBuilder();
 
 		int total = 1;
@@ -547,7 +564,7 @@ public class BaseRule {
 			sb.append(combiMatch.size()).append(" * ");
 		}
 
-		LOG.trace("{} = {}", total, sb.toString());
+		LOG.trace("{}: {} = {}", aTargetRule.getName(), total, sb.toString());
 
 	}
 

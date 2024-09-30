@@ -119,13 +119,14 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
-				// But filter on the communicative act. These have to match!
-				return communicativeActMatcher(anAKI, r);
-			}).filter((r) -> {
 				return anAKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
+
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
+
+		// But filter on the communicative act. These have to match!
+		filterWithCommunicativeActMatcher(anAKI, otherKnowledgeInteractions);
 
 		// create a new SingleInteractionProcessor to handle this ask.
 		SingleInteractionProcessor processor;
@@ -289,13 +290,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
-				// But filter on the communicative act. These have to match!
-				return communicativeActMatcher(aPKI, r);
-			}).filter((r) -> {
 				return aPKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
+
+		// But filter on the communicative act. These have to match!
+		filterWithCommunicativeActMatcher(aPKI, otherKnowledgeInteractions);
 
 		// create a new SingleInteractionProcessor to handle this ask.
 		SingleInteractionProcessor processor;
@@ -408,11 +409,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * model.
 	 * 
 	 * @param myKI
-	 * @param otherKI
-	 * @return {@code true} if the communicative acts of the given
-	 *         KnowledgeInteractions match, {@code false} otherwise.
+	 * @param otherKIs The collection that will be modified by removing all
+	 *                 non-matching KIs.
 	 */
-	private boolean communicativeActMatcher(MyKnowledgeInteractionInfo myKI, KnowledgeInteractionInfo otherKI) {
+	private void filterWithCommunicativeActMatcher(MyKnowledgeInteractionInfo myKI,
+			Set<KnowledgeInteractionInfo> otherKIs) {
 
 		Instant start = Instant.now();
 
@@ -441,23 +442,25 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// then add the other knowledge interaction communicative act
-		CommunicativeAct otherAct = otherKI.getKnowledgeInteraction().getAct();
-		Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
+		for (KnowledgeInteractionInfo otherKI : otherKIs) {
+			CommunicativeAct otherAct = otherKI.getKnowledgeInteraction().getAct();
+			Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
 
-		m.add(otherActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
+			m.add(otherActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
 
-		Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
-		Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
+			Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
+			Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
 
-		m.add(otherActResource, Vocab.HAS_REQ, otherRequirementPurpose);
-		m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, otherSatisfactionPurpose);
+			m.add(otherActResource, Vocab.HAS_REQ, otherRequirementPurpose);
+			m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, otherSatisfactionPurpose);
 
-		// give the purposes the correct types
-		for (Resource r : otherAct.getRequirementPurposes()) {
-			m.add(otherRequirementPurpose, RDF.type, r);
-		}
-		for (Resource r : otherAct.getSatisfactionPurposes()) {
-			m.add(otherSatisfactionPurpose, RDF.type, r);
+			// give the purposes the correct types
+			for (Resource r : otherAct.getRequirementPurposes()) {
+				m.add(otherRequirementPurpose, RDF.type, r);
+			}
+			for (Resource r : otherAct.getSatisfactionPurposes()) {
+				m.add(otherSatisfactionPurpose, RDF.type, r);
+			}
 		}
 
 		// then apply the reasoner
@@ -468,32 +471,42 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// faster. either we set multiple iris for the same params. Or we change the ASK
 		// to include myReq/otherReq and mySat/otherSat vars.
 
-		// my perspective
-		Var reqVar = Var.alloc("req");
-		Var satVar = Var.alloc("sat");
-		org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
-				NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
-				NodeFactory.createURI(otherSatisfactionPurpose.toString()));
+		// my and other perspective
+		var iter = otherKIs.iterator();
+		while (iter.hasNext()) {
+			KnowledgeInteractionInfo otherKI = iter.next();
+			Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
+			Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
+			Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
 
-		org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
-				NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
-				NodeFactory.createURI(mySatisfactionPurpose.toString()));
+			Var reqVar = Var.alloc("req");
+			Var satVar = Var.alloc("sat");
+			org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
+					NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
+					NodeFactory.createURI(otherSatisfactionPurpose.toString()));
 
-		Query q = (Query) query.clone();
-		ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
+			org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
+					NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
+					NodeFactory.createURI(mySatisfactionPurpose.toString()));
 
-		List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
-		data.add(theFirstBinding);
-		data.add(theSecondBinding);
+			Query q = (Query) query.clone();
+			ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
 
-		QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
-		boolean execAskMy = myQe.execAsk();
-		myQe.close();
+			List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
+			data.add(theFirstBinding);
+			data.add(theSecondBinding);
 
-		doTheyMatch = !execAskMy;
+			QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
+			boolean execAskMy = myQe.execAsk();
+			myQe.close();
+
+			doTheyMatch = !execAskMy;
+
+			if (!doTheyMatch) {
+				iter.remove();
+			}
+		}
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
-
-		return doTheyMatch;
 	}
 
 	@Override

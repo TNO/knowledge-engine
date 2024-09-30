@@ -3,7 +3,6 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -111,8 +109,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				store.addRule(new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
-						new AnswerBindingSetHandler(kii)));
+				Rule aRule = new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
+						new AnswerBindingSetHandler(kii));
+				store.addRule(aRule);
+				LOG.debug("Adding ANSWER to store: {}", aRule);
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
 				GraphPattern argGp = rki.getArgument();
@@ -129,6 +129,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 
 				store.addRule(aRule);
+				LOG.debug("Adding REACT to store: {}", aRule);
 			}
 
 		}
@@ -149,14 +150,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-
-			EnumSet<MatchFlag> config;
+			MatchStrategy aStrategy;
 			if (aAKI.getKnowledgeInteraction().getMatchStrategy() == null)
-				config = this.matchStrategy.toConfig(true);
+				aStrategy = this.matchStrategy;
 			else
-				config = aAKI.getKnowledgeInteraction().getMatchStrategy().toConfig(true);
+				aStrategy = aki.getMatchStrategy();
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(true));
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -221,13 +222,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			EnumSet<MatchFlag> config;
-			if (aPKI.getKnowledgeInteraction().getMatchStrategy() == null)
-				config = this.matchStrategy.toConfig(false);
+			MatchStrategy aStrategy;
+			if (pki.getMatchStrategy() == null)
+				aStrategy = this.matchStrategy;
 			else
-				config = aPKI.getKnowledgeInteraction().getMatchStrategy().toConfig(false);
+				aStrategy = pki.getMatchStrategy();
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule, config);
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(false));
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
