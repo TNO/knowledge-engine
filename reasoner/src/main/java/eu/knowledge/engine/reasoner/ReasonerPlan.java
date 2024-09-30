@@ -267,13 +267,14 @@ public class ReasonerPlan {
 			// determine whether our parent matches us partially
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
-			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.matchConfig).containsKey(aParent)) {
+			Map<BaseRule, Set<Match>> antecedentNeighbors = this.store.getAntecedentNeighbors(aRule, this.matchConfig);
+			if (aParent != null && antecedentNeighbors.containsKey(aParent)) {
 				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
-						this.store.getAntecedentNeighbors(aRule, this.matchConfig).get(aParent));
+						antecedentNeighbors.get(aParent));
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
-				this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
+				antecedentNeighbors.forEach((rule, matches) -> {
 					if (!(rule instanceof ProactiveRule)) {
 						assert reasonerNode instanceof AntSide;
 						var newNode = createOrGetReasonerNode(rule, aRule);

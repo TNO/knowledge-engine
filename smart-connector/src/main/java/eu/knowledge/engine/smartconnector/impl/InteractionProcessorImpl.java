@@ -409,9 +409,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * model.
 	 * 
 	 * @param myKI
-	 * @param otherKI
-	 * @return {@code true} if the communicative acts of the given
-	 *         KnowledgeInteractions match, {@code false} otherwise.
+	 * @param otherKIs The collection that will be modified by removing all
+	 *                 non-matching KIs.
 	 */
 	private void filterWithCommunicativeActMatcher(MyKnowledgeInteractionInfo myKI,
 			Set<KnowledgeInteractionInfo> otherKIs) {

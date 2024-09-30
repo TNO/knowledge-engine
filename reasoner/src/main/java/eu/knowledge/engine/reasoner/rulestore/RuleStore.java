@@ -6,12 +6,13 @@ package eu.knowledge.engine.reasoner.rulestore;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public class RuleStore {
 	 */
 	public Set<BaseRule> getRules() {
 
-		return this.ruleToRuleNode.values().stream().map(rn -> rn.getRule()).collect(Collectors.toSet());
+		return this.ruleToRuleNode.keySet();
 	}
 
 	/**
@@ -174,19 +175,15 @@ public class RuleStore {
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("digraph {\n");
+		sb.append("strict digraph {\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
-
-		int ruleNumber = 1;
 
 		for (MatchNode r : ruleToRuleNode.values()) {
 
 			String currentName = ruleToName.get(r.getRule());
-			boolean sourceInPlan = false, destInPlan = false;
 			if (currentName == null) {
 				currentName = /* "rule" + ruleNumber; */ generateName(r.getRule());
 				assert !currentName.isEmpty();
-				ruleNumber++;
 				String replaceAll = toStringRule(r.getRule()).replaceAll("\\\"", "\\\\\"");
 
 				// check the colouring
@@ -195,7 +192,6 @@ public class RuleStore {
 					RuleNode rn = aPlan.getRuleNodeForRule(r.getRule());
 					if (rn != null) {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
-						sourceInPlan = true;
 					}
 				}
 
@@ -209,16 +205,17 @@ public class RuleStore {
 				ruleToName.put(r.getRule(), currentName);
 
 			}
-			
+
 			Map<BaseRule, Set<Match>> antecedentNeighbors = r.getAntecedentNeighbors();
 			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
 			String neighName;
+
 			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);
+
 				if (neighName == null) {
 					neighName = /* "rule" + ruleNumber; */ generateName(neighR);
 					assert !neighName.isEmpty();
-					ruleNumber++;
 					String replaceAll = toStringRule(neighR).replaceAll("\\\"", "\\\\\"");
 
 					// check the colouring
@@ -227,7 +224,6 @@ public class RuleStore {
 						RuleNode rn = aPlan.getRuleNodeForRule(neighR);
 						if (rn != null) {
 							pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
-							destInPlan = true;
 						}
 					}
 
@@ -238,6 +234,7 @@ public class RuleStore {
 
 					sb.append(neighName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
 							.append(replaceAll).append("\"").append("]").append("\n");
+
 					ruleToName.put(neighR, neighName);
 				}
 
@@ -285,6 +282,7 @@ public class RuleStore {
 	 * 
 	 * @param r
 	 * @return
+	 * @throws NoSuchAlgorithmException
 	 */
 	private String generateName(BaseRule r) {
 
@@ -310,7 +308,29 @@ public class RuleStore {
 
 		String consequent = trimAtLength(sb.toString(), MAX_STR_LENGTH);
 
-		return "\"" + Integer.toHexString(r.hashCode()) + "\\n" + antecedent + "->\\n" + consequent + "\"";
+		String name = r.getName();
+		MessageDigest digest;
+		byte[] encodedhash = new byte[0];
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+			encodedhash = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+		} catch (NoSuchAlgorithmException e) {
+			LOG.error("{}", e);
+		}
+
+		return "\"" + bytesToHex(encodedhash) + "\\n" + antecedent + "->\\n" + consequent + "\"";
+	}
+
+	private static String bytesToHex(byte[] hash) {
+		StringBuilder hexString = new StringBuilder(2 * hash.length);
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
 	}
 
 	private String generateName(TriplePattern tp) {
