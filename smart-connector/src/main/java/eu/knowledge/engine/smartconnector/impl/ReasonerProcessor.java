@@ -184,9 +184,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			this.knowledgeGaps = new HashSet<KnowledgeGap>();
-			// TODO: make the calculation of knowledge gaps configurable.
-			// For now, if the binding set is empty, check for knowledge gaps
-			if (bs.isEmpty()) {
+			if (bs.isEmpty() && myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
 				this.knowledgeGaps = getKnowledgeGaps(this.reasonerPlan.getStartNode());
 			}			
 			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan, this.knowledgeGaps);
