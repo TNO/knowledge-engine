@@ -155,7 +155,7 @@ public class ProactiveApiServiceImpl {
 				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
 				// add knowledge gaps if knowledgeGapsEnabled is true
 				if (ki.getKnowledgeGapsEnabled()) {
-					//LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
+					LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
 					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));					
 				}
 				

@@ -679,7 +679,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 							newGap = new KnowledgeGap();
 							newGap.addAll(existingOrGap);
 							newGap.addAll(collectedOrGap);
-							LOG.debug("Found newGap {}", newGap);
+							LOG.info("Found newGap {}", newGap);
 							newExistingOrGaps.add(newGap);
 						}
 					}
