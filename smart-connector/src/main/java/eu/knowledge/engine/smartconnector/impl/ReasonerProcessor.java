@@ -183,7 +183,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 		
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			this.knowledgeGaps = new HashSet<KnowledgeGap>();
 			if (bs.isEmpty() && myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
 				this.knowledgeGaps = getKnowledgeGaps(this.reasonerPlan.getStartNode());
 			}			

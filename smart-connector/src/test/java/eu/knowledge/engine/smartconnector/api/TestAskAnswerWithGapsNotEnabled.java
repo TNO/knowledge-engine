@@ -62,7 +62,7 @@ public class TestAskAnswerWithGapsNotEnabled {
 		
 		// In this test there will be only 1 KB with a single AskKI.
 		// The test will execute the AskKI without knowledge gaps enabled.
-		// As a result, the set of knowledge gaps should be empty.
+		// As a result, the set of knowledge gaps should be null.
 
 		setupNetwork();
 		
@@ -72,7 +72,7 @@ public class TestAskAnswerWithGapsNotEnabled {
 			// check whether set of knowledge gaps is empty
 			Set<KnowledgeGap> gaps = result.getKnowledgeGaps();		
 			LOG.info("Found gaps: " + gaps);
-			assertTrue(gaps.isEmpty(),"The set of knowledge gaps should be empty");
+			assertEquals(null, gaps,"The set of knowledge gaps should be null");
 			BindingSet bindings = result.getBindings();
 			LOG.info("Resulting binding set is: " + bindings);
 			assertTrue(bindings.isEmpty(),"The resulting bindingset should be empty");

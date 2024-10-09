@@ -118,7 +118,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 		kbRelationAsker = new MockedKnowledgeBase("RelationAsker");
 		kbRelationAsker.setReasonerEnabled(true);
 		
-		// Register an Ask pattern for relations without knowledge gaps enabled
+		// Register an Ask pattern for relations with knowledge gaps enabled
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:isRelatedTo ?b . ?a ex:isFatherOf ?c .");
 		this.askKIGaps = new AskKnowledgeInteraction(new CommunicativeAct(), gp1, "askRelations", true);
 		kbRelationAsker.register(this.askKIGaps);
