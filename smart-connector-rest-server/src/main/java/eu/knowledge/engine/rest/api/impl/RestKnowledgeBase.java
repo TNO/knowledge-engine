@@ -390,6 +390,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false
 				: ki.getKnowledgeGapsEnabled();
+		if (knowledgeGapsEnabled && !this.sc.isReasonerEnabled()) {
+			throw new IllegalArgumentException("You can only set knowledgeGapsEnabled when the Knowledge Base is reasonerEnabled.");
+		}
 		
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
