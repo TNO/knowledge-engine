@@ -16,6 +16,7 @@ import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
 
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -129,20 +130,17 @@ public class Util {
 	 *         gap.
 	 */
 	public static Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
-
 		assert plan instanceof AntSide;
-
-		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
 		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
 				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
 
 		// collect triple patterns that have an empty set
-		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
+		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
+		Set<Set<TriplePattern>> someGaps = new HashSet<>();
 		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
-
-			collectedOrGaps = new HashSet<>();
+			Set<Set<TriplePattern>> collectedOrGaps = new HashSet<>();
 			boolean foundNeighborWithoutGap = false;
 			for (RuleNode neighbor : entry.getValue()) {
 				if (!neighbor.getRule().getAntecedent().isEmpty()) {
@@ -155,42 +153,60 @@ public class Util {
 
 					//TODO what if the graph contains loops?
 					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
-						// found neighbor without knowledge gaps for the current triple, so current
-						// triple is covered.
+						// found neighbor without knowledge gaps for the current triple, so current triple is covered.
 						foundNeighborWithoutGap = true;
 						break;
 					}
 					collectedOrGaps.addAll(someGaps);
-				} else
+				} else {
 					foundNeighborWithoutGap = true;
+				}
 			}
 
-			if (!foundNeighborWithoutGap) {
-				// there is a gap here, either in the current node or in a neighbor.
+			if (foundNeighborWithoutGap) continue; // Nothing to do as there is no gap
 
-				if (collectedOrGaps.isEmpty()) {
-					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
-				}
+			// there is a gap here, either in the current node or in a neighbor.
+			if (collectedOrGaps.isEmpty()) {
+				collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
+			}
 
-				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
-				if (existingOrGaps.isEmpty()) {
-					existingOrGaps.addAll(collectedOrGaps);
-				} else {
-					Set<TriplePattern> newGap;
-					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
-						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
-							newGap = new HashSet<>();
-							newGap.addAll(existingOrGap);
-							newGap.addAll(collectedOrGap);
-							newExistingOrGaps.add(newGap);
-						}
-					}
-					existingOrGaps = newExistingOrGaps;
-				}
+			if (existingOrGaps.isEmpty()) {
+				existingOrGaps.addAll(collectedOrGaps);
+			} else {
+				existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 			}
 		}
-
 		return existingOrGaps;
+	}
+
+	private static Set<Set<TriplePattern>> mergeGaps(Set<Set<TriplePattern>> existingOrGaps, Set<Set<TriplePattern>> collectedOrGaps) {
+		Set<Set<TriplePattern>> mergedGaps = new HashSet<>();
+		for (Set<TriplePattern> existingOrGap : existingOrGaps) {
+			for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
+				Set<TriplePattern> newGap = new HashSet<>(existingOrGap);
+				for (TriplePattern gap : collectedOrGap) {
+					boolean added = false;
+					for (TriplePattern g : existingOrGap) {
+						Map<TripleNode, TripleNode> matches = g.findMatches(gap);
+						if (matches == null) continue;
+						for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
+							if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
+								// Triple from existingOrGap is more general and needs to be replaced
+								newGap.remove(g);
+								newGap.add(gap);
+								added = true;
+							} else if (match.getValue().node.isVariable() && !match.getKey().node.isVariable()) {
+								// Triple in existingOrGap is more specific, so no need to add collectedOrGap to newGap
+								added = true;
+							}
+						}
+					}
+					if (!added) newGap.add(gap);
+				}
+				mergedGaps.add(newGap);
+			}
+		}
+		return mergedGaps;
 	}
 
 	private static boolean isMetaKI(RuleNode neighbor) {
