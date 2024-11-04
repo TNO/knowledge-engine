@@ -60,7 +60,7 @@ public class TestKnowledgeGapDetection {
         HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
         antecedent1.add(new TriplePattern(
                 "?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/FabergeEgg>"));
-        antecedent1.add(new TriplePattern("?id <http://www.tno.nl/example/commissionedBy> \"Alexander III\""));
+        antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/commissionedBy> \"Alexander III\""));
         antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/madeIn> \"Russia\""));
         antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/madeBy> \"House of Fabergé\""));
         this.ruleSet.add(new Rule("Domain knowledge", antecedent1, consequent1, new Rule.AntecedentToConsequentBindingSetHandler(antecedent1)));
