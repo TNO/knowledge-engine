@@ -22,7 +22,6 @@ public class TestUtil {
 			listKbs = new HttpTester(new URL(url + "/sc"), "GET", null, null);
 			listKbs.expectStatus(200);
 			String body = listKbs.getBody();
-			System.out.println("List: " + body);
 
 			JsonReader jsonReader = Json.createReader(new StringReader(body));
 			JsonArray KBs = jsonReader.readArray();

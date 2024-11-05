@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,12 +35,14 @@ public class TestAskAnswerWithGapsEnabled {
 	}
 
 	@Test
-	public void testAskAnswerWithGaps() throws IOException {
+	public void testAskAnswerWithGaps() throws IOException, InterruptedException {
 
 		// In this test there will be an Ask KB with a single AskKI and
 		// an AnswerKB with a single AnswerKI that answers only part of the Ask pattern.
 		// The test will execute the AskKI with knowledge gaps enabled.
 		// As a result, the set of knowledge gaps should contain a single gap.
+
+		CountDownLatch KBReady = new CountDownLatch(1);
 
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
@@ -63,6 +66,7 @@ public class TestAskAnswerWithGapsEnabled {
 									"application/json", "Accept", "*/*"));
 					registerAnswerKi.expectStatus(200);
 
+					KBReady.countDown();
 					// get the handle for the answerKB to see if there are requests to be handled
 					var test = new HttpTester(new URL(url.toString() + "/sc/handle"), "GET", null, Map
 							.of("Knowledge-Base-Id", answerKBId, "Content-Type", "application/json", "Accept", "*/*"));
@@ -96,11 +100,13 @@ public class TestAskAnswerWithGapsEnabled {
 		});
 		answeringSc.start();
 
+		KBReady.await();
 		// register the AskKB
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
 				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerEnabled\" : true}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
+
 
 		// register the AskKI
 		HttpTester registerKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
