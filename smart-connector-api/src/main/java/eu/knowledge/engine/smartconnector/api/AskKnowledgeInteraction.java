@@ -16,39 +16,34 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern pattern;
 
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
+		this(act, pattern, null, false, false, false, null);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name,
+			boolean aKnowledgeGapsEnabled) {
+		this(act, pattern, name, false, false, aKnowledgeGapsEnabled, null);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIncludeMetaKIs) {
+		this(act, pattern, null, false, anIncludeMetaKIs, false, null);
+	}
+
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
+			boolean anIncludeMetaKIs) {
+		this(act, pattern, null, anisMeta, anIncludeMetaKIs, false, null);
+	}
+
 	/**
-	 * Create a {@link AskKnowledgeInteraction}.
+	 * Create a {@link AskKnowledgeInteraction}. See
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)
 	 *
-	 * @param act     The {@link CommunicativeAct} of this
-	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *                'purpose' of the data exchange and whether it has side-effects
-	 *                or not.
 	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
 	 *                that this {@link KnowledgeInteraction} asks for.
 	 */
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false, false);
-	}
-
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false, false);
-	}
-
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean aKnowledgeGapsEnabled) {
-		this(act, pattern, name, false, false, aKnowledgeGapsEnabled);
-	}
-
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
-		this(act, pattern, null, false, anIsFullMatch, false);
-	}
-
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta, boolean anIsFullMatch) {
-		this(act, pattern, null, anisMeta, anIsFullMatch, false);
-	}
-
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIsFullMatch, boolean aKnowledgeGapsEnabled) {
-		super(act, name, anisMeta, anIsFullMatch, aKnowledgeGapsEnabled);
+			boolean anIncludeMetaKIs, boolean aKnowledgeGapsEnabled, MatchStrategy aMatchStrategy) {
+		super(act, name, anisMeta, anIncludeMetaKIs, aKnowledgeGapsEnabled, aMatchStrategy);
 		this.pattern = pattern;
 	}
 

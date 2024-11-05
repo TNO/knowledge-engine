@@ -352,22 +352,28 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		HandleRequest hr = null;
 		BindingSet bs = null;
 
-		synchronized (this.beingProcessedHandleRequests) {
-			hr = this.beingProcessedHandleRequests.get(handleRequestId);
-			bs = this.listToBindingSet(responseBody.getBindingSet());
+		try {
 
-			// TODO: Can this be moved to somewhere internal so that it can also be
-			// caught in the Java developer api?
-			// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
-			hr.validateBindings(bs);
+			synchronized (this.beingProcessedHandleRequests) {
+				hr = this.beingProcessedHandleRequests.get(handleRequestId);
+				bs = this.listToBindingSet(responseBody.getBindingSet());
 
-			// Now that the validation is done, from the reactive side we are done, so
-			// we can remove the HandleRequest from our list.
-			this.beingProcessedHandleRequests.remove(handleRequestId);
-		}
+				// Moved the validation to the {@link
+				// eu.knowledge.engine.smartconnector.impl.InteractionProcessorImpl} so that
+				// also the Java API benefits this, but unfortunately we also have to validate
+				// here to be able to return an error to the Knowledge Base using the REST API.
+				hr.validateBindings(bs);
 
-		if (hr != null && bs != null) {
-			hr.getFuture().complete(bs);
+				// Now that the validation is done, from the reactive side we are done, so
+				// we can remove the HandleRequest from our list.
+				this.beingProcessedHandleRequests.remove(handleRequestId);
+			}
+
+		} finally {
+			// we always want to complete the future, also when the binding set is invalid.
+			if (hr != null && bs != null) {
+				hr.getFuture().complete(bs);
+			}
 		}
 	}
 
@@ -498,7 +504,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return kiToModelKiWithId(kiId, this.knowledgeInteractions.get(kiId));
 
 		} catch (URISyntaxException e) {
-			assert false : "There should never occur an invalid URI here because it should have been checked in the service implementation.";
+			assert false
+					: "There should never occur an invalid URI here because it should have been checked in the service implementation.";
 		}
 		return null;
 

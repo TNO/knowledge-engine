@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import org.apache.jena.atlas.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ConsSide;
@@ -23,6 +27,8 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
  *
  */
 public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
+
+	private static final Logger LOG = LoggerFactory.getLogger(FullRuleNode.class);
 
 	private BindingSetStore resultBindingSetInput;
 	private BindingSetStore filterBindingSetInput;
@@ -77,12 +83,12 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
 
 		TripleVarBindingSet filteredBS = bs;
-		if (this.filterBindingSetOutput != null) {
+		if (this.filterBindingSetOutput != null && !this.hasProactiveParent(aNeighbor)) {
 			filteredBS = bs.keepCompatible(this.filterBindingSetOutput);
 		}
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
-		if (changed && this.filterBindingSetOutput == null) {
+		if (changed && this.filterBindingSetOutput == null && this.hasProactiveParent(aNeighbor)) {
 			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
 
@@ -135,8 +141,7 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 				this.isFilterBindingSetOutputDirty = true;
 
 		} catch (InterruptedException | ExecutionException e) {
-			// TODO
-			e.printStackTrace();
+			LOG.error("{}", e);
 		}
 	}
 
@@ -259,4 +264,21 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	public boolean shouldPropagateResultBindingSetOutput() {
 		return this.isResultBindingSetOutputDirty;
 	}
+
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printResultBindingSetInputStore() {
+		this.resultBindingSetInput.printDebuggingTable();
+	}
+
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printFilterBindingSetInputStore() {
+		this.filterBindingSetInput.printDebuggingTable();
+	}
+
 }

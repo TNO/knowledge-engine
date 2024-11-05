@@ -4,16 +4,21 @@
 package eu.knowledge.engine.reasoner.rulestore;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
@@ -65,14 +70,14 @@ public class RuleStore {
 	 */
 	public Set<BaseRule> getRules() {
 
-		return this.ruleToRuleNode.values().stream().map(rn -> rn.getRule()).collect(Collectors.toSet());
+		return this.ruleToRuleNode.keySet();
 	}
 
 	/**
 	 * @see #getAntecedentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule) {
-		return this.getAntecedentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+		return this.getAntecedentNeighbors(aRule, EnumSet.noneOf(MatchFlag.class));
 	}
 
 	/**
@@ -83,37 +88,42 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its consequent matches
 	 *         this rule's antecedent.
 	 */
-	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
+	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
-		for (BaseRule someRule : this.getRules()) {
-			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getConsequent().isEmpty()
-					&& !aRuleNode.getAntecedentNeighbors(aStrategy).containsKey(someRule)) {
-				Set<Match> someMatches = aRule.antecedentMatches(someRule.getConsequent(), aStrategy);
-				if (!someMatches.isEmpty()) {
-					aRuleNode.setAntecedentNeighbor(someRule, someMatches, aStrategy);
-					someRuleNode.setConsequentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-				}
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aConfig);
 
-			}
+		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
+			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue());
 		}
-		return aRuleNode.getAntecedentNeighbors(aStrategy);
+
+		return newMapping;
+
+	}
+
+	public void addToNewMapping(Map<BaseRule, Set<Match>> newMapping, Map.Entry<BaseRule, Match> entryToAdd) {
+		// check if rule already has entry in newMapping
+		if (!newMapping.containsKey(entryToAdd.getKey())) {
+			newMapping.put(entryToAdd.getKey(), new HashSet<>());
+		}
+		Set<Match> matches = newMapping.get(entryToAdd.getKey());
+		matches.add(entryToAdd.getValue());
 	}
 
 	/**
 	 * @see #getConsequentNeighbors(BaseRule, MatchStrategy)
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
-		return this.getConsequentNeighbors(aRule, MatchStrategy.FIND_ALL_MATCHES);
+		return this.getConsequentNeighbors(aRule, EnumSet.noneOf(MatchFlag.class));
 
 	}
 
 	/**
 	 * Calculate the consequent neighbors of this rule. That means all the other
-	 * rules in {@code store} whose antecedent matches this rule's antecedent. Note
+	 * rules in {@code store} whose antecedent matches this rule's consequent. Note
 	 * that it also adds the same information to the neighbor.<br />
 	 * 
 	 * This method is cached to improve performance.
@@ -121,25 +131,19 @@ public class RuleStore {
 	 * @return A mapping from a neighbor rulenode and the way its antecedent matches
 	 *         this rule's consequent.
 	 */
-	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, MatchStrategy aStrategy) {
+	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
 		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
 
 		assert aRuleNode != null;
 
-		for (BaseRule someRule : this.getRules()) {
-			MatchNode someRuleNode = this.ruleToRuleNode.get(someRule);
-			if (!someRule.getAntecedent().isEmpty()
-					&& !aRuleNode.getConsequentNeighbors(aStrategy).containsKey(someRule)) {
-				Set<Match> someMatches = aRule.consequentMatches(someRule.getAntecedent(), aStrategy);
-				if (!someMatches.isEmpty()) {
-					aRuleNode.setConsequentNeighbor(someRule, someMatches, aStrategy);
-					someRuleNode.setAntecedentNeighbor(aRule, Match.invertAll(someMatches), aStrategy);
-				}
+		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
 
-			}
+		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
+			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
 		}
-		return aRuleNode.getConsequentNeighbors(aStrategy);
 
+		return newMapping;
 	}
 
 	/**
@@ -152,30 +156,34 @@ public class RuleStore {
 		}
 	}
 
+	public void printGraphVizCode(ReasonerPlan aPlan) {
+		LOG.info(getGraphVizCode(aPlan, false));
+	}
+
 	/**
 	 * Prints all the rules and the connections between them in GraphViz encoding.
-	 * Use code in: {@link http://viz-js.com/}
+	 * Use code in: {@link https://dreampuf.github.io/GraphvizOnline/}
 	 */
-	public void printGraphVizCode(ReasonerPlan aPlan) {
+	public void printGraphVizCode(ReasonerPlan aPlan, boolean urlOnly) {
+		LOG.info(getGraphVizCode(aPlan, urlOnly));
+	}
+
+	public String getGraphVizCode(ReasonerPlan aPlan, boolean urlOnly) {
 
 		String color = "red";
 		String width = "2";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("Visualize on website: http://viz-js.com/\n");
-		sb.append("digraph {").append("\n");
-		Map<BaseRule, String> ruleToName = new HashMap<>();
 
-		int ruleNumber = 1;
+		sb.append("strict digraph {\n");
+		Map<BaseRule, String> ruleToName = new HashMap<>();
 
 		for (MatchNode r : ruleToRuleNode.values()) {
 
 			String currentName = ruleToName.get(r.getRule());
-			boolean sourceInPlan = false, destInPlan = false;
 			if (currentName == null) {
 				currentName = /* "rule" + ruleNumber; */ generateName(r.getRule());
 				assert !currentName.isEmpty();
-				ruleNumber++;
 				String replaceAll = toStringRule(r.getRule()).replaceAll("\\\"", "\\\\\"");
 
 				// check the colouring
@@ -184,7 +192,6 @@ public class RuleStore {
 					RuleNode rn = aPlan.getRuleNodeForRule(r.getRule());
 					if (rn != null) {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
-						sourceInPlan = true;
 					}
 				}
 
@@ -199,15 +206,16 @@ public class RuleStore {
 
 			}
 
-			Set<BaseRule> anteNeigh = this.getAntecedentNeighbors(r.getRule(),
-					aPlan != null ? aPlan.getMatchStrategy() : MatchStrategy.FIND_ONLY_FULL_MATCHES).keySet();
+			Map<BaseRule, Set<Match>> antecedentNeighbors = r.getAntecedentNeighbors();
+			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
 			String neighName;
+
 			for (BaseRule neighR : anteNeigh) {
 				neighName = ruleToName.get(neighR);
+
 				if (neighName == null) {
 					neighName = /* "rule" + ruleNumber; */ generateName(neighR);
 					assert !neighName.isEmpty();
-					ruleNumber++;
 					String replaceAll = toStringRule(neighR).replaceAll("\\\"", "\\\\\"");
 
 					// check the colouring
@@ -216,7 +224,6 @@ public class RuleStore {
 						RuleNode rn = aPlan.getRuleNodeForRule(neighR);
 						if (rn != null) {
 							pen = "color=\"" + color + "\", penwidth=\"" + width + "\",";
-							destInPlan = true;
 						}
 					}
 
@@ -227,6 +234,7 @@ public class RuleStore {
 
 					sb.append(neighName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
 							.append(replaceAll).append("\"").append("]").append("\n");
+
 					ruleToName.put(neighR, neighName);
 				}
 
@@ -238,14 +246,19 @@ public class RuleStore {
 						pen = "color=\"" + color + "\", penwidth=\"" + width + "\"";
 				}
 
-				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[").append(pen).append("]")
-						.append("\n");
+				int nrOfMatches = antecedentNeighbors.get(neighR).size();
+
+				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[label=").append(nrOfMatches)
+						.append(" ").append(pen).append("]").append("\n");
 
 			}
 		}
 
 		sb.append("}");
-		LOG.info(sb.toString());
+
+		return "Visualize on website: https://dreampuf.github.io/GraphvizOnline/#"
+				+ URLEncoder.encode(sb.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20")
+				+ (urlOnly ? "" : "\n" + sb.toString());
 	}
 
 	private String toStringRule(BaseRule neighR) {
@@ -269,6 +282,7 @@ public class RuleStore {
 	 * 
 	 * @param r
 	 * @return
+	 * @throws NoSuchAlgorithmException
 	 */
 	private String generateName(BaseRule r) {
 
@@ -294,7 +308,29 @@ public class RuleStore {
 
 		String consequent = trimAtLength(sb.toString(), MAX_STR_LENGTH);
 
-		return "\"" + Integer.toHexString(r.hashCode()) + "\\n" + antecedent + "->\\n" + consequent + "\"";
+		String name = r.getName();
+		MessageDigest digest;
+		byte[] encodedhash = new byte[0];
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+			encodedhash = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+		} catch (NoSuchAlgorithmException e) {
+			LOG.error("{}", e);
+		}
+
+		return "\"" + bytesToHex(encodedhash) + "\\n" + antecedent + "->\\n" + consequent + "\"";
+	}
+
+	private static String bytesToHex(byte[] hash) {
+		StringBuilder hexString = new StringBuilder(2 * hash.length);
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
 	}
 
 	private String generateName(TriplePattern tp) {

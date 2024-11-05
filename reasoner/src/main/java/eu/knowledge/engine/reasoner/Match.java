@@ -169,7 +169,41 @@ public class Match {
 
 	@Override
 	public String toString() {
-		return "Match " + mapping;
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		for (Map.Entry<TriplePattern, TriplePattern> entry : this.matchingPatterns.entrySet()) {
+
+			boolean firstTriplePattern = true;
+			for (TriplePattern tp : new TriplePattern[] { entry.getKey(), entry.getValue() }) {
+				boolean firstTime = true;
+				Node[] nodes = new Node[] { tp.getSubject(), tp.getPredicate(), tp.getObject() };
+				for (int i = 0; i < 3; i++) {
+					Node n = nodes[i];
+
+					if (!firstTime) {
+						sb.append(" ");
+					}
+					var truncatedNode = TriplePattern.trunc(n);
+
+					var tn = new TripleNode(tp, n, i);
+
+					if (firstTriplePattern ? this.mapping.containsValue(tn) : this.mapping.containsKey(tn)) {
+						sb.append("|").append(truncatedNode).append("|");
+					} else {
+						sb.append(truncatedNode);
+					}
+					firstTime = false;
+				}
+				if (firstTriplePattern)
+					sb.append("=");
+				firstTriplePattern = false;
+			}
+			sb.append(", ");
+		}
+		sb.deleteCharAt(sb.length() - 1).deleteCharAt(sb.length() - 1).append("}");
+
+		return "Match " + sb.toString();
 	}
 
 	/**

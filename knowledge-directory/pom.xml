@@ -14,14 +14,13 @@
 
 	<properties>
 		<!-- TODO move some of these to ke-parent -->
-		<swagger-core-version>2.2.20</swagger-core-version>
+		<swagger-core-version>2.2.22</swagger-core-version>
 		<beanvalidation-version>3.0.2</beanvalidation-version>
 		<jetty-version>11.0.15</jetty-version>
-		<jersey3-version>3.1.5</jersey3-version>
-		<jackson-version>2.16.1</jackson-version>
+		<jersey3-version>3.1.7</jersey3-version>
+		<jackson-version>2.17.2</jackson-version>
 		<junit-version>4.13.1</junit-version>
 		<logback-version>1.4.14</logback-version>
-		<servlet-api-version>5.0.0</servlet-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -60,11 +59,6 @@
 			<artifactId>junit-jupiter</artifactId>
 			<version>5.10.2</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<version>${servlet-api-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
@@ -197,7 +191,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.5.0</version>
+				<version>3.6.0</version>
 				<executions>
 					<execution>
 						<id>add-source</id>

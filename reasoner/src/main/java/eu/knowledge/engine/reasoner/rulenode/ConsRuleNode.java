@@ -76,4 +76,13 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	public Set<RuleNode> getAllSameLoopNeighbors() {
 		return new HashSet<>();
 	}
+
+	/**
+	 * Prints the binding set store of this Rule Node to the std out in a markdown
+	 * table format.
+	 */
+	public void printInputBindingSetStore() {
+		this.filterBindingSetInput.printDebuggingTable();
+	}
+
 }
