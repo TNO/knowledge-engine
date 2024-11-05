@@ -2,8 +2,10 @@ package eu.knowledge.engine.rest.api;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
@@ -43,26 +45,29 @@ public class TestAskWithGapsNotEnabled {
 
 		HttpTester registerKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askRelations\", \"graphPattern\": \"?a <http://example.org/isRelatedTo> ?b .\"}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Content-Type", "application/json", "Accept",
-						"*/*"));
+				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Content-Type",
+						"application/json", "Accept", "*/*"));
 		registerKiWithoutGapsEnabled.expectStatus(200);
 
-		HttpTester getKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "GET", null, Map.of("Knowledge-Base-Id",
-				"https://www.tno.nl/example/relationAsker", "Content-Type", "application/json", "Accept", "*/*"));
+		HttpTester getKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "GET", null,
+				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Content-Type",
+						"application/json", "Accept", "*/*"));
 		var body = getKiWithoutGapsEnabled.getBody();
 		assertTrue(body.contains("\"https://www.tno.nl/example/relationAsker/interaction/askRelations\""));
-		
+
 		HttpTester askKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ask"), "POST",
 				"{\"recipientSelector\": {\"knowledgeBases\": []}, \"bindingSet\": []}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Knowledge-Interaction-Id", "https://www.tno.nl/example/relationAsker/interaction/askRelations",
-						"Content-Type", "application/json", "Accept",
-						"*/*"));
+				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Knowledge-Interaction-Id",
+						"https://www.tno.nl/example/relationAsker/interaction/askRelations", "Content-Type",
+						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
 		assertFalse(result.contains("\"knowledgeGaps\":"));
 	}
 
 	@AfterAll
 	public void cleanUp() {
+		TestUtil.unregisterAllKBs("http://localhost:" + PORT + "/rest");
+
 		rsh.cleanUp();
 	}
 }

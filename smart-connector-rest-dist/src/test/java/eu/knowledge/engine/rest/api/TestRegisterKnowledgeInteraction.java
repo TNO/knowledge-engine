@@ -50,6 +50,7 @@ public class TestRegisterKnowledgeInteraction {
 
 	@AfterAll
 	public void cleanUp() {
+		TestUtil.unregisterAllKBs("http://localhost:" + PORT + "/rest");
 		rsh.cleanUp();
 	}
 }
