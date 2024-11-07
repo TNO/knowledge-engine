@@ -41,18 +41,18 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	}
 
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, false, anIsFullMatch, null);
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, false, anIncludeMetaKIs, null);
 	}
 
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, anIsMeta, anIsFullMatch, null);
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, anIsMeta, anIncludeMetaKIs, null);
 	}
 
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name,
-			boolean anIsMeta, boolean anIsFullMatch, MatchStrategy aMatchStrategy) {
-		super(act, name, anIsMeta, anIsFullMatch, false, aMatchStrategy);
+			boolean anIsMeta, boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
+		super(act, name, anIsMeta, anIncludeMetaKIs, false, aMatchStrategy);
 		this.argument = argument;
 		this.result = result;
 	}

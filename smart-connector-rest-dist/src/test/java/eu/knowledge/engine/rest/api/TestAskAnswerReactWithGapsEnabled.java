@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,7 +35,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 	}
 
 	@Test
-	public void testAskAnswerReactWithGaps() throws IOException {
+	public void testAskAnswerReactWithGaps() throws IOException, InterruptedException {
 
 		// In this test there will be an Ask KB with an AskKI with 2 triplepatterns,
 		// an AnswerKB with a single AnswerKI that answers only the first triplepattern
@@ -45,6 +46,10 @@ public class TestAskAnswerReactWithGapsEnabled {
 		// As a result, the set of knowledge gaps should contain a single gap.
 
 		URL url = new URL("http://localhost:" + PORT + "/rest");
+
+		// sync between threads to make sure the ask is not activated before the others
+		// are ready.
+		CountDownLatch KBReady = new CountDownLatch(2);
 
 		// activate the answer SC, KB, KI in a separate thread
 		var answeringSc = new AsyncTester(new Runnable() {
@@ -69,6 +74,8 @@ public class TestAskAnswerReactWithGapsEnabled {
 							""", Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationProvider",
 							"Content-Type", "application/json", "Accept", "*/*"));
 					registerAnswerKi.expectStatus(200);
+
+					KBReady.countDown();
 
 					// get the handle for the answerKB to see if there are requests to be handled
 					var test = new HttpTester(new URL(url.toString() + "/sc/handle"), "GET", null, Map
@@ -128,6 +135,8 @@ public class TestAskAnswerReactWithGapsEnabled {
 							"Content-Type", "application/json", "Accept", "*/*"));
 					registerReactKi.expectStatus(200);
 
+					KBReady.countDown();
+
 					System.out.println("Getting the handle for the reactKBId");
 					// get the handle for the reactKB to see if there are requests to be handled =>
 					// NOTE: it should never exit/return this handle for this test
@@ -160,6 +169,8 @@ public class TestAskAnswerReactWithGapsEnabled {
 			}
 		});
 		reactingSc.start();
+
+		KBReady.await();
 
 		// register the AskKB
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
