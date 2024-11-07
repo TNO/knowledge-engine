@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -95,7 +95,7 @@ public class ForwardTest {
 					public CompletableFuture<BindingSet> handle(BindingSet bs) {
 						StringBuilder bindings = new StringBuilder();
 						for (Binding b : bs) {
-							Float celcius = (Float) ((Node) b.get("y")).getLiteralValue();
+							Float celcius = (Float) ((Node_Literal) b.get("y")).getLiteralValue();
 							bindings.append("z=" + convert(celcius) + ",x="
 									+ FmtUtils.stringForNode(b.get("x"), new PrefixMappingZero()) + "|");
 						}
