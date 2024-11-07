@@ -14,13 +14,14 @@ import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import eu.knowledge.engine.reasoner.BaseRule;
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -39,6 +40,7 @@ import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;
@@ -46,6 +48,7 @@ import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo.Type;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
+import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
 import eu.knowledge.engine.smartconnector.messaging.PostMessage;
 import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 
@@ -69,6 +72,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
+
+	private MatchStrategy matchStrategy = MatchStrategy.NORMAL_LEVEL;
 
 	/**
 	 * These two bindingset handler are a bit dodgy. We need them to make the post
@@ -104,8 +109,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				store.addRule(new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
-						new AnswerBindingSetHandler(kii)));
+				Rule aRule = new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
+						new AnswerBindingSetHandler(kii));
+				store.addRule(aRule);
+				LOG.debug("Adding ANSWER to store: {}", aRule);
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
 				GraphPattern argGp = rki.getArgument();
@@ -122,6 +129,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 
 				store.addRule(aRule);
+				LOG.debug("Adding REACT to store: {}", aRule);
 			}
 
 		}
@@ -142,8 +150,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					ki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
+			MatchStrategy aStrategy;
+			if (aAKI.getKnowledgeInteraction().getMatchStrategy() == null)
+				aStrategy = this.matchStrategy;
+			else
+				aStrategy = aki.getMatchStrategy();
+
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(true));
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
 			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -208,8 +222,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
 
-			this.reasonerPlan = new ReasonerPlan(this.store, aRule,
-					pki.fullMatchOnly() ? MatchStrategy.FIND_ONLY_FULL_MATCHES : MatchStrategy.FIND_ALL_MATCHES);
+			MatchStrategy aStrategy;
+			if (pki.getMatchStrategy() == null)
+				aStrategy = this.matchStrategy;
+			else
+				aStrategy = pki.getMatchStrategy();
+
+			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(false));
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
@@ -265,13 +285,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a reasoner bindingset
 	 * @return a ke bindingset
 	 */
-	private BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
+	protected BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
 		BindingSet newBS = new BindingSet();
 		Binding newB;
+
+		SerializationContext context = new SerializationContext();
+		context.setUsePlainLiterals(false);
+
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
 			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
-				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue()));
+				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
 			}
 			newBS.add(newB);
 		}
@@ -284,7 +308,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * @param bs a ke bindingset
 	 * @return a reasoner bindingset
 	 */
-	private eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
+	protected eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
 
 		eu.knowledge.engine.reasoner.api.BindingSet newBindingSet = new eu.knowledge.engine.reasoner.api.BindingSet();
 		eu.knowledge.engine.reasoner.api.Binding newBinding;
@@ -414,16 +438,22 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Instant aPreviousSend = Instant.now();
 
 				bsFuture = sendAskMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
-				}).thenApply((answerMessage) -> {
-					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
-					BindingSet resultBindingSet = null;
-					if (answerMessage != null)
-						resultBindingSet = answerMessage.getBindings();
 
-					if (resultBindingSet == null)
-						resultBindingSet = new BindingSet();
+					String failedMessage = MessageFormatter
+							.basicArrayFormat("Error '{}' occurred while waiting for response to message: {}",
+									new String[] {
+											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+											askMessage.getMessageId().toString() });
+
+					LOG.warn(failedMessage);
+					LOG.debug("", t);
+					return ReasonerProcessor.this
+							.<AskMessage, AnswerMessage>createFailedResponseMessageFromRequestMessage(askMessage,
+									failedMessage);
+				}).thenApply((answerMessage) -> {
+					assert answerMessage != null;
+					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
+					BindingSet resultBindingSet = answerMessage.getBindings();
 
 					ReasonerProcessor.this.askExchangeInfos
 							.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage, aPreviousSend));
@@ -432,13 +462,37 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), askMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						askMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 			}
 			return bsFuture;
 		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends KnowledgeMessage, S extends KnowledgeMessage> S createFailedResponseMessageFromRequestMessage(
+			T incomingMessage, String failedMessage) {
+
+		S outgoingMessage = null;
+		if (incomingMessage instanceof AskMessage) {
+
+			outgoingMessage = (S) new AnswerMessage(incomingMessage.getToKnowledgeBase(),
+					incomingMessage.getToKnowledgeInteraction(), incomingMessage.getFromKnowledgeBase(),
+					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
+
+		} else if (incomingMessage instanceof PostMessage) {
+			outgoingMessage = (S) new AnswerMessage(incomingMessage.getToKnowledgeBase(),
+					incomingMessage.getToKnowledgeInteraction(), incomingMessage.getFromKnowledgeBase(),
+					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
+		}
+
+		assert outgoingMessage != null;
+		return outgoingMessage;
 	}
 
 	/**
@@ -477,15 +531,19 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
 				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					String failedMessage = MessageFormatter
+							.basicArrayFormat("Error '{}' occurred while waiting for response to message: {}",
+									new String[] {
+											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+											postMessage.getMessageId().toString() });
+					LOG.warn(failedMessage);
+					LOG.debug("", t);
+					return ReasonerProcessor.this
+							.<PostMessage, ReactMessage>createFailedResponseMessageFromRequestMessage(postMessage,
+									failedMessage);
 				}).thenApply((reactMessage) -> {
-					BindingSet resultBindingSet = null;
-					if (reactMessage != null)
-						resultBindingSet = reactMessage.getResult();
-
-					if (resultBindingSet == null)
-						resultBindingSet = new BindingSet();
+					assert reactMessage != null;
+					BindingSet resultBindingSet = reactMessage.getResult();
 
 					ReasonerProcessor.this.postExchangeInfos.add(
 							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
@@ -494,7 +552,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Errors like '{}' should not occur while sending: {}", e.getMessage(), postMessage.getMessageId());
+				LOG.warn("Error '{}' occurred while sending {}",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						postMessage.getClass().getSimpleName());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -561,5 +621,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public ReasonerPlan getReasonerPlan() {
 		return this.reasonerPlan;
+	}
+
+	public void setMatchStrategy(MatchStrategy aStrategy) {
+		this.matchStrategy = aStrategy;
 	}
 }

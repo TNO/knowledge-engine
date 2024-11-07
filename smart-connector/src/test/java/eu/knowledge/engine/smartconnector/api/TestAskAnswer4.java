@@ -47,7 +47,7 @@ public class TestAskAnswer4 {
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> \"test\".");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c .");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -58,7 +58,7 @@ public class TestAskAnswer4 {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("c", "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -76,6 +76,11 @@ public class TestAskAnswer4 {
 			LOG.trace("Before ask.");
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
+
+			System.out.println("Bindings: " + bindings);
+			System.out
+					.println("Bindings2: " + result.getExchangeInfoPerKnowledgeBase().iterator().next().getBindings());
+
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();

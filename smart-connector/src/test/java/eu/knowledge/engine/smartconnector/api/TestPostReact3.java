@@ -36,10 +36,13 @@ public class TestPostReact3 {
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
 		kb1 = new MockedKnowledgeBase("kb1");
+		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new MockedKnowledgeBase("kb2");
+		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 		kb3 = new MockedKnowledgeBase("kb3");
+		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 
 		// start registering
@@ -66,8 +69,8 @@ public class TestPostReact3 {
 
 			var bs = new BindingSet();
 			b = new Binding();
-			b.put("c", "<https://example.org/example/c>");
-			b.put("d", "<https://example.org/example/d>");
+			b.put("c", "<https://example.org/example/c1>");
+			b.put("d", "<https://example.org/example/d1>");
 			bs.add(b);
 			return bs;
 		});
@@ -90,10 +93,10 @@ public class TestPostReact3 {
 
 			var bs = new BindingSet();
 			b = new Binding();
-			b.put("c", "<https://example.org/example/c>");
-			b.put("d", "<https://example.org/example/d>");
-			b.put("e", "<https://example.org/example/e>");
-			b.put("f", "<https://example.org/example/f>");
+			b.put("c", "<https://example.org/example/c2>");
+			b.put("d", "<https://example.org/example/d2>");
+			b.put("e", "<https://example.org/example/e2>");
+			b.put("f", "<https://example.org/example/f2>");
 			bs.add(b);
 			return bs;
 		});
@@ -109,18 +112,33 @@ public class TestPostReact3 {
 		bindingSet.add(binding);
 
 		try {
-			PostResult result = kb1.post(ki1, bindingSet).get();
+
+			PostPlan plan = kb1.planPost(ki1, new RecipientSelector());
+
+			plan.getReasonerPlan().getStore().printGraphVizCode(plan.getReasonerPlan());
+
+			PostResult result = plan.execute(bindingSet).get();
 
 			assertTrue(this.kb2Received, "KB2 should have received the posted data.");
-			assertFalse(this.kb3Received, "KB3 should not have received the posted data.");
+			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
 			BindingSet bs = result.getBindings();
 			LOG.info("received post results: {}", bs);
-			assertTrue(bs.size() == 1);
-			bs.forEach(b -> {
-				assertEquals(new HashSet<String>(Arrays.asList("c", "d")), b.getVariables());
-			});
+			assertTrue(bs.size() == 2);
+
+			BindingSet expected = new BindingSet();
+			Binding b = new Binding();
+			b.put("c", "<https://example.org/example/c1>");
+			b.put("d", "<https://example.org/example/d1>");
+			expected.add(b);
+			b = new Binding();
+			b.put("c", "<https://example.org/example/c2>");
+			b.put("d", "<https://example.org/example/d2>");
+			expected.add(b);
+
+			assertEquals(expected, bs);
 		} catch (Exception e) {
 			LOG.error("Error", e);
+			fail();
 		}
 	}
 

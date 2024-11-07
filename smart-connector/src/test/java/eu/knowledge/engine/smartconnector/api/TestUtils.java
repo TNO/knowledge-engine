@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import org.apache.jena.graph.Node;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,50 +46,6 @@ public class TestUtils {
 			"?m <https://saref.etsi.org/core/hasValue> ?v .");
 
 	private static final String KE_PREFIX = "https://www.interconnectproject.eu/";
-
-	public static final SmartConnector getSmartConnector(final String aName) {
-		return SmartConnectorBuilder.newSmartConnector(new KnowledgeBase() {
-
-			@Override
-			public URI getKnowledgeBaseId() {
-				URI uri = null;
-				try {
-					uri = new URI(KE_PREFIX + aName);
-				} catch (URISyntaxException e) {
-					LOG.error("Could not parse the uri.", e);
-				}
-				return uri;
-			}
-
-			@Override
-			public String getKnowledgeBaseDescription() {
-				return null;
-			}
-
-			@Override
-			public void smartConnectorReady(SmartConnector aSC) {
-			}
-
-			@Override
-			public void smartConnectorConnectionLost(SmartConnector aSC) {
-			}
-
-			@Override
-			public void smartConnectorConnectionRestored(SmartConnector aSC) {
-			}
-
-			@Override
-			public String getKnowledgeBaseName() {
-				return null;
-			}
-
-			@Override
-			public void smartConnectorStopped(SmartConnector aSC) {
-				// TODO Auto-generated method stub
-
-			}
-		}).create();
-	}
 
 	public static final Set<Binding> getSingleBinding(String name, String value) {
 		Set<Binding> bindings = new HashSet<>();
@@ -432,6 +389,50 @@ public class TestUtils {
 			sb.append("<empty>");
 
 		return sb.toString();
+	}
+
+	public static String[] convertGP(String multiLineString) {
+		var set = new HashSet<String>();
+		String[] lines = multiLineString.split("\n");
+
+		for (String line : lines) {
+
+			if (!line.isEmpty()) {
+				set.add(line);
+			}
+		}
+
+		return set.toArray(new String[0]);
+	}
+
+	/**
+	 * parses every line of the string into a triple pattern and combines them into
+	 * a set. Note that if it ends with a period (.) it will be removed.
+	 * 
+	 * @param gp
+	 * @return
+	 */
+	public static Set<TriplePattern> toGP(PrefixMapping prefixes, String gp) {
+
+		var set = new HashSet<TriplePattern>();
+		String[] lines = gp.split("\n");
+
+		for (String line : lines) {
+
+			String trimmed = line.strip();
+			if (trimmed.endsWith("."))
+				trimmed = trimmed.substring(0, trimmed.length() - 2);
+
+			if (!trimmed.isEmpty()) {
+				set.add(new TriplePattern(prefixes, trimmed));
+			}
+		}
+
+		return set;
+	}
+
+	public static Set<TriplePattern> toGP(String gp) {
+		return toGP(new PrefixMappingZero(), gp);
 	}
 
 	private static String convertBindingSet(PrefixMapping prefixes,

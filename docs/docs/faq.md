@@ -1,3 +1,8 @@
+---
+  sidebar_position: 99
+---
+
+
 FAQ
 ===
 
@@ -19,7 +24,7 @@ Currently, an instance of the Smart Connector is self contained, so no external 
 - *Answer*: Indeed, the FILTER keyword (of the SPARQL language) is not available. Although this is a very useful keyword and we would love to support something like that, there needs to be an equivalent of filtering in the reasoner and most of the time this is not there. We do keep this in mind when looking/making for a new reasoner, but I do not expect this to be available anytime soon (there is still research required, I think). Note that a Knowledge Interaction is more than a single Basic Graph Pattern (although it is the most important part of it). It also has a type (Ask/Answer or Post/React) and a Communicative Act (to convey the 'reason' for the interaction). Also, the Post/React KI have two graph patterns attached to them; the argument and the result graph pattern.
 
 *Question*: It means also that a SparQL query like you see below is a SparQL query and is not something that can be used at the KE REST API interface. Only the part within the brackets is a basic graph pattern. Is that right?
-```
+```sparql
 SELECT ?sensor WHERE {
 ?building a saref4bldg:Building.
 ?building bot:containsElement ?sensor.
@@ -33,31 +38,31 @@ SELECT ?sensor WHERE {
 *Question*: In POST /sc/ki one registers a Knowledge Interaction along with the knowledge interaction type. In POST /sc/ask one queries for some results by referring to a KI and providing an incomplete binding set. The result will be a complete binding set. In your presentation KE for dummies slide 12, you mentioned that one could restrict the question (at the react side). I didn’t find in the rest of the slides on how one can do that, except by having a literal in the registered KI. In your example a person has a name and a email address, but the logic only allows to ask for the email address associated with a person with a certain name, but it does not allow to get the name associated with a specific email address. How do we impose such a restriction, or we can’t do this at this stage?
 
 - *Answer*: If the logic does not allow the inverse, then you should not use an Ask/Answer Knowledge Interactions with a graph pattern like:
-	```
+	```sparql
 	?person :hasUsername ?userName .
 	?person :hasEmailaddress ?emailAddress .
 	```
 
 	In that case you want to use the Post/React Knowledge Interactions. These have two Graph Patterns and the *argument* graph pattern would look something like:
 
-	```
+	```sparql
 	?person :hasUsername ?userName .
 	```
 
 	and the *result* graph pattern would look something like:
 
-	```
+	```sparql
 	?person :hasEmailaddress ?emailAddress .
 	```
 
 	This tells the Knowledge Engine that you cannot send it an email address and receive the username.
 
 *Question*: Can you explain how to register the argument pattern and the result graph pattern? In the KE API I saw only one graph pattern in the register of a Knowledge interaction, and no parameter to indicate if it is an argument pattern or a result graph pattern.
-- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/PostKnowledgeInteraction.java#L45) and [ReactKnowledgeInteraction](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/smart-connector/src/main/java/eu/interconnectproject/knowledge_engine/smartconnector/api/ReactKnowledgeInteraction.java#L41) objects require both an argument and a result graph pattern.
+- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/PostKnowledgeInteraction.java) and [ReactKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/ReactKnowledgeInteraction.java) objects require both an argument and a result graph pattern.
 
-	In the JSON body of the [REST Developer API ](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/rest-api/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
+	In the JSON body of the [REST Developer API ](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
 
-	```
+	```json
 	{
 	"knowledgeInteractionType": "PostKnowledgeInteraction",
 	"argumentGraphPattern": "?s ?p ?o",
@@ -79,8 +84,8 @@ SELECT ?sensor WHERE {
 	3) Yes, the PostKnowledgeInteraction sends the argument and the ReactKnowledgeInteraction sends the (optional) result.
 	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
 
-*Question*: I successfully created smart connector (https://cybergrid.com/kb1") and the knowledge Interaction. When I wanted to execute the ask command with the following body:
-```
+*Question*: I successfully created smart connector (https://cybergrid.com/kb1) and the knowledge Interaction. When I wanted to execute the ask command with the following body:
+```json
 [
   {
    "deviceName": "device1" 
@@ -88,10 +93,8 @@ SELECT ?sensor WHERE {
 ]
 ```
 I received the following expectation from the knowladge-engine: ```400 Bad Request: ['device1' is not an unprefixed URI or literal.]```
-- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/0.1.6/docs/03_java_developer_api.md#bindings).
-
-
-	If you change your example value from 'device1' to something like '<http://www.example.org/device1>', this particular error should be resolved.
+- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](java_developer_api.md#bindings).
+	If you change your example value from `device1` to something like `<http://www.example.org/device1>`, this particular error should be resolved.
 
 *Question*: Do we need a long polling connection for every Knowledge Interaction? Doesn't that get very complicated?
 - *Answer*: No, per Smart Connector (or Knowledge Base) you need a single long polling connection to receive all interactions from the Knowledge Engine. Do remember that this long polling connection is returned with status code 202 every 29 seconds and also needs to be reestablished after you receive data via it.
@@ -101,7 +104,7 @@ I received the following expectation from the knowladge-engine: ```400 Bad Reque
 For instance:
 Let's say we have some graph pattern like:
 
-```
+```sparql
 ?timeseries rdf:type ex:Timeseries .
 ?timeseries ex:hasMeasurement ?measurement .
 ?measurement rdf:type saref:Measurement .
@@ -142,7 +145,7 @@ In the ANWSER Knowledge interaction will the binding set be something like:
 ```
 
 Is the following statement right: the IRI is filled in by the service specific adapter?
-Can this IRI then be used to for example ask more info about <https://www.example.org/measurement-43> ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
+Can this IRI then be used to for example ask more info about `<https://www.example.org/measurement-43>` ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
 - *Answer*: You are correct with respect to `<https://www.example.org/measurement-43>`. Ideally you should be able to retrieve more information about it and the service should not randomly generate it, but use a stored id.
 
 
@@ -169,10 +172,12 @@ Is there a complete example available where the KE and the service store is comb
 *Question*: I use a very generic graph pattern like `?s ?p ?o` for my PostKnowledgeInteraction, but my other KB does not get a request. Or, you do get a request, but your post is not returning with the results.
 - *Answer*: We noticed multiple knowledge bases that register graph patterns like "?s ?p ?o" (i.e. from the examples we provided). If this is the case, it might occur that you ask a question or post some data and there are multiple KBs available that can answer or want to react to that type of data (i.e. they use a matching graph pattern). This means that you may not receive a request for data on your KB until one of the others has answered or reacted, or you might get a request, but you do not see the expected reaction in your other KB, because the Interoperability layer is waiting for the other matching KBs to answer/react.
 We have an issue #95 which would allow you to instruct the Knowledge Engine to not wait indefinitely for an answer, but this is still on our todo list. Until then, we recommend using more specific graph patterns for testing. For example:
+```json
 {
   "knowledgeInteractionType": "ReactKnowledgeInteraction",
   "argumentGraphPattern": "?s <http://inetum.world/hasValue> ?o ."
 }
+```
 
 *Question*: In a Ask/Answer interaction the bindingSet is a list of items. The items should stay in the order there are inserted on the Answer side. Currently it is not the case.
 - *Answer*:  The Knowledge Engine cannot guarantee the ordering of the Bindings in a  BindingSet due to several reasons. From a Semantic Technology perspective, the bindings are stored in a binding set in which the ordering is not fixed. Also, due to the matchers (and future reasoners) that mediate between different smart connectors and the fact that the response can be a union from BindingSets received from different knowledge bases, it is difficult to guarantee any ordering. Ideally, the ordering of the bindings can be derived from data, for example an ordering value or timestamps. This would allow the data to be sorted after receiving it from the interoperability layer.
@@ -185,7 +190,7 @@ Is the best approach to create a KI graph pattern per device type that returns a
 What if I'm only interested in one parameter (not possible now because an exact match is required in this version, but possible in a next version)?
 Result:
 
-```
+```json
 {
     "results": [
         {
@@ -217,7 +222,7 @@ Result:
 - *Answer*: This is indeed quite a generic approach that, unfortunately, cannot be done with the current version of the KE (as you already correctly mention: because of exact matching). You could in theory register a lot of Knowledge Interactions, although I am not sure that is the best approach. If there is a limited set of fields that are always available, I would recommend providing a single large knowledge interaction. This would, however, mean that the asker registers this large knowledge interaction as well.
 	An alternative approach, which maybe mimics the generic behaviour of the API, could be to provide a measurement graph pattern like:
 
-	```
+	```sparql
 	?deviceId <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Device> .
 	?deviceId <https://saref.etsi.org/core/makesMeasurement> ?m .
 	?m <https://saref.etsi.org/core/relatesToProperty> ?p . 
@@ -228,7 +233,7 @@ Result:
 
 	This would allow the asking side to provide a binding set with a particular deviceId and 'fieldTypes':
 
-	```
+	```json
 	[
 		{
 			"deviceId": "<https://www.example.org/device1>",
@@ -272,14 +277,14 @@ Result:
 
 An example: the following graph pattern defines a **device** and the **type** of it’s **property**.
 
-```
+```sparql
 ?device <https://saref.etsi.org/core/measuresProperty> ?property .
 ?property a ?propertyType .
 ```
 
 The only parameters we need here are **device** and **propertyType**. The **property** variable is redundant, but it still needs to be in the graph pattern. What we decided to do, is replace this variable by a placeholder individual : `http://interconnectproject.eu/pilots/greek/property#property`. The resulting pattern would then look like this:
 
-```
+```sparql
 ?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 <http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
 ```
@@ -290,7 +295,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 - *Answer*: I think it helps if we distinguish between syntax and semantics here. Using a pattern like:
 
-	```
+	```sparql
 	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 	<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
 	```
@@ -315,8 +320,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 	6.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .`
 
 	Now, if we draw these triples as a graph figure, we get something like the following:
-
-	![fixed_iri_in_gp](/uploads/6cbb12403ebb8610271df081961cb368/fixed_iri_in_gp.png)
+	[Image no longer available]
 
 	Note:
 	- that there are 6 triples in the above graph pattern, but only 5 edges in this figure. This is caused by the fact that the 1st and 3rd triple of the graph pattern above are exactly the same and triples can only occur once in a graph. So, if you write them twice, they will still only occur once. 
@@ -324,7 +328,7 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 	Conclusion: while the fixed property is syntactically correct, it is semantically incorrect. So, using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected. This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and bindingset and when you ask something like:
 
-	```
+	```sparql
 	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
 	<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .
 	```
@@ -384,3 +388,18 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 *Question*: What should our KB do When we receive a request for data (either via an ANSWER or REACT Knowledge Interaction), but we do not have a response?
 - *Answer*: You should send an empty binding set when you do not have a response. Also when your REACT Knowledge Interaction has no result graph pattern, you should always return an empty binding set to the Knowledge Engine. If an error occurs while responding, you can either return an empty BindingSet (although this does not give any information about the error occurring) or call the (in case you are using the asynchronous handler methods of the Java Developer API) `future.completeExceptionally(...)` method.
+
+*Question*: There are lots of 'HTTP/1.1 header parser received no bytes' errors in the logs. How do I prevent these?
+- *Answer*: This can be prevented by using a shorter timeout in the Java HTTP Client. Try using the following Java option: `-Djdk.httpclient.keepalive.timeout=3`. This can also be set in the docker configuration of a KER docker container by setting the JAVA_TOOL_OPTIONS as follows: `JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=3"`.
+
+*Question*: Whenever I do a post or ask, the memory usage of the Knowledge Engine Runtime skyrockets and it fails with a error (`HTTP 500`) after a minute or two.
+- *Answer*: Double check whether you are enabling the reasoner when you create a Smart Connector for your Knowledge Base. When using the REST Developer API, you can disable the reasoner by setting the JSON property `reasonerEnabled` to `false` or leave the property out altogether because by default the reasoner is disabled. Currently, the reasoner is not usable for scenario's where graph patterns are more than about 5 or 6 triple patterns, because the algorithm for graph pattern matching uses too much memory. We are working on improving this algorithm and hopefully allow more use cases to enable the reasoner and benefit the increased interoperability.
+
+*Question*: The result of my POST contains the following failed message in its ExchangeInfo: "java.lang.IllegalArgumentException: KB gave outgoing binding Binding [...], but this doesn't have a matching incoming binding!". What does this mean?
+- *Answer*: The reason this error is given, is the following: REACT KIs that contain both an argument and result graph pattern and these two graph patterns share a variable name, the knowledge engine expects all values for this variable in the result binding set to also occur as a value of the variable in the argument binding set. This has to do with how these graph patterns are internally used to form if … then … rules. If this is not the case, it gives the above failedMessage. If this shared variable in the argument and result graph patterns is intended to be the same, make sure you align the values of this variable in the result binding set with the values of this variable in the argument binding set. If the variable is not intended to be the same thing, you can rename one of them to prevent the knowledge engine to expect them to share values.
+
+*Question*: <a name="setup_keruntime"></a> There is an existing Knowledge Network with a Knowledge Directory (KD) and multiple Knowledge Engine Runtimes (KERs). How do I setup my own KER and configure it such that it participates in the existing Knowledge Network?
+- *Answer*: Every Knowledge Engine Runtime (KER) in distributed mode consists of two APIs: [Knowledge Engine Developer REST API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) and the [Inter-Knowledge Engine Runtime API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector/src/main/resources/openapi-inter-ker.yaml). The former is started on port `8280` by default and you use this API to register your Knowledge Base and Knowledge Interactions. The latter API is meant for internal communication between KERs and you do not need to use it yourself. However, you do need to make sure this API is reachable for other KERs in the Knowledge Network. By default this API is available on port 8081, but sometimes you need to change this port using the `KE_RUNTIME_PORT` environment variable. Make sure the latter API of your KER is accessible from the internet and configure its URL when starting the KER with the `KE_RUNTIME_EXPOSED_URL` environment variable. To set this up correctly, you typically install a reverse proxy like NGNIX and open the correct ports in the firewall of the server. For this you need to contact the administrator of the server you are using. A KER starts in distributed mode when it detects the `KD_URL` environment variable. This variable points to the Knowledge Directory of the Knowledge Network. You can configure it using environment variables `KD_URL=<knowledge-direcotry-url>`. If the Knowledge Directory is protected using Basic Authentication, you can add the credentials to the KD_URL as described [here](https://stackoverflow.com/a/50528734).
+
+*Question*: <a name="connect_keruntime"></a> There is an existing Knowledge Engine Runtime (KER) that I want to use to develop a knowledge base. How do I connect to this KER?
+- *Answer*: To connect to the existing KER you need to know and have access to the KER's [Knowledge Engine REST Developer API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector-rest-server/src/main/resources/openapi-sc.yaml). If you have the URL of the KER you want to use, you can test it by activating its `GET /sc` operation via the browser with an URL that looks like this: `<ker-url>/sc` (if the KER is protected with Basic Authentication your browser might ask you for credentials, you can also put the credentials directly into the URL as user info). This operation returns JSON with all the Knowledge Bases (KBs) that are registered with that KER (if there are none, it returns an empty JSON array `[]`). If you run a KER on your own computer (for example using the provided docker image), the `<ker-url>` would typically be `http://localhost:8280`. Now that you tested the KER, you can use the `<ker-url>` to register your KB and Knowledge Interactions (KIs) by activating the different operations that are described in the Open API specification above.

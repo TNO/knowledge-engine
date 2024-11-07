@@ -126,7 +126,6 @@ public class Util {
 				trimmed = trimmed.substring(0, trimmed.length() - 2);
 
 			if (!trimmed.isEmpty()) {
-				System.out.println("line: " + trimmed);
 				set.add(new TriplePattern(trimmed));
 			}
 		}

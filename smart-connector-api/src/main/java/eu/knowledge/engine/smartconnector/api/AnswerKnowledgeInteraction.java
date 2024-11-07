@@ -16,36 +16,33 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern pattern;
 
-	/**
-	 * Create an {@link AnswerKnowledgeInteraction}.
-	 *
-	 * @param act     The {@link CommunicativeAct} of this
-	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *                'purpose' of the data exchange and whether it has side-effects
-	 *                or not.
-	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
-	 *                that this {@link KnowledgeInteraction} can provide.
-	 */
 	public AnswerKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false);
+		this(act, pattern, null, false, false, null);
 	}
 
 	public AnswerKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false);
+		this(act, pattern, name, false, false, null);
 	}
 
-	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, boolean anIsFullMatch) {
-		this(anAct, aPattern, null, false, anIsFullMatch);
+	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, boolean anIncludeMetaKIs) {
+		this(anAct, aPattern, null, false, anIncludeMetaKIs, null);
 	}
 
 	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		this(anAct, aPattern, null, anIsMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		this(anAct, aPattern, null, anIsMeta, anIncludeMetaKIs, null);
 	}
 
-	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, String name, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		super(anAct, name, anIsMeta, anIsFullMatch);
+	/**
+	 * Create an {@link AnswerKnowledgeInteraction}. See
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)
+	 *
+	 * @param aPattern The {@link GraphPattern} expresses the 'shape' of knowledge
+	 *                 that this {@link KnowledgeInteraction} can provide.
+	 */
+	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, String aName, boolean anIsMeta,
+			boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
+		super(anAct, aName, anIsMeta, anIncludeMetaKIs, aMatchStrategy);
 		this.pattern = aPattern;
 	}
 
