@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,7 +152,7 @@ public class TripleVarBindingSet {
 	/**
 	 * Simply the union between the two bindingsets. Does nothing complex for now.
 	 * 
-	 * @param gbs
+	 * @param aGraphBindingSet
 	 * @return
 	 */
 	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
@@ -232,18 +231,18 @@ public class TripleVarBindingSet {
 									&& !fromB.get(fromTVar).equals(toBVarValue)) {
 								skip = true; // conflict, so skip
 							}
-						} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node_Concrete) {
+						} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node) {
 							var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
 							if (fromB.containsKey(fromTVar) && !fromB.get(fromTVar).equals(toTNode.node)) {
 								skip = true; // conflict, so skip
 							}
-						} else if (fromTNode.node instanceof Node_Concrete && toTNode.node instanceof Var) {
+						} else if (fromTNode.node instanceof Node && toTNode.node instanceof Var) {
 							var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
 							if (toB.containsVar((Var) toTVar.node)
 									&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
 								skip = true;
 							} else if (!toB.containsVar((Var) toTVar.node)) {
-								toB.put(toTVar, (Node_Concrete) fromTNode.node);
+								toB.put(toTVar, (Node) fromTNode.node);
 							}
 						}
 					}
@@ -332,9 +331,9 @@ public class TripleVarBindingSet {
 				Set<TripleNode> nodes = tvb.getTripleNodes(tp);
 				if (!nodes.isEmpty()) {
 
-					Node_Concrete subject = null;
-					Node_Concrete predicate = null;
-					Node_Concrete object = null;
+					Node subject = null;
+					Node predicate = null;
+					Node object = null;
 
 					for (TripleNode tn : nodes) {
 						if (tn.nodeIdx == 0) {

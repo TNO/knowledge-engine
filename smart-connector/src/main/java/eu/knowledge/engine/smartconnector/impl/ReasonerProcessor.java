@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.graph.Node_Concrete;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -294,7 +294,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
-			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
+			for (Map.Entry<Var, Node> entry : b.entrySet()) {
 				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
 			}
 			newBS.add(newB);
@@ -305,7 +305,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	/**
 	 * Translate bindingset from the ke bindingset to the reasoner bindingset.
 	 * 
-	 * @param bs a ke bindingset
+	 * @param someBindings a ke bindingset
 	 * @return a reasoner bindingset
 	 */
 	protected eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {

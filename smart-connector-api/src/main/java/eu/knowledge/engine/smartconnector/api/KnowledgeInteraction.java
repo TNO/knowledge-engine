@@ -1,6 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import com.fasterxml.jackson.core.format.MatchStrength;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of

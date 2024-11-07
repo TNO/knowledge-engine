@@ -100,7 +100,7 @@ public class Util {
 					newNodes[i] = newN;
 				}
 
-				m.add(m.asStatement(new Triple(newNodes[0], newNodes[1], newNodes[2])));
+				m.add(m.asStatement(Triple.create(newNodes[0], newNodes[1], newNodes[2])));
 			}
 		}
 		return m;
