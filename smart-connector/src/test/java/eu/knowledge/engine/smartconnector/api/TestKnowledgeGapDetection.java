@@ -67,7 +67,7 @@ public class TestKnowledgeGapDetection {
     }
 
     @Test
-    public void testAskAnswer() throws InterruptedException, URISyntaxException {
+    public void testKnowledgeGap() throws InterruptedException, URISyntaxException {
         AskPlan plan = kbImperialEggSearcher.planAsk(askKI, new RecipientSelector());
         ReasonerPlan rn = plan.getReasonerPlan();
         rn.getStore().printGraphVizCode(rn);
@@ -82,6 +82,72 @@ public class TestKnowledgeGapDetection {
         expectedGap.add(new TriplePattern(prefixes, "?id ex:madeIn \"Russia\""));
         expectedGap.add(new TriplePattern(prefixes, "?id ex:madeBy \"House of Fabergé\""));
 
+        assertEquals(expectedGap, gaps.toArray()[0]);
+    }
+
+
+    @Test
+    public void testKnowledgeGapNoMatchingVars() throws InterruptedException {
+        GraphPattern gp = new GraphPattern(prefixes,
+                "?iq rdf:type <https://www.tno.nl/example/ImperialFaberge> . ?iq <https://www.tno.nl/example/madeBy> ?company . ?iq <https://www.tno.nl/example/madeIn> ?country . ?iq <https://www.tno.nl/example/hasImage> ?image .");
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggsNonMatching", false, false, MatchStrategy.SUPREME_LEVEL);
+        kbImperialEggSearcher.register(this.askKI);
+        kn.sync();
+
+        AskPlan plan = kbImperialEggSearcher.planAsk(askKI, new RecipientSelector());
+        ReasonerPlan rn = plan.getReasonerPlan();
+        rn.getStore().printGraphVizCode(rn);
+
+        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        LOG.info("Found gaps: " + gaps);
+
+        assertEquals(1, gaps.size());
+
+        Set<TriplePattern> expectedGap = new HashSet<>();
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:commissionedBy \"Alexander III\""));
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeIn \"Russia\""));
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeBy \"House of Fabergé\""));
+
+        assertEquals(expectedGap, gaps.toArray()[0]);
+    }
+
+    @Test
+    public void testNoKnowledgeGap() throws InterruptedException {
+        GraphPattern gp = new GraphPattern(prefixes,
+                "?iq rdf:type <https://www.tno.nl/example/FabergeEgg> . ?iq <https://www.tno.nl/example/hasImage> ?image .");
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, MatchStrategy.SUPREME_LEVEL);
+        kbImperialEggSearcher.register(this.askKI);
+        kn.sync();
+
+        AskPlan plan = kbImperialEggSearcher.planAsk(askKI, new RecipientSelector());
+        ReasonerPlan rn = plan.getReasonerPlan();
+        rn.getStore().printGraphVizCode(rn);
+
+        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        LOG.info("Found gaps: " + gaps);
+
+        assertEquals(0, gaps.size());
+    }
+
+    @Test
+    public void testKnowledgeGapWithoutPrefixes() throws InterruptedException {
+        GraphPattern gp = new GraphPattern("?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/ImperialFaberge> . ?id <https://www.tno.nl/example/hasImage> ?image .");
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, MatchStrategy.SUPREME_LEVEL);
+        kbImperialEggSearcher.register(this.askKI);
+        kn.sync();
+
+        AskPlan plan = kbImperialEggSearcher.planAsk(askKI, new RecipientSelector());
+        ReasonerPlan rn = plan.getReasonerPlan();
+        rn.getStore().printGraphVizCode(rn);
+
+        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        LOG.info("Found gaps: " + gaps);
+
+        assertEquals(1, gaps.size());
+        Set<TriplePattern> expectedGap = new HashSet<>();
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:commissionedBy \"Alexander III\""));
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeIn \"Russia\""));
+        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeBy \"House of Fabergé\""));
         assertEquals(expectedGap, gaps.toArray()[0]);
     }
 
