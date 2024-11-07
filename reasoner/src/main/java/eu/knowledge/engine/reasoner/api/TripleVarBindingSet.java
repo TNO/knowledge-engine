@@ -231,12 +231,12 @@ public class TripleVarBindingSet {
 									&& !fromB.get(fromTVar).equals(toBVarValue)) {
 								skip = true; // conflict, so skip
 							}
-						} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node) {
+						} else if (fromTNode.node instanceof Var && toTNode.node instanceof Node && toTNode.node.isConcrete() ) {
 							var fromTVar = new TripleNode(fromTriple, (Var) fromTNode.node, fromTNode.nodeIdx);
 							if (fromB.containsKey(fromTVar) && !fromB.get(fromTVar).equals(toTNode.node)) {
 								skip = true; // conflict, so skip
 							}
-						} else if (fromTNode.node instanceof Node && toTNode.node instanceof Var) {
+						} else if (fromTNode.node instanceof Node && fromTNode.node.isConcrete() && toTNode.node instanceof Var) {
 							var toTVar = new TripleNode(toTriple, (Var) toTNode.node, toTNode.nodeIdx);
 							if (toB.containsVar((Var) toTVar.node)
 									&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
