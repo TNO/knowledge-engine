@@ -4,12 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.jena.graph.Node;
-
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
-
 
 public class Binding extends HashMap<Var, Node> {
 
@@ -21,6 +19,9 @@ public class Binding extends HashMap<Var, Node> {
 
 	public Binding(Var variable, Node lit) {
 		super();
+		if (!lit.isConcrete())
+			throw new IllegalArgumentException(
+					"Binding values should be concrete nodes (either RDF literals or RDF URIs).");
 		this.put(variable, lit);
 	}
 
@@ -46,7 +47,11 @@ public class Binding extends HashMap<Var, Node> {
 	}
 
 	public Node put(String variable, String val) {
-		return this.put(Var.alloc(variable), (Node) SSE.parseNode(val));
+		Node n = SSE.parseNode(val);
+		if (!n.isConcrete())
+			throw new IllegalArgumentException(
+					"Binding values should be concrete nodes (either RDF literals or RDF URIs).");
+		return this.put(Var.alloc(variable), n);
 	}
 
 	public Map<String, String> toMap() {

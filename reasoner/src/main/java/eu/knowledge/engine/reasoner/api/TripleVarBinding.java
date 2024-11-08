@@ -75,14 +75,18 @@ public class TripleVarBinding {
 
 	public void put(TripleNode aTripleVar, Node aLiteral) {
 		assert aTripleVar.node.isVariable();
+
+		if (!aLiteral.isConcrete())
+			throw new IllegalArgumentException(
+					"Binding values should be concrete nodes (either RDF literals or URIs) and not '"
+							+ aLiteral.toString() + "'");
+
 		tripleVarMapping.put(aTripleVar, aLiteral);
 		variableTripleVarMapping.put((Var) aTripleVar.node, aTripleVar);
 	}
 
 	public void put(TripleNode aTripleVar, String aLiteral) {
-		assert aTripleVar.node.isVariable();
-		tripleVarMapping.put(aTripleVar, (Node) SSE.parseNode(aLiteral));
-		variableTripleVarMapping.put((Var) aTripleVar.node, aTripleVar);
+		this.put(aTripleVar, (Node) SSE.parseNode(aLiteral));
 	}
 
 	/**
