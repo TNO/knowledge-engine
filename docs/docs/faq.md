@@ -57,21 +57,6 @@ SELECT ?sensor WHERE {
 
 	This tells the Knowledge Engine that you cannot send it an email address and receive the username.
 
-*Question*: Can you explain how to register the argument pattern and the result graph pattern? In the KE API I saw only one graph pattern in the register of a Knowledge interaction, and no parameter to indicate if it is an argument pattern or a result graph pattern.
-- *Answer*: In the Java Developer API the constructors of the [PostKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/PostKnowledgeInteraction.java) and [ReactKnowledgeInteraction](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/ReactKnowledgeInteraction.java) objects require both an argument and a result graph pattern.
-
-	In the JSON body of the [REST Developer API ](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) `POST /sc/ki` operation, you specific the type of the Knowledge Interaction. If you choose the PostKnowledgeInteraction or ReactKnowledgeInteraction `knowledgeInteractionType`, the argument and result graph patterns are also expected (see also the schema of the request body):
-
-	```json
-	{
-	"knowledgeInteractionType": "PostKnowledgeInteraction",
-	"argumentGraphPattern": "?s ?p ?o",
-	"resultGraphPattern": "?x ?y ?z"
-	}
-	```
-
-	Note that the result graph pattern is optional.
-
 *Question*: In the context of graph pattern matching, can you explain the subset/superset condition: "when the Graph Pattern" of the sender is a superset of the Graph Pattern of the receiver' ? Is it at definition level or at data level? I found (at ontology level) the following explanation: "Ontology O1 is a subset of ontology O2 if all definitions in O1 are contained in O2 (O2 is the superset of O1)".
 1) More concrete: is 'a b c .' graph pattern a subset or a superset of 'a b c . d e f.' ?
 2) In case of Post/React knowledge interactions, both argument graph patterns must match and also both result graph patterns must match?
@@ -83,18 +68,6 @@ SELECT ?sensor WHERE {
 	2) Yes, the argument graph pattern and result graph pattern should both match if two Post/React Knowledge Interactions want to exchange data. Note that this probably changes when the Knowledge Engine uses a reasoner instead of a matcher.
 	3) Yes, the PostKnowledgeInteraction sends the argument and the ReactKnowledgeInteraction sends the (optional) result.
 	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
-
-*Question*: I successfully created smart connector (https://cybergrid.com/kb1) and the knowledge Interaction. When I wanted to execute the ask command with the following body:
-```json
-[
-  {
-   "deviceName": "device1" 
-  }
-]
-```
-I received the following expectation from the knowladge-engine: ```400 Bad Request: ['device1' is not an unprefixed URI or literal.]```
-- *Answer*: The reason your request fails is because variable bindings need to be either RDF Literals or IRIs. See also our [documentation](java_developer_api.md#bindings).
-	If you change your example value from `device1` to something like `<http://www.example.org/device1>`, this particular error should be resolved.
 
 *Question*: Do we need a long polling connection for every Knowledge Interaction? Doesn't that get very complicated?
 - *Answer*: No, per Smart Connector (or Knowledge Base) you need a single long polling connection to receive all interactions from the Knowledge Engine. Do remember that this long polling connection is returned with status code 202 every 29 seconds and also needs to be reestablished after you receive data via it.
