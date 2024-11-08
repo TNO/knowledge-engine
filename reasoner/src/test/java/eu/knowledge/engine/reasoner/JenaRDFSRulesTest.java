@@ -91,7 +91,7 @@ public class JenaRDFSRulesTest {
 
 		Model m = ModelFactory.createDefaultModel();
 		for (Binding binding : results2) {
-			m.add(m.asStatement(new Triple(binding.get("s"), binding.get("p"), binding.get("o"))));
+			m.add(m.asStatement(Triple.create(binding.get("s"), binding.get("p"), binding.get("o"))));
 		}
 
 //		Model m = Util.generateModel(new TriplePattern(genericTriple), results2);
