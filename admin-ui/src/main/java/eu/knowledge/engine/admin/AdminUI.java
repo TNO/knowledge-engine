@@ -43,6 +43,8 @@ public class AdminUI implements KnowledgeBase {
 
 	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type ke:KnowledgeBase . ?kb ke:hasName ?name . ?kb ke:hasDescription ?description . ?kb ke:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki ke:isMeta ?isMeta . ?ki ke:hasCommunicativeAct ?act . ?act rdf:type ke:CommunicativeAct . ?act ke:hasRequirement ?req . ?act ke:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki ke:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp ke:hasPattern ?pattern .";
 
+	private static final String CONF_KEY_INITIAL_ADMIN_UI_DELAY = "INITIAL_ADMIN_UI_DELAY";
+
 	private SmartConnector sc;
 	private final PrefixMapping prefixes;
 
@@ -118,17 +120,17 @@ public class AdminUI implements KnowledgeBase {
 		// create the correct Knowledge Interactions
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true);
 		this.rKINew = new ReactKnowledgeInteraction(
-			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-			this.metaGraphPattern, null
-		);
+				new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
+						new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
 		this.rKIChanged = new ReactKnowledgeInteraction(
-			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-			this.metaGraphPattern, null
-		);
+				new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
+						new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
 		this.rKIRemoved = new ReactKnowledgeInteraction(
-			new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)), new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-			this.metaGraphPattern, null
-		);
+				new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
+						new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
+				this.metaGraphPattern, null);
 
 		// register the knowledge interactions with the smart connector.
 		this.sc.register(this.aKI);
@@ -136,16 +138,23 @@ public class AdminUI implements KnowledgeBase {
 		this.sc.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBaseKnowledge(ei));
 		this.sc.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBaseKnowledge(ei));
 
-		// to receive the initial state, we do a single Ask
+		// to receive the initial state, we do a single Ask (after sleeping for a
+		// specific amount of time)
+		try {
+			Thread.sleep(Integer.parseInt(AdminUI.getConfigProperty(CONF_KEY_INITIAL_ADMIN_UI_DELAY, "5000")));
+		} catch (InterruptedException e) {
+			LOG.info("{}", e);
+		}
 		this.fetchInitialData();
 	}
 
 	public BindingSet handleNewKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		if (!this.canReceiveUpdates()) return new BindingSet();
+		if (!this.canReceiveUpdates())
+			return new BindingSet();
 
 		try {
-			Model model = eu.knowledge.engine.smartconnector.impl.Util
-				.generateModel(this.aKI.getPattern(), ei.getArgumentBindings());
+			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
+					ei.getArgumentBindings());
 
 			// this we can simply add to our model
 			this.model.add(model);
@@ -160,14 +169,15 @@ public class AdminUI implements KnowledgeBase {
 		}
 		return new BindingSet();
 	}
-	
+
 	public BindingSet handleChangedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		if (!this.canReceiveUpdates()) return new BindingSet();
+		if (!this.canReceiveUpdates())
+			return new BindingSet();
 
 		try {
-			Model model = eu.knowledge.engine.smartconnector.impl.Util
-				.generateModel(this.aKI.getPattern(), ei.getArgumentBindings());
-			
+			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
+					ei.getArgumentBindings());
+
 			// this is a little more complex... we have to:
 			// - extract the knowledge base that this message is about
 			// - delete all old data about that knowledge base
@@ -175,6 +185,7 @@ public class AdminUI implements KnowledgeBase {
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
 
@@ -192,11 +203,12 @@ public class AdminUI implements KnowledgeBase {
 	}
 
 	public BindingSet handleRemovedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		if (!this.canReceiveUpdates()) return new BindingSet();
+		if (!this.canReceiveUpdates())
+			return new BindingSet();
 
 		try {
-			Model model = eu.knowledge.engine.smartconnector.impl.Util
-				.generateModel(this.aKI.getPattern(), ei.getArgumentBindings());
+			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
+					ei.getArgumentBindings());
 
 			// this is also a little complex... we have to:
 			// - extract the knowledge base that this message is about
@@ -204,6 +216,7 @@ public class AdminUI implements KnowledgeBase {
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
 
@@ -226,8 +239,8 @@ public class AdminUI implements KnowledgeBase {
 			try {
 				// using the BindingSet#generateModel() helper method, we can combine the graph
 				// pattern and the bindings for its variables into a valid RDF Model.
-				this.model = eu.knowledge.engine.smartconnector.impl.Util
-					.generateModel(this.aKI.getPattern(), askResult.getBindings());
+				this.model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
+						askResult.getBindings());
 				this.model.setNsPrefixes(this.prefixes);
 				// when result available (and the config is enabled), we print the
 				// knowledge bases to the console.
@@ -314,5 +327,16 @@ public class AdminUI implements KnowledgeBase {
 
 	public Model getModel() {
 		return model;
+	}
+
+	public static String getConfigProperty(String key, String defaultValue) {
+		// We might replace this with something a bit more fancy in the future...
+		String value = System.getenv(key);
+		if (value == null) {
+			value = defaultValue;
+			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
+					+ defaultValue + "'");
+		}
+		return value;
 	}
 }

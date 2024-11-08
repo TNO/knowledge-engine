@@ -101,6 +101,15 @@ public class AdminApiServiceImpl {
 		}
 	}
 
+	@GET
+	@Path("/reload")
+	@Operation(summary = "Manually reload the admin-ui's smart connectors within the network. This is sometimes necessary when the initial load did not pick up all SCs correctly.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "If the SC were reloaded."),
+			@ApiResponse(responseCode = "500", description = "If a problem occurred.") })
+	public void reloadSCs() {
+		AdminUI.newInstance(false).fetchInitialData();
+	}
+
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
 
 		Set<KnowledgeInteractionInfo> allRelevantKnowledgeInteractions = new HashSet<>();
