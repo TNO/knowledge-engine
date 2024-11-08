@@ -152,9 +152,6 @@ We have an issue #95 which would allow you to instruct the Knowledge Engine to n
 }
 ```
 
-*Question*: In a Ask/Answer interaction the bindingSet is a list of items. The items should stay in the order there are inserted on the Answer side. Currently it is not the case.
-- *Answer*:  The Knowledge Engine cannot guarantee the ordering of the Bindings in a  BindingSet due to several reasons. From a Semantic Technology perspective, the bindings are stored in a binding set in which the ordering is not fixed. Also, due to the matchers (and future reasoners) that mediate between different smart connectors and the fact that the response can be a union from BindingSets received from different knowledge bases, it is difficult to guarantee any ordering. Ideally, the ordering of the bindings can be derived from data, for example an ordering value or timestamps. This would allow the data to be sorted after receiving it from the interoperability layer.
-
 *Question*: Some partners use a query like API request whereby they can specify via an input field what kind of results they expect back, together with the device id (temperature sensor, smart plug, meter,...)
 For instance one can select the list of parameters (status, temperature, power, voltage, door_state, humidity, luminosity etc.) that should be returned.
 In the result below is only the power_total returned, but additional fields could be selected/set in the input field (depending on the device type it can return more than one value)

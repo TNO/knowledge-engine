@@ -109,6 +109,9 @@ Two important things should be noted:
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.
 
+The Knowledge Engine cannot guarantee the ordering of bindings within a binding set.
+This mean that bindings may change order, e.g. the order of bindings for an ask and corresponding answer may be different.
+
 ## Expressibility
 
 The Graph Pattern syntax has a limited expressibility. This means there are certain things that you might want to express with them, but are unable to. Sometimes this means it limits the actual data exchange, but sometimes there are work-arounds. One of the limitations is related to one-to-many relations. Take the following RDF about parents and children in which a parent has a one-to-many relation with its children:
