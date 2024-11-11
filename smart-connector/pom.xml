@@ -195,7 +195,7 @@
 		<swagger-core-version>2.2.22</swagger-core-version>
 		<jetty-version>11.0.15</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>
-		<jackson-version>2.17.2</jackson-version>
+		<jackson-version>2.18.1</jackson-version>
 		<servlet-api-version>6.1.0</servlet-api-version>
 	</properties>
 
