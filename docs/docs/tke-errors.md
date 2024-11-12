@@ -17,9 +17,25 @@ This can be prevented by using a shorter timeout in the Java HTTP Client.
 Try using the following Java option: `-Djdk.httpclient.keepalive.timeout=3`.
 This can also be set in the docker configuration of a Knowledge Engine Runtime docker container by setting the JAVA_TOOL_OPTIONS as follows: `JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=3"`.
 
-### "java.lang.IllegalArgumentException: KB gave outgoing binding Binding [...], but this doesn't have a matching incoming binding!"
+### java.lang.IllegalArgumentException: KB gave outgoing binding Binding [...], but this doesn't have a matching incoming binding!
 When using a REACT Knowledge Interaction that contains both an argument and result graph pattern which share a variable name, the Knowledge Engine expects all values for this variable in the result binding set to also occur as a value of the variable in the argument binding set.
 This has to do with how these graph patterns are internally used to form if … then … rules.
 If this is not the case, it gives the above error message.
 If this shared variable in the argument and result graph patterns is intended to be the same, make sure you align the values of this variable in the result binding set with the values of this variable in the argument binding set.
 If the variable is not intended to be the same thing, you can rename one of them to prevent the knowledge engine to expect them to share values.
+
+### The JSON Object should contain both a recipientSelector and a bindingSet key
+When executing an ASK or POST you have to provide either (a) a binding set, or (b) a recipient selector *and* binding set.
+The binding set specifies values that you are interested in.
+The recipient selector can be used to select a single Knowledge Base which should be contacted.
+In case you do not want to select a single Knowledge Base, you can pass an empty list to contact *all* relevant Knowledge Bases:
+```json
+{
+  "recipientSelector": {
+    "knowledgeBases": []
+  },
+  "bindingSet": [
+    {}
+  ]
+}
+```
