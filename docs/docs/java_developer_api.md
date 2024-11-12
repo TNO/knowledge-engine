@@ -109,8 +109,10 @@ Two important things should be noted:
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.
 
-The Knowledge Engine cannot guarantee the ordering of bindings within a binding set.
-This mean that bindings may change order, e.g. the order of bindings for an ask and corresponding answer may be different.
+The Knowledge Engine does not guarantee the ordering of bindings in a binding set.
+The reason why we call it a binding set is because the elements in a set are unordered. 
+Due to the nature of RDF, the ordering of the bindings in a binding set cannot be used to encode any information when exchanging data.
+Thus, if you need ordering, this should be encoded explicitly, e.g. by using numbers or timestamps, and the receiving end should use this information to put the information in the correct order.
 
 ## Expressibility
 
