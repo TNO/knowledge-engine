@@ -3,7 +3,8 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Knowledge Interactions
+# Using Knowledge Interactions
+This page describes how to register and execute Knowledge Interactions.
 
 ## How to instantiate a Knowledge Interaction?
 <Tabs groupId="tke-usage">

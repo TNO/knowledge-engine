@@ -6,24 +6,52 @@
 FAQ
 ===
 
-*Question*: may be a question of dummies, what is the time of validity of the information? is it specified in the graph pattern?
-- *Answer*: The validity of the information is not available by default, but you can include it into the graph pattern if you need it for your use case.
+### What is the time of validity of the exchanged information?
+The validity of the exchanged information is not available by default, but you can include it into the graph pattern if you need it for your use case.
 
-*Question*: There is a limited and defined number of KI. How do we proceed to "generate" all possible graph patterns and so associated KI ?
-- *Answer*: The KIs used should match and the KIs and their Graph Patterns are the end result of the SAREFization process for services. Also, if you need pilot specific KIs, you can agree on them within your pilot using SAREF or a pilot specific ontology.
+### Are there any technical requirements, e.g. RAM, CPU and disk space, for deploying the Knowledge Engine?
+We do not have minimal requirements for the Knowledge Engine yet.
+Locally we can run multiple Smart Connectors on an Intel Core i7-8650 CPU @ 1.9GHz with 16 Gb RAM, but the requirements also depend on the amount of data that is exchanged.
+An instance of the Smart Connector is self-contained and no external database or storage is required.
 
-*Question*: what about ACKs of the requests?
-- *Answer*: There are no explicit ACKs. The Ask receives an answer of one or more KBs and the Post receives the BindingSet for the optional Result Graph Pattern. If you need an explicit ACK (for example with the turn on the light example in the presentation) you can use the result Graph Pattern to contain the ACK.
+For setting up your own Knowledge Network, including a Knowledge Directory, typically the following steps are required:
+1. Have a machine or virtual machine ready:
+	* Ideally configure the (virtual) machine to be in a DMZ network, separate from other critical/sensitive resources (good security practice)
+2. Deploy the Knowledge Engine and Knowledge Directory on the machine, i.e. deploy two Java servers.
+3. Configure the firewall to allow external communication to that (virtual) machine.
+   * Depending on the local infrastructure, configure a proxy (if it exists) to forward the requests to that (virtual) machine.
 
-*Question*: Is there any specific requirements such as RAM, CPU and disk space for deploying the KE ? Is there aditional components to take into account such as an external DB or it is all inclusive ? Is there OS specific configuration such as network or ports ?
-- *Answer*: We do not have minimal requirements for the KE yet. Locally I am running multiple Smart Connectors just fine on my Intel Core i7-8650 CPU @ 1.9GHz with 16 Gb RAM, but it also depends on the amount of traffic of course.
-By the way, the current version (0.1.6) of the KE is a centralized one where all the Smart Connectors (with their reasoner) run on a server hosted by INESC TEC and partners create and access their Smart Connector via the REST Developer API of the generic adapter. A future version of the generic adapter will contain an instance of the Smart Connector (plus reasoner).
-Currently, an instance of the Smart Connector is self contained, so no external database is required. The future version will of course need to use the network (ports are not yet decided) to communicate with other Smart Connectors (and the Knowledge Directory).
+A medium range (virtual) machine with the following requirements should be sufficient to set up your own Knowledge Network:
+* (Ideally) Linux-based OS
+* Latest Java SE installed
+* Outside world (inbound) internet access
+* Low/medium CPU (2 cores at least)
+* 16 GB RAM (nowadays a good minimum for a server, more is better)
 
-*Question*: A Knowledge Interaction (KI) is a basic graph pattern. I suppose that this means just a sequence of triple patterns. Does this mean that for example the ‘FILTER’ keyword can’t be used in the KI?
-- *Answer*: Indeed, the FILTER keyword (of the SPARQL language) is not available. Although this is a very useful keyword and we would love to support something like that, there needs to be an equivalent of filtering in the reasoner and most of the time this is not there. We do keep this in mind when looking/making for a new reasoner, but I do not expect this to be available anytime soon (there is still research required, I think). Note that a Knowledge Interaction is more than a single Basic Graph Pattern (although it is the most important part of it). It also has a type (Ask/Answer or Post/React) and a Communicative Act (to convey the 'reason' for the interaction). Also, the Post/React KI have two graph patterns attached to them; the argument and the result graph pattern.
+It is recommended that someone can access the (virtual) machine to collect any logs and troubleshoot when necessary.
 
-*Question*: It means also that a SparQL query like you see below is a SparQL query and is not something that can be used at the KE REST API interface. Only the part within the brackets is a basic graph pattern. Is that right?
+### How does the Knowledge Engine deal with privacy-sensitive information?
+The Knowledge Engine (and the Smart Connector) functions as a serving hatch and does not store any data that is being exchanged.
+All this data is stored in the Knowledge Bases which are responsible for protecting privacy-sensitive data.
+Within the Knowledge Engine we distinguish between *graph patterns* and *binding sets*.
+The graph patterns should not contain any privacy-sensitive data since they are part of the meta-data that is being stored as capability descriptions.
+This information is needed to orchestrate the data exchange.
+These graph patterns might also show up in the logs of the smart connector (at all log levels).
+The binding sets, on the other hand, _can_ contain privacy-sensitive data which will not be stored.
+Binding Sets are also not stored in the log files of Smart Connectors if these have a log level of INFO or higher.
+Keep in mind, though, that the Knowledge Engine functions as an intelligent broker between consumers and producers of knowledge.
+This might cause the Knowledge Engine to exchange your data with unexpected parties within the Knowledge Network.
+So make sure your knowledge network only contains trusted KBs.
+
+### Can we use SPARQL keywords such as FILTER in Knowledge Interactions?
+No, SPARQL keywords are not available.
+We do not use SPARQL, because SPARQL is only usable for a question/answer interactions, while we also support publish/subscribe and function call interactions.
+Although keywords such as FILTER are very useful keywords, and we would love to support something like that, there need to be equivalent options in the reasoner and most of the time this is not there.
+We do keep this in mind when looking for/making a new reasoner, but do not expect this to be available anytime soon (there is still research required).
+Note that a Knowledge Interaction is more than a single Basic Graph Pattern (although it is the most important part of it).
+It also has a type (Ask/Answer or Post/React) and a Communicative Act (to convey the 'reason' for the interaction).
+
+Take for example the following SPARQL query:
 ```sparql
 SELECT ?sensor WHERE {
 ?building a saref4bldg:Building.
@@ -33,7 +61,54 @@ SELECT ?sensor WHERE {
 ?vibrationSensor saref:hasState ?state .
 }
 ```
-- *Answer*: Exactly, the WHERE part contains the Basic Graph Patterns and those are used to create the Knowledge Interactions. We do not use SPARQL, because SPARQL is only usable for a question/answer interactions, while the Interoperability layer should also support publish/subscribe and function call interactions.
+We can use the Basic Graph Pattern from the WHERE-clause to create a Knowledge Interaction.
+We will then also need to specify the type of interaction, e.g. ASK, and the Communicative Act.
+
+
+###  Why do our two Knowledge Bases not exchange data even though they have matching graph patterns?
+In this case, typically the error is in the Knowledge Interactions that you expect to match.
+Two Knowledge Interactions match when:
+* The types match
+* The graph patterns match
+* The communicative acts match
+
+In the table below 'yes' means those two types of Knowledge Interactions match, while 'no' means those two types of Knowledge Interactions do not match.
+
+|               |                                         |     POST                |                                         |     ASK    |
+|---------------|-----------------------------------------|-------------------------|-----------------------------------------|------------|
+|               |                                         |     *only argument GP*    |     *both argument      and result GP*    |         |
+|     <b>REACT</b>     |     *only argument* GP                    |     yes                 |     no                                  |     n/a    |
+|               |     *both argument      and result GP*    |     no                  |     yes                                 |     n/a    |
+|     <b>ANSWER</b>    |                                      |     n/a                 |     n/a                                 |     yes    |
+
+When your two Knowledge Interaction types have a 'yes', then you can take a look at whether the graph patterns match.
+
+Two graph patterns match when every triple of the first graph pattern is also in the second graph pattern and vice versa.
+The ordering and names of variables like `?s` are ignored.
+Note that in case of POST and REACT Knowledge Interactions, both the argument graph pattern and the result graph pattern must match.
+
+If you are sure that the graph patterns match (be careful of typos!), check which communicative acts they use.
+The CommunicativeAct is meant to indicate the 'reason' for the interaction and in most cases the “InformPurpose” is sufficient, and therefore it is the default communicative act of every registered Knowledge Interaction.
+Whenever the Knowledge Engine wants to exchange data it compares the sender Knowledge Interaction’s communicative act with the recipient Knowledge Interaction’s communicative act and if they ‘match’ the data will be exchanged.
+If both Knowledge Bases use the REST API to register Knowledge Interactions and do not specify the communicative act, they will be able to exchange data.
+However, when they _do_ specify the communicative act when registering a Knowledge Interaction, they should be compatible.
+
+
+
+
+
+
+
+*Question*: There is a limited and defined number of KI. How do we proceed to "generate" all possible graph patterns and so associated KI ?
+- *Answer*: The KIs used should match and the KIs and their Graph Patterns are the end result of the SAREFization process for services. Also, if you need pilot specific KIs, you can agree on them within your pilot using SAREF or a pilot specific ontology.
+
+*Question*: what about ACKs of the requests?
+- *Answer*: There are no explicit ACKs. The Ask receives an answer of one or more KBs and the Post receives the BindingSet for the optional Result Graph Pattern. If you need an explicit ACK (for example with the turn on the light example in the presentation) you can use the result Graph Pattern to contain the ACK.
+
+*Question*: It means also that a SparQL query like you see below is a SparQL query and is not something that can be used at the KE REST API interface. Only the part within the brackets is a basic graph pattern. Is that right?
+
+
+
 
 *Question*: In POST /sc/ki one registers a Knowledge Interaction along with the knowledge interaction type. In POST /sc/ask one queries for some results by referring to a KI and providing an incomplete binding set. The result will be a complete binding set. In your presentation KE for dummies slide 12, you mentioned that one could restrict the question (at the react side). I didn’t find in the rest of the slides on how one can do that, except by having a literal in the registered KI. In your example a person has a name and a email address, but the logic only allows to ask for the email address associated with a person with a certain name, but it does not allow to get the name associated with a specific email address. How do we impose such a restriction, or we can’t do this at this stage?
 
@@ -90,7 +165,7 @@ Let's say we have some graph pattern like:
 
 And the timeseries returns an array of temperature values and timestamp for each value.
 
-In the ANWSER Knowledge interaction will the binding set be something like:
+In the ANSWER Knowledge interaction will the binding set be something like:
 ```json
 [
 	{
@@ -316,51 +391,8 @@ I guess my question is more specifically: “Will the compliance checker look at
 
 	And last but not least, a short reaction to Georg’s remark: “I think it makes sense to think about the GP as the body of a query”. It certainly does, although within the context of the Knowledge Engine graph patterns are also used for non-query like interactions.
 
-*Question*: Which are the technical requirements needed to host the KE at pilot level for the next 22 months? Do you have an estimation about hosting/processing needs? And from the technical support, any idea about the effort that might require? 
-- *Answer*: From a technical perspective what needs to be done is:
-	1. Have a machine or virtual machine ready (spec discussion separately);
-	1.1. Ideally configure the machine/virtual machine to be in a DMZ network, separate from other critical/sensitive resources (for the sake of prevention)
-	2. Deploy the KE and Knowledge Directory in the machine i.e., deploy two java servers. 
-	3. Configure firewall to allow external communication to that machine/virtual machine
-	3.1 Depending on the local infrastructure, configure a proxy (if it exists) to forward the requests to that machine/virtual machine.
-	4. Communicate me the public IP address where the KE is now available (so that we can use the project domain to identify that IP). 
-	5. If the proxy used uses a wildcard TLS certificate it can protect the KE instance (that is what we are doing in the cloud instance). If the wildcard certificate is not available, we need to acquire one and deploy it together with the KE.
-
-	These are essentially the steps. These steps are standard, so any technical colleague should be able to do it. 
-
-	As for the technical requirements of the machine, we will collect that info and provide it to you. But a medium range machine/virtual machine should do it. 
-	Requirements:
-	- (ideally) Linux based OS , e.g., latest ubuntu
-	- Latest Java SE installed
-	- Outside world (inbound) internet access
-	- Low/medium CPU (2 core at least) 
-	- 16 GB RAM (nowadays a good minimum for a server. if if has more, better).
-
-	Finally someone should be able to access that machine to collect any logs and trouble shoot whenever necessary.
-*Question*: How does the Knowledge Engine deal with privacy sensitive information?
-- *Answer*: The Knowledge Engine (and the Smart Connector) functions as a serving hatch and does not store any data that is being exchanged. All this data is stored in the Knowledge Bases and the KB are responsible for protecting privacy sensitive data. Within the Knowledge Engine we distinguish between *graph patterns* and *binding sets*. The graph patterns should not contain any privacy sensitive data since they are part of the meta data that is being stored as capability descriptions. This information is needed to orchestrate the data exchange. These graph patterns might also show up in the logs of the smart connector (at all log levels). The binding sets, on the other hand, _can_ contain privacy sensitive data which will not be stored. Binding Sets are also not stored in the log files of Smart Connectors if these have a log level of INFO or higher. Keep in mind, though, that the Knowledge Engine functions as an intelligent broker between consumers and producers of knowledge. This might cause the Knowledge Engine to exchange your data with unexpected parties within the Knowledge Network. So make sure your knowledge network only contains trusted KBs.
-
-*Question*: Why do our two KBs not exchange data, while they should?
-- *Answer*: Assuming we are talking about the Matcher (default) instead of the Reasoner. The first thing to check are the Knowledge Interactions (KIs) of the two KBs that you expect to match. For two KIs to match, both their type needs to match and their graph patterns. In the table below 'yes' means those two types of KIs match, while 'no' means those two types of KIs do not match. When your two KI types have a 'yes', you can take a look at whether the graph patterns match. Two graph patterns match when every triple of the first graph pattern is also in the second graph pattern and vice versa. The ordering and names of variables like `?s` are ignored. Note that in case of POST and REACT KIs, both the argument graph pattern and the result graph pattern must match.
-
-|               |                                         |     POST                |                                         |     ASK    |
-|---------------|-----------------------------------------|-------------------------|-----------------------------------------|------------|
-|               |                                         |     *only argument GP*    |     *both argument      and result GP*    |         |
-|     <b>REACT</b>     |     *only argument* GP                    |     yes                 |     no                                  |     n/a    |
-|               |     *both argument      and result GP*    |     no                  |     yes                                 |     n/a    |
-|     <b>ANSWER</b>    |                                      |     n/a                 |     n/a                                 |     yes    |
-
-*Question*: My KB has an ASK knowledge interaction with the same graph pattern as the ANSWER knowledge interaction of the Whirlpool KB with whom I want to exchange data, but the data exchange is not happening. What is going wrong?
-- *Answer*: Double check the communicative acts that both knowledge interactions use. The CommunicativeAct is meant to indicate the 'reason' for the interaction and in most cases the “InformPurpose” is sufficient and therefore it is the default communicative act of every registered Knowledge Interaction. Whenever the KE wants to exchange data it compares the sender KI’s communicative act with the recipient KI’s communicative act and if they ‘match’ the data will be exchanged. If both KB use the REST API to register KIs and do not specify the communicative act, they will be able to exchange data. However, when they _do_ specify the communicative act when registering a KI, they should be compatible. In the case of Whirlpool the problem might be that Whirlpool explicitly configures the old default https://www.tno.nl/energy/ontology/interconnect#InformPurpose URI. This default was changed to https://w3id.org/knowledge-engine/InformPurpose in KE version `1.1.2` and sometimes prevents two knowledge bases from exchanging data.
-
 *Question*: What should our KB do When we receive a request for data (either via an ANSWER or REACT Knowledge Interaction), but we do not have a response?
 - *Answer*: You should send an empty binding set when you do not have a response. Also, when your REACT Knowledge Interaction has no result graph pattern, you should always return an empty binding set to the Knowledge Engine. If an error occurs while responding, you can either return an empty BindingSet (although this does not give any information about the error occurring) or call the (in case you are using the asynchronous handler methods of the Java Developer API) `future.completeExceptionally(...)` method.
 
 *Question*: Whenever I do a post or ask, the memory usage of the Knowledge Engine Runtime skyrockets and it fails with a error (`HTTP 500`) after a minute or two.
 - *Answer*: Double check whether you are enabling the reasoner when you create a Smart Connector for your Knowledge Base. When using the REST Developer API, you can disable the reasoner by setting the JSON property `reasonerEnabled` to `false` or leave the property out altogether because by default the reasoner is disabled. Currently, the reasoner is not usable for scenario's where graph patterns are more than about 5 or 6 triple patterns, because the algorithm for graph pattern matching uses too much memory. We are working on improving this algorithm and hopefully allow more use cases to enable the reasoner and benefit the increased interoperability.
-
-*Question*: <a name="setup_keruntime"></a> There is an existing Knowledge Network with a Knowledge Directory (KD) and multiple Knowledge Engine Runtimes (KERs). How do I setup my own KER and configure it such that it participates in the existing Knowledge Network?
-- *Answer*: Every Knowledge Engine Runtime (KER) in distributed mode consists of two APIs: [Knowledge Engine Developer REST API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) and the [Inter-Knowledge Engine Runtime API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector/src/main/resources/openapi-inter-ker.yaml). The former is started on port `8280` by default and you use this API to register your Knowledge Base and Knowledge Interactions. The latter API is meant for internal communication between KERs and you do not need to use it yourself. However, you do need to make sure this API is reachable for other KERs in the Knowledge Network. By default this API is available on port 8081, but sometimes you need to change this port using the `KE_RUNTIME_PORT` environment variable. Make sure the latter API of your KER is accessible from the internet and configure its URL when starting the KER with the `KE_RUNTIME_EXPOSED_URL` environment variable. To set this up correctly, you typically install a reverse proxy like NGNIX and open the correct ports in the firewall of the server. For this you need to contact the administrator of the server you are using. A KER starts in distributed mode when it detects the `KD_URL` environment variable. This variable points to the Knowledge Directory of the Knowledge Network. You can configure it using environment variables `KD_URL=<knowledge-direcotry-url>`. If the Knowledge Directory is protected using Basic Authentication, you can add the credentials to the KD_URL as described [here](https://stackoverflow.com/a/50528734).
-
-*Question*: <a name="connect_keruntime"></a> There is an existing Knowledge Engine Runtime (KER) that I want to use to develop a knowledge base. How do I connect to this KER?
-- *Answer*: To connect to the existing KER you need to know and have access to the KER's [Knowledge Engine REST Developer API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector-rest-server/src/main/resources/openapi-sc.yaml). If you have the URL of the KER you want to use, you can test it by activating its `GET /sc` operation via the browser with an URL that looks like this: `<ker-url>/sc` (if the KER is protected with Basic Authentication your browser might ask you for credentials, you can also put the credentials directly into the URL as user info). This operation returns JSON with all the Knowledge Bases (KBs) that are registered with that KER (if there are none, it returns an empty JSON array `[]`). If you run a KER on your own computer (for example using the provided docker image), the `<ker-url>` would typically be `http://localhost:8280`. Now that you tested the KER, you can use the `<ker-url>` to register your KB and Knowledge Interactions (KIs) by activating the different operations that are described in the Open API specification above.
