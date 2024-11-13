@@ -41,8 +41,12 @@ If you run a Knowledge Engine Runtime on your own computer, then the URL is typi
 ## How to start a Smart Connector?
 > *Before starting a Smart Connector, please ensure that there is a Knowledge Directory available to connect to.*
 
+> Typically, you start a single Smart Connector which should be available as long as your system (Knowledge Base) is available.
+
 <Tabs groupId="tke-usage">
 <TabItem value="java" label="Java">
+
+Assuming `this` is your knowledge base, you can make a `SmartConnector` as follows:
 
 ```java
 SmartConnector sc = SmartConnectorBuilder.newSmartConnector(this).create();
@@ -67,3 +71,9 @@ java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.
 ## How to remove a Smart Connector?
 
 ## How to renew the lease of a Smart Connector?
+
+## How to deal with the long polling connection of a Smart Connector?
+Each Smart Connector uses a single long polling connection to receive all interactions from the Knowledge Engine.
+The Knowledge Engine REST Developer API uses long-polling to notify you when your KB needs to react.
+This long-polling connection will automatically return every *29 seconds* with status code 202 to prevent certain proxies from blocking it.
+You will need to reestablish this long polling connection when you receive a 202 and after you receive data via it.

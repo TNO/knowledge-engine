@@ -1,4 +1,5 @@
 ---
+sidebar_position: 7
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -7,6 +8,9 @@ import TabItem from '@theme/TabItem';
 This page describes how to register and execute Knowledge Interactions.
 
 ## How to instantiate a Knowledge Interaction?
+> You only need to register your Knowledge Interactions once. 
+> They are, however, dynamic and can be added and removed if needed.
+
 <Tabs groupId="tke-usage">
 <TabItem value="java" label="Java">
 
