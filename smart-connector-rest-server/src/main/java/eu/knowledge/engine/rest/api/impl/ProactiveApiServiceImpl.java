@@ -181,7 +181,7 @@ public class ProactiveApiServiceImpl {
 	private AskExchangeInfo.InitiatorEnum toInitiatorEnumAsk(Initiator initiator) {
 		switch (initiator) {
 		case KNOWLEDGEBASE:
-			return AskExchangeInfo.InitiatorEnum.KNOWLEDGEBASE;
+			return AskExchangeInfo.InitiatorEnum.KNOWLEDGE_BASE;
 		case REASONER:
 			return AskExchangeInfo.InitiatorEnum.REASONER;
 		default:
@@ -318,7 +318,7 @@ public class ProactiveApiServiceImpl {
 	private PostExchangeInfo.InitiatorEnum toInitiatorEnumPost(Initiator initiator) {
 		switch (initiator) {
 		case KNOWLEDGEBASE:
-			return PostExchangeInfo.InitiatorEnum.KNOWLEDGEBASE;
+			return PostExchangeInfo.InitiatorEnum.KNOWLEDGE_BASE;
 		case REASONER:
 			return PostExchangeInfo.InitiatorEnum.REASONER;
 		default:
