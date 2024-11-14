@@ -1,12 +1,17 @@
 package eu.knowledge.engine.reasoner.api;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.core.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Match;
 
@@ -16,17 +21,17 @@ public class TripleVarBindingSet {
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TripleVarBindingSet.class);
+
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
 		this.graphPattern = aGraphPattern;
-		bindings = new HashSet<>();
+		bindings = ConcurrentHashMap.newKeySet();
 	}
 
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern, BindingSet aBindingSet) {
 
-		this.graphPattern = aGraphPattern;
-
-		this.bindings = new HashSet<>();
+		this(aGraphPattern);
 
 		for (Binding b : aBindingSet) {
 			this.add(new TripleVarBinding(this.graphPattern, b));
@@ -160,21 +165,17 @@ public class TripleVarBindingSet {
 			}
 		} else {
 			// Cartesian product is the base case
-			boolean firstTime = true;
-			for (TripleVarBinding tvb1 : this.bindings) {
-				gbs.add(tvb1);
+			gbs.addAll(aGraphBindingSet.getBindings());
+			gbs.addAll(this.bindings);
+			this.bindings.stream().parallel().forEach(tvb1 -> {
 
 				for (TripleVarBinding otherB : aGraphBindingSet.getBindings()) {
-					if (firstTime)
-						gbs.add(otherB);
-
 					// always add a merged version of the two bindings, except when they conflict.
 					if (!tvb1.isConflicting(otherB)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}
-				firstTime = false;
-			}
+			});
 		}
 
 		return gbs;
@@ -199,6 +200,10 @@ public class TripleVarBindingSet {
 	 * @return
 	 */
 	public TripleVarBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
+		LOG.trace("Translating binding set with '{}' bindings and '{}' matches.", this.bindings.size(), match.size());
+
+		long start = System.currentTimeMillis();
+
 		TripleVarBindingSet newOne = new TripleVarBindingSet(graphPattern);
 		TripleVarBinding toB;
 		for (TripleVarBinding fromB : this.bindings) {
@@ -247,6 +252,7 @@ public class TripleVarBindingSet {
 					newOne.add(toB);
 			}
 		}
+
 		return newOne;
 
 	}
@@ -286,5 +292,80 @@ public class TripleVarBindingSet {
 		}
 
 		return newBS;
+	}
+
+	/**
+	 * Prints the debugging table of this triple Var binding set
+	 */
+	public void printDebuggingTable() {
+		StringBuilder table = new StringBuilder();
+
+		// header row
+		int count = 0;
+		table.append("| Graph Pattern |");
+		count++;
+
+		List<TripleVarBinding> tvbindings = new ArrayList<>(this.getBindings());
+
+		for (int i = 0; i < tvbindings.size(); i++) {
+			table.append("Binding-" + i).append(" | ");
+			count++;
+		}
+
+		table.append("\n");
+
+		// separator row
+		table.append("|");
+		for (int i = 0; i < count; i++) {
+			table.append("-------|");
+		}
+		table.append("\n");
+
+		// content rows
+		for (TriplePattern tp : this.graphPattern) {
+			// triple pattern
+			table.append(" | ").append(tp.toString()).append(" | ");
+
+			// bindings
+
+			for (TripleVarBinding tvb : tvbindings) {
+				Set<TripleNode> nodes = tvb.getTripleNodes(tp);
+				if (!nodes.isEmpty()) {
+
+					Node_Concrete subject = null;
+					Node_Concrete predicate = null;
+					Node_Concrete object = null;
+
+					for (TripleNode tn : nodes) {
+						if (tn.nodeIdx == 0) {
+							subject = tvb.get(tn);
+						} else if (tn.nodeIdx == 1)
+							predicate = tvb.get(tn);
+						else if (tn.nodeIdx == 2)
+							object = tvb.get(tn);
+					}
+
+					table.append(subject != null ? subject : formatNode(tp.getSubject())).append(" ");
+					table.append(predicate != null ? predicate : formatNode(tp.getPredicate())).append(" ");
+					table.append(object != null ? object : formatNode(tp.getObject())).append(" ");
+
+				} else {
+					table.append("");
+				}
+
+				table.append(" | ");
+			}
+
+			table.append("\n");
+		}
+		System.out.println(table.toString());
+	}
+
+	private String formatNode(Node n) {
+
+		String before = "<span style=\"color:red\">";
+		String after = "</span>";
+
+		return n.isVariable() ? before + TriplePattern.trunc(n) + after : TriplePattern.trunc(n);
 	}
 }

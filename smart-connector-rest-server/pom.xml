@@ -11,10 +11,10 @@
 	</parent>
 
 	<properties>
-		<swagger-core-version>2.2.20</swagger-core-version>
+		<swagger-core-version>2.2.22</swagger-core-version>
 		<jetty-version>11.0.15</jetty-version>
-		<jersey3-version>3.1.5</jersey3-version>
-		<jackson-version>2.16.1</jackson-version>
+		<jersey3-version>3.1.7</jersey3-version>
+		<jackson-version>2.17.2</jackson-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>4.9.1</version>
+			<version>4.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
@@ -182,7 +182,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.5.0</version>
+				<version>3.6.0</version>
 				<executions>
 					<execution>
 						<id>add-source</id>

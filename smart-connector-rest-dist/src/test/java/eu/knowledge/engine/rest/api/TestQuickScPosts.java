@@ -32,7 +32,7 @@ public class TestQuickScPosts {
 
 		// You can make the test pass consistently by uncommenting the following:
 		// new HttpTester(url, "GET", null, Map.of(
-		// 	"Accept", "*/*"
+		// "Accept", "*/*"
 		// )).expectStatus(200);
 
 		// This latch is used to make the threads synchronize before they will
@@ -58,12 +58,9 @@ public class TestQuickScPosts {
 				}
 
 				new HttpTester(url, "POST",
-					"{\"knowledgeBaseId\": \""+ kb1Id + "\", \"knowledgeBaseName\": \"KB1\", \"knowledgeBaseDescription\": \"KB1\"}",
-					Map.of(
-						"Content-Type", "application/json",
-						"Accept", "*/*"
-					)
-				).expectStatus(200);
+						"{\"knowledgeBaseId\": \"" + kb1Id
+								+ "\", \"knowledgeBaseName\": \"KB1\", \"knowledgeBaseDescription\": \"KB1\"}",
+						Map.of("Content-Type", "application/json", "Accept", "*/*")).expectStatus(200);
 
 				afterRegister.countDown();
 				try {
@@ -72,15 +69,9 @@ public class TestQuickScPosts {
 					fail();
 				}
 
-				new HttpTester(url, "GET", null, Map.of(
-					"Accept", "*/*",
-					"Knowledge-Base-Id", kb1Id
-				)).expectStatus(200);
+				new HttpTester(url, "GET", null, Map.of("Accept", "*/*", "Knowledge-Base-Id", kb1Id)).expectStatus(200);
 
-				new HttpTester(url, "GET", null, Map.of(
-					"Accept", "*/*",
-					"Knowledge-Base-Id", kb2Id
-				)).expectStatus(200);
+				new HttpTester(url, "GET", null, Map.of("Accept", "*/*", "Knowledge-Base-Id", kb2Id)).expectStatus(200);
 			}
 		});
 
@@ -95,13 +86,10 @@ public class TestQuickScPosts {
 				}
 
 				new HttpTester(url, "POST",
-					"{\"knowledgeBaseId\": \""+ kb2Id + "\", \"knowledgeBaseName\": \"KB1\", \"knowledgeBaseDescription\": \"KB1\"}",
-					Map.of(
-						"Content-Type", "application/json",
-						"Accept", "*/*"
-					)
-				).expectStatus(200);
-				
+						"{\"knowledgeBaseId\": \"" + kb2Id
+								+ "\", \"knowledgeBaseName\": \"KB1\", \"knowledgeBaseDescription\": \"KB1\"}",
+						Map.of("Content-Type", "application/json", "Accept", "*/*")).expectStatus(200);
+
 				afterRegister.countDown();
 				try {
 					afterRegister.await();
@@ -109,15 +97,9 @@ public class TestQuickScPosts {
 					fail();
 				}
 
-				new HttpTester(url, "GET", null, Map.of(
-					"Accept", "*/*",
-					"Knowledge-Base-Id", kb1Id
-				)).expectStatus(200);
+				new HttpTester(url, "GET", null, Map.of("Accept", "*/*", "Knowledge-Base-Id", kb1Id)).expectStatus(200);
 
-				new HttpTester(url, "GET", null, Map.of(
-					"Accept", "*/*",
-					"Knowledge-Base-Id", kb2Id
-				)).expectStatus(200);
+				new HttpTester(url, "GET", null, Map.of("Accept", "*/*", "Knowledge-Base-Id", kb2Id)).expectStatus(200);
 			}
 		});
 
@@ -131,6 +113,7 @@ public class TestQuickScPosts {
 
 	@AfterAll
 	public void cleanUp() {
+		TestUtil.unregisterAllKBs("http://localhost:" + PORT + "/rest");
 		rsh.cleanUp();
 	}
 }
