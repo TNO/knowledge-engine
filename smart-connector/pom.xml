@@ -32,19 +32,19 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.10.2</version>
+			<version>5.11.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.10.2</version>
+			<version>5.11.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>5.10.2</version>
+			<version>5.11.3</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -181,15 +181,21 @@
 		<dependency>
 			<groupId>org.ehcache</groupId>
 			<artifactId>ehcache</artifactId>
-			<version>3.9.9</version>
+			<version>3.10.8</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
 	<properties>
 		<swagger-core-version>2.2.22</swagger-core-version>
 		<jetty-version>11.0.15</jetty-version>
-		<jersey3-version>3.1.7</jersey3-version>
-		<jackson-version>2.17.2</jackson-version>
+		<jersey3-version>3.1.9</jersey3-version>
+		<jackson-version>2.18.1</jackson-version>
 		<servlet-api-version>6.1.0</servlet-api-version>
 	</properties>
 
@@ -198,7 +204,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>7.2.0</version>
+				<version>7.9.0</version>
 				<executions>
 					<!-- Generate InterKnowledgeEngineRuntime protocol classes -->
 					<execution>
