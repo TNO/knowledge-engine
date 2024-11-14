@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Node_Concrete;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +41,7 @@ class TestBindingSetConversions {
 
 		eu.knowledge.engine.reasoner.api.BindingSet bsR = new eu.knowledge.engine.reasoner.api.BindingSet();
 		eu.knowledge.engine.reasoner.api.Binding bR = new eu.knowledge.engine.reasoner.api.Binding();
-		bR.put(varNodeVersion, (Node_Concrete) literalNodeVersion);
+		bR.put(varNodeVersion, (Node) literalNodeVersion);
 		bsR.add(bR);
 		BindingSet otherBS = rp.testerFrom(bsR);
 		assertEquals(literalStringVersion, otherBS.iterator().next().get(varStringVersion));

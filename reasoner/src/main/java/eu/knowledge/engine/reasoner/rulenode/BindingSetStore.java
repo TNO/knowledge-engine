@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Concrete;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.api.TripleNode;
@@ -160,9 +159,9 @@ public class BindingSetStore {
 						Set<TripleNode> nodes = tvb.getTripleNodes(tp);
 						if (!nodes.isEmpty()) {
 
-							Node_Concrete subject = null;
-							Node_Concrete predicate = null;
-							Node_Concrete object = null;
+							Node subject = null;
+							Node predicate = null;
+							Node object = null;
 
 							for (TripleNode tn : nodes) {
 								if (tn.nodeIdx == 0) {
