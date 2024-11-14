@@ -181,11 +181,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 //		this.reasonerPlan.optimize();
 		continueReasoningBackward(translateBindingSetTo(someBindings));
+		LOG.info("In the executeAskInteraction of the ReasonerProcessor!");
 		
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			if (bs.isEmpty() && myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
-				this.knowledgeGaps = getKnowledgeGaps(this.reasonerPlan.getStartNode());
-			}			
+			if (myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
+				this.knowledgeGaps = bs.isEmpty()
+						? getKnowledgeGaps(this.reasonerPlan.getStartNode())
+								: new HashSet<KnowledgeGap>();
+			}
 			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan, this.knowledgeGaps);
 		});
 	}
