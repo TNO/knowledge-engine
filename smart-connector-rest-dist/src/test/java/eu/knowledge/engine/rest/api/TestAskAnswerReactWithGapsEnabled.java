@@ -1,13 +1,15 @@
 package eu.knowledge.engine.rest.api;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.AfterAll;
@@ -23,6 +25,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestAskAnswerReactWithGapsEnabled {
@@ -198,9 +202,30 @@ public class TestAskAnswerReactWithGapsEnabled {
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
 		System.out.println("Result is:" + result);
-		assertTrue(result.contains(
-				"\"knowledgeGaps\":[[\"?a <http://example.org/isFatherOf> ?c\",\"?a <http://example.org/liveInTheSameHouse> ?b\"]]"));
-		assertTrue(result.contains("\"bindingSet\":[]"));
+
+		JsonObject jsonObject = Json.createReader(new StringReader(result)).readObject();
+		JsonArray knowledgeGapsArray = jsonObject.getJsonArray("knowledgeGaps");
+
+		// tried to convert it using streams, but failed. So, just using for old
+		// fashioned loops :(
+		Set<Set<String>> actualKnowledgeGaps = new HashSet<Set<String>>();
+		Set<String> set;
+		for (JsonValue jv : knowledgeGapsArray) {
+			set = new HashSet<String>();
+			for (JsonString js : jv.asJsonArray().getValuesAs(JsonString.class)) {
+				set.add(js.getString());
+			}
+			actualKnowledgeGaps.add(set);
+		}
+
+		var expectedKnowledgeGaps = Set
+				.of(Set.of("?a <http://example.org/isFatherOf> ?c", "?a <http://example.org/liveInTheSameHouse> ?b"));
+		assertEquals(expectedKnowledgeGaps, actualKnowledgeGaps);
+
+		JsonArray bindingArray = jsonObject.getJsonArray("bindingSet");
+		var actualBindingSet = Set.of(bindingArray.toArray());
+		var expectedBindingSet = Set.<Map<String, String>>of( /* empty */ );
+		assertEquals(expectedBindingSet, actualBindingSet);
 
 	}
 
