@@ -61,7 +61,7 @@ public class TestAskWithGapsEnabled {
 						"https://www.tno.nl/example/relationAsker/interaction/askRelations", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
-		System.out.println(result);
+		System.out.println("Result is:" + result);
 		assertTrue(result.contains("\"knowledgeGaps\":[[\"?a <http://example.org/isRelatedTo> ?b\"]]"));
 	}
 
