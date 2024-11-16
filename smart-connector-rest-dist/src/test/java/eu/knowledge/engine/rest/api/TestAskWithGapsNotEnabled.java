@@ -62,7 +62,7 @@ public class TestAskWithGapsNotEnabled {
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
 		System.out.println("Result is:" + result);
-		//assertFalse(result.contains("\"knowledgeGaps\":"));
+		assertFalse(result.contains("\"knowledgeGaps\":"));
 	}
 
 	@AfterAll
