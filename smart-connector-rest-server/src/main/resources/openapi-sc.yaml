@@ -343,7 +343,19 @@ paths:
           content:
             application/json; charset=UTF-8:
               schema:
-                $ref: '#/components/schemas/AskResult'
+                oneOf:
+                  - $ref: '#/components/schemas/AskResult'
+                  - $ref: '#/components/schemas/AskResultWithGaps'
+              examples:
+                knowledge gaps NOT enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                knowledge gaps enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                    knowledgeGaps: [["?a <http://example.org/isFatherOf> ?c", "?a <http://example.org/liveInTheSameHouse> ?b"]]
         '400':
           description: If the ask failed.
           content:
@@ -700,6 +712,16 @@ components:
     AskResult:
       type: object
       required: [bindingSet, exchangeInfo]
+      properties:
+        bindingSet:
+          $ref: '#/components/schemas/BindingSet'
+        exchangeInfo:
+          type: array
+          items:
+            $ref: '#/components/schemas/AskExchangeInfo'
+    AskResultWithGaps:
+      type: object
+      required: [bindingSet, exchangeInfo, knowledgeGaps]
       properties:
         bindingSet:
           $ref: '#/components/schemas/BindingSet'

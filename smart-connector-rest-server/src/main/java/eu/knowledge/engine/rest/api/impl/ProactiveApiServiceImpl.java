@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.AskExchangeInfo;
 import eu.knowledge.engine.rest.model.AskResult;
+import eu.knowledge.engine.rest.model.AskResultWithGaps;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.PostExchangeInfo;
 import eu.knowledge.engine.rest.model.PostResult;
@@ -150,16 +151,20 @@ public class ProactiveApiServiceImpl {
 						.collect(Collectors.toList());
 
 				LOG.debug("Bindings in result is {}", askResult.getBindings());
-				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);
-
 				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
-				// add knowledge gaps if knowledgeGapsEnabled is true
+				
+				// distinguish between knowledge gaps enabled or not to produce an AskResult or an AskResultWithGaps
+				// this is UGLY!!
 				if (ki.getKnowledgeGapsEnabled()) {
+					AskResultWithGaps ar = new AskResultWithGaps().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);
 					LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
 					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));					
+					asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
 				}
-				
-				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
+				else {
+					AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);					
+					asyncResponse.resume(Response.status(Status.OK).entity(ar).build());					
+				}
 			});
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
