@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.AskExchangeInfo;
 import eu.knowledge.engine.rest.model.AskResult;
-import eu.knowledge.engine.rest.model.AskResultWithGaps;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.PostExchangeInfo;
 import eu.knowledge.engine.rest.model.PostResult;
