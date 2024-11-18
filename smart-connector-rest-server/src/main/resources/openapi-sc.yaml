@@ -340,12 +340,11 @@ paths:
             bindings together with additional exchange info. The returned bindings form 
             a set and there is no quaranteed ordering. The exchange info shows the other 
             Knowledge Bases that contributed to the answer with timing, initiator information.
+            If KnowledgeGaps are enabled, a list of knowledge gaps that are found will be returned as well.
           content:
             application/json; charset=UTF-8:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/AskResult'
-                  - $ref: '#/components/schemas/AskResultWithGaps'
+                $ref: '#/components/schemas/AskResult'
               examples:
                 knowledge gaps NOT enabled:
                   value:
@@ -719,20 +718,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AskExchangeInfo'
-    AskResultWithGaps:
-      type: object
-      required: [bindingSet, exchangeInfo, knowledgeGaps]
-      properties:
-        bindingSet:
-          $ref: '#/components/schemas/BindingSet'
-        exchangeInfo:
-          type: array
-          items:
-            $ref: '#/components/schemas/AskExchangeInfo'
         knowledgeGaps:
           type: array
           items:
             $ref: '#/components/schemas/KnowledgeGap'
+          nullable: true
     PostResult:
       type: object
       required: [resultBindingSet, exchangeInfo]
