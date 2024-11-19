@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
@@ -39,11 +40,6 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEn
  */
 public class RemoteKerConnection {
 
-	/**
-	 * How many seconds the HttpClient waits for a HTTP response when sending a HTTP
-	 * request. Default 5 seconds.
-	 */
-	private static final String CONF_KEY_HTTP_TIMEOUT = "KE_HTTP_TIMEOUT";
 	private static final int DEFAULT_HTTP_TIMEOUT = 5;
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
@@ -98,7 +94,7 @@ public class RemoteKerConnection {
 	}
 
 	private int getHttpTimeout() {
-		return Integer.parseInt(this.getConfigProperty(CONF_KEY_HTTP_TIMEOUT, Integer.toString(DEFAULT_HTTP_TIMEOUT)));
+		return Integer.parseInt(this.getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_HTTP_TIMEOUT, Integer.toString(DEFAULT_HTTP_TIMEOUT)));
 	}
 
 	public URI getRemoteKerUri() {

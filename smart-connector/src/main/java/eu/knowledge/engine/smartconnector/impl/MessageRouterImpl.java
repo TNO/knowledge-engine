@@ -30,12 +30,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	private static final int MAX_ENTRIES = 5000;
 
-	/**
-	 * How many seconds should the MessageRouter wait for ANSWER/REACT Message when
-	 * sending a ASK/POST Message? 0 means wait forever (useful when working with a
-	 * human KB)
-	 */
-	private static final String CONF_KEY_WAIT_TIMEOUT = "KE_KB_WAIT_TIMEOUT";
 	private static final int DEFAULT_WAIT_TIMEOUT = 10;
 
 	private final SmartConnectorImpl smartConnector;
@@ -87,7 +81,8 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	}
 
 	private int getWaitTimeout() {
-		return Integer.parseInt(this.getConfigProperty(CONF_KEY_WAIT_TIMEOUT, Integer.toString(DEFAULT_WAIT_TIMEOUT)));
+		return Integer.parseInt(this.getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT,
+				Integer.toString(DEFAULT_WAIT_TIMEOUT)));
 	}
 
 	@Override

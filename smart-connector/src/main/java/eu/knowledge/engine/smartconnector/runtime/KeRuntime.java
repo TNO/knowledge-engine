@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
 
 /**
@@ -21,11 +22,6 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
  */
 public class KeRuntime {
 
-	private static final String CONF_KEY_MY_HOSTNAME = "KE_RUNTIME_HOSTNAME";
-	private static final String CONF_KEY_MY_PORT = "KE_RUNTIME_PORT";
-	private static final String CONF_KEY_KD_URL = "KD_URL";
-	private static final String CONF_KEY_MY_EXPOSED_URL = "KE_RUNTIME_EXPOSED_URL";
-
 	private static final String EXPOSED_URL_DEFAULT_PROTOCOL = "http";
 
 	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
@@ -35,22 +31,22 @@ public class KeRuntime {
 	private static MessageDispatcher messageDispatcher = null;
 
 	static {
-		if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL) && hasConfigProperty(CONF_KEY_MY_HOSTNAME)) {
-			LOG.error("KE runtime must be configured with {} or {}, not both.", CONF_KEY_MY_EXPOSED_URL,
-					CONF_KEY_MY_HOSTNAME);
+		if (hasConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL) && hasConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME)) {
+			LOG.error("KE runtime must be configured with {} or {}, not both.", SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL,
+					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);
 			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.",
-					CONF_KEY_MY_EXPOSED_URL);
+					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
 			System.exit(1);
 		}
 
 		// execute some validation on the EXPOSED URL, because it can have severe
 		// consequences
-		String url = getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null);
+		String url = getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, null);
 		if (url != null) {
 			if (url.endsWith("/")) {
 				LOG.error(
 						"The '{}' environment variable's value '{}' should be a valid URL without a slash ('/') as the last character.",
-						CONF_KEY_MY_EXPOSED_URL, url);
+						SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, url);
 				System.exit(1);
 			}
 			try {
@@ -59,7 +55,7 @@ public class KeRuntime {
 			} catch (MalformedURLException e) {
 				LOG.error(
 						"The '{}' environment variable with value '{}' contains a malformed URL '{}'.",
-						CONF_KEY_MY_EXPOSED_URL, url, e.getMessage());
+						SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, url, e.getMessage());
 				System.exit(1);
 			}
 		}
@@ -98,17 +94,17 @@ public class KeRuntime {
 	public static MessageDispatcher getMessageDispatcher() {
 		if (messageDispatcher == null) {
 			try {
-				if (!hasConfigProperty(CONF_KEY_KD_URL)) {
+				if (!hasConfigProperty(SmartConnectorConfig.CONF_KEY_KD_URL)) {
 					LOG.warn(
 							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
 					messageDispatcher = new MessageDispatcher();
 				} else {
-					var myHostname = getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost");
-					var myPort = Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081"));
+					var myHostname = getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME, "localhost");
+					var myPort = Integer.parseInt(getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_PORT, "8081"));
 
 					URI myExposedUrl;
-					if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL)) {
-						myExposedUrl = new URI(getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null));
+					if (hasConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL)) {
+						myExposedUrl = new URI(getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, null));
 					} else {
 						// If no exposed URL config is given we build one based on the
 						// configured host and port.
@@ -116,7 +112,7 @@ public class KeRuntime {
 					}
 
 					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl,
-							new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080")));
+							new URI(getConfigProperty(SmartConnectorConfig.CONF_KEY_KD_URL, "http://localhost:8080")));
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
