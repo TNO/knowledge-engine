@@ -16,6 +16,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +141,7 @@ public class AdminUI implements KnowledgeBase {
 		// specific amount of time)
 		try {
 			Thread.sleep(
-					Integer.parseInt(AdminUI.getConfigProperty(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY, "5000")));
+					ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY, Integer.class));
 		} catch (InterruptedException e) {
 			LOG.info("{}", e);
 		}
@@ -328,16 +329,5 @@ public class AdminUI implements KnowledgeBase {
 
 	public Model getModel() {
 		return model;
-	}
-
-	public static String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
-					+ defaultValue + "'");
-		}
-		return value;
 	}
 }

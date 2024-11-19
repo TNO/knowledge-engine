@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
@@ -29,8 +30,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 * capacity, but to prevent memory leaks we cap them at the number below.
 	 */
 	private static final int MAX_ENTRIES = 5000;
-
-	private static final int DEFAULT_WAIT_TIMEOUT = 10;
 
 	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = Collections
@@ -81,8 +80,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	}
 
 	private int getWaitTimeout() {
-		return Integer.parseInt(this.getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT,
-				Integer.toString(DEFAULT_WAIT_TIMEOUT)));
+		return ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, Integer.class);
 	}
 
 	@Override
@@ -279,21 +277,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	@Override
 	public URI getKnowledgeBaseId() {
 		return this.smartConnector.getKnowledgeBaseId();
-	}
-
-	public String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.trace("No value for the configuration parameter '{}' was provided, using the default value '{}'", key,
-					defaultValue);
-		}
-		return value;
-	}
-
-	public boolean hasConfigProperty(String key) {
-		return System.getenv(key) != null;
 	}
 
 	@Override

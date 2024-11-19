@@ -3,7 +3,11 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -15,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +99,7 @@ public class RemoteKerConnection {
 	}
 
 	private int getHttpTimeout() {
-		return Integer.parseInt(this.getConfigProperty(SmartConnectorConfig.CONF_KEY_KE_HTTP_TIMEOUT, Integer.toString(DEFAULT_HTTP_TIMEOUT)));
+		return ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_HTTP_TIMEOUT, Integer.class);
 	}
 
 	public URI getRemoteKerUri() {
@@ -226,9 +231,9 @@ public class RemoteKerConnection {
 	public void stop() {
 		if (this.isAvailable()) {
 			try {
-				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(), StandardCharsets.UTF_8);
-				HttpRequest request = HttpRequest
-						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
+				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
+						StandardCharsets.UTF_8);
+				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
 						.header("Content-Type", "application/json").DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -353,20 +358,4 @@ public class RemoteKerConnection {
 			return null;
 		}
 	}
-
-	public String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.trace("No value for the configuration parameter '{}' was provided, using the default value '{}'", key,
-					defaultValue);
-		}
-		return value;
-	}
-
-	public boolean hasConfigProperty(String key) {
-		return System.getenv(key) != null;
-	}
-
 }

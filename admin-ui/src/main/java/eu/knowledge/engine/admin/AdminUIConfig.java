@@ -8,6 +8,6 @@ public class AdminUIConfig {
 	 * be higher in distributed mode, to allow the participants to reach equilibrium
 	 * with respect to knowledge about each other.
 	 */
-	public static final String CONF_KEY_INITIAL_ADMIN_UI_DELAY = "INITIAL_ADMIN_UI_DELAY";
+	public static final String CONF_KEY_INITIAL_ADMIN_UI_DELAY = "initial.admin.ui.delay";
 
 }
