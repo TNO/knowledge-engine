@@ -89,7 +89,7 @@ public class KnowledgeNetwork {
 
 		for (MockedKnowledgeBase kb : justStartedKBs) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, null, false, true,
-					MatchStrategy.ENTRY_LEVEL);
+					false, MatchStrategy.ENTRY_LEVEL);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}

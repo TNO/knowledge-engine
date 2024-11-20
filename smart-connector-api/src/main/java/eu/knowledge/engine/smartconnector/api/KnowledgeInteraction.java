@@ -1,6 +1,5 @@
 package eu.knowledge.engine.smartconnector.api;
 
-
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
  * knowledge between the {@link SmartConnectorImpl} and the
@@ -24,6 +23,8 @@ public abstract class KnowledgeInteraction {
 	 * many other graph patterns.
 	 */
 	private final boolean includeMetaKIs;
+
+	private final boolean knowledgeGapsEnabled;
 
 	/**
 	 * {@code true} if this Knowledge Interaction is used for internal knowledge
@@ -52,15 +53,15 @@ public abstract class KnowledgeInteraction {
 	 *            whether it has side-effects or not.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act) {
-		this(act, null, false, false, null);
+		this(act, null, false, false, false, null);
 	}
 
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta) {
-		this(act, null, isMeta, false, null);
+		this(act, null, isMeta, false, false, null);
 	}
 
 	public KnowledgeInteraction(CommunicativeAct act, boolean isMeta, boolean anIncludeMetaKIs) {
-		this(act, null, isMeta, anIncludeMetaKIs, null);
+		this(act, null, isMeta, anIncludeMetaKIs, false, null);
 	}
 
 	/**
@@ -84,13 +85,14 @@ public abstract class KnowledgeInteraction {
 	 *                         used.
 	 */
 	public KnowledgeInteraction(CommunicativeAct act, String name, boolean isMeta, boolean anIncludeMetaKIs,
-			MatchStrategy aMatchConfig) {
+			boolean aKnowledgeGapsEnabled, MatchStrategy aMatchConfig) {
 		this.validateName(name);
 		this.anAct = act;
 		this.name = name;
 		this.isMeta = isMeta;
 		this.includeMetaKIs = anIncludeMetaKIs;
 		this.matchStrategy = aMatchConfig;
+		this.knowledgeGapsEnabled = aKnowledgeGapsEnabled;
 	}
 
 	public String getName() {
@@ -114,6 +116,10 @@ public abstract class KnowledgeInteraction {
 
 	public MatchStrategy getMatchStrategy() {
 		return this.matchStrategy;
+	}
+
+	public boolean knowledgeGapsEnabled() {
+		return this.knowledgeGapsEnabled;
 	}
 
 	/**

@@ -47,6 +47,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
@@ -394,6 +395,12 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			prefixMapping = new PrefixMappingZero();
 		}
 
+		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false : ki.getKnowledgeGapsEnabled();
+		if (knowledgeGapsEnabled && !this.sc.isReasonerEnabled()) {
+			throw new IllegalArgumentException(
+					"You can only set knowledgeGapsEnabled when the Knowledge Base is reasonerEnabled.");
+		}
+
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
@@ -403,8 +410,15 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
+
+			MatchStrategy strategy = null;
+			if (aki.getKnowledgeGapsEnabled() != null && aki.getKnowledgeGapsEnabled()) {
+				strategy = MatchStrategy.SUPREME_LEVEL;
+			}
+
 			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
-					ki.getKnowledgeInteractionName());
+					ki.getKnowledgeInteractionName(), false, false, knowledgeGapsEnabled, strategy);
+
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -515,7 +529,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
-				.knowledgeInteractionName(ki.getName())
+				.knowledgeInteractionName(ki.getName()).knowledgeGapsEnabled(ki.knowledgeGapsEnabled())
 				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
 						.satisfiedPurposes(satisfactions));
 

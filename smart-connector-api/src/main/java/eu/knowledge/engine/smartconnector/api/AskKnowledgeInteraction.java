@@ -17,20 +17,21 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	private final GraphPattern pattern;
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false, null);
+		this(act, pattern, null, false, false, false, null);
 	}
 
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false, null);
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name,
+			boolean aKnowledgeGapsEnabled) {
+		this(act, pattern, name, false, false, aKnowledgeGapsEnabled, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIncludeMetaKIs) {
-		this(act, pattern, null, false, anIncludeMetaKIs, null);
+		this(act, pattern, null, false, anIncludeMetaKIs, false, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
 			boolean anIncludeMetaKIs) {
-		this(act, pattern, null, anisMeta, anIncludeMetaKIs, null);
+		this(act, pattern, null, anisMeta, anIncludeMetaKIs, false, null);
 	}
 
 	/**
@@ -41,8 +42,8 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 *                that this {@link KnowledgeInteraction} asks for.
 	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
-		super(act, name, anisMeta, anIncludeMetaKIs, aMatchStrategy);
+			boolean anIncludeMetaKIs, boolean aKnowledgeGapsEnabled, MatchStrategy aMatchStrategy) {
+		super(act, name, anisMeta, anIncludeMetaKIs, aKnowledgeGapsEnabled, aMatchStrategy);
 		this.pattern = pattern;
 	}
 

@@ -145,8 +145,8 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 
 		final boolean reasonerEnabled = smartConnector.getReasonerEnabled() == null ? false
 				: smartConnector.getReasonerEnabled();
-		
-		LOG.info("Creating smart connector with ID {}.", kbId);
+				
+		LOG.info("Creating smart connector with ID {} and reasoner enabled '{}'.", kbId, reasonerEnabled);
 		
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)

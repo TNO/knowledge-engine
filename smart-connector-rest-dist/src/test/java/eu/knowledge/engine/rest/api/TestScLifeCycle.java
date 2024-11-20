@@ -26,10 +26,8 @@ public class TestScLifeCycle {
 	public void testInvalidJson() throws IOException {
 		URL url = new URL("http://localhost:" + PORT + "/rest/sc");
 
-		HttpTester httpTest = new HttpTester(url, "POST", "{\"bla\"{}", Map.of(
-			"Content-Type", "application/json",
-			"Accept", "*/*"
-		));
+		HttpTester httpTest = new HttpTester(url, "POST", "{\"bla\"{}",
+				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		httpTest.expectStatus(400);
 	}
 
@@ -37,15 +35,15 @@ public class TestScLifeCycle {
 	public void testValidJson() throws IOException {
 		URL url = new URL("http://localhost:" + PORT + "/rest/sc");
 
-		HttpTester httpTest = new HttpTester(url, "POST", "{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}", Map.of(
-			"Content-Type", "application/json",
-			"Accept", "*/*"
-		));
+		HttpTester httpTest = new HttpTester(url, "POST",
+				"{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
+				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		httpTest.expectStatus(200);
 	}
 
 	@AfterAll
 	public void cleanUp() {
+		TestUtil.unregisterAllKBs("http://localhost:" + PORT + "/rest");
 		rsh.cleanUp();
 	}
 }

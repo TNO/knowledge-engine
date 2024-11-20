@@ -51,10 +51,12 @@ public class TestRegisterKnowledgeInteraction {
 
 		String kiName = "some-name";
 
-		sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <foo> ?c"), kiName));
+		sc1.register(
+				new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <foo> ?c"), kiName, false));
 
 		assertThrows(IllegalArgumentException.class, () -> {
-			sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <bar> ?c"), kiName));
+			sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <bar> ?c"), kiName,
+					false));
 		});
 
 		sc1.stop();

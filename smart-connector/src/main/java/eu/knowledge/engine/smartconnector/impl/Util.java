@@ -26,16 +26,9 @@ import org.apache.jena.sparql.sse.SSE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.AntSide;
-import eu.knowledge.engine.reasoner.BindingSetHandler;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
-import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
@@ -104,110 +97,6 @@ public class Util {
 			}
 		}
 		return m;
-	}
-
-	/**
-	 * Returns the knowledge gap of this reasoning node. A knowledge gap is a subset
-	 * of this node's antecedent triple patterns that do not match any neighbor that
-	 * has no knowledge gaps.
-	 * 
-	 * Currently, this method does not show how the knowledge gaps influence each
-	 * other. Some knowledge gaps might have an {@code or}-relation (namely those
-	 * that occur on the same triple) and some might have {@code and}-relations
-	 * (i.e. those that do not occur on the same triple). This information is
-	 * important if you want to know how to solve the gaps because 2 gaps related by
-	 * {@code or} do not both need to be solved, but only one of them. While 2 gaps
-	 * related by {@code and} both need to be solved to solve the gap.
-	 * 
-	 * @return returns all triples that have no matching nodes (and for which there
-	 *         are no alternatives). Note that it returns a set of sets. Where every
-	 *         set in this set represents a single way to resolve the knowledge gaps
-	 *         present in this reasoning graph. So, {@code [[A],[B]]} means either
-	 *         triple {@code A} <i><b>OR</b></i> triple {@code B} needs be added to
-	 *         solve the gap or both, while {@code [[A,B]]} means that both
-	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
-	 *         gap.
-	 */
-	public static Set<Set<TriplePattern>> getKnowledgeGaps(RuleNode plan) {
-
-		assert plan instanceof AntSide;
-
-		Set<Set<TriplePattern>> existingOrGaps = new HashSet<>();
-
-		// TODO do we need to include the parent if we are not backward chaining?
-		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
-				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
-
-		// collect triple patterns that have an empty set
-		Set<Set<TriplePattern>> collectedOrGaps, someGaps = new HashSet<>();
-		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
-
-			collectedOrGaps = new HashSet<>();
-			boolean foundNeighborWithoutGap = false;
-			for (RuleNode neighbor : entry.getValue()) {
-				if (!neighbor.getRule().getAntecedent().isEmpty()) {
-					// make sure neighbor has no knowledge gaps
-
-					// knowledge engine specific code. We ignore meta knowledge interactions when
-					// looking for knowledge gaps, because they are very generic and make finding
-					// knowledge gaps nearly impossible.
-					boolean isMeta = isMetaKI(neighbor);
-
-					//TODO what if the graph contains loops?
-					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
-						// found neighbor without knowledge gaps for the current triple, so current
-						// triple is covered.
-						foundNeighborWithoutGap = true;
-						break;
-					}
-					collectedOrGaps.addAll(someGaps);
-				} else
-					foundNeighborWithoutGap = true;
-			}
-
-			if (!foundNeighborWithoutGap) {
-				// there is a gap here, either in the current node or in a neighbor.
-
-				if (collectedOrGaps.isEmpty()) {
-					collectedOrGaps.add(new HashSet<>(Arrays.asList(entry.getKey())));
-				}
-
-				Set<Set<TriplePattern>> newExistingOrGaps = new HashSet<>();
-				if (existingOrGaps.isEmpty()) {
-					existingOrGaps.addAll(collectedOrGaps);
-				} else {
-					Set<TriplePattern> newGap;
-					for (Set<TriplePattern> existingOrGap : existingOrGaps) {
-						for (Set<TriplePattern> collectedOrGap : collectedOrGaps) {
-							newGap = new HashSet<>();
-							newGap.addAll(existingOrGap);
-							newGap.addAll(collectedOrGap);
-							newExistingOrGaps.add(newGap);
-						}
-					}
-					existingOrGaps = newExistingOrGaps;
-				}
-			}
-		}
-
-		return existingOrGaps;
-	}
-
-	private static boolean isMetaKI(RuleNode neighbor) {
-
-		assert neighbor.getRule() instanceof Rule;
-
-		BindingSetHandler bsh = ((Rule) neighbor.getRule()).getBindingSetHandler();
-
-		if (bsh instanceof ReactBindingSetHandler) {
-			ReactBindingSetHandler rbsh = (ReactBindingSetHandler) bsh;
-			return rbsh.getKnowledgeInteractionInfo().isMeta();
-		} else if (bsh instanceof AnswerBindingSetHandler) {
-			AnswerBindingSetHandler absh = (AnswerBindingSetHandler) bsh;
-			return absh.getKnowledgeInteractionInfo().isMeta();
-		}
-
-		return false;
 	}
 
 	public static void removeRedundantBindingsAnswer(BindingSet incoming, BindingSet outgoing) {

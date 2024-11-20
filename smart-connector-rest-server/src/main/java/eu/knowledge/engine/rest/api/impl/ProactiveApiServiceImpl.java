@@ -7,9 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,7 @@ import eu.knowledge.engine.rest.model.PostResult;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
+import eu.knowledge.engine.smartconnector.api.KnowledgeGap;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -145,10 +149,16 @@ public class ProactiveApiServiceImpl {
 								.failedMessage(aei.getFailedMessage()))
 						.collect(Collectors.toList());
 
-				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
-						.exchangeInfo(infos);
-
-				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
+				LOG.debug("Bindings in result is {}", askResult.getBindings());
+				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
+				
+				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);
+				// distinguish between knowledge gaps enabled or not to produce an AskResult or an AskResultWithGaps
+				if (ki.getKnowledgeGapsEnabled()) {
+					LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
+					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));					
+				}
+				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());					
 			});
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
@@ -176,6 +186,19 @@ public class ProactiveApiServiceImpl {
 			listBindings.add(listBinding);
 		});
 		return listBindings;
+	}
+
+	private List<List<String>> knowledgeGapsToList(Set<KnowledgeGap> knowledgeGaps) {
+		List<List<String>> listKnowledgeGaps = new ArrayList<List<String>>(knowledgeGaps.size());
+		knowledgeGaps.forEach((kg) -> {
+			List<String> listKnowledgeGap = new ArrayList<String>();
+			kg.forEach((tp) -> {
+				String tpString = FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingZero());
+				listKnowledgeGap.add(tpString);
+			});
+			listKnowledgeGaps.add(listKnowledgeGap);
+		});
+		return listKnowledgeGaps;
 	}
 
 	private AskExchangeInfo.InitiatorEnum toInitiatorEnumAsk(Initiator initiator) {
