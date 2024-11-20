@@ -228,13 +228,6 @@ paths:
                   knowledgeInteractionType: AskKnowledgeInteraction
                   graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
                   knowledgeGapsEnabled: "true"
-                description:
-                  The knowledge gap enabled option is disabled by default. If enabled,
-                  each activation of the knowledge interaction will provide a set of 
-                  knowledge gaps as part of the result. If this set is empty, the 
-                  binding set of the result contains the answer. If not empty,
-                  one or more of the knowledge gaps need to be fixed for the
-                  knowledge interaction to produce an answer. 
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -340,7 +333,8 @@ paths:
             bindings together with additional exchange info. The returned bindings form 
             a set and there is no quaranteed ordering. The exchange info shows the other 
             Knowledge Bases that contributed to the answer with timing, initiator information.
-            If KnowledgeGaps are enabled, a list of knowledge gaps that are found will be returned as well.
+            If KnowledgeGaps are enabled, a list of knowledge gaps that are found will be returned
+            as well. See, the different examples below.
           content:
             application/json; charset=UTF-8:
               schema:
