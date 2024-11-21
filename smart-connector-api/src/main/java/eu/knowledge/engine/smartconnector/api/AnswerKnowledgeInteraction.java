@@ -42,7 +42,7 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	public AnswerKnowledgeInteraction(CommunicativeAct anAct, GraphPattern aPattern, String aName, boolean anIsMeta,
 			boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
-		super(anAct, aName, anIsMeta, anIncludeMetaKIs, aMatchStrategy);
+		super(anAct, aName, anIsMeta, anIncludeMetaKIs, false, aMatchStrategy);
 		this.pattern = aPattern;
 	}
 

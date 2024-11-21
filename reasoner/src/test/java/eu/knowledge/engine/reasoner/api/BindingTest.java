@@ -8,18 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.Test;
 
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.api.TripleNode;
-import eu.knowledge.engine.reasoner.api.TripleVarBinding;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 public class BindingTest {
 
@@ -28,7 +21,7 @@ public class BindingTest {
 		TriplePattern t1 = new TriplePattern("?a <type> <Sensor>");
 		TriplePattern t2 = new TriplePattern("?a <hasVal> ?b");
 		TripleVarBinding tb1 = new TripleVarBinding();
-		tb1.put(new TripleNode(t1, "?a", 0), (Node_Concrete) SSE.parseNode("<sensor1>"));
+		tb1.put(new TripleNode(t1, "?a", 0), (Node) SSE.parseNode("<sensor1>"));
 
 		TripleVarBinding tb2 = new TripleVarBinding();
 		tb2.put(new TripleNode(t2, "?b", 2), "22");

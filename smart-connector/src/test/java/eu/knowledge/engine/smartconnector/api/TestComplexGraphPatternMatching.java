@@ -72,19 +72,17 @@ public class TestComplexGraphPatternMatching {
 		try {
 			LOG.trace("Before ask.");
 
-			AskPlan askPlan = dashboardKB.planAsk(askKI, new RecipientSelector());
+			AskResult askResult = dashboardKB.ask(askKI, new RecipientSelector(), new BindingSet()).get();
 
-			LOG.info("Gaps: {}", Util.getKnowledgeGaps(askPlan.getReasonerPlan().getStartNode()));
+			LOG.info("Gaps: {}", askResult.getKnowledgeGaps());
 
-			askPlan.getReasonerPlan().getStore().printGraphVizCode(askPlan.getReasonerPlan());
+			askResult.getReasonerPlan().getStore().printGraphVizCode(askResult.getReasonerPlan());
 
-			result = askPlan.execute(new BindingSet()).get();
-
-			bindings = result.getBindings();
+			bindings = askResult.getBindings();
 			LOG.trace("After ask.");
 
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
-					.collect(Collectors.toSet());
+			Set<URI> kbIds = askResult.getExchangeInfoPerKnowledgeBase().stream()
+					.map(AskExchangeInfo::getKnowledgeBaseId).collect(Collectors.toSet());
 
 			assertEquals(
 					new HashSet<URI>(
@@ -263,7 +261,7 @@ public class TestComplexGraphPatternMatching {
 
 		GraphPattern gp2 = new GraphPattern(prefixes, TestUtils.convertGP(pattern));
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, null, false, false,
-				MatchStrategy.NORMAL_LEVEL);
+				true, MatchStrategy.NORMAL_LEVEL);
 		dashboardKB.setDomainKnowledge(new HashSet<>(
 				Arrays.asList(locatedInRule, thermostatSensorRule, opencloseSensorRule, fahrenheitConverterRule)));
 		dashboardKB.register(askKI);

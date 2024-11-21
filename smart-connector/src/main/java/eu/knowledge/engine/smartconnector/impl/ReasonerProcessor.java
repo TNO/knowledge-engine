@@ -6,11 +6,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.graph.Node_Concrete;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -21,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BindingSetHandler;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -29,6 +32,7 @@ import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
@@ -39,6 +43,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.KnowledgeGap;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostExchangeInfo;
@@ -72,6 +77,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	private final Set<PostExchangeInfo> postExchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
+	private Set<KnowledgeGap> knowledgeGaps;
 
 	private MatchStrategy matchStrategy = MatchStrategy.NORMAL_LEVEL;
 
@@ -164,6 +170,22 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 	}
 
+	/**
+	 * In this ask operation that smart connector should do the following: 1: first,
+	 * make a plan for executing the ask using the planAsk method in this smart
+	 * connector this will return an object of type AskPlan. 2: second, execute the
+	 * plan on the knowledge network to potentially get bindings for the pattern in
+	 * the ask. 3: third, as part of the execution also find knowledge gaps in the
+	 * reasoner plan when the resulting binding set is empty. This will result in an
+	 * object of type AskResult that contains the resulting bindings, exchange info
+	 * and optionally the reasoner plan plus knowledge gaps.
+	 * 
+	 * This can lead to the following situations: 1: a plan, a non-empty binding set
+	 * and no gaps => ask has a result 2: a plan, an empty binding set and no gaps
+	 * => ask has an empty result 3: a plan, an empty binding set with gaps => ask
+	 * has no result and gaps are found
+	 * 
+	 */
 	@Override
 	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
 
@@ -172,7 +194,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		continueReasoningBackward(translateBindingSetTo(someBindings));
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan);
+			if (myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
+				this.knowledgeGaps = bs.isEmpty()
+						? getKnowledgeGaps(this.reasonerPlan.getStartNode())
+								: new HashSet<KnowledgeGap>();
+			}
+			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan, this.knowledgeGaps);
 		});
 	}
 
@@ -294,7 +321,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
 			newB = new Binding();
-			for (Map.Entry<Var, Node_Concrete> entry : b.entrySet()) {
+			for (Map.Entry<Var, Node> entry : b.entrySet()) {
 				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
 			}
 			newBS.add(newB);
@@ -305,7 +332,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	/**
 	 * Translate bindingset from the ke bindingset to the reasoner bindingset.
 	 * 
-	 * @param bs a ke bindingset
+	 * @param someBindings a ke bindingset
 	 * @return a reasoner bindingset
 	 */
 	protected eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
@@ -621,6 +648,118 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public ReasonerPlan getReasonerPlan() {
 		return this.reasonerPlan;
+	}
+
+	/**
+	 * Returns the knowledge gaps of this reasoning node. A knowledge gap is a
+	 * subset of this node's antecedent triple patterns that do not match any
+	 * neighbor that has no knowledge gaps.
+	 * 
+	 * @return returns all triples that have no matching nodes (and for which there
+	 *         are no alternatives). Note that it returns a set of sets. Where every
+	 *         set in this set represents a single way to resolve the knowledge gaps
+	 *         present in this reasoning graph. So, {@code [[A],[B]]} means either
+	 *         triple {@code A} <i><b>OR</b></i> triple {@code B} needs be added to
+	 *         solve the gap or both, while {@code [[A,B]]} means that both
+	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
+	 *         gap.
+	 */
+	public Set<KnowledgeGap> getKnowledgeGaps(RuleNode plan) {
+
+		assert plan instanceof AntSide;
+
+		Set<KnowledgeGap> existingOrGaps = new HashSet<KnowledgeGap>();
+
+		// TODO do we need to include the parent if we are not backward chaining?
+		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
+				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
+
+		// collect triple patterns that have an empty set
+		Set<KnowledgeGap> collectedOrGaps, someGaps = new HashSet<KnowledgeGap>();
+
+		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
+
+			LOG.debug("Entry key is {}", entry.getKey());
+			LOG.debug("Entry value is {}", entry.getValue());
+
+			collectedOrGaps = new HashSet<KnowledgeGap>();
+			boolean foundNeighborWithoutGap = false;
+			for (RuleNode neighbor : entry.getValue()) {
+				LOG.debug("Neighbor is {}", neighbor);
+
+				if (!neighbor.getRule().getAntecedent().isEmpty()) {
+					// make sure neighbor has no knowledge gaps
+					LOG.debug("Neighbor has antecedents, so check if the neighbor has gaps");
+
+					// knowledge engine specific code. We ignore meta knowledge interactions when
+					// looking for knowledge gaps, because they are very generic and make finding
+					// knowledge gaps nearly impossible.
+					boolean isMeta = isMetaKI(neighbor);
+
+					// TODO what if the graph contains loops?
+					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
+						// found neighbor without knowledge gaps for the current triple, so current
+						// triple is covered.
+						LOG.debug("Neighbor has no gaps");
+						foundNeighborWithoutGap = true;
+						break;
+					}
+					LOG.debug("Neighbor has someGaps {}", someGaps);
+					collectedOrGaps.addAll(someGaps);
+				} else
+					foundNeighborWithoutGap = true;
+			}
+			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
+
+			if (!foundNeighborWithoutGap) {
+				// there is a gap here, either in the current node or in a neighbor.
+
+				if (collectedOrGaps.isEmpty()) {
+					KnowledgeGap kg = new KnowledgeGap();
+					kg.add(entry.getKey());
+					collectedOrGaps.add(kg);
+				}
+				LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+
+				Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
+				if (existingOrGaps.isEmpty()) {
+					existingOrGaps.addAll(collectedOrGaps);
+					LOG.debug("Added collectedOrGaps to existingOrGaps");
+				} else {
+					KnowledgeGap newGap;
+					for (KnowledgeGap existingOrGap : existingOrGaps) {
+						for (KnowledgeGap collectedOrGap : collectedOrGaps) {
+							newGap = new KnowledgeGap();
+							newGap.addAll(existingOrGap);
+							newGap.addAll(collectedOrGap);
+							LOG.debug("Found newGap {}", newGap);
+							newExistingOrGaps.add(newGap);
+						}
+					}
+					existingOrGaps = newExistingOrGaps;
+				}
+
+			}
+		}
+		LOG.debug("Found existingOrGaps {}", existingOrGaps);
+		return existingOrGaps;
+	}
+
+	private boolean isMetaKI(RuleNode neighbor) {
+
+		assert neighbor.getRule() instanceof Rule;
+
+		BindingSetHandler bsh = ((Rule) neighbor.getRule()).getBindingSetHandler();
+
+		if (bsh instanceof ReactBindingSetHandler) {
+			ReactBindingSetHandler rbsh = (ReactBindingSetHandler) bsh;
+			return rbsh.getKnowledgeInteractionInfo().isMeta();
+		} else if (bsh instanceof AnswerBindingSetHandler) {
+			AnswerBindingSetHandler absh = (AnswerBindingSetHandler) bsh;
+			return absh.getKnowledgeInteractionInfo().isMeta();
+		}
+
+		return false;
 	}
 
 	public void setMatchStrategy(MatchStrategy aStrategy) {

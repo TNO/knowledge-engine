@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.SimpleSelector;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
@@ -184,9 +183,9 @@ public class AdminUI implements KnowledgeBase {
 			// - delete all old data about that knowledge base
 			// - insert the *new* data about that knowledge base
 
-			Resource kb = model.query(new SimpleSelector(null, RDF.type, Vocab.KNOWLEDGE_BASE)).listSubjects().next();
-			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
-					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
 
@@ -215,9 +214,9 @@ public class AdminUI implements KnowledgeBase {
 			// - extract the knowledge base that this message is about
 			// - delete all old data about that knowledge base
 
-			Resource kb = model.query(new SimpleSelector(null, RDF.type, Vocab.KNOWLEDGE_BASE)).listSubjects().next();
-			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
-					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
 

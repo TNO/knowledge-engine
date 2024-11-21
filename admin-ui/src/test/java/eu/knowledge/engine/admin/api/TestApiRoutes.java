@@ -186,6 +186,44 @@ public class TestApiRoutes {
 		stopKbs();
 	}
 
+	@Test
+	public void testSmartConnectorUpdate() throws InterruptedException {
+		startKbs();
+
+		try {
+			URI uri = new URI("http://localhost:8283/admin/sc/all/false");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertNotNull(list);
+			assertEquals(2, list.size());
+			assertEquals(1, list.get(0).getKnowledgeInteractions().size());
+			assertEquals(200, response.statusCode());
+
+			// now stop one KB and check if the admin UI correctly updates.
+			stopKb(kb1);
+			Thread.sleep(1000);
+
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			result = objectMapper.readValue(response.body(), eu.knowledge.engine.admin.model.SmartConnector[].class);
+			list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertEquals(1, list.size());
+			assertEquals(200, response.statusCode());
+
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
+		}
+		stopKb(kb2);
+	}
+
 	@AfterAll
 	public void cleanup() {
 		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
@@ -252,12 +290,13 @@ public class TestApiRoutes {
 	}
 
 	public void stopKbs() {
-		if (kb1 != null) {
-			kb1.stop();
-		}
+		stopKb(kb1);
+		stopKb(kb2);
+	}
 
-		if (kb2 != null) {
-			kb2.stop();
+	public void stopKb(MockedKnowledgeBase aKb) {
+		if (aKb != null) {
+			aKb.stop();
 		}
 	}
 }

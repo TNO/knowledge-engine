@@ -30,10 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
@@ -104,20 +102,20 @@ public class TestDynamicSemanticComposition {
 
 		setupNetwork();
 
-		// start planning ask for targets!
+		// perform an ASK that should produce gaps and if found update network to fix gaps
+		try {
+			AskResult resultWithGaps = kbHVTSearcher.ask(askKI, new BindingSet()).get();
+			// check for knowledge gaps
+			Set<KnowledgeGap> gaps = resultWithGaps.getKnowledgeGaps();		
+			LOG.info("Found gaps: " + gaps);
+			// add KB that fills the knowledge gap
+			updateNetwork(gaps);
+		} catch (InterruptedException | ExecutionException e) {
+			fail();
+		}
+
+		// perform ask for targets and knowledge gaps should have been fixed
 		BindingSet bindings = null;
-		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
-		ReasonerPlan rn = plan.getReasonerPlan();
-		rn.getStore().printGraphVizCode(rn);
-		// check for knowledge gaps
-		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
-		LOG.info("Found gaps: " + gaps);
-
-		// add KB that fills the knowledge gap
-		updateNetwork(gaps);
-
-		// start testing ask for targets!
-		bindings = null;
 		try {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
@@ -182,7 +180,7 @@ public class TestDynamicSemanticComposition {
 		LOG.info("Duration: {}", (((double) (end - start)) / 1_000_000));
 	}
 
-	private void updateNetwork(Set<Set<TriplePattern>> gaps) {
+	private void updateNetwork(Set<KnowledgeGap> gaps) {
 
 		instantiateTargetCountrySupplierKB();
 		instantiateTargetLanguageSupplierKB();
@@ -252,7 +250,7 @@ public class TestDynamicSemanticComposition {
 		// Patterns for the HVTSearcher
 		// a pattern to ask for High Value Target searches
 		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
+		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets",true);
 		kbHVTSearcher.register(this.askKI);
 		// a pattern to react to incoming new High Value Targets
 		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);

@@ -19,24 +19,6 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern result;
 
-	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
-		this(act, argument, result, null, false, false, null);
-	}
-
-	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
-		this(act, argument, result, name, false, false, null);
-	}
-
-	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, false, anIsFullMatch, null);
-	}
-
-	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
-			boolean anIsFullMatch) {
-		this(act, argument, result, null, anIsMeta, anIsFullMatch, null);
-	}
-
 	/**
 	 * Creates a {@link ReactKnowledgeInteraction}. See
 	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)}
@@ -50,9 +32,27 @@ public final class ReactKnowledgeInteraction extends KnowledgeInteraction {
 	 *          {@code result} graph pattern can be {@code null}. Note that not both
 	 *          {@code argument} and {@code result} can be {@code null}.
 	 */
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result) {
+		this(act, argument, result, null, false, false, null);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name) {
+		this(act, argument, result, name, false, false, null);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result,
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, false, anIncludeMetaKIs, null);
+	}
+
+	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, boolean anIsMeta,
+			boolean anIncludeMetaKIs) {
+		this(act, argument, result, null, anIsMeta, anIncludeMetaKIs, null);
+	}
+
 	public ReactKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name,
-			boolean anIsMeta, boolean anIsFullMatch, MatchStrategy aMatchStrategy) {
-		super(act, name, anIsMeta, anIsFullMatch, aMatchStrategy);
+			boolean anIsMeta, boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
+		super(act, name, anIsMeta, anIncludeMetaKIs, false, aMatchStrategy);
 		this.argument = argument;
 		this.result = result;
 	}
