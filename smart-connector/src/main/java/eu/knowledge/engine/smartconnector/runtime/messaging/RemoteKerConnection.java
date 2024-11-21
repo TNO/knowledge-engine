@@ -45,8 +45,6 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEn
  */
 public class RemoteKerConnection {
 
-	private static final int DEFAULT_HTTP_TIMEOUT = 5;
-
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
