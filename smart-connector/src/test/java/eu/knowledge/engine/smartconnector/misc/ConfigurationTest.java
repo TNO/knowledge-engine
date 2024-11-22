@@ -99,6 +99,7 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
+		System.setProperty("sc.validate.outgoing.bindings.wrt.incoming.bindings", "true");
 	}
 
 	@Test
@@ -130,6 +131,7 @@ public class ConfigurationTest {
 
 		LOG.info("Result: {}", askResult);
 		waitTimeout = 0;
+		System.setProperty("ke.kb.wait.timeout", "10");
 	}
 
 	@Test
@@ -158,6 +160,7 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
+		System.setProperty("ke.kb.wait.timeout", "10");
 	}
 
 	@AfterEach
