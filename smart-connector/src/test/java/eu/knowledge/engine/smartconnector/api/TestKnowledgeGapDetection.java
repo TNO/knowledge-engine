@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
@@ -54,10 +53,10 @@ public class TestKnowledgeGapDetection {
 
     private void addDomainKnowledge() {
         this.ruleSet = new HashSet<>();
-        HashSet<TriplePattern> consequent1 = new HashSet<TriplePattern>();
+        HashSet<TriplePattern> consequent1 = new HashSet<>();
         consequent1.add(new TriplePattern(
                 "?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/ImperialFaberge>"));
-        HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
+        HashSet<TriplePattern> antecedent1 = new HashSet<>();
         antecedent1.add(new TriplePattern(
                 "?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/FabergeEgg>"));
         antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/commissionedBy> \"Alexander III\""));
@@ -67,12 +66,13 @@ public class TestKnowledgeGapDetection {
     }
 
     @Test
-    public void testKnowledgeGap() throws InterruptedException, URISyntaxException {
+    public void testKnowledgeGap() throws InterruptedException, ExecutionException {
         AskPlan plan = kbImperialEggSearcher.planAsk(askKI, new RecipientSelector());
         ReasonerPlan rn = plan.getReasonerPlan();
         rn.getStore().printGraphVizCode(rn);
+        AskResult result = plan.execute(new BindingSet()).get();
+        Set<KnowledgeGap> gaps = result.getKnowledgeGaps();
 
-        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
         LOG.info("Found gaps: " + gaps);
 
         assertEquals(1, gaps.size());
@@ -87,10 +87,10 @@ public class TestKnowledgeGapDetection {
 
 
     @Test
-    public void testKnowledgeGapNoMatchingVars() throws InterruptedException {
+    public void testKnowledgeGapNoMatchingVars() throws InterruptedException, ExecutionException {
         GraphPattern gp = new GraphPattern(prefixes,
                 "?iq rdf:type <https://www.tno.nl/example/ImperialFaberge> . ?iq <https://www.tno.nl/example/madeBy> ?company . ?iq <https://www.tno.nl/example/madeIn> ?country . ?iq <https://www.tno.nl/example/hasImage> ?image .");
-        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggsNonMatching", false, false, MatchStrategy.SUPREME_LEVEL);
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggsNonMatching", false, false, true, MatchStrategy.SUPREME_LEVEL);
         kbImperialEggSearcher.register(this.askKI);
         kn.sync();
 
@@ -98,24 +98,26 @@ public class TestKnowledgeGapDetection {
         ReasonerPlan rn = plan.getReasonerPlan();
         rn.getStore().printGraphVizCode(rn);
 
-        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        AskResult result = plan.execute(new BindingSet()).get();
+
+        Set<KnowledgeGap> gaps = result.getKnowledgeGaps();
         LOG.info("Found gaps: " + gaps);
 
         assertEquals(1, gaps.size());
 
         Set<TriplePattern> expectedGap = new HashSet<>();
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:commissionedBy \"Alexander III\""));
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeIn \"Russia\""));
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeBy \"House of Fabergé\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:madeBy \"House of Fabergé\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:madeIn \"Russia\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:commissionedBy \"Alexander III\""));
 
-        assertEquals(expectedGap, gaps.toArray()[0]);
+        assertEquals(new KnowledgeGap(expectedGap), gaps.toArray()[0]);
     }
 
     @Test
-    public void testNoKnowledgeGap() throws InterruptedException {
+    public void testNoKnowledgeGap() throws InterruptedException, ExecutionException {
         GraphPattern gp = new GraphPattern(prefixes,
                 "?iq rdf:type <https://www.tno.nl/example/FabergeEgg> . ?iq <https://www.tno.nl/example/hasImage> ?image .");
-        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, MatchStrategy.SUPREME_LEVEL);
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, true, MatchStrategy.SUPREME_LEVEL);
         kbImperialEggSearcher.register(this.askKI);
         kn.sync();
 
@@ -123,16 +125,18 @@ public class TestKnowledgeGapDetection {
         ReasonerPlan rn = plan.getReasonerPlan();
         rn.getStore().printGraphVizCode(rn);
 
-        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        AskResult result = plan.execute(new BindingSet()).get();
+
+        Set<KnowledgeGap> gaps = result.getKnowledgeGaps();
         LOG.info("Found gaps: " + gaps);
 
         assertEquals(0, gaps.size());
     }
 
     @Test
-    public void testKnowledgeGapWithoutPrefixes() throws InterruptedException {
+    public void testKnowledgeGapWithoutPrefixes() throws InterruptedException, ExecutionException {
         GraphPattern gp = new GraphPattern("?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/ImperialFaberge> . ?id <https://www.tno.nl/example/hasImage> ?image .");
-        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, MatchStrategy.SUPREME_LEVEL);
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, true, MatchStrategy.SUPREME_LEVEL);
         kbImperialEggSearcher.register(this.askKI);
         kn.sync();
 
@@ -140,14 +144,15 @@ public class TestKnowledgeGapDetection {
         ReasonerPlan rn = plan.getReasonerPlan();
         rn.getStore().printGraphVizCode(rn);
 
-        Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
+        AskResult result = plan.execute(new BindingSet()).get();
+        Set<KnowledgeGap> gaps = result.getKnowledgeGaps();
         LOG.info("Found gaps: " + gaps);
 
         assertEquals(1, gaps.size());
         Set<TriplePattern> expectedGap = new HashSet<>();
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:commissionedBy \"Alexander III\""));
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeIn \"Russia\""));
-        expectedGap.add(new TriplePattern(prefixes, "?iq ex:madeBy \"House of Fabergé\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:commissionedBy \"Alexander III\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:madeIn \"Russia\""));
+        expectedGap.add(new TriplePattern(prefixes, "?id ex:madeBy \"House of Fabergé\""));
         assertEquals(expectedGap, gaps.toArray()[0]);
     }
 
@@ -157,7 +162,7 @@ public class TestKnowledgeGapDetection {
 
         GraphPattern gp2 = new GraphPattern(prefixes,
                 "?id rdf:type <https://www.tno.nl/example/ImperialFaberge> . ?id <https://www.tno.nl/example/madeBy> ?company . ?id <https://www.tno.nl/example/madeIn> ?country . ?id <https://www.tno.nl/example/hasImage> ?image .");
-        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askImperialEggs", false, false, MatchStrategy.SUPREME_LEVEL);
+        this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askImperialEggs", false, false, true, MatchStrategy.SUPREME_LEVEL);
         kbImperialEggSearcher.register(this.askKI);
         kbImperialEggSearcher.setDomainKnowledge(this.ruleSet);
     }
