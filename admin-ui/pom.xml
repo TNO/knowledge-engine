@@ -16,7 +16,7 @@
 
 	<properties>
 		<swagger-core-version>2.2.22</swagger-core-version>
-		<jetty-version>11.0.15</jetty-version>
+		<jetty-version>11.0.24</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>
 		<jackson-version>2.18.1</jackson-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
