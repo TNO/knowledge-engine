@@ -14,7 +14,7 @@
 
 	<properties>
 		<!-- TODO move some of these to ke-parent -->
-		<swagger-core-version>2.2.22</swagger-core-version>
+		<swagger-core-version>2.2.26</swagger-core-version>
 		<beanvalidation-version>3.1.0</beanvalidation-version>
 		<jetty-version>11.0.24</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>

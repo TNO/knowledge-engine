@@ -15,7 +15,7 @@
 	<description>A user interface for managing a Knowledge Network.</description>
 
 	<properties>
-		<swagger-core-version>2.2.22</swagger-core-version>
+		<swagger-core-version>2.2.26</swagger-core-version>
 		<jetty-version>11.0.24</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>
 		<jackson-version>2.18.2</jackson-version>
