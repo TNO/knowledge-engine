@@ -723,26 +723,23 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
 
-			Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
-			if (existingOrGaps.isEmpty()) {
-				existingOrGaps.addAll(collectedOrGaps);
-				LOG.debug("Added collectedOrGaps to existingOrGaps");
-			} else {
-				existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
-			}
-
+			existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 		}
 		LOG.debug("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
 	}
 
-	private Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> existingOrGaps, Set<KnowledgeGap> collectedOrGaps) {
+	public static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
+		if (listOfGaps.isEmpty()) {
+			return gapsToAdd;
+		} else if (gapsToAdd.isEmpty()) {
+			return listOfGaps;
+		}
+
 		Set<KnowledgeGap> knowledgeGaps = new HashSet<>();
-
-		for (KnowledgeGap existingOrGap : existingOrGaps) {
-			for (KnowledgeGap collectedOrGap : collectedOrGaps) {
-				KnowledgeGap newGap = new KnowledgeGap(existingOrGap);
-
+		for (KnowledgeGap existingOrGap : listOfGaps) {
+			for (KnowledgeGap collectedOrGap : gapsToAdd) {
+				Set<KnowledgeGap> currentGaps = new HashSet<>();
 				for (TriplePattern triple1 : collectedOrGap) {
 					boolean added = false;
 					for (TriplePattern triple2 : existingOrGap) {
@@ -752,17 +749,28 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
 							if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
 								// Triple from existing OrGap is more general and needs to be replaced
-								newGap.remove(triple2);
-								newGap.add(triple1);
+								KnowledgeGap gap = new KnowledgeGap(Set.copyOf(existingOrGap));
+								gap.remove(triple2);
+								gap.add(triple1);
+								currentGaps.add(gap);
 							} else if (match.getValue().node.isVariable() && !match.getKey().node.isVariable()) {
 								// Triple in existingOrGap is more specific, no need to add collectedOrGap to newGap
 								added = true;
+								currentGaps.add(existingOrGap);
 							}
 						}
 					}
-					if (!added) newGap.add(triple1);
+					if (!added) {
+						if (currentGaps.isEmpty()) {
+							KnowledgeGap g = new KnowledgeGap();
+							g.add(triple1);
+							currentGaps.add(g);
+						} else {
+							currentGaps.forEach(g -> g.add(triple1));
+						}
+					}
 				}
-				knowledgeGaps.add(newGap);
+				knowledgeGaps.addAll(currentGaps);
 			}
 		}
 		return knowledgeGaps;
