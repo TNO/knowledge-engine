@@ -18,7 +18,7 @@
 		<beanvalidation-version>3.1.0</beanvalidation-version>
 		<jetty-version>11.0.24</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>
-		<jackson-version>2.18.1</jackson-version>
+		<jackson-version>2.18.2</jackson-version>
 		<junit-version>4.13.1</junit-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
