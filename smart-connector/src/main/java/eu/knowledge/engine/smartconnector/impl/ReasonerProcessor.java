@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
@@ -711,38 +712,68 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
-			if (!foundNeighborWithoutGap) {
-				// there is a gap here, either in the current node or in a neighbor.
+			if (foundNeighborWithoutGap) continue;
 
-				if (collectedOrGaps.isEmpty()) {
-					KnowledgeGap kg = new KnowledgeGap();
-					kg.add(entry.getKey());
-					collectedOrGaps.add(kg);
-				}
-				LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+			// there is a gap here, either in the current node or in a neighbor.
 
-				Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
-				if (existingOrGaps.isEmpty()) {
-					existingOrGaps.addAll(collectedOrGaps);
-					LOG.debug("Added collectedOrGaps to existingOrGaps");
-				} else {
-					KnowledgeGap newGap;
-					for (KnowledgeGap existingOrGap : existingOrGaps) {
-						for (KnowledgeGap collectedOrGap : collectedOrGaps) {
-							newGap = new KnowledgeGap();
-							newGap.addAll(existingOrGap);
-							newGap.addAll(collectedOrGap);
-							LOG.debug("Found newGap {}", newGap);
-							newExistingOrGaps.add(newGap);
-						}
-					}
-					existingOrGaps = newExistingOrGaps;
-				}
-
+			if (collectedOrGaps.isEmpty()) {
+				KnowledgeGap kg = new KnowledgeGap();
+				kg.add(entry.getKey());
+				collectedOrGaps.add(kg);
 			}
+			LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+
+			existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 		}
 		LOG.debug("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
+	}
+
+	public static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
+		if (listOfGaps.isEmpty()) {
+			return gapsToAdd;
+		} else if (gapsToAdd.isEmpty()) {
+			return listOfGaps;
+		}
+
+		Set<KnowledgeGap> knowledgeGaps = new HashSet<>();
+		for (KnowledgeGap existingOrGap : listOfGaps) {
+			for (KnowledgeGap collectedOrGap : gapsToAdd) {
+				Set<KnowledgeGap> currentGaps = new HashSet<>();
+				for (TriplePattern triple1 : collectedOrGap) {
+					boolean added = false;
+					for (TriplePattern triple2 : existingOrGap) {
+						Map<TripleNode, TripleNode> matches = triple2.findMatches(triple1);
+						if (matches == null) continue;
+
+						for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
+							if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
+								// Triple from existing OrGap is more general and needs to be replaced
+								KnowledgeGap gap = new KnowledgeGap(Set.copyOf(existingOrGap));
+								gap.remove(triple2);
+								gap.add(triple1);
+								currentGaps.add(gap);
+							} else if (match.getValue().node.isVariable() && !match.getKey().node.isVariable()) {
+								// Triple in existingOrGap is more specific, no need to add collectedOrGap to newGap
+								added = true;
+								currentGaps.add(existingOrGap);
+							}
+						}
+					}
+					if (!added) {
+						if (currentGaps.isEmpty()) {
+							KnowledgeGap g = new KnowledgeGap();
+							g.add(triple1);
+							currentGaps.add(g);
+						} else {
+							currentGaps.forEach(g -> g.add(triple1));
+						}
+					}
+				}
+				knowledgeGaps.addAll(currentGaps);
+			}
+		}
+		return knowledgeGaps;
 	}
 
 	private boolean isMetaKI(RuleNode neighbor) {

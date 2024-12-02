@@ -81,7 +81,7 @@ public abstract class RuleNode {
 
 				for (Entry<RuleNode, Set<Match>> entry : someAntecedentNeighbors.entrySet()) {
 					for (Match m : entry.getValue()) {
-						if (m.getMatchingPatterns().keySet().contains(tp)) {
+						if (m.getMatchingPatterns().values().contains(tp)) {
 							coveringNodes.add(entry.getKey());
 							break; // where does this break from? The inner loop.
 						}
