@@ -8,9 +8,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
 
 /**
@@ -20,14 +24,6 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
  * component of the Knowledge Engine.
  */
 public class KeRuntime {
-
-	private static final String CONF_KEY_MY_HOSTNAME = "KE_RUNTIME_HOSTNAME";
-	private static final String CONF_KEY_MY_PORT = "KE_RUNTIME_PORT";
-	private static final String CONF_KEY_KD_URL = "KD_URL";
-	private static final String CONF_KEY_MY_EXPOSED_URL = "KE_RUNTIME_EXPOSED_URL";
-
-	private static final String EXPOSED_URL_DEFAULT_PROTOCOL = "http";
-
 	private static final Logger LOG = LoggerFactory.getLogger(KeRuntime.class);
 
 	private static LocalSmartConnectorRegistry localSmartConnectorRegistry = new LocalSmartConnectorRegistryImpl();
@@ -35,31 +31,38 @@ public class KeRuntime {
 	private static MessageDispatcher messageDispatcher = null;
 
 	static {
-		if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL) && hasConfigProperty(CONF_KEY_MY_HOSTNAME)) {
-			LOG.error("KE runtime must be configured with {} or {}, not both.", CONF_KEY_MY_EXPOSED_URL,
-					CONF_KEY_MY_HOSTNAME);
+
+		Config config = ConfigProvider.getConfig();
+		ConfigValue exposedUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
+		ConfigValue hostname = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);
+
+		// Using MicroProfile Config's source ordinal to determine if default
+		// configuration got overridden?
+		if (exposedUrl.getSourceOrdinal() > 100 && hostname.getSourceOrdinal() > 100) {
+			LOG.error("KE runtime must be configured with {} or {}, not both.",
+					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL,
+					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);
 			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.",
-					CONF_KEY_MY_EXPOSED_URL);
+					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
 			System.exit(1);
 		}
 
 		// execute some validation on the EXPOSED URL, because it can have severe
 		// consequences
-		String url = getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null);
-		if (url != null) {
+		if (exposedUrl.getSourceOrdinal() > 100) {
+			String url = exposedUrl.getValue();
 			if (url.endsWith("/")) {
 				LOG.error(
 						"The '{}' environment variable's value '{}' should be a valid URL without a slash ('/') as the last character.",
-						CONF_KEY_MY_EXPOSED_URL, url);
+						SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, url);
 				System.exit(1);
 			}
 			try {
-				URL exposedUrl = new URL(url);
+				new URL(url);
 
 			} catch (MalformedURLException e) {
-				LOG.error(
-						"The '{}' environment variable with value '{}' contains a malformed URL '{}'.",
-						CONF_KEY_MY_EXPOSED_URL, url, e.getMessage());
+				LOG.error("The '{}' environment variable with value '{}' contains a malformed URL '{}'.",
+						SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, url, e.getMessage());
 				System.exit(1);
 			}
 		}
@@ -96,27 +99,25 @@ public class KeRuntime {
 	}
 
 	public static MessageDispatcher getMessageDispatcher() {
+
+		Config config = ConfigProvider.getConfig();
+
 		if (messageDispatcher == null) {
 			try {
-				if (!hasConfigProperty(CONF_KEY_KD_URL)) {
+				ConfigValue kdUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KD_URL);
+				if (kdUrl.getSourceOrdinal() == 100) {
 					LOG.warn(
 							"No configuration provided for Knowledge Directory, starting Knowledge Engine in local mode");
 					messageDispatcher = new MessageDispatcher();
 				} else {
-					var myHostname = getConfigProperty(CONF_KEY_MY_HOSTNAME, "localhost");
-					var myPort = Integer.parseInt(getConfigProperty(CONF_KEY_MY_PORT, "8081"));
+					ConfigValue port = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_PORT);
+					var myPort = Integer.parseInt(port.getValue());
 
-					URI myExposedUrl;
-					if (hasConfigProperty(CONF_KEY_MY_EXPOSED_URL)) {
-						myExposedUrl = new URI(getConfigProperty(CONF_KEY_MY_EXPOSED_URL, null));
-					} else {
-						// If no exposed URL config is given we build one based on the
-						// configured host and port.
-						myExposedUrl = new URI(EXPOSED_URL_DEFAULT_PROTOCOL + "://" + myHostname + ":" + myPort);
-					}
+					ConfigValue exposedUrl = config
+							.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
+					URI myExposedUrl = new URI(exposedUrl.getValue());
 
-					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl,
-							new URI(getConfigProperty(CONF_KEY_KD_URL, "http://localhost:8080")));
+					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl, new URI(kdUrl.getValue()));
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
@@ -131,20 +132,4 @@ public class KeRuntime {
 		}
 		return messageDispatcher;
 	}
-
-	public static String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
-					+ defaultValue + "'");
-		}
-		return value;
-	}
-
-	public static boolean hasConfigProperty(String key) {
-		return System.getenv(key) != null;
-	}
-
 }
