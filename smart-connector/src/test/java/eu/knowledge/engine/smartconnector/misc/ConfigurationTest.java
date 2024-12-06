@@ -21,6 +21,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
@@ -48,7 +49,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigValidateTrue() {
-		System.setProperty("sc.validate.outgoing.bindings.wrt.incoming.bindings", "true");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "true");
 		BindingSet bs = new BindingSet();
 
 		var bs1 = new Binding();
@@ -75,7 +76,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigValidateFalse() {
-		System.setProperty("sc.validate.outgoing.bindings.wrt.incoming.bindings", "false");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "false");
 
 		BindingSet bs = new BindingSet();
 
@@ -99,12 +100,12 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
-		System.setProperty("sc.validate.outgoing.bindings.wrt.incoming.bindings", "true");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "true");
 	}
 
 	@Test
 	public void testConfigWaitForKnowledgeBaseNegative() {
-		System.setProperty("ke.kb.wait.timeout", "1");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "1");
 		waitTimeout = 2000;
 
 		BindingSet bs = new BindingSet();
@@ -131,12 +132,12 @@ public class ConfigurationTest {
 
 		LOG.info("Result: {}", askResult);
 		waitTimeout = 0;
-		System.setProperty("ke.kb.wait.timeout", "10");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "10");
 	}
 
 	@Test
 	public void testConfigWaitForKnowledgeBasePositive() {
-		System.setProperty("ke.kb.wait.timeout", "2");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "2");
 		waitTimeout = 0;
 		BindingSet bs = new BindingSet();
 
@@ -160,7 +161,22 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
-		System.setProperty("ke.kb.wait.timeout", "10");
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "10");
+	}
+
+	public void testConfigHostname() {
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME, "testerhost");
+
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME, null);
+	}
+
+	public void testConfigKDUrl() {
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KD_URL, "http://testerhost:1234");
+
+		
+		
+		
+		System.setProperty(SmartConnectorConfig.CONF_KEY_KD_URL, null);
 	}
 
 	@AfterEach
