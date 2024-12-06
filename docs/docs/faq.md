@@ -247,137 +247,25 @@ If the current setup, a Smart Connector with a single long polling connection, i
 2) Divide Knowledge Interactions over multiple Smart Connectors.
    This allows you to have a single long polling connection per Knowledge Interaction.
 
+### How does the Knowledge Engine deal with subsets/supersets in graph patterns?
+We have not defined the subset/superset terms within the context of the Knowledge Engine but this would indeed be helpful.
+For ontologies, the subset/superset definition is sometimes explained as follows:
+"Ontology O1 is a subset of ontology O2 if all definitions in O1 are contained in O2 (O2 is the superset of O1)".
 
-*Question*: I have a question about how the compliance checker and reasoner are supposed to work. **If this is the wrong place for asking this, please direct me to the right people!**
+Since the idea of the Knowledge Engine is that the *data* is always kept at the source and is only retrieved when necessary for an interaction, it is more suitable to talk about subset/superset at the definition level and not at the data level.
+This is because all data is simply not available in a single location.
+The definition level is also the level where currently the *matching* between graph patterns happens.
+The *matcher* (as opposed to the *reasoner*) does not support subset/superset matching.
 
-An example: the following graph pattern defines a **device** and the **type** of it’s **property**.
-
-```sparql
-?device <https://saref.etsi.org/core/measuresProperty> ?property .
-?property a ?propertyType .
-```
-
-The only parameters we need here are **device** and **propertyType**. The **property** variable is redundant, but it still needs to be in the graph pattern. What we decided to do, is replace this variable by a placeholder individual : `http://interconnectproject.eu/pilots/greek/property#property`. The resulting pattern would then look like this:
-
-```sparql
-?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
-<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
-```
-
-I’m wondering if referring to individuals that are not in any ontology, in **subjects** and **objects**, will cause problems with compliance or reasoning?
-
-I guess my question is more specifically: “Will the compliance checker look at **subjects** and **objects** in graph patterns, or only at predicates? And will the reasoner be able to handle these kinds of structures?”
-
-- *Answer*: I think it helps if we distinguish between syntax and semantics here. Using a pattern like:
-
-	```sparql
-	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
-	<http://interconnectproject.eu/pilots/greek/property#property> a ?propertyType .
-	```
-
-	is syntactically correct and it should be accepted by both the validator and reasoner. The difficulty here is with the semantics that it expresses. Imagine the following bindingset:
-
-	| ?device   | ?propertyType |
-	|-----------|---------------|
-	| \<sensor1\> | saref:Motion  |
-	| \<sensor1\> | saref:Smoke   |
-	| \<sensor2\> | saref:Energy  |
-
-	If we combine the above Graph Pattern with the above BindingSet, we get the following RDF triples (I am a bit inconsistent with the prefixes):
-
-	1.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
-	2.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Motion .`
-
-	3.	`<sensor1> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
-	4.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Smoke .`
-
-	5.	`<sensor2> <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .`
-	6.	`<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .`
-
-	Now, if we draw these triples as a graph figure, we get something like the following:
-	[Image no longer available]
-
-	Note:
-	- that there are 6 triples in the above graph pattern, but only 5 edges in this figure. This is caused by the fact that the 1st and 3rd triple of the graph pattern above are exactly the same and triples can only occur once in a graph. So, if you write them twice, they will still only occur once. 
-	- the effect that using a fixed individual greek:property in the graph pattern is causing; it makes it semantically impossible to determine that sensor1 is measuring property Motion and Smoke, while sensor2 is measuring Energy!
-
-	Conclusion: while the fixed property is syntactically correct, it is semantically incorrect. So, using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected. This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and bindingset and when you ask something like:
-
-	```sparql
-	?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
-	<http://interconnectproject.eu/pilots/greek/property#property> a saref:Energy .
-	```
-
-	(note that ?propertyType has been substituted with saref:Energy)
-
-	This graph pattern represents the query: “give me all devices that measure energy” and it will answer with the following bindingset:
-
-	| ?device   |
-	|-----------|
-	| \<sensor1\> |
-	| \<sensor2\> |
-
-	Which is not correct and is caused by the fixed  property. So, there are two solutions here. The practical one, which I think happens quite a lot, is for the ontology to provide an individual per property. So, you would have a `interconnect:motionIndividual`, `interconnect:energyIndividual` and `interconnect:smokeIndividual`. These can be used instead of the greek:property and will make sure that it remains semantically correct. A less practical (and philosophically debatable) one is to have a unique property individual for every property a device measures. So, you would get something like `<sensor1/individual/motion>`, `<sensor1/individual/smoke>` and `<sensor2/individual/energy>` and even more for all other devices.
-
-	And last but not least, a short reaction to Georg’s remark: “I think it makes sense to think about the GP as the body of a query”. It certainly does, although within the context of the Knowledge Engine graph patterns are also used for non-query like interactions.
-
-- *Question*: In the context of graph pattern matching, can you explain the subset/superset condition: "when the Graph Pattern" of the sender is a superset of the Graph Pattern of the receiver' ? Is it at definition level or at data level? I found (at ontology level) the following explanation: "Ontology O1 is a subset of ontology O2 if all definitions in O1 are contained in O2 (O2 is the superset of O1)".
-1) More concrete: is 'a b c .' graph pattern a subset or a superset of 'a b c . d e f.' ?
-2) In case of Post/React knowledge interactions, both argument graph patterns must match and also both result graph patterns must match?
-3) In case of Post/React knowledge interactions graph pattern matching, is the POST side regarded as the sender for the argument graph pattern and the REACT side as the sender for the result graph pattern?
-4) Let's assume the REACT side result pattern is like 'a b c . d e f.' and the POST side result pattern is 'a b c .'. Is this allowed?  So it is similar to a 'SELECT' in SQL? The result binding set at the POST side is then also reduced, I assume (not in number of _records_, but _fields_).
-- *Answer*: We do not have defined the subset/superset terms within the context of the Knowledge Engine and Graph Patterns, but it would indeed be helpful to do so. Since the idea of the Knowledge Engine is that the *data* is always kept at the source and is only retrieved when necessary for an interaction, it is more suitable to talk about subset/superset at the definition level and not at the data level. This is because all data is simply not available in a single location. The definition level is also the level where currently the *matching* between graph patterns happens. The *matcher* (as opposed to the *reasoner*) does not support subset/superset matching.
-
-	1) I would say graph pattern `a b c` is a subset of the graph pattern `a b c . d e f`. Note that graph pattern typically contain variables like `?a`. Note that graph pattern matching ignores variable names and triple order.
-	2) Yes, the argument graph pattern and result graph pattern should both match if two Post/React Knowledge Interactions want to exchange data. Note that this probably changes when the Knowledge Engine uses a reasoner instead of a matcher.
-	3) Yes, the PostKnowledgeInteraction sends the argument and the ReactKnowledgeInteraction sends the (optional) result.
-	4) Currently, this will not work, because we are using a graph pattern *matcher* instead of a *reasoner*. I expect the reasoner to indeed allow them to interact if the POST side result pattern is a subset of the REACT side result pattern. In that case the result binding set at the POST side should also be a subset (in fields) of the binding set given from the REACT side. So, the results are always given to a Knowledge Base in its own terminology, this already happens by translating the variable names, but should also happen in the way you describe once the reasoner is active.
-
-*Question*: I’m trying to understand how timeseries as part of a larger graph pattern are expressed in a binding set.
-
-For instance:
-Let's say we have some graph pattern like:
-
-```sparql
-?timeseries rdf:type ex:Timeseries .
-?timeseries ex:hasMeasurement ?measurement .
-?measurement rdf:type saref:Measurement .
-?measurement saref:hasFeatureOfInterest ?room .
-?room rdf:type saref:Room .
-?measurement saref:observedProperty saref:Temperature .
-?measurement saref:hasSimpleResult ?temperature .
-?measurement ex:hasTimestamp ?ts .
-```
-
-And the timeseries returns an array of temperature values and timestamp for each value.
-
-In the ANSWER Knowledge interaction will the binding set be something like:
-```json
-[
-	{
-		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
-		"measurement": "<https://www.example.org/measurement-42>",
-		"room": "<https://www.example.org/kitchen>",
-		"temperature": "\"21.2\"^^<http://www.w3.org/2001/XMLSchema#float>",
-		"ts": "\"2020-10-16T22:00Z\"^^some_timestamp_type"
-	},
-	{
-		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
-		"measurement": "<https://www.example.org/measurement-43>",
-		"room": "<https://www.example.org/kitchen>",
-		"temperature": "\"21.4\"^^<http://www.w3.org/2001/XMLSchema#float>",
-		"ts": "\"2020-10-16T23:00Z\"^^some_timestamp_type"
-	},
-	{
-		"timeseries": "<https://www.example.org/timeseries-sensora-b-23>",
-		"measurement": "<https://www.example.org/measurement-44>",
-		"room": "<https://www.example.org/kitchen>",
-		"temperature": "\"21.6\"^^<http://www.w3.org/2001/XMLSchema#float>",
-		"ts": "\"2020-10-16T24:00Z\"^^some_timestamp_type"
-	}
-]
-```
-
-Is the following statement right: the IRI is filled in by the service specific adapter?
-Can this IRI then be used to for example ask more info about `<https://www.example.org/measurement-43>` ? That would mean that the service specific adapter should use an ID that is stored, and not some temporal/volatile ID for the IRI. Because that means that you can give a reference to an object in the answers. Of course you have to provide then a graph pattern to allow the retrieval of this object  resulting in another binding set.
-- *Answer*: You are correct with respect to `<https://www.example.org/measurement-43>`. Ideally you should be able to retrieve more information about it and the service should not randomly generate it, but use a stored id.
+We can consider the following concrete questions when dealing with subset/superset:
+1. Is `a b c.` a subset or superset of `a b c . d e f .`?
+	- I would say graph pattern `a b c` is a subset of the graph pattern `a b c . d e f`.
+   		Note that graph pattern typically contain variables like `?a`.
+   		Graph pattern _matching_ ignores variable names and triple order.
+2. When using POST/REACT, do argument and result graph patterns *both* need to match or can they be a subset/superset?
+	- Yes, the argument graph pattern and result graph pattern should both match if two POST/REACT interactions want to exchange data.
+   	This may change when you use the reasoner instead of the matcher.
+3. Would the following interactions match? A REACT with result graph pattern `a b c. d e f.` and a POST with result graph pattern `a b c.`
+	- This will not match if you are using the graph pattern _matcher_ instead of a _reasoner_.
+    The reasoner would allow them to interact if the POST result pattern is a subset of the REACT result pattern.
+    In that case, the result binding set at the POST side should also be a subset (in fields) of the binding set given by the REACT side.
