@@ -168,7 +168,7 @@ public class TestMergeGaps {
         gaps1.add(gap);
 
         Set<KnowledgeGap> toAdd = new HashSet<>();
-        TriplePattern tp = new TriplePattern("\"Sensor1\" rdf:type ?c");
+        TriplePattern tp = new TriplePattern("<Sensor1> rdf:type ?c");
         KnowledgeGap gap2 = new KnowledgeGap();
         gap2.add(tp);
         toAdd.add(gap2);
@@ -187,7 +187,6 @@ public class TestMergeGaps {
         LOG.info("Merged knowledge gaps with single triple whose subject and object match: " + mergedGaps.toString());
         assertEquals(expectedGaps, mergedGaps);
     }
-
 
     @Test
     public void testMergeWithPredicateAndObjectMatch() {
@@ -220,7 +219,6 @@ public class TestMergeGaps {
         assertEquals(expectedGaps, mergedGaps);
     }
 
-
     @Test
     public void testMergeWithCompleteTripleMatch() {
         Set<KnowledgeGap> gaps1 = new HashSet<>();
@@ -249,6 +247,119 @@ public class TestMergeGaps {
         expectedGap2.add(tp2);
         expectedGaps.add(expectedGap2);
         LOG.info("Merged knowledge gaps with single triple whose elements (S-P-O) all match: " + mergedGaps.toString());
+        assertEquals(expectedGaps, mergedGaps);
+    }
+
+    @Test
+    public void testMergeTwoGapsWithCompleteTripleMatch() {
+        Set<KnowledgeGap> gaps1 = new HashSet<>();
+        TriplePattern tp1 = new TriplePattern("<Sensor1> ?b <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp2 = new TriplePattern("<Sensor1> ex:madeBy \"Sophie\"");
+        KnowledgeGap gap = new KnowledgeGap();
+        gap.add(tp1);
+        gap.add(tp2);
+        gaps1.add(gap);
+
+        TriplePattern tp3 = new TriplePattern("<Sensor2> ?b <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp4 = new TriplePattern("<Sensor2> ex:madeBy \"Barry\"");
+        KnowledgeGap gap2 = new KnowledgeGap();
+        gap2.add(tp3);
+        gap2.add(tp4);
+        gaps1.add(gap2);
+
+        Set<KnowledgeGap> toAdd = new HashSet<>();
+        TriplePattern tp = new TriplePattern("?a rdf:type ?c");
+        KnowledgeGap gap3 = new KnowledgeGap();
+        gap3.add(tp);
+        toAdd.add(gap3);
+
+        Set<KnowledgeGap> mergedGaps = mergeGaps(gaps1, toAdd);
+
+        Set<KnowledgeGap> expectedGaps = new HashSet<>();
+        KnowledgeGap expectedGap1 = new KnowledgeGap();
+        expectedGap1.add(tp1);
+        expectedGap1.add(tp2);
+        expectedGaps.add(expectedGap1);
+        KnowledgeGap expectedGap2 = new KnowledgeGap();
+        expectedGap2.add(tp);
+        expectedGap2.add(tp2);
+        expectedGaps.add(expectedGap2);
+        KnowledgeGap expectedGap3 = new KnowledgeGap();
+        expectedGap3.add(tp3);
+        expectedGap3.add(tp4);
+        expectedGaps.add(expectedGap3);
+        KnowledgeGap expectedGap4 = new KnowledgeGap();
+        expectedGap4.add(tp);
+        expectedGap4.add(tp4);
+        expectedGaps.add(expectedGap4);
+        LOG.info("Merged knowledge gaps with two triples whose elements (S-P-O) all match: " + mergedGaps.toString());
+        assertEquals(expectedGaps, mergedGaps);
+    }
+
+    @Test
+    public void testMergeWithTwoGaps() {
+        Set<KnowledgeGap> gaps1 = new HashSet<>();
+        TriplePattern tp1 = new TriplePattern("\"Sensor1\" ?b <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp2 = new TriplePattern("?a ex:madeBy \"Sophie\"");
+        KnowledgeGap gap = new KnowledgeGap();
+        gap.add(tp1);
+        gap.add(tp2);
+        gaps1.add(gap);
+
+        Set<KnowledgeGap> toAdd = new HashSet<>();
+        TriplePattern tp = new TriplePattern("\"Sensor1\" rdf:type <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp3 = new TriplePattern("\"Sensor1\" ex:madeBy \"Sophie\"");
+        KnowledgeGap gap3 = new KnowledgeGap();
+        gap3.add(tp);
+        gap3.add(tp3);
+        toAdd.add(gap3);
+
+        TriplePattern tp4 = new TriplePattern("\"Sensor2\" rdf:type <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp5 = new TriplePattern("\"Sensor2\" ex:madeBy \"Sophie\"");
+        KnowledgeGap gap4 = new KnowledgeGap();
+        gap3.add(tp4);
+        gap3.add(tp5);
+        toAdd.add(gap4);
+
+        Set<KnowledgeGap> mergedGaps = mergeGaps(gaps1, toAdd);
+
+        Set<KnowledgeGap> expectedGaps = new HashSet<>();
+        KnowledgeGap expectedGap1 = new KnowledgeGap();
+        expectedGap1.add(tp);
+        expectedGap1.add(tp3);
+        expectedGaps.add(expectedGap1);
+        LOG.info("Merged knowledge gap with two gaps: " + mergedGaps.toString());
+        assertEquals(expectedGaps, mergedGaps);
+    }
+
+    @Test
+    public void testMergeTwoGapsWithTwoGaps() {
+        Set<KnowledgeGap> gaps1 = new HashSet<>();
+        TriplePattern tp1 = new TriplePattern("\"Sensor1\" ?b <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp2 = new TriplePattern("?a ex:madeBy \"Sophie\"");
+        KnowledgeGap gap = new KnowledgeGap();
+        gap.add(tp1);
+        gap.add(tp2);
+        gaps1.add(gap);
+
+        Set<KnowledgeGap> toAdd = new HashSet<>();
+        TriplePattern tp = new TriplePattern("\"Sensor1\" rdf:type <https://saref.etsi.org/core/v3.2.1/#saref:Sensor>");
+        TriplePattern tp3 = new TriplePattern("\"Sensor1\" ex:madeBy \"Sophie\"");
+        KnowledgeGap gap3 = new KnowledgeGap();
+        gap3.add(tp);
+        gap3.add(tp3);
+        toAdd.add(gap3);
+
+        //TODO: Add gap to gaps1 and add gap to toAdd
+
+        Set<KnowledgeGap> mergedGaps = mergeGaps(gaps1, toAdd);
+
+        Set<KnowledgeGap> expectedGaps = new HashSet<>();
+        KnowledgeGap expectedGap1 = new KnowledgeGap();
+        expectedGap1.add(tp);
+        expectedGap1.add(tp3);
+        expectedGaps.add(expectedGap1);
+        LOG.info("Merged set of two knowledge gaps with two triples: " + mergedGaps.toString());
         assertEquals(expectedGaps, mergedGaps);
     }
 }
