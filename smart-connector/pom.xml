@@ -59,6 +59,12 @@
 			<version>5.14.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.wiremock</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>3.10.0</version>
+			<scope>test</scope>
+		</dependency>
 
 
 		<!-- jena -->
@@ -216,7 +222,7 @@
 
 	<properties>
 		<swagger-core-version>2.2.22</swagger-core-version>
-		<jetty-version>11.0.15</jetty-version>
+		<jetty-version>11.0.24</jetty-version>
 		<jersey3-version>3.1.9</jersey3-version>
 		<jackson-version>2.18.1</jackson-version>
 		<servlet-api-version>6.1.0</servlet-api-version>

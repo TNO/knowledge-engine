@@ -72,6 +72,8 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
+
+		System.clearProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS);
 	}
 
 	@Test
@@ -100,7 +102,7 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
-		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "true");
+		System.clearProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS);
 	}
 
 	@Test
@@ -132,7 +134,7 @@ public class ConfigurationTest {
 
 		LOG.info("Result: {}", askResult);
 		waitTimeout = 0;
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "10");
+		System.clearProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT);
 	}
 
 	@Test
@@ -161,26 +163,11 @@ public class ConfigurationTest {
 		}
 
 		LOG.info("Result: {}", askResult);
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "10");
-	}
-
-	public void testConfigHostname() {
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME, "testerhost");
-
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME, null);
-	}
-
-	public void testConfigKDUrl() {
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KD_URL, "http://testerhost:1234");
-
-		
-		
-		
-		System.setProperty(SmartConnectorConfig.CONF_KEY_KD_URL, null);
+		System.clearProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT);
 	}
 
 	@AfterEach
-	public void afterTTest() {
+	public void afterTest() {
 		try {
 			kn.stop().get();
 		} catch (InterruptedException | ExecutionException e) {
