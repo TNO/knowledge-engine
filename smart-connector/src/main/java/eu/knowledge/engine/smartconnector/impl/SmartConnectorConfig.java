@@ -27,7 +27,7 @@ public class SmartConnectorConfig {
 
 	/**
 	 * Key to configure the time in seconds the SCs in this KER wait for a HTTP
-	 * response from another KER. Only used in distributed mode.
+	 * connection response from another KER. Only used in distributed mode.
 	 */
 	public static final String CONF_KEY_KE_HTTP_TIMEOUT = "ke.http.timeout";
 

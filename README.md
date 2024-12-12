@@ -262,7 +262,7 @@ The Knowledge Engine can also start in distributed mode, where it connects with 
 ### Configuration
 TNO Knowledge Engine uses the [MicroProfile Config 3.1](https://microprofile.io/specifications/config/) specification to configure its behaviour and we use [SmallRye](https://smallrye.io/smallrye-config/) as the implementation of this specification. The default configuration values can be found in the [microprofile-config.properties](./smart-connector/src/main/resources/META-INF/microprofile-config.properties) configuration file. And, as described in the specification, these configuration values can be overridden by [environment variables and system properties](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources). Note that environment variables can use underscores and capital letters to adhere to their naming conventions and the MicroProfile Config automatically maps those to corresponding configuration properties using [specific rules](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources.env.mapping).
 
-The rest of this section highlights additional configuration properties.
+A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector/src/main/java/eu/knowledge/engine/smartconnector/impl/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
 
 *Increasing the wait time for other KBs to respond*
 
@@ -270,4 +270,4 @@ By default, a Smart Connector waits `10` seconds max for a reply from another Sm
 
 *Increasing the HTTP timeouts*
 
-By default, a KER waits `5` seconds max for a HTTP response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `ke.http.timeout` property
+By default, a KER waits `5` seconds max for a HTTP connection response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `ke.http.timeout` property
