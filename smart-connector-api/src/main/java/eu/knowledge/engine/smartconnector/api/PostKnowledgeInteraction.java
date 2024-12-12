@@ -57,7 +57,7 @@ public final class PostKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	public PostKnowledgeInteraction(CommunicativeAct act, GraphPattern argument, GraphPattern result, String name,
 			boolean anIsMeta, boolean anIncludeMetaKIs, MatchStrategy aMatchStrategy) {
-		super(act, name, anIsMeta, anIncludeMetaKIs, aMatchStrategy);
+		super(act, name, anIsMeta, anIncludeMetaKIs, false, aMatchStrategy);
 		this.argument = argument;
 		this.result = result;
 	}

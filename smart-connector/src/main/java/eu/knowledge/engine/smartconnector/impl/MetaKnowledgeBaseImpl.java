@@ -95,7 +95,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				(anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(anAnswerExchangeInfo.getIncomingBindings()),
 				true);
 
-		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true,
+		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true, false,
 				MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);
 

@@ -180,6 +180,13 @@ paths:
             type: string
       requestBody:
         required: true
+        description:
+          The body of the ASK can contain the option "knowledgeGapEnabled"
+          (See the example "ASK with knowledge gaps enabled"). 
+          This option is disabled by default. If enabled, each activation of the knowledge interaction will
+          provide a set of knowledge gaps as part of the result. If this set is empty, the binding set of the 
+          result contains the answer. If the set of knowledge gaps is not empty, this contains one or more
+          knowledge gaps that need to be fixed for the knowledge interaction to produce an answer.
         content:
           application/json; charset=UTF-8:
             schema:
@@ -216,6 +223,11 @@ paths:
                   prefixes:
                     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                     ex: "http://example.org/"
+              ASK with knowledge gaps enabled:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+                  knowledgeGapsEnabled: "true"
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -321,10 +333,22 @@ paths:
             bindings together with additional exchange info. The returned bindings form 
             a set and there is no quaranteed ordering. The exchange info shows the other 
             Knowledge Bases that contributed to the answer with timing, initiator information.
+            If KnowledgeGaps are enabled, a list of knowledge gaps that are found will be returned
+            as well. See, the different examples below.
           content:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/AskResult'
+              examples:
+                knowledge gaps NOT enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                knowledge gaps enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                    knowledgeGaps: [["?a <http://example.org/isFatherOf> ?c", "?a <http://example.org/liveInTheSameHouse> ?b"]]
         '400':
           description: If the ask failed.
           content:
@@ -608,6 +632,8 @@ components:
         knowledgeInteractionName:
           type: string
           pattern: '^[a-zA-Z0-9-]*$'
+        knowledgeGapsEnabled:
+          type: boolean
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
@@ -686,6 +712,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AskExchangeInfo'
+        knowledgeGaps:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeGap'
+          nullable: true
     PostResult:
       type: object
       required: [resultBindingSet, exchangeInfo]
@@ -735,6 +766,11 @@ components:
               $ref: '#/components/schemas/BindingSet'
             resultBindingSet:
               $ref: '#/components/schemas/BindingSet'
+    KnowledgeGap:
+      type: array
+      items:
+        nullable: false # Enforced manually, but kept here nonetheless.
+        type: string
     HandleRequest:
       type: object
       properties:

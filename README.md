@@ -182,7 +182,7 @@ This section gives more detailed information about the project's structure, and 
 
 The Knowledge Engine project consists of the following Maven modules:
 - `smart-connector`
-  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/java_developer_api.md).
+  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/getting_started.md).
 - `smart-connector-api`
 	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
 - `smart-connector-rest-server`
