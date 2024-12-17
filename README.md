@@ -41,6 +41,7 @@ The rest of this README is structured as follows:
 - [Developer information](#developer-information)
   - [Components](#components)
   - [Release steps](#release-steps)
+  - [Code conventions](#code-conventions)
   - [(advanced) Administering a Knowledge Engine runtime](#advanced-administering-a-knowledge-engine-runtime)
     - [Starting the Knowledge Engine in local mode](#starting-the-knowledge-engine-in-local-mode)
     - [Starting the Knowledge Engine in distributed mode](#starting-the-knowledge-engine-in-distributed-mode)
@@ -234,6 +235,9 @@ docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/
    1. Use the new tag for the release
    2. Include the same release notes
 10. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
+
+## Code conventions
+The code conventions of the knowledge-engine can be found in the `/ide` folder in the Eclipse IDE format. The format can often also be imported in other Java IDEs like IntelliJ, VSCode or Netbeans.
 
 ## (advanced) Administering a Knowledge Engine runtime
 To start a new instance of the REST API knowledge engine version 1.2.5, make sure you have `git checkout 1.2.5` the tag `1.2.5`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
