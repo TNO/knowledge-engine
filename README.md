@@ -181,15 +181,19 @@ This section gives more detailed information about the project's structure, and 
 
 The Knowledge Engine project consists of the following Maven modules:
 - `smart-connector`
-  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/getting_started.md).
+	- This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/getting_started.md). The high-level design of the smart connector can be found in [the wiki](https://github.com/TNO/knowledge-engine/wiki/High%E2%80%90level-Design).
 - `smart-connector-api`
 	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
 - `smart-connector-rest-server`
 	- This module contains the REST API layer that is built on top of the Java Developer API.
 - `smart-connector-rest-dist`
-  - A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#using-the-rest-api). For instructions on how to set it up, refer to [this section](#advanced-administering-a-knowledge-engine-runtime).
+	- A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#using-the-rest-api). For instructions on how to set it up, refer to [this section](#advanced-administering-a-knowledge-engine-runtime).
 - `admin-ui`
 	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
+- `reasoner`
+	- This module contains the reasoner specifically designed for the distributive nature of the knowledge engine.
+- `knowledge-directory`
+	- This module contains the Knowledge Directory which is used to find other knowledge engine runtimes.
 
 ## Release steps
 These are instructions on what to do when we release a new version of the knowledge engine.
