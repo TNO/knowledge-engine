@@ -16,6 +16,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +43,6 @@ public class AdminUI implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 
 	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type ke:KnowledgeBase . ?kb ke:hasName ?name . ?kb ke:hasDescription ?description . ?kb ke:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki ke:isMeta ?isMeta . ?ki ke:hasCommunicativeAct ?act . ?act rdf:type ke:CommunicativeAct . ?act ke:hasRequirement ?req . ?act ke:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki ke:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp ke:hasPattern ?pattern .";
-
-	private static final String CONF_KEY_INITIAL_ADMIN_UI_DELAY = "INITIAL_ADMIN_UI_DELAY";
 
 	private SmartConnector sc;
 	private final PrefixMapping prefixes;
@@ -141,7 +140,8 @@ public class AdminUI implements KnowledgeBase {
 		// to receive the initial state, we do a single Ask (after sleeping for a
 		// specific amount of time)
 		try {
-			Thread.sleep(Integer.parseInt(AdminUI.getConfigProperty(CONF_KEY_INITIAL_ADMIN_UI_DELAY, "5000")));
+			Thread.sleep(
+					ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY, Integer.class));
 		} catch (InterruptedException e) {
 			LOG.info("{}", e);
 		}
@@ -184,7 +184,8 @@ public class AdminUI implements KnowledgeBase {
 			// - insert the *new* data about that knowledge base
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
-			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
+					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
 
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
@@ -215,7 +216,8 @@ public class AdminUI implements KnowledgeBase {
 			// - delete all old data about that knowledge base
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
-			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ", this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
+					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
 
 			UpdateRequest updateRequest = UpdateFactory.create(query);
 			UpdateAction.execute(updateRequest, this.model);
@@ -327,16 +329,5 @@ public class AdminUI implements KnowledgeBase {
 
 	public Model getModel() {
 		return model;
-	}
-
-	public static String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
-					+ defaultValue + "'");
-		}
-		return value;
 	}
 }
