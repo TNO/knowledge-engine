@@ -2,12 +2,8 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -729,6 +725,56 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return existingOrGaps;
 	}
 
+	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
+		Map<TripleNode, TripleNode> matches = existingTriple.findMatches(newTriple);
+		if (matches == null) {
+			return TripleMatchType.ADD_TRIPLE;
+		} else {
+			ArrayList<TripleMatchType> matchType = new ArrayList<>();
+			for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
+				if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
+					matchType.add(TripleMatchType.IGNORE_TRIPLE);
+				} else if (!match.getKey().node.isVariable() && match.getValue().node.isVariable()) {
+					matchType.add(TripleMatchType.REPLACE_TRIPLE);
+				}
+			}
+
+			boolean equalMatchTypes = matchType.stream().allMatch(m -> m.equals(matchType.get(0)));
+			return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_GAP;
+		}
+	}
+
+	private static KnowledgeGap applyMatchAction(TripleMatchType action, KnowledgeGap existingTriple, TriplePattern tripleToAdd, TriplePattern tripleToRemove) {
+		KnowledgeGap result = existingTriple;
+		switch(action) {
+			case ADD_GAP -> result.add(tripleToAdd);
+			case REPLACE_TRIPLE -> {
+				result.remove(tripleToRemove);
+				result.add(tripleToAdd);
+			}
+		}
+		return result;
+	}
+
+	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
+		KnowledgeGap result = null;
+		for (TriplePattern tripleToAdd : gapToAdd) {
+			TripleMatchType actionToTake = null;
+			for (TriplePattern existingTriple : gap) {
+				TripleMatchType newActionToTake = getTripleMatchType(existingTriple, tripleToAdd);
+				if (actionToTake == null) {
+					actionToTake = newActionToTake;
+				} else if (newActionToTake != actionToTake) {
+					// What to do if the actions to take are contradictory
+
+				}
+			}
+			// Compare actionToTake to previous actionToTakes?
+			//result = applyMatchAction(actionToTake, gap, tripleToAdd, tripleToRemove);
+		}
+		return result;
+	}
+
 	public static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
 		if (listOfGaps.isEmpty()) {
 			return gapsToAdd;
@@ -737,42 +783,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		Set<KnowledgeGap> knowledgeGaps = new HashSet<>();
-		for (KnowledgeGap existingOrGap : listOfGaps) {
-			for (KnowledgeGap collectedOrGap : gapsToAdd) {
-				Set<KnowledgeGap> currentGaps = new HashSet<>();
-				for (TriplePattern triple1 : collectedOrGap) {
-					boolean added = false;
-					for (TriplePattern triple2 : existingOrGap) {
-						Map<TripleNode, TripleNode> matches = triple2.findMatches(triple1);
-						if (matches == null) continue;
-
-						for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
-							if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
-								// Triple from existing OrGap is more general and needs to be replaced
-								KnowledgeGap gap = new KnowledgeGap(Set.copyOf(existingOrGap));
-								gap.remove(triple2);
-								gap.add(triple1);
-								currentGaps.add(gap);
-							} else if (match.getValue().node.isVariable() && !match.getKey().node.isVariable()) {
-								// Triple in existingOrGap is more specific, no need to add collectedOrGap to newGap
-								added = true;
-								currentGaps.add(existingOrGap);
-							}
-						}
-					}
-					if (!added) {
-						if (currentGaps.isEmpty()) {
-							KnowledgeGap g = new KnowledgeGap();
-							g.add(triple1);
-							currentGaps.add(g);
-						} else {
-							currentGaps.forEach(g -> g.add(triple1));
-						}
-					}
-				}
-				knowledgeGaps.addAll(currentGaps);
+		for (KnowledgeGap existingGap : listOfGaps) {
+			for (KnowledgeGap gapToAdd : gapsToAdd) {
+				KnowledgeGap g = mergeGap(existingGap, gapToAdd);
+				knowledgeGaps.add(g);
 			}
 		}
+
 		return knowledgeGaps;
 	}
 
