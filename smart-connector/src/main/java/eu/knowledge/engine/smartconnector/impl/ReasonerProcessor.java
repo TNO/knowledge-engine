@@ -2,15 +2,12 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
@@ -711,38 +708,89 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
-			if (!foundNeighborWithoutGap) {
-				// there is a gap here, either in the current node or in a neighbor.
+			if (foundNeighborWithoutGap) continue;
 
-				if (collectedOrGaps.isEmpty()) {
-					KnowledgeGap kg = new KnowledgeGap();
-					kg.add(entry.getKey());
-					collectedOrGaps.add(kg);
-				}
-				LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+			// there is a gap here, either in the current node or in a neighbor.
 
-				Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
-				if (existingOrGaps.isEmpty()) {
-					existingOrGaps.addAll(collectedOrGaps);
-					LOG.debug("Added collectedOrGaps to existingOrGaps");
-				} else {
-					KnowledgeGap newGap;
-					for (KnowledgeGap existingOrGap : existingOrGaps) {
-						for (KnowledgeGap collectedOrGap : collectedOrGaps) {
-							newGap = new KnowledgeGap();
-							newGap.addAll(existingOrGap);
-							newGap.addAll(collectedOrGap);
-							LOG.debug("Found newGap {}", newGap);
-							newExistingOrGaps.add(newGap);
-						}
-					}
-					existingOrGaps = newExistingOrGaps;
-				}
-
+			if (collectedOrGaps.isEmpty()) {
+				KnowledgeGap kg = new KnowledgeGap();
+				kg.add(entry.getKey());
+				collectedOrGaps.add(kg);
 			}
+			LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+
+			existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 		}
 		LOG.debug("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
+	}
+
+	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
+		Map<TripleNode, TripleNode> matches = existingTriple.findMatches(newTriple);
+		if (matches == null) {
+			return TripleMatchType.ADD_TRIPLE;
+		} else {
+			ArrayList<TripleMatchType> matchType = new ArrayList<>();
+			for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
+				if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
+					matchType.add(TripleMatchType.IGNORE_TRIPLE);
+				} else if (!match.getKey().node.isVariable() && match.getValue().node.isVariable()) {
+					matchType.add(TripleMatchType.REPLACE_TRIPLE);
+				}
+			}
+
+			boolean equalMatchTypes = matchType.stream().allMatch(m -> m.equals(matchType.get(0)));
+			return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_GAP;
+		}
+	}
+
+	private static KnowledgeGap applyMatchAction(TripleMatchType action, KnowledgeGap existingTriple, TriplePattern tripleToAdd, TriplePattern tripleToRemove) {
+		KnowledgeGap result = existingTriple;
+		switch(action) {
+			case ADD_GAP -> result.add(tripleToAdd);
+			case REPLACE_TRIPLE -> {
+				result.remove(tripleToRemove);
+				result.add(tripleToAdd);
+			}
+		}
+		return result;
+	}
+
+	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
+		KnowledgeGap result = null;
+		for (TriplePattern tripleToAdd : gapToAdd) {
+			TripleMatchType actionToTake = null;
+			for (TriplePattern existingTriple : gap) {
+				TripleMatchType newActionToTake = getTripleMatchType(existingTriple, tripleToAdd);
+				if (actionToTake == null) {
+					actionToTake = newActionToTake;
+				} else if (newActionToTake != actionToTake) {
+					// What to do if the actions to take are contradictory
+
+				}
+			}
+			// Compare actionToTake to previous actionToTakes?
+			//result = applyMatchAction(actionToTake, gap, tripleToAdd, tripleToRemove);
+		}
+		return result;
+	}
+
+	public static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
+		if (listOfGaps.isEmpty()) {
+			return gapsToAdd;
+		} else if (gapsToAdd.isEmpty()) {
+			return listOfGaps;
+		}
+
+		Set<KnowledgeGap> knowledgeGaps = new HashSet<>();
+		for (KnowledgeGap existingGap : listOfGaps) {
+			for (KnowledgeGap gapToAdd : gapsToAdd) {
+				KnowledgeGap g = mergeGap(existingGap, gapToAdd);
+				knowledgeGaps.add(g);
+			}
+		}
+
+		return knowledgeGaps;
 	}
 
 	private boolean isMetaKI(RuleNode neighbor) {
