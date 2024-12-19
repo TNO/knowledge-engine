@@ -51,30 +51,6 @@ public class WireMockFirstConfigurationTest {
 		LOG.info("Testing with exposed url: {}", value);
 	}
 
-	/*
-	 * Because this unit test relies on the message dispatcher being instantiated
-	 * during the @{code getMessageDispatcher()} method it does not work during
-	 * Maven build, because the JVM (and so the MessageDispatcher) was already
-	 * started before for other tests.
-	 * 
-	 * For now, I do not see a way to tests these configuration properties without
-	 * modifying the knowledge engine's KeRuntime characteristics.
-	 */
-	@Disabled
-	@Test
-	public void testConfigKDUrlAndHostnameAndPort() throws Exception {
-		stubFor(post("/ker/").willReturn(status(201).withBody("{}")));
-		stubFor(get("/ker/").willReturn(status(200).withBody("[]")));
-
-		// note that the message dispatcher is automatically started
-		MessageDispatcher md = KeRuntime.getMessageDispatcher();
-
-		Thread.sleep(5000);
-
-		verify(getRequestedFor(urlEqualTo("/ker/"))
-				.withRequestBody(matchingJsonPath("$.exposedUrl", matching("http://testlocalhost:1234"))));
-	}
-
 	/**
 	 * Does a (very limited) test of the http timeout configuration option. We are
 	 * setting it to 1 second and if this works, the test should succeed within 2
