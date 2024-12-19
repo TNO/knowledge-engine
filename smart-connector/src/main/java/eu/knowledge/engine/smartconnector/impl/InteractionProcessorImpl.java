@@ -28,6 +28,7 @@ import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.syntax.ElementData;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.reasoner.Rule;
@@ -75,8 +76,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * data exchange.
 	 */
 	private boolean reasonerEnabled = false;
-
-	private static boolean VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT = true;
 
 	private static final Query query = QueryFactory.create(
 			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
@@ -388,9 +387,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	private boolean shouldValidateInputOutputBindings() {
-		return SmartConnectorConfig.getBoolean(
-				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
-				VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT);
+		return ConfigProvider.getConfig().getValue(
+				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, Boolean.class);
 	}
 
 	@Override
