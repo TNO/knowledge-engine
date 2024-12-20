@@ -24,14 +24,14 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 public class TestAskAnswerWithPartialBindings {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerWithPartialBindings.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
 
 	@Test
 	public void testAskAnswer() throws InterruptedException {
@@ -41,9 +41,9 @@ public class TestAskAnswerWithPartialBindings {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new EasyKnowledgeBase("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new EasyKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");

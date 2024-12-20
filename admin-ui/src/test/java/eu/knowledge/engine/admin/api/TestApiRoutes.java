@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.knowledge.engine.admin.AdminUI;
-import eu.knowledge.engine.admin.MetaKB;
+import eu.knowledge.engine.admin.MetadataKB;
 import eu.knowledge.engine.smartconnector.api.AnswerHandler;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
@@ -40,15 +40,15 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestApiRoutes {
 	private Thread thread;
 	private static final Logger LOG = LoggerFactory.getLogger(TestApiRoutes.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
 
 	private static AdminUI admin;
 	private HttpClient httpClient;
@@ -253,7 +253,7 @@ public class TestApiRoutes {
 		int wait = 2;
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
 
-		kb1 = new MockedKnowledgeBase("kb1") {
+		kb1 = new EasyKnowledgeBase("kb1") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -280,7 +280,7 @@ public class TestApiRoutes {
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
 		kb2 = null;
-		kb2 = new MockedKnowledgeBase("kb2") {
+		kb2 = new EasyKnowledgeBase("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -305,7 +305,7 @@ public class TestApiRoutes {
 		stopKb(kb2);
 	}
 
-	public void stopKb(MockedKnowledgeBase aKb) {
+	public void stopKb(EasyKnowledgeBase aKb) {
 		if (aKb != null) {
 			aKb.stop();
 		}

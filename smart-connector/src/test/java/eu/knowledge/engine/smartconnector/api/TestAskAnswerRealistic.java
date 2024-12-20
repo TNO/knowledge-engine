@@ -23,23 +23,23 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 @Disabled
 public class TestAskAnswerRealistic {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
-	private static MockedKnowledgeBase kb3;
-	private static MockedKnowledgeBase kb4;
-	private static MockedKnowledgeBase kb5;
-	private static MockedKnowledgeBase kb6;
-	private static MockedKnowledgeBase kb7;
-	private static MockedKnowledgeBase kb8;
-	private static MockedKnowledgeBase kb9;
-	private static MockedKnowledgeBase kb10;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb3;
+	private static EasyKnowledgeBase kb4;
+	private static EasyKnowledgeBase kb5;
+	private static EasyKnowledgeBase kb6;
+	private static EasyKnowledgeBase kb7;
+	private static EasyKnowledgeBase kb8;
+	private static EasyKnowledgeBase kb9;
+	private static EasyKnowledgeBase kb10;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -51,25 +51,25 @@ public class TestAskAnswerRealistic {
 
 		var kn = new KnowledgeNetwork();
 
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new EasyKnowledgeBase("kb1");
 		kb1.setReasonerEnabled(true);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new EasyKnowledgeBase("kb2");
 		kb2.setReasonerEnabled(true);
-		kb3 = new MockedKnowledgeBase("kb3");
+		kb3 = new EasyKnowledgeBase("kb3");
 		kb3.setReasonerEnabled(true);
-		kb4 = new MockedKnowledgeBase("kb4");
+		kb4 = new EasyKnowledgeBase("kb4");
 		kb4.setReasonerEnabled(true);
-		kb5 = new MockedKnowledgeBase("kb5");
+		kb5 = new EasyKnowledgeBase("kb5");
 		kb5.setReasonerEnabled(true);
-		kb6 = new MockedKnowledgeBase("kb6");
+		kb6 = new EasyKnowledgeBase("kb6");
 		kb6.setReasonerEnabled(true);
-		kb7 = new MockedKnowledgeBase("kb7");
+		kb7 = new EasyKnowledgeBase("kb7");
 		kb7.setReasonerEnabled(true);
-		kb8 = new MockedKnowledgeBase("kb8");
+		kb8 = new EasyKnowledgeBase("kb8");
 		kb8.setReasonerEnabled(true);
-		kb9 = new MockedKnowledgeBase("kb9");
+		kb9 = new EasyKnowledgeBase("kb9");
 		kb9.setReasonerEnabled(true);
-		kb10 = new MockedKnowledgeBase("kb10");
+		kb10 = new EasyKnowledgeBase("kb10");
 		kb10.setReasonerEnabled(true);
 
 		var rules = new HashSet<Rule>();

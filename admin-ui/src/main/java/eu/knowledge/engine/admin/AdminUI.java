@@ -16,7 +16,7 @@ import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
  * Knowledge Bases within the network and also provides REST APIs to access the
  * same information including relations between knowledge bases.
  */
-public class AdminUI extends MetaKB {
+public class AdminUI extends MetadataKB {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
 

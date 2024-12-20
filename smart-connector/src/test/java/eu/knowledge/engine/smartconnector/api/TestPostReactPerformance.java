@@ -23,11 +23,11 @@ import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 public class TestPostReactPerformance {
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReactPerformance.class);
 
@@ -39,9 +39,9 @@ public class TestPostReactPerformance {
 
 		// create the network
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new EasyKnowledgeBase("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new EasyKnowledgeBase("kb2");
 		kn.addKB(kb2);
 
 		// register capabilities

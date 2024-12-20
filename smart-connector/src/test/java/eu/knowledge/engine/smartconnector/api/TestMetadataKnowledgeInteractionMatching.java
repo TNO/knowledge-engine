@@ -1,7 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.junit.jupiter.api.AfterEach;
@@ -27,14 +27,14 @@ public class TestMetadataKnowledgeInteractionMatching {
     private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
 
     private static KnowledgeNetwork kn;
-    private static MockedKnowledgeBase kb1, kb2;
+    private static EasyKnowledgeBase kb1, kb2;
     private static PrefixMappingMem prefixes;
 
 
     @BeforeEach
     public void setup() {
         kn = new KnowledgeNetwork();
-        kb1 = new MockedKnowledgeBase("Kb1");
+        kb1 = new EasyKnowledgeBase("Kb1");
         kb1.setReasonerEnabled(true);
 
         prefixes = new PrefixMappingMem();
@@ -57,7 +57,7 @@ public class TestMetadataKnowledgeInteractionMatching {
         kn.addKB(kb1);
         kn.sync();
 
-        kb2 = new MockedKnowledgeBase("Kb2");
+        kb2 = new EasyKnowledgeBase("Kb2");
         kb2.setReasonerEnabled(true);
         kn.addKB(kb2);
         kn.sync();
@@ -78,7 +78,7 @@ public class TestMetadataKnowledgeInteractionMatching {
         kn.addKB(kb1);
         kn.sync();
 
-        kb2 = new MockedKnowledgeBase("Kb2");
+        kb2 = new EasyKnowledgeBase("Kb2");
         kb2.setReasonerEnabled(true);
         kn.addKB(kb2);
         kn.sync();
@@ -101,7 +101,7 @@ public class TestMetadataKnowledgeInteractionMatching {
             return new BindingSet();
         }));
         kn.addKB(kb1);
-        kb2 = new MockedKnowledgeBase("Kb2");
+        kb2 = new EasyKnowledgeBase("Kb2");
         kb2.setReasonerEnabled(true);
         kn.addKB(kb2);
         kn.sync();

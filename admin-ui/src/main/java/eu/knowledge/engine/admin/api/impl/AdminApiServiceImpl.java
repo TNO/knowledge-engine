@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.admin.AdminUI;
-import eu.knowledge.engine.admin.MetaKB;
+import eu.knowledge.engine.admin.MetadataKB;
 import eu.knowledge.engine.admin.Util;
 import eu.knowledge.engine.admin.model.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.AskKnowledgeInteraction;

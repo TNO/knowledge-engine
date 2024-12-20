@@ -37,15 +37,15 @@ import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 public class TestDuplicateBindings {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestDuplicateBindings.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
-	private static MockedKnowledgeBase kb3;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb3;
 	private static KnowledgeNetwork kn;
 
 	private static AnswerKnowledgeInteraction answerKI1;
@@ -61,11 +61,11 @@ public class TestDuplicateBindings {
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 		kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new EasyKnowledgeBase("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new EasyKnowledgeBase("kb2");
 		kn.addKB(kb2);
-		kb3 = new MockedKnowledgeBase("kb3");
+		kb3 = new EasyKnowledgeBase("kb3");
 		kn.addKB(kb3);
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();

@@ -24,7 +24,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 /**
  * Knowledge Base that keeps track of all other KBs in the network. It does this
@@ -35,9 +35,9 @@ import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
  * interactions.
  *
  */
-public class MetaKB extends MockedKnowledgeBase {
+public class MetadataKB extends EasyKnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MetaKB.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MetadataKB.class);
 
 	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type ke:KnowledgeBase . ?kb ke:hasName ?name . ?kb ke:hasDescription ?description . ?kb ke:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki ke:isMeta ?isMeta . ?ki ke:hasCommunicativeAct ?act . ?act rdf:type ke:CommunicativeAct . ?act ke:hasRequirement ?req . ?act ke:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki ke:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp ke:hasPattern ?pattern .";
 
@@ -62,7 +62,7 @@ public class MetaKB extends MockedKnowledgeBase {
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
 	 * available knowledge bases.
 	 */
-	public MetaKB(String id, String name, String description) {
+	public MetadataKB(String id, String name, String description) {
 		super(id, name, description);
 		readyPhaser = new Phaser(0);
 		this.setPhaser(this.readyPhaser);

@@ -30,8 +30,8 @@ public class KnowledgeNetwork {
 	 * ready, Phase 2 = everybody is aware of everybody.
 	 */
 	private Phaser readyPhaser;
-	private Set<MockedKnowledgeBase> knowledgeBases;
-	private Map<MockedKnowledgeBase, AskKnowledgeInteraction> knowledgeInteractionMetadata;
+	private Set<EasyKnowledgeBase> knowledgeBases;
+	private Map<EasyKnowledgeBase, AskKnowledgeInteraction> knowledgeInteractionMetadata;
 	private PrefixMapping prefixMapping;
 
 	public KnowledgeNetwork() {
@@ -43,7 +43,7 @@ public class KnowledgeNetwork {
 		this.prefixMapping.setNsPrefix("kb", Vocab.ONTO_URI);
 	}
 
-	public void addKB(MockedKnowledgeBase aKB) {
+	public void addKB(EasyKnowledgeBase aKB) {
 		aKB.setPhaser(this.readyPhaser);
 		knowledgeBases.add(aKB);
 	}
@@ -59,9 +59,9 @@ public class KnowledgeNetwork {
 	 */
 	private void startAndWaitForReady() {
 
-		Set<MockedKnowledgeBase> justStartedKBs = new HashSet<>();
+		Set<EasyKnowledgeBase> justStartedKBs = new HashSet<>();
 
-		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+		for (EasyKnowledgeBase kb : this.knowledgeBases) {
 			if (!kb.isStarted()) {
 				kb.start();
 				justStartedKBs.add(kb);
@@ -87,14 +87,14 @@ public class KnowledgeNetwork {
 		// @formatter:on
 		);
 
-		for (MockedKnowledgeBase kb : justStartedKBs) {
+		for (EasyKnowledgeBase kb : justStartedKBs) {
 			AskKnowledgeInteraction anAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, null, false, true,
 					false, MatchStrategy.ENTRY_LEVEL);
 			this.knowledgeInteractionMetadata.put(kb, anAskKI);
 			kb.register(anAskKI);
 		}
 
-		for (MockedKnowledgeBase kb : this.knowledgeBases) {
+		for (EasyKnowledgeBase kb : this.knowledgeBases) {
 			kb.syncKIs();
 		}
 	}
@@ -110,9 +110,9 @@ public class KnowledgeNetwork {
 			count++;
 			LOG.info("Checking up to date knowledge bases.");
 			allUpToDate = true;
-			Map<MockedKnowledgeBase, Boolean> upToDate = new HashMap<>();
+			Map<EasyKnowledgeBase, Boolean> upToDate = new HashMap<>();
 			boolean kbUpToDate;
-			for (MockedKnowledgeBase kb : this.knowledgeBases) {
+			for (EasyKnowledgeBase kb : this.knowledgeBases) {
 				kbUpToDate = kb.isUpToDate(this.knowledgeInteractionMetadata.get(kb), this.knowledgeBases);
 				allUpToDate &= kbUpToDate;
 				upToDate.put(kb, kbUpToDate);
@@ -130,11 +130,11 @@ public class KnowledgeNetwork {
 		LOG.info("Everyone is up to date after {} rounds!", count);
 	}
 
-	private String getUpToDateInfo(Map<MockedKnowledgeBase, Boolean> upToDate) {
+	private String getUpToDateInfo(Map<EasyKnowledgeBase, Boolean> upToDate) {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("(");
-		for (Map.Entry<MockedKnowledgeBase, Boolean> entry : upToDate.entrySet()) {
+		for (Map.Entry<EasyKnowledgeBase, Boolean> entry : upToDate.entrySet()) {
 			sb.append(entry.getKey().getKnowledgeBaseName()).append("=").append(entry.getValue());
 			sb.append(",");
 		}
