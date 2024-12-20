@@ -60,7 +60,7 @@ public class AdminApiServiceImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminApiServiceImpl.class);
 
-	private MetaKB admin;
+	private AdminUI admin;
 
 	private Model model;
 

@@ -13,6 +13,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +106,8 @@ public class MetaKB extends MockedKnowledgeBase {
 		// to receive the initial state, we do a single Ask (after sleeping for a
 		// specific amount of time)
 		try {
-			Thread.sleep(Integer.parseInt(MetaKB.getConfigProperty(CONF_KEY_INITIAL_ADMIN_UI_DELAY, "5000")));
+			Thread.sleep(
+					ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY, Integer.class));
 		} catch (InterruptedException e) {
 			LOG.info("{}", e);
 		}

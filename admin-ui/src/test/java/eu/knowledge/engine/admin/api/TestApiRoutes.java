@@ -50,7 +50,7 @@ public class TestApiRoutes {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
-	private static MetaKB admin;
+	private static AdminUI admin;
 	private HttpClient httpClient;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
