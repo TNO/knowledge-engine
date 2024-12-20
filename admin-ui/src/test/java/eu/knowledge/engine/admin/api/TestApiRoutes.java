@@ -1,19 +1,9 @@
 package eu.knowledge.engine.admin.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import eu.knowledge.engine.admin.AdminUI;
-import eu.knowledge.engine.smartconnector.api.*;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
-
-import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,7 +19,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.admin.MetaKB;
+import eu.knowledge.engine.smartconnector.api.AnswerHandler;
+import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.Binding;
+import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
+import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestApiRoutes {
@@ -39,7 +50,7 @@ public class TestApiRoutes {
 	private static MockedKnowledgeBase kb1;
 	private static MockedKnowledgeBase kb2;
 
-	private static AdminUI admin;
+	private static MetaKB admin;
 	private HttpClient httpClient;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 

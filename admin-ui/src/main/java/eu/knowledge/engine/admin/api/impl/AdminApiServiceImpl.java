@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.admin.MetaKB;
 import eu.knowledge.engine.admin.Util;
 import eu.knowledge.engine.admin.model.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.AskKnowledgeInteraction;
@@ -59,7 +60,7 @@ public class AdminApiServiceImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminApiServiceImpl.class);
 
-	private AdminUI admin;
+	private MetaKB admin;
 
 	private Model model;
 
