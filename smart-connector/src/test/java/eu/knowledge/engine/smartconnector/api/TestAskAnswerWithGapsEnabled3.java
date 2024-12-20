@@ -24,15 +24,15 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 public class TestAskAnswerWithGapsEnabled3 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerWithGapsEnabled3.class);
 
-	private static MockedKnowledgeBase kbRelationAsker;
-	private static MockedKnowledgeBase kbRelationProvider;
-	private static MockedKnowledgeBase kbRelationReactor;
+	private static EasyKnowledgeBase kbRelationAsker;
+	private static EasyKnowledgeBase kbRelationProvider;
+	private static EasyKnowledgeBase kbRelationReactor;
 	
 	private static KnowledgeNetwork kn;
 
@@ -105,7 +105,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 	public void instantiateAskRelationsKB() {
 		// start a knowledge base with the behavior "I am interested in related people"
-		kbRelationAsker = new MockedKnowledgeBase("RelationAsker");
+		kbRelationAsker = new EasyKnowledgeBase("RelationAsker");
 		kbRelationAsker.setReasonerEnabled(true);
 		
 		// Register an Ask pattern for relations with knowledge gaps enabled
@@ -117,7 +117,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 	public void instantiateAnswerRelationsKB() {
 		// start a knowledge base with the behavior "I can supply related people"
-		kbRelationProvider = new MockedKnowledgeBase("RelationProvider");
+		kbRelationProvider = new EasyKnowledgeBase("RelationProvider");
 		kbRelationProvider.setReasonerEnabled(true);
 
 		// Patterns for the RelationProvider: an Answer pattern for relations
@@ -144,7 +144,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 		// start a knowledge base with the behavior "I can react to supply related people"
 		// when I get couples of "people that live in the same house".
-		kbRelationReactor = new MockedKnowledgeBase("relationReactor");
+		kbRelationReactor = new EasyKnowledgeBase("relationReactor");
 		kbRelationReactor.setReasonerEnabled(true);
 
 		// Patterns for the relationReactor: an React pattern to supply relations

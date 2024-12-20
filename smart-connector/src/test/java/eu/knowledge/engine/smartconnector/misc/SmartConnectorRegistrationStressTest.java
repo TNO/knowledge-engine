@@ -21,7 +21,7 @@ import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 @Tag("Long")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -38,7 +38,7 @@ public class SmartConnectorRegistrationStressTest {
 		kn = new KnowledgeNetwork();
 		for (var i = 0; i < NUM_KBS; i++) {
 			LOG.info("Starting KB{}", i);
-			kn.addKB(new MockedKnowledgeBase("INITIAL-KB" + i));
+			kn.addKB(new EasyKnowledgeBase("INITIAL-KB" + i));
 		}
 		kn.sync();
 	}

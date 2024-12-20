@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 /**
  * This test tries to balance the number of threads posting to a single KB to
@@ -82,8 +82,8 @@ public class MultiThreadingPerformanceTest {
 	private Queue<MessageTime> timings = new ConcurrentLinkedQueue<MessageTime>();
 
 	private KnowledgeNetwork kn = null;
-	private MockedKnowledgeBase poster = null;
-	private MockedKnowledgeBase reacter = null;
+	private EasyKnowledgeBase poster = null;
+	private EasyKnowledgeBase reacter = null;
 	private PostKnowledgeInteraction postKI = null;
 	private ReactKnowledgeInteraction reactKI = null;
 
@@ -151,10 +151,10 @@ public class MultiThreadingPerformanceTest {
 	public void test() throws InterruptedException {
 
 		kn = new KnowledgeNetwork();
-		poster = new MockedKnowledgeBase("poster");
+		poster = new EasyKnowledgeBase("poster");
 		poster.setIsThreadSafe(true);
 		kn.addKB(poster);
-		reacter = new MockedKnowledgeBase("reacter");
+		reacter = new EasyKnowledgeBase("reacter");
 		reacter.setIsThreadSafe(true);
 		kn.addKB(reacter);
 

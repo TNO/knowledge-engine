@@ -29,15 +29,15 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 public class TestAskPartialMetadata {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskPartialMetadata.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
-	private static MockedKnowledgeBase kb3;
+	private static EasyKnowledgeBase kb1;
+	private static EasyKnowledgeBase kb2;
+	private static EasyKnowledgeBase kb3;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -51,13 +51,13 @@ public class TestAskPartialMetadata {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new EasyKnowledgeBase("kb1");
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new EasyKnowledgeBase("kb2");
 		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
-		kb3 = new MockedKnowledgeBase("kb3");
+		kb3 = new EasyKnowledgeBase("kb3");
 		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 

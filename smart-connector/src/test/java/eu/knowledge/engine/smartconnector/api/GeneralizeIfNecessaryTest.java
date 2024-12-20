@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
 
 /**
  * This test tries to illustrate <i>generalize if necessary</i>. We instantiate
@@ -36,10 +36,10 @@ public class GeneralizeIfNecessaryTest {
 	private static final Logger LOG = LoggerFactory.getLogger(GeneralizeIfNecessaryTest.class);
 
 	private static KnowledgeNetwork kn = new KnowledgeNetwork();
-	private MockedKnowledgeBase appKb = new MockedKnowledgeBase("AppKB");
-	private MockedKnowledgeBase sensor1Kb = new MockedKnowledgeBase("Sensor1KB");
-	private MockedKnowledgeBase sensor2Kb = new MockedKnowledgeBase("Sensor2KB");
-	private MockedKnowledgeBase floorplanKb = new MockedKnowledgeBase("FloorplanKB");
+	private EasyKnowledgeBase appKb = new EasyKnowledgeBase("AppKB");
+	private EasyKnowledgeBase sensor1Kb = new EasyKnowledgeBase("Sensor1KB");
+	private EasyKnowledgeBase sensor2Kb = new EasyKnowledgeBase("Sensor2KB");
+	private EasyKnowledgeBase floorplanKb = new EasyKnowledgeBase("FloorplanKB");
 	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "http://example.org/").setNsPrefix("rdf",
 			"http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
