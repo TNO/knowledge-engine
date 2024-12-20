@@ -39,8 +39,6 @@ public class MetaKB extends MockedKnowledgeBase {
 
 	private static final String META_GRAPH_PATTERN_STR = "?kb rdf:type ke:KnowledgeBase . ?kb ke:hasName ?name . ?kb ke:hasDescription ?description . ?kb ke:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki ke:isMeta ?isMeta . ?ki ke:hasCommunicativeAct ?act . ?act rdf:type ke:CommunicativeAct . ?act ke:hasRequirement ?req . ?act ke:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki ke:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp ke:hasPattern ?pattern .";
 
-	private static final String CONF_KEY_INITIAL_ADMIN_UI_DELAY = "INITIAL_ADMIN_UI_DELAY";
-
 	private final PrefixMapping prefixes;
 
 	private Phaser readyPhaser;
