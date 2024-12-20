@@ -27,10 +27,12 @@ import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 /**
- * Knowledge Base that regularly prints an overview of the currently available
- * Knowledge Bases within the network.
+ * Knowledge Base that keeps track of all other KBs in the network. It does this
+ * by subscribing to meta knowledge interactions and updating its state
+ * accordingly.
  *
- * We use Apache Jena's API extensively to work with the results of our ask.
+ * We use Apache Jena's API extensively to work with the results of our
+ * interactions.
  *
  */
 public class MetaKB extends MockedKnowledgeBase {

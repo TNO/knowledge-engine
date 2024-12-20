@@ -11,6 +11,11 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 
+/**
+ * Knowledge Base that regularly prints an overview of the currently available
+ * Knowledge Bases within the network and also provides REST APIs to access the
+ * same information including relations between knowledge bases.
+ */
 public class AdminUI extends MetaKB {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AdminUI.class);
