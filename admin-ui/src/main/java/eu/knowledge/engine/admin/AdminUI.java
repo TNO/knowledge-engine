@@ -2,6 +2,7 @@ package eu.knowledge.engine.admin;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Phaser;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -36,6 +37,11 @@ public class AdminUI extends MetadataKB {
 			continuousLog = useLog;
 			instance = new AdminUI();
 		}
+
+		instance.setPhaser(new Phaser(1));
+		instance.start();
+		instance.syncKIs();
+
 		return instance;
 	}
 
