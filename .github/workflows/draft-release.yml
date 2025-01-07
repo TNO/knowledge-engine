@@ -32,9 +32,10 @@ jobs:
       - name: Draft release
         uses: softprops/action-gh-release@v2
         with:
+          working-directory: ${{ github.workspace }}
           files: |
-            smart-connector-rest-dist-${{ inputs.version }}-with-dependencies.jar
-            knowledge-directory-${{ inputs.version }}-with-dependencies.jar
+            smart-connector-rest-dist/target/smart-connector-rest-dist-${{ inputs.version }}-with-dependencies.jar
+            knowledge-directory/target/knowledge-directory-${{ inputs.version }}-with-dependencies.jar
           tag_name: ${{ inputs.version }}
           draft: true
           generate_release_notes: true
