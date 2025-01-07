@@ -46,7 +46,7 @@ public class AdminUI extends MetadataKB {
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
 		if (continuousLog) {
-			this.printKnowledgeBases(this.getModel());
+			this.printKnowledgeBases(this.getMetadata());
 		}
 		return bs;
 	}
@@ -58,7 +58,7 @@ public class AdminUI extends MetadataKB {
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
 		if (continuousLog) {
-			this.printKnowledgeBases(this.getModel());
+			this.printKnowledgeBases(this.getMetadata());
 		}
 		return bs;
 	}
@@ -70,7 +70,7 @@ public class AdminUI extends MetadataKB {
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
 		if (continuousLog) {
-			this.printKnowledgeBases(this.getModel());
+			this.printKnowledgeBases(this.getMetadata());
 		}
 
 		return bs;
@@ -83,7 +83,7 @@ public class AdminUI extends MetadataKB {
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
 		if (continuousLog)
-			this.printKnowledgeBases(this.getModel());
+			this.printKnowledgeBases(this.getMetadata());
 	}
 
 	private void printKnowledgeBases(Model model) {

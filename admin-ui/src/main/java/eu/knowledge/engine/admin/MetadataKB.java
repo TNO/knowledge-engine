@@ -2,7 +2,7 @@ package eu.knowledge.engine.admin;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.concurrent.Phaser;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -43,8 +43,6 @@ public class MetadataKB extends EasyKnowledgeBase {
 
 	private final PrefixMapping prefixes;
 
-	private Phaser readyPhaser;
-
 	// used for getting initial knowledge about other KBs
 	private AskKnowledgeInteraction aKI;
 	// used triggered when new knowledge about other KBs is available
@@ -54,9 +52,11 @@ public class MetadataKB extends EasyKnowledgeBase {
 	// used triggered when knowledge about other KBs is deleted
 	private ReactKnowledgeInteraction rKIRemoved;
 
-	private Model model;
+	private Model metadata;
 
 	private GraphPattern metaGraphPattern;
+
+	private boolean timeToSleepAndFetch = true;
 
 	/**
 	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
@@ -64,8 +64,6 @@ public class MetadataKB extends EasyKnowledgeBase {
 	 */
 	public MetadataKB(String id, String name, String description) {
 		super(id, name, description);
-		readyPhaser = new Phaser(0);
-		this.setPhaser(this.readyPhaser);
 
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
@@ -73,11 +71,6 @@ public class MetadataKB extends EasyKnowledgeBase {
 		this.prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
 
 		this.metaGraphPattern = new GraphPattern(this.prefixes, META_GRAPH_PATTERN_STR);
-
-		// we wait for the Smart Connector to be ready, before registering our Knowledge
-		// Interactions and starting the Ask job.
-
-		LOG.info("Smart connector ready, now registering Knowledge Interactions.");
 
 		// create the correct Knowledge Interactions
 		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true);
@@ -100,19 +93,24 @@ public class MetadataKB extends EasyKnowledgeBase {
 		this.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBaseKnowledge(ei));
 		this.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBaseKnowledge(ei));
 
-		this.start();
-		this.syncKIs();
+	}
 
-		// to receive the initial state, we do a single Ask (after sleeping for a
-		// specific amount of time)
-		try {
-			Thread.sleep(
-					ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY, Integer.class));
-		} catch (InterruptedException e) {
-			LOG.info("{}", e);
+	@Override
+	public void syncKIs() {
+		super.syncKIs();
+
+		if (timeToSleepAndFetch) {
+			// to receive the initial state, we do a single Ask (after sleeping for a
+			// specific amount of time)
+			try {
+				Thread.sleep(ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY,
+						Integer.class));
+			} catch (InterruptedException e) {
+				LOG.info("{}", e);
+			}
+			this.fetchInitialData();
+			this.timeToSleepAndFetch = false;
 		}
-		this.fetchInitialData();
-
 	}
 
 	public BindingSet handleNewKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
@@ -123,16 +121,19 @@ public class MetadataKB extends EasyKnowledgeBase {
 			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
 					ei.getArgumentBindings());
 
-			// this we can simply add to our model
-			this.model.add(model);
+			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 
+			// this we can simply add to our model
+			this.metadata.add(model);
+			LOG.debug("Modified metadata with new KB '{}'.", kb);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 		}
 		return new BindingSet();
 	}
 
 	public BindingSet handleChangedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+
 		if (!this.canReceiveUpdates())
 			return new BindingSet();
 
@@ -150,12 +151,14 @@ public class MetadataKB extends EasyKnowledgeBase {
 					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
 
 			UpdateRequest updateRequest = UpdateFactory.create(query);
-			UpdateAction.execute(updateRequest, this.model);
+			UpdateAction.execute(updateRequest, this.metadata);
 
-			this.model.add(model);
+			this.metadata.add(model);
+
+			LOG.debug("Modified metadata with changed KB '{}'.", kb);
 
 		} catch (ParseException e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 		}
 		return new BindingSet();
 	}
@@ -177,10 +180,12 @@ public class MetadataKB extends EasyKnowledgeBase {
 					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
 
 			UpdateRequest updateRequest = UpdateFactory.create(query);
-			UpdateAction.execute(updateRequest, this.model);
+			UpdateAction.execute(updateRequest, this.metadata);
+
+			LOG.debug("Modified metadata with deleted KB '{}'.", kb);
 
 		} catch (ParseException e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 		}
 		return new BindingSet();
 	}
@@ -188,48 +193,43 @@ public class MetadataKB extends EasyKnowledgeBase {
 	public void fetchInitialData() {
 		LOG.info("Retrieving initial other Knowledge Base info...");
 
-		// execute actual *ask* and use previously defined Knowledge Interaction.
-		this.getSC().ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
-			try {
-				// using the BindingSet#generateModel() helper method, we can combine the graph
-				// pattern and the bindings for its variables into a valid RDF Model.
-				this.model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
-						askResult.getBindings());
-				this.model.setNsPrefixes(this.prefixes);
+		try {
 
-			} catch (ParseException e) {
-				LOG.error("{}", e);
-			}
-		}).handle((r, e) -> {
-			if (r == null && e != null) {
-				LOG.error("An exception has occured while retrieving other Knowledge Bases info", e);
-				return null;
-			} else {
-				return r;
-			}
-		});
+			// execute actual *ask* and use previously defined Knowledge Interaction.
+			this.getSC().ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
+				try {
+					// using the BindingSet#generateModel() helper method, we can combine the graph
+					// pattern and the bindings for its variables into a valid RDF Model.
+					this.metadata = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
+							askResult.getBindings());
+					this.metadata.setNsPrefixes(this.prefixes);
+
+				} catch (ParseException e) {
+					LOG.error("{}", e);
+				}
+			}).handle((r, e) -> {
+				if (r == null && e != null) {
+					LOG.error("An exception has occured while retrieving other Knowledge Bases info", e);
+					return null;
+				} else {
+					return r;
+				}
+			}).get();
+		} catch (ExecutionException | InterruptedException ee) {
+			LOG.error("{}", ee);
+		}
+
 	}
 
-	private boolean canReceiveUpdates() {
-		return this.model != null;
+	protected boolean canReceiveUpdates() {
+		return this.metadata != null;
 	}
 
 	public void close() {
 		this.stop();
 	}
 
-	public Model getModel() {
-		return model;
-	}
-
-	public static String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.info("No value for the configuration parameter '" + key + "' was provided, using the default value '"
-					+ defaultValue + "'");
-		}
-		return value;
+	public Model getMetadata() {
+		return metadata;
 	}
 }
