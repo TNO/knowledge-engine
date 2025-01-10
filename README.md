@@ -204,14 +204,15 @@ These are instructions on what to do when we release a new version of the knowle
 	- all `pom.xml` files
 	- `openapi-sc.yaml` version
 	- Docker image tags in the Docker Compose examples.
-2. Make a commit for the release in a PR and merge it into master
-3. Go to Actions on GitHub and trigger the workflow "Make draft release" with the new version as input.
-4. When the workflow is finished, go to the newly generated draft release. Check the release notes, make any changes if necessary, and publish the release.
-5. Prepare the next SNAPSHOT version and make a commit for that in a PR and merge into master.
+2. Make a commit and push it to a new branch for the release.
+3. Make a Pull Request and merge it into master after tests have succeeded.
+4. Go to Actions on GitHub and trigger the workflow "Make draft release" with the new version as input.
+5. When the workflow is finished, go to the newly generated draft release. Check the release notes, make any changes if necessary, and publish the release.
+6. Prepare the next SNAPSHOT version and make a commit for that in a PR and merge into master.
    1. `openapi-sc.yaml`
    2. `pom.xml`
    3. Leave the non-SNAPSHOT version in this README, and in the Docker Compose examples.
-6. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
+7. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
 
 ## Code conventions
 The code conventions of the knowledge-engine can be found in the `/ide` folder in the Eclipse IDE format. The format can often also be imported in other Java IDEs like IntelliJ, VSCode or Netbeans.
