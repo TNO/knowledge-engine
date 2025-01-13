@@ -33,17 +33,17 @@ import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestDynamicSemanticComposition {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
 
-	private EasyKnowledgeBase kbTargetObserver;
-	private EasyKnowledgeBase kbHVTSearcher;
-	private EasyKnowledgeBase kbTargetCountrySupplier;
-	private EasyKnowledgeBase kbTargetLanguageSupplier;
-	private EasyKnowledgeBase kbTargetAgeSupplier;
+	private KnowledgeBaseImpl kbTargetObserver;
+	private KnowledgeBaseImpl kbHVTSearcher;
+	private KnowledgeBaseImpl kbTargetCountrySupplier;
+	private KnowledgeBaseImpl kbTargetLanguageSupplier;
+	private KnowledgeBaseImpl kbTargetAgeSupplier;
 
 	private KnowledgeNetwork kn;
 
@@ -186,13 +186,13 @@ public class TestDynamicSemanticComposition {
 		instantiateTargetLanguageSupplierKB();
 		instantiateTargetAgeSupplierKB();
 
-		List<EasyKnowledgeBase> availableKBs = new ArrayList<>();
+		List<KnowledgeBaseImpl> availableKBs = new ArrayList<>();
 		availableKBs.add(kbTargetAgeSupplier);
 		availableKBs.add(kbTargetCountrySupplier);
 		availableKBs.add(kbTargetLanguageSupplier);
 
 		// add the first KB that fulfills the gap
-		kbs: for (EasyKnowledgeBase kb : availableKBs) {
+		kbs: for (KnowledgeBaseImpl kb : availableKBs) {
 
 			for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
 
@@ -244,7 +244,7 @@ public class TestDynamicSemanticComposition {
 	public void instantiateHVTSearcherKB() {
 		// start a knowledge base with the behaviour "I am interested in high-value
 		// targets"
-		kbHVTSearcher = new EasyKnowledgeBase("HVTSearcher");
+		kbHVTSearcher = new KnowledgeBaseImpl("HVTSearcher");
 		kbHVTSearcher.setReasonerEnabled(true);
 
 		// Patterns for the HVTSearcher
@@ -272,7 +272,7 @@ public class TestDynamicSemanticComposition {
 	public void instantiateObserverKB() {
 		// start a knowledge base with the behaviour "I can supply observations of
 		// targets"
-		kbTargetObserver = new EasyKnowledgeBase("TargetObserver");
+		kbTargetObserver = new KnowledgeBaseImpl("TargetObserver");
 		kbTargetObserver.setReasonerEnabled(true);
 
 		// Patterns for the TargetObserver
@@ -306,7 +306,7 @@ public class TestDynamicSemanticComposition {
 	}
 
 	public void instantiateTargetLanguageSupplierKB() {
-		kbTargetLanguageSupplier = new EasyKnowledgeBase("TargetLanguageSupplier");
+		kbTargetLanguageSupplier = new KnowledgeBaseImpl("TargetLanguageSupplier");
 		kbTargetLanguageSupplier.setReasonerEnabled(true);
 
 		// Patterns for the TargetLanguageSupplier
@@ -348,14 +348,14 @@ public class TestDynamicSemanticComposition {
 	}
 
 	public void instantiateTargetAgeSupplierKB() {
-		kbTargetAgeSupplier = new EasyKnowledgeBase("TargetAgeSupplier");
+		kbTargetAgeSupplier = new KnowledgeBaseImpl("TargetAgeSupplier");
 		kbTargetAgeSupplier.setReasonerEnabled(true);
 	}
 
 	public void instantiateTargetCountrySupplierKB() {
 		// start a knowledge base with the behaviour "Give me a target and I can supply
 		// its basic attributes"
-		kbTargetCountrySupplier = new EasyKnowledgeBase("TargetCountrySupplier");
+		kbTargetCountrySupplier = new KnowledgeBaseImpl("TargetCountrySupplier");
 		kbTargetCountrySupplier.setReasonerEnabled(true);
 
 		// Patterns for the TargetCountrySupplier

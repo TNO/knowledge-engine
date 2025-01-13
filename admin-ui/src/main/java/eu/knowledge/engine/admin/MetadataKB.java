@@ -24,7 +24,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 /**
  * Knowledge Base that keeps track of all other KBs in the network. It does this
@@ -35,7 +35,7 @@ import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
  * interactions.
  *
  */
-public class MetadataKB extends EasyKnowledgeBase {
+public class MetadataKB extends KnowledgeBaseImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MetadataKB.class);
 
@@ -59,8 +59,8 @@ public class MetadataKB extends EasyKnowledgeBase {
 	private boolean timeToSleepAndFetch = true;
 
 	/**
-	 * Intialize a AdminUI that regularly retrieves and prints metadata about the
-	 * available knowledge bases.
+	 * Intialize a MetadataKB that collects metadata about the available knowledge
+	 * bases.
 	 */
 	public MetadataKB(String id, String name, String description) {
 		super(id, name, description);
@@ -89,9 +89,9 @@ public class MetadataKB extends EasyKnowledgeBase {
 
 		// register the knowledge interactions with the smart connector.
 		this.register(this.aKI);
-		this.register(this.rKINew, (rki, ei) -> this.handleNewKnowledgeBaseKnowledge(ei));
-		this.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBaseKnowledge(ei));
-		this.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBaseKnowledge(ei));
+		this.register(this.rKINew, (rki, ei) -> this.handleNewKnowledgeBase(ei));
+		this.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBase(ei));
+		this.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBase(ei));
 
 	}
 
@@ -106,14 +106,14 @@ public class MetadataKB extends EasyKnowledgeBase {
 				Thread.sleep(ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY,
 						Integer.class));
 			} catch (InterruptedException e) {
-				LOG.info("{}", e);
+				LOG.error("Initial metadata KB delay should not fail.", e);
 			}
 			this.fetchInitialData();
 			this.timeToSleepAndFetch = false;
 		}
 	}
 
-	public BindingSet handleNewKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+	public BindingSet handleNewKnowledgeBase(ReactExchangeInfo ei) {
 		if (!this.canReceiveUpdates())
 			return new BindingSet();
 
@@ -122,8 +122,6 @@ public class MetadataKB extends EasyKnowledgeBase {
 					ei.getArgumentBindings());
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
-
-			// this we can simply add to our model
 			this.metadata.add(model);
 			LOG.debug("Modified metadata with new KB '{}'.", kb);
 		} catch (ParseException e) {
@@ -132,7 +130,7 @@ public class MetadataKB extends EasyKnowledgeBase {
 		return new BindingSet();
 	}
 
-	public BindingSet handleChangedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+	public BindingSet handleChangedKnowledgeBase(ReactExchangeInfo ei) {
 
 		if (!this.canReceiveUpdates())
 			return new BindingSet();
@@ -163,7 +161,7 @@ public class MetadataKB extends EasyKnowledgeBase {
 		return new BindingSet();
 	}
 
-	public BindingSet handleRemovedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
+	public BindingSet handleRemovedKnowledgeBase(ReactExchangeInfo ei) {
 		if (!this.canReceiveUpdates())
 			return new BindingSet();
 

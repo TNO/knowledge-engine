@@ -39,15 +39,15 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestApiRoutes {
 	private Thread thread;
 	private static final Logger LOG = LoggerFactory.getLogger(TestApiRoutes.class);
 
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	private static AdminUI admin;
 	private HttpClient httpClient;
@@ -252,7 +252,7 @@ public class TestApiRoutes {
 		int wait = 2;
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
 
-		kb1 = new EasyKnowledgeBase("kb1") {
+		kb1 = new KnowledgeBaseImpl("kb1") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -279,7 +279,7 @@ public class TestApiRoutes {
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
 		kb2 = null;
-		kb2 = new EasyKnowledgeBase("kb2") {
+		kb2 = new KnowledgeBaseImpl("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -304,7 +304,7 @@ public class TestApiRoutes {
 		stopKb(kb2);
 	}
 
-	public void stopKb(EasyKnowledgeBase aKb) {
+	public void stopKb(KnowledgeBaseImpl aKb) {
 		if (aKb != null) {
 			aKb.stop();
 		}

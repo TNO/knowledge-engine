@@ -46,9 +46,9 @@ import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
-public class EasyKnowledgeBase implements KnowledgeBase {
+public class KnowledgeBaseImpl implements KnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(EasyKnowledgeBase.class);
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
 
 	private final Set<AskKnowledgeInteraction> registeredAskKIs;
 	private final Map<AnswerKnowledgeInteraction, AnswerHandler> registeredAnswerKIs;
@@ -86,11 +86,11 @@ public class EasyKnowledgeBase implements KnowledgeBase {
 	 */
 	private boolean isThreadSafe = false;
 
-	public EasyKnowledgeBase(String aName) {
+	public KnowledgeBaseImpl(String aName) {
 		this(null, aName, null);
 	}
 
-	public EasyKnowledgeBase(String anId, String aName, String aDescription) {
+	public KnowledgeBaseImpl(String anId, String aName, String aDescription) {
 
 		assert aName != null;
 
@@ -291,7 +291,7 @@ public class EasyKnowledgeBase implements KnowledgeBase {
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
-			Set<EasyKnowledgeBase> someKnowledgeBases) {
+			Set<KnowledgeBaseImpl> someKnowledgeBases) {
 
 		boolean isUpToDate = true;
 
@@ -306,7 +306,7 @@ public class EasyKnowledgeBase implements KnowledgeBase {
 //			m.write(System.out, "turtle");
 //			System.out.println("-----------------------");
 
-			for (EasyKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
+			for (KnowledgeBaseImpl aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
 					isUpToDate &= isKnowledgeBaseUpToDate(aKnowledgeBase, m);
 				}
@@ -320,7 +320,7 @@ public class EasyKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	private boolean isKnowledgeBaseUpToDate(EasyKnowledgeBase aMockedKB, Model aModel) {
+	private boolean isKnowledgeBaseUpToDate(KnowledgeBaseImpl aMockedKB, Model aModel) {
 
 		boolean isSame = true;
 		Resource kb = ResourceFactory.createResource(aMockedKB.getKnowledgeBaseId().toString());

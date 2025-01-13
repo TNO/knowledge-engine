@@ -33,16 +33,16 @@ import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestAskRecipientSelector {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskRecipientSelector.class);
 
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
-	private static EasyKnowledgeBase kb3;
-	private static EasyKnowledgeBase kb4;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
+	private static KnowledgeBaseImpl kb4;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -56,13 +56,13 @@ public class TestAskRecipientSelector {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new EasyKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new EasyKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
-		kb3 = new EasyKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kn.addKB(kb3);
-		kb4 = new EasyKnowledgeBase("kb4");
+		kb4 = new KnowledgeBaseImpl("kb4");
 		kn.addKB(kb4);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");

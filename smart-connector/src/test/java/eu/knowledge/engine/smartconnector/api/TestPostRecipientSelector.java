@@ -25,12 +25,12 @@ import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestPostRecipientSelector {
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
-	private static EasyKnowledgeBase kb3;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostRecipientSelector.class);
 
@@ -41,11 +41,11 @@ public class TestPostRecipientSelector {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new EasyKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new EasyKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
-		kb3 = new EasyKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kn.addKB(kb3);
 
 		// start registering

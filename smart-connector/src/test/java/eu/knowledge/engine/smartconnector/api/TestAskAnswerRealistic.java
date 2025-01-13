@@ -23,23 +23,23 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @Disabled
 public class TestAskAnswerRealistic {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerRealistic.class);
 
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
-	private static EasyKnowledgeBase kb3;
-	private static EasyKnowledgeBase kb4;
-	private static EasyKnowledgeBase kb5;
-	private static EasyKnowledgeBase kb6;
-	private static EasyKnowledgeBase kb7;
-	private static EasyKnowledgeBase kb8;
-	private static EasyKnowledgeBase kb9;
-	private static EasyKnowledgeBase kb10;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
+	private static KnowledgeBaseImpl kb4;
+	private static KnowledgeBaseImpl kb5;
+	private static KnowledgeBaseImpl kb6;
+	private static KnowledgeBaseImpl kb7;
+	private static KnowledgeBaseImpl kb8;
+	private static KnowledgeBaseImpl kb9;
+	private static KnowledgeBaseImpl kb10;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -51,25 +51,25 @@ public class TestAskAnswerRealistic {
 
 		var kn = new KnowledgeNetwork();
 
-		kb1 = new EasyKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kb1.setReasonerEnabled(true);
-		kb2 = new EasyKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kb2.setReasonerEnabled(true);
-		kb3 = new EasyKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kb3.setReasonerEnabled(true);
-		kb4 = new EasyKnowledgeBase("kb4");
+		kb4 = new KnowledgeBaseImpl("kb4");
 		kb4.setReasonerEnabled(true);
-		kb5 = new EasyKnowledgeBase("kb5");
+		kb5 = new KnowledgeBaseImpl("kb5");
 		kb5.setReasonerEnabled(true);
-		kb6 = new EasyKnowledgeBase("kb6");
+		kb6 = new KnowledgeBaseImpl("kb6");
 		kb6.setReasonerEnabled(true);
-		kb7 = new EasyKnowledgeBase("kb7");
+		kb7 = new KnowledgeBaseImpl("kb7");
 		kb7.setReasonerEnabled(true);
-		kb8 = new EasyKnowledgeBase("kb8");
+		kb8 = new KnowledgeBaseImpl("kb8");
 		kb8.setReasonerEnabled(true);
-		kb9 = new EasyKnowledgeBase("kb9");
+		kb9 = new KnowledgeBaseImpl("kb9");
 		kb9.setReasonerEnabled(true);
-		kb10 = new EasyKnowledgeBase("kb10");
+		kb10 = new KnowledgeBaseImpl("kb10");
 		kb10.setReasonerEnabled(true);
 
 		var rules = new HashSet<Rule>();

@@ -46,38 +46,32 @@ public class AdminUI extends MetadataKB {
 	}
 
 	@Override
-	public BindingSet handleNewKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		BindingSet bs = super.handleNewKnowledgeBaseKnowledge(ei);
+	public BindingSet handleNewKnowledgeBase(ReactExchangeInfo ei) {
+		BindingSet bs = super.handleNewKnowledgeBase(ei);
 
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
-		if (continuousLog) {
-			this.printKnowledgeBases(this.getMetadata());
-		}
+		this.printKnowledgeBases(this.getMetadata());
 		return bs;
 	}
 
 	@Override
-	public BindingSet handleChangedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		BindingSet bs = super.handleChangedKnowledgeBaseKnowledge(ei);
+	public BindingSet handleChangedKnowledgeBase(ReactExchangeInfo ei) {
+		BindingSet bs = super.handleChangedKnowledgeBase(ei);
 
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
-		if (continuousLog) {
-			this.printKnowledgeBases(this.getMetadata());
-		}
+		this.printKnowledgeBases(this.getMetadata());
 		return bs;
 	}
 
 	@Override
-	public BindingSet handleRemovedKnowledgeBaseKnowledge(ReactExchangeInfo ei) {
-		BindingSet bs = super.handleRemovedKnowledgeBaseKnowledge(ei);
+	public BindingSet handleRemovedKnowledgeBase(ReactExchangeInfo ei) {
+		BindingSet bs = super.handleRemovedKnowledgeBase(ei);
 
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
-		if (continuousLog) {
-			this.printKnowledgeBases(this.getMetadata());
-		}
+		this.printKnowledgeBases(this.getMetadata());
 
 		return bs;
 	}
@@ -88,50 +82,52 @@ public class AdminUI extends MetadataKB {
 
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
-		if (continuousLog)
-			this.printKnowledgeBases(this.getMetadata());
+
+		this.printKnowledgeBases(this.getMetadata());
 	}
 
 	private void printKnowledgeBases(Model model) {
 
-		// LOG.info("{}", this.getRDF(model));
+		if (continuousLog) {
+			// LOG.info("{}", this.getRDF(model));
 
-		LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-		LOG.info("-=-=-=-=-=-=-= Admin UI -=-=-=-=-=-=-=-");
-		LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-		if (!model.isEmpty()) {
-			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
+			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+			LOG.info("-=-=-=-=-=-=-= Admin UI -=-=-=-=-=-=-=-");
+			LOG.info("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+			if (!model.isEmpty()) {
+				Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
 
-			int i = 0;
-			for (Resource kbRes : kbs) {
-				i++;
+				int i = 0;
+				for (Resource kbRes : kbs) {
+					i++;
 
-				if (i > 1) {
-					LOG.info("");
-				}
+					if (i > 1) {
+						LOG.info("");
+					}
 
-				LOG.info("Knowledge Base <{}>", kbRes);
+					LOG.info("Knowledge Base <{}>", kbRes);
 
-				LOG.info("\t* Name: {}", Util.getName(model, kbRes));
-				LOG.info("\t* Description: {}", Util.getDescription(model, kbRes));
+					LOG.info("\t* Name: {}", Util.getName(model, kbRes));
+					LOG.info("\t* Description: {}", Util.getDescription(model, kbRes));
 
-				Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
+					Set<Resource> kiResources = Util.getKnowledgeInteractionURIs(model, kbRes);
 
-				for (Resource kiRes : kiResources) {
-					String knowledgeInteractionType = Util.getKnowledgeInteractionType(model, kiRes);
-					LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
-					if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
-							|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
-						LOG.info("\t\t- GraphPattern: {}", Util.getGraphPattern(model, kiRes));
-					} else if (knowledgeInteractionType.equals("PostKnowledgeInteraction")
-							|| knowledgeInteractionType.equals("ReactKnowledgeInteraction")) {
-						LOG.info("\t\t- Argument GP: {}", Util.getArgument(model, kiRes));
-						LOG.info("\t\t- Result GP: {}", Util.getResult(model, kiRes));
+					for (Resource kiRes : kiResources) {
+						String knowledgeInteractionType = Util.getKnowledgeInteractionType(model, kiRes);
+						LOG.info("\t* {}{}", knowledgeInteractionType, (Util.isMeta(model, kiRes) ? " (meta)" : ""));
+						if (knowledgeInteractionType.equals("AskKnowledgeInteraction")
+								|| knowledgeInteractionType.equals("AnswerKnowledgeInteraction")) {
+							LOG.info("\t\t- GraphPattern: {}", Util.getGraphPattern(model, kiRes));
+						} else if (knowledgeInteractionType.equals("PostKnowledgeInteraction")
+								|| knowledgeInteractionType.equals("ReactKnowledgeInteraction")) {
+							LOG.info("\t\t- Argument GP: {}", Util.getArgument(model, kiRes));
+							LOG.info("\t\t- Result GP: {}", Util.getResult(model, kiRes));
+						}
 					}
 				}
+			} else {
+				LOG.info("No other knowledge bases found.");
 			}
-		} else {
-			LOG.info("No other knowledge bases found.");
 		}
 	}
 

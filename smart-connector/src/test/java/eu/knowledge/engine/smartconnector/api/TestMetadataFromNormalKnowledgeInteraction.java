@@ -18,12 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @Tag("Long")
 public class TestMetadataFromNormalKnowledgeInteraction {
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestMetadataFromNormalKnowledgeInteraction.class);
 
@@ -33,9 +33,9 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 	public void testPostReact() throws InterruptedException {
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new EasyKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new EasyKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 		LOG.info("Before everyone is ready!");
 		kn.sync();

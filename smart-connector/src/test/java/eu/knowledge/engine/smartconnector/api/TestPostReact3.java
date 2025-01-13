@@ -17,12 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestPostReact3 {
-	private static EasyKnowledgeBase kb1;
-	private static EasyKnowledgeBase kb2;
-	private static EasyKnowledgeBase kb3;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact3.class);
 
@@ -35,13 +35,13 @@ public class TestPostReact3 {
 		prefixes.setNsPrefix("ex", "https://example.org/");
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new EasyKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
-		kb2 = new EasyKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
-		kb3 = new EasyKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 

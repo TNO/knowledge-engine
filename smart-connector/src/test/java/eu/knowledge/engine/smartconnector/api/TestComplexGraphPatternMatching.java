@@ -35,15 +35,15 @@ import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestComplexGraphPatternMatching {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestComplexGraphPatternMatching.class);
 
-	private static EasyKnowledgeBase devicesKB;
-	private static EasyKnowledgeBase dashboardKB;
-	private static EasyKnowledgeBase observationsKB;
+	private static KnowledgeBaseImpl devicesKB;
+	private static KnowledgeBaseImpl dashboardKB;
+	private static KnowledgeBaseImpl observationsKB;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -133,7 +133,7 @@ public class TestComplexGraphPatternMatching {
 
 	private AskKnowledgeInteraction createDashboardKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 
-		dashboardKB = new EasyKnowledgeBase("dashboardKB");
+		dashboardKB = new KnowledgeBaseImpl("dashboardKB");
 		dashboardKB.setReasonerEnabled(true);
 		kn.addKB(dashboardKB);
 
@@ -269,7 +269,7 @@ public class TestComplexGraphPatternMatching {
 	}
 
 	private void createDevicesKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
-		devicesKB = new EasyKnowledgeBase("devicesKB");
+		devicesKB = new KnowledgeBaseImpl("devicesKB");
 		devicesKB.setReasonerEnabled(true);
 		kn.addKB(devicesKB);
 		GraphPattern gp1 = new GraphPattern(prefixes, TestUtils.convertGP("""
@@ -383,7 +383,7 @@ public class TestComplexGraphPatternMatching {
 	}
 
 	private void createObservationsKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
-		observationsKB = new EasyKnowledgeBase("observationsKB");
+		observationsKB = new KnowledgeBaseImpl("observationsKB");
 		observationsKB.setReasonerEnabled(true);
 		kn.addKB(observationsKB);
 

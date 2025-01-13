@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TimeOntologyTest {
 
@@ -29,9 +29,9 @@ public class TimeOntologyTest {
 
 	private KnowledgeNetwork kn = new KnowledgeNetwork();
 
-	private EasyKnowledgeBase calendar = new EasyKnowledgeBase("Calendar");
-	private EasyKnowledgeBase app = new EasyKnowledgeBase("App");
-	private EasyKnowledgeBase time = new EasyKnowledgeBase("Time");
+	private KnowledgeBaseImpl calendar = new KnowledgeBaseImpl("Calendar");
+	private KnowledgeBaseImpl app = new KnowledgeBaseImpl("App");
+	private KnowledgeBaseImpl time = new KnowledgeBaseImpl("Time");
 
 	@Test
 	public void test() throws InterruptedException, ExecutionException {

@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.EasyKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestAskAnswer5 {
 
@@ -42,16 +42,16 @@ public class TestAskAnswer5 {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		this.kn = new KnowledgeNetwork();
-		EasyKnowledgeBase kb1 = new EasyKnowledgeBase("kb1");
+		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("kb1");
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
-		EasyKnowledgeBase kb2 = new EasyKnowledgeBase("kb2");
+		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("kb2");
 		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
-		EasyKnowledgeBase kb3 = new EasyKnowledgeBase("kb3");
+		KnowledgeBaseImpl kb3 = new KnowledgeBaseImpl("kb3");
 		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
-		EasyKnowledgeBase kb4 = new EasyKnowledgeBase("kb4");
+		KnowledgeBaseImpl kb4 = new KnowledgeBaseImpl("kb4");
 		kb4.setReasonerEnabled(true);
 		kn.addKB(kb4);
 
