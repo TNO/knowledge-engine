@@ -23,16 +23,16 @@ import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class ConfigurationTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ConfigurationTest.class);
 
 	private KnowledgeNetwork kn;
-	private MockedKnowledgeBase kb1;
+	private KnowledgeBaseImpl kb1;
 	private AskKnowledgeInteraction askKI;
-	private MockedKnowledgeBase kb2;
+	private KnowledgeBaseImpl kb2;
 	private AnswerKnowledgeInteraction answerKI;
 	private int waitTimeout = 0;
 
@@ -176,7 +176,7 @@ public class ConfigurationTest {
 	}
 
 	private void intializeKB1() {
-		this.kb1 = new MockedKnowledgeBase("kb1");
+		this.kb1 = new KnowledgeBaseImpl("kb1");
 		GraphPattern gp1 = new GraphPattern("""
 				?s a <Person> .
 				?s <hasName> ?n .
@@ -186,7 +186,7 @@ public class ConfigurationTest {
 	}
 
 	private void intializeKB2() {
-		this.kb2 = new MockedKnowledgeBase("kb2");
+		this.kb2 = new KnowledgeBaseImpl("kb2");
 		GraphPattern gp1 = new GraphPattern("""
 				?p a <Person> .
 				?p <hasName> ?name .

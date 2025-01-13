@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 /**
  * What is faster:
@@ -37,10 +37,10 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 	public void testSingleLargeGP() throws InterruptedException, ExecutionException {
 
 		// creating SCs
-		MockedKnowledgeBase kb1 = new MockedKnowledgeBase("KB1");
+		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("KB1");
 		kn1.addKB(kb1);
 		kb1.setReasonerEnabled(true);
-		MockedKnowledgeBase kb2 = new MockedKnowledgeBase("KB2");
+		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("KB2");
 		kn1.addKB(kb2);
 		kb2.setReasonerEnabled(true);
 
@@ -95,10 +95,10 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 	public void testMultipleSmallGPs() throws InterruptedException, ExecutionException {
 
 		// creating SCs
-		MockedKnowledgeBase kb1 = new MockedKnowledgeBase("KB1");
+		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("KB1");
 		kn2.addKB(kb1);
 		kb1.setReasonerEnabled(true);
-		MockedKnowledgeBase kb2 = new MockedKnowledgeBase("KB2");
+		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("KB2");
 		kn2.addKB(kb2);
 		kb2.setReasonerEnabled(true);
 

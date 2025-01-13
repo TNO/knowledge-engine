@@ -17,14 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 class VariableBindingNameTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(VariableBindingNameTest.class);
 
-	private static MockedKnowledgeBase sensor;
-	private static MockedKnowledgeBase thermostat;
+	private static KnowledgeBaseImpl sensor;
+	private static KnowledgeBaseImpl thermostat;
 
 	@Test
 	void test() {
@@ -36,9 +36,9 @@ class VariableBindingNameTest {
 
 		// first add the relevant knowledge bases
 		var kn = new KnowledgeNetwork();
-		sensor = new MockedKnowledgeBase("temperatureSensor");
+		sensor = new KnowledgeBaseImpl("temperatureSensor");
 		kn.addKB(sensor);
-		thermostat = new MockedKnowledgeBase("thermostat");
+		thermostat = new KnowledgeBaseImpl("thermostat");
 		kn.addKB(thermostat);
 
 		// then register the relevant knowledge interactions
