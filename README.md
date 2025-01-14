@@ -205,37 +205,15 @@ These are instructions on what to do when we release a new version of the knowle
 	- all `pom.xml` files
 	- `openapi-sc.yaml` version
 	- Docker image tags in the Docker Compose examples.
-2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}`.
-3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
-4. Push the commit and the tag.
-5. Build and push the new Docker images to GitLab:
-
-```bash
-docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.2.5 --push
-docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.2.5 --push
-docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.2.5 --push
-```
-
-6. Build and push the new Docker images to GitHub:
-
-```bash
-docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.2.5 --push
-docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.5 --push
-docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/admin-ui:1.2.5 --push
-```
-
-7. Prepare the next SNAPSHOT version and make a commit for that too.
+2. Make a commit and push it to a new branch for the release.
+3. Make a Pull Request and merge it into master after tests have succeeded.
+4. Go to Actions on GitHub and trigger the workflow "Make draft release" with the new version as input.
+5. When the workflow is finished, go to the newly generated draft release. Check the release notes, make any changes if necessary, and publish the release.
+6. Prepare the next SNAPSHOT version and make a commit for that in a PR and merge into master.
    1. `openapi-sc.yaml`
    2. `pom.xml`
    3. Leave the non-SNAPSHOT version in this README, and in the Docker Compose examples.
-8. In GitLab, create a new release at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/releases
-   1. Use the new tag for the release
-   2. Write release notes
-   3. Find the latest version of the package at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/packages/976 and copy the link to the JAR with dependencies. Include it in "Release assets" with type "Package" and link title "Knowledge Engine REST server JAR (with dependencies)" (see previous releases)
-9. In GitHub, create a new release at https://github.com/TNO/knowledge-engine/releases/new
-   1. Use the new tag for the release
-   2. Include the same release notes
-10. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
+7. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
 
 ## Code conventions
 The code conventions of the knowledge-engine can be found in the `/ide` folder in the Eclipse IDE format. The format can often also be imported in other Java IDEs like IntelliJ, VSCode or Netbeans.

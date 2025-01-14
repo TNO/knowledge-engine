@@ -1,0 +1,42 @@
+name: Make draft release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for new release (X.Y.Z)"
+        required: true
+        type: string
+
+env:
+  MAVEN_OPTS: -Dmaven.test.skip=true -Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true
+  MAVEN_CLI_OPTS: --batch-mode --errors --fail-at-end --show-version
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9.9-eclipse-temurin-17-focal
+      options: --user 1001
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build JARs
+        run: mvn $MAVEN_CLI_OPTS package
+      - name: Create tag
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git tag -a ${{ inputs.version }} -m ${{ inputs.version }}
+          git push origin ${{ inputs.version }}
+      - name: Draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          working-directory: ${{ github.workspace }}
+          files: |
+            smart-connector-rest-dist/target/smart-connector-rest-dist-${{ inputs.version }}-with-dependencies.jar
+            knowledge-directory/target/knowledge-directory-${{ inputs.version }}-with-dependencies.jar
+          tag_name: ${{ inputs.version }}
+          draft: true
+          generate_release_notes: true
+          make_latest: true
