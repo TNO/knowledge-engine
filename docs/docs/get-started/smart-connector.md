@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 This page describes how to connect to an (existing) Knowledge Network using a Smart Connector.
 
 To connect to a Knowledge Network, you need a Knowledge Engine Runtime (KER).
-Every KER in distributed mode consists of two APIs: [Knowledge Engine Developer REST API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) and the [Inter-Knowledge Engine Runtime API](https://github.com/TNO/knowledge-engine/blob/1.2.5/smart-connector/src/main/resources/openapi-inter-ker.yaml).
+Every KER in distributed mode consists of two APIs: [Knowledge Engine Developer REST API](https://github.com/TNO/knowledge-engine/blob/1.3.0/smart-connector-rest-server/src/main/resources/openapi-sc.yaml) and the [Inter-Knowledge Engine Runtime API](https://github.com/TNO/knowledge-engine/blob/1.3.0/smart-connector/src/main/resources/openapi-inter-ker.yaml).
 The former is started on port `8280` by default, and you use this API to register your Knowledge Base and Knowledge Interactions.
 The latter API is meant for internal communication between KERs and you do not need to use it yourself.
 However, you do need to make sure this API is reachable for other KERs in the Knowledge Network.
@@ -62,7 +62,7 @@ export KD_URL=http://localhost:8080
 export KE_RUNTIME_EXPOSED_URL=http://localhost:8081
 export KE_RUNTIME_PORT=8081
 
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.2.5.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.3.0.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 </TabItem>
