@@ -732,15 +732,19 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		} else {
 			ArrayList<TripleMatchType> matchType = new ArrayList<>();
 			for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
-				if (match.getKey().node.isVariable() && !match.getValue().node.isVariable()) {
-					matchType.add(TripleMatchType.IGNORE_TRIPLE);
-				} else if (!match.getKey().node.isVariable() && match.getValue().node.isVariable()) {
+				if (match.getKey().node.isVariable() && match.getValue().node.isConcrete()) {
 					matchType.add(TripleMatchType.REPLACE_TRIPLE);
+				} else if (match.getKey().node.isConcrete() && match.getValue().node.isVariable()) {
+					matchType.add(TripleMatchType.IGNORE_TRIPLE);
 				}
 			}
 
+			if (matchType.isEmpty()) {
+				return TripleMatchType.IGNORE_TRIPLE;
+			}
+
 			boolean equalMatchTypes = matchType.stream().allMatch(m -> m.equals(matchType.get(0)));
-			return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_GAP;
+			return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_TRIPLE;
 		}
 	}
 
