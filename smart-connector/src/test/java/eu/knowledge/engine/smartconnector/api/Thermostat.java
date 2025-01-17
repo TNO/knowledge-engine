@@ -15,15 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class Thermostat {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Thermostat.class);
 
-	private MockedKnowledgeBase sensor;
-	private MockedKnowledgeBase thermostat;
-	private MockedKnowledgeBase heating;
+	private KnowledgeBaseImpl sensor;
+	private KnowledgeBaseImpl thermostat;
+	private KnowledgeBaseImpl heating;
 	private Room r;
 
 	ExecutorService es = Executors.newFixedThreadPool(4);
@@ -60,11 +60,11 @@ public class Thermostat {
 
 		// first add the relevant knowledge bases
 		var kn = new KnowledgeNetwork();
-		sensor = new MockedKnowledgeBase("temperatureSensor");
+		sensor = new KnowledgeBaseImpl("temperatureSensor");
 		kn.addKB(sensor);
-		thermostat = new MockedKnowledgeBase("thermostat");
+		thermostat = new KnowledgeBaseImpl("thermostat");
 		kn.addKB(thermostat);
-		heating = new MockedKnowledgeBase("heatingSource");
+		heating = new KnowledgeBaseImpl("heatingSource");
 		kn.addKB(heating);
 
 		// then register the relevant knowledge interactions

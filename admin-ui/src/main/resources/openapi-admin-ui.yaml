@@ -36,6 +36,17 @@ paths:
             text/plain; charset=UTF-8:
               schema:
                 type: string
+  /rest/admin/reload:
+    get:
+      summary: Manually reload the admin-ui's smart connectors within the network. This is sometimes necessary when the initial load did not pick up all SCs correctly.
+      tags:
+        - admin API
+      operationId: reloadSCs
+      responses:
+          '200':
+            description: If the SC were reloaded.
+          '500':
+            description: If a problem occurred.
 
 components:
   schemas:

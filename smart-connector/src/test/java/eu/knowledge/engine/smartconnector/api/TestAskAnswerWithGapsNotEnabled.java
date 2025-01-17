@@ -19,13 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestAskAnswerWithGapsNotEnabled {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerWithGapsNotEnabled.class);
 
-	private static MockedKnowledgeBase kbRelationAsker;
+	private static KnowledgeBaseImpl kbRelationAsker;
 
 	private static KnowledgeNetwork kn;
 
@@ -81,7 +81,7 @@ public class TestAskAnswerWithGapsNotEnabled {
 
 	public void instantiateAskRelationsKB() {
 		// start a knowledge base with the behavior "I am interested in related people"
-		kbRelationAsker = new MockedKnowledgeBase("RelationAsker");
+		kbRelationAsker = new KnowledgeBaseImpl("RelationAsker");
 		kbRelationAsker.setReasonerEnabled(true);
 
 		// Register an Ask pattern for relations without knowledge gaps enabled

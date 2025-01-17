@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.admin.MetadataKB;
 import eu.knowledge.engine.admin.Util;
 import eu.knowledge.engine.admin.model.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.AskKnowledgeInteraction;
@@ -91,7 +92,7 @@ public class AdminApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException {
 		admin = AdminUI.newInstance(false);
-		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
+		model = this.admin.getMetadata(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
 			SmartConnector[] responses = findAndAddConnections(convertToModel(kbs, model, includeMeta));

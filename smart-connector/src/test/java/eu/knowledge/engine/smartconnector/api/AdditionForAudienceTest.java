@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @Tag("Long")
 public class AdditionForAudienceTest {
@@ -72,12 +72,12 @@ public class AdditionForAudienceTest {
 		}
 	};
 
-	MockedKnowledgeBase kb1;
-	MockedKnowledgeBase kb10;
-	MockedKnowledgeBase kb100;
-	MockedKnowledgeBase kbSum;
-	MockedKnowledgeBase kbNum;
-	MockedKnowledgeBase kbRule;
+	KnowledgeBaseImpl kb1;
+	KnowledgeBaseImpl kb10;
+	KnowledgeBaseImpl kb100;
+	KnowledgeBaseImpl kbSum;
+	KnowledgeBaseImpl kbNum;
+	KnowledgeBaseImpl kbRule;
 	private AskKnowledgeInteraction askKI;
 	private static KnowledgeNetwork kn;
 
@@ -86,7 +86,7 @@ public class AdditionForAudienceTest {
 		kn = new KnowledgeNetwork();
 
 		// kb1
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 
@@ -97,7 +97,7 @@ public class AdditionForAudienceTest {
 		kb1.register(reactKI, new MyReactHandler(1));
 
 		// kb10
-		kb10 = new MockedKnowledgeBase("kb10");
+		kb10 = new KnowledgeBaseImpl("kb10");
 		kb10.setReasonerEnabled(true);
 		kn.addKB(kb10);
 		reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
@@ -106,7 +106,7 @@ public class AdditionForAudienceTest {
 						"?e <http://example.org/hasOutcome> ?n3 . ?n3 <http://example.org/type> <http://example.org/Number> . ?n3 <http://example.org/hasDigit> ?d3 . ?d3 <http://example.org/hasPlace> \"2\" . ?d3 <http://example.org/hasActualDigit> ?ad3 . ?d3 <http://example.org/hasOverflow> ?o ."));
 		kb10.register(reactKI, new MyReactHandler(2));
 
-		kb100 = new MockedKnowledgeBase("kb100");
+		kb100 = new KnowledgeBaseImpl("kb100");
 		kb100.setReasonerEnabled(true);
 		kn.addKB(kb100);
 		reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
@@ -115,7 +115,7 @@ public class AdditionForAudienceTest {
 						"?e <http://example.org/hasOutcome> ?n3 . ?n3 <http://example.org/type> <http://example.org/Number> . ?n3 <http://example.org/hasDigit> ?d3 . ?d3 <http://example.org/hasPlace> \"3\" . ?d3 <http://example.org/hasActualDigit> ?ad3 . ?d3 <http://example.org/hasOverflow> ?o ."));
 		kb100.register(reactKI, new MyReactHandler(3));
 
-		kbSum = new MockedKnowledgeBase("kbSum");
+		kbSum = new KnowledgeBaseImpl("kbSum");
 		kbSum.setReasonerEnabled(true);
 		kn.addKB(kbSum);
 
@@ -187,7 +187,7 @@ public class AdditionForAudienceTest {
 			return bs;
 		});
 
-		kbNum = new MockedKnowledgeBase("kbNum");
+		kbNum = new KnowledgeBaseImpl("kbNum");
 		kbNum.setReasonerEnabled(true);
 		kn.addKB(kbNum);
 

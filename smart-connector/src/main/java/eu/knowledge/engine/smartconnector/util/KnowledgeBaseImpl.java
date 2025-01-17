@@ -46,9 +46,9 @@ import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
-public class MockedKnowledgeBase implements KnowledgeBase {
+public class KnowledgeBaseImpl implements KnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MockedKnowledgeBase.class);
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
 
 	private final Set<AskKnowledgeInteraction> registeredAskKIs;
 	private final Map<AnswerKnowledgeInteraction, AnswerHandler> registeredAnswerKIs;
@@ -68,7 +68,10 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	private Set<Rule> domainKnowledge = new HashSet<>();
 
 	private SmartConnector sc;
+
+	protected URI id;
 	protected String name;
+	protected String description;
 	private Phaser readyPhaser;
 
 	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
@@ -83,7 +86,13 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	 */
 	private boolean isThreadSafe = false;
 
-	public MockedKnowledgeBase(String aName) {
+	public KnowledgeBaseImpl(String aName) {
+		this(null, aName, null);
+	}
+
+	public KnowledgeBaseImpl(String anId, String aName, String aDescription) {
+
+		assert aName != null;
 
 		this.registeredAskKIs = ConcurrentHashMap.newKeySet();
 		this.registeredAnswerKIs = new ConcurrentHashMap<>();
@@ -100,7 +109,28 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		this.unregisteredPostKIs = ConcurrentHashMap.newKeySet();
 		this.unregisteredReactKIs = ConcurrentHashMap.newKeySet();
 
+		// name
 		this.name = aName;
+
+		// id
+		var someId = anId;
+		if (someId == null)
+			someId = "https://www.tno.nl/" + this.name;
+
+		URI uri = null;
+		try {
+			uri = new URI(someId);
+		} catch (URISyntaxException e) {
+			LOG.error("Could not parse the uri.", e);
+		}
+		this.id = uri;
+
+		// description
+		var someDescr = aDescription;
+		if (someDescr == null)
+			someDescr = "Description of " + this.name;
+
+		this.description = someDescr;
 	}
 
 	/**
@@ -119,18 +149,12 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	@Override
 	public URI getKnowledgeBaseId() {
-		URI uri = null;
-		try {
-			uri = new URI("https://www.tno.nl/" + this.name);
-		} catch (URISyntaxException e) {
-			LOG.error("Could not parse the uri.", e);
-		}
-		return uri;
+		return this.id;
 	}
 
 	@Override
 	public String getKnowledgeBaseDescription() {
-		return "description of " + this.name;
+		return this.description;
 	}
 
 	@Override
@@ -161,7 +185,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		return this.name;
 	}
 
-	private SmartConnector getSC() {
+	protected SmartConnector getSC() {
 		return this.sc;
 	}
 
@@ -267,7 +291,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
-			Set<MockedKnowledgeBase> someKnowledgeBases) {
+			Set<KnowledgeBaseImpl> someKnowledgeBases) {
 
 		boolean isUpToDate = true;
 
@@ -282,7 +306,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 //			m.write(System.out, "turtle");
 //			System.out.println("-----------------------");
 
-			for (MockedKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
+			for (KnowledgeBaseImpl aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
 					isUpToDate &= isKnowledgeBaseUpToDate(aKnowledgeBase, m);
 				}
@@ -296,7 +320,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	private boolean isKnowledgeBaseUpToDate(MockedKnowledgeBase aMockedKB, Model aModel) {
+	private boolean isKnowledgeBaseUpToDate(KnowledgeBaseImpl aMockedKB, Model aModel) {
 
 		boolean isSame = true;
 		Resource kb = ResourceFactory.createResource(aMockedKB.getKnowledgeBaseId().toString());

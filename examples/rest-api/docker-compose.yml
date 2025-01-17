@@ -2,7 +2,7 @@ services:
   knowledge-engine:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.2.5
     healthcheck:
-      test: curl -f http://localhost:8280/rest/sc
+      test: wget http://localhost:8280/rest/sc -O /dev/null
       interval: 1s
   sensor:
     build:

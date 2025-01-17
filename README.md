@@ -41,9 +41,11 @@ The rest of this README is structured as follows:
 - [Developer information](#developer-information)
   - [Components](#components)
   - [Release steps](#release-steps)
+  - [Code conventions](#code-conventions)
   - [(advanced) Administering a Knowledge Engine runtime](#advanced-administering-a-knowledge-engine-runtime)
     - [Starting the Knowledge Engine in local mode](#starting-the-knowledge-engine-in-local-mode)
     - [Starting the Knowledge Engine in distributed mode](#starting-the-knowledge-engine-in-distributed-mode)
+    - [Configuration](#configuration)
 
 # Demonstration videos and tutorials
 
@@ -82,10 +84,10 @@ However, running it in the above way **does not support** data exchange with rem
 To interact with other runtimes, it needs additional configuration:
 
 - An additional port mapping for the socket that listens for communication from other runtimes.
-- `KE_RUNTIME_EXPOSED_URL`: The URL via which the above socket is available for communication from the other runtime(s). You need to make sure the traffic is correctly routed to the container's port 8081 with a reverse proxy.
-- `KD_URL`: The URL on which to find the knowledge directory (to discover peers).
+- `ke.runtime.exposed.url`: The URL via which the above socket is available for communication from the other runtime(s). You need to make sure the traffic is correctly routed to the container's port 8081 with a reverse proxy.
+- `kd.url`: The URL on which to find the knowledge directory (to discover peers).
 
-The configuration can be set as follows:
+The configuration can be set as follows (note that the configuration properties below use [underscores and capital letters](#configuration))
 
 ```bash
 docker run \
@@ -181,15 +183,19 @@ This section gives more detailed information about the project's structure, and 
 
 The Knowledge Engine project consists of the following Maven modules:
 - `smart-connector`
-  - This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/java_developer_api.md).
+	- This is the implementation of the smart connector, with the Java developer API. For instructions on how to use it, refer to [the documentation](./docs/docs/getting_started.md). The high-level design of the smart connector can be found in [the wiki](https://github.com/TNO/knowledge-engine/wiki/High%E2%80%90level-Design).
 - `smart-connector-api`
 	- This module contains interfaces for the smart connector and other classes. It is made as a separate module so that it is easy to use different implementations of the interfaces.
 - `smart-connector-rest-server`
 	- This module contains the REST API layer that is built on top of the Java Developer API.
 - `smart-connector-rest-dist`
-  - A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#using-the-rest-api). For instructions on how to set it up, refer to [this section](#advanced-administering-a-knowledge-engine-runtime).
+	- A distribution of the server that provides the REST API layer for your smart connector(s), and uses the smart connector implementation from the `smart-connector` module. For instructions on how to use it, refer to [the section below](#using-the-rest-api). For instructions on how to set it up, refer to [this section](#advanced-administering-a-knowledge-engine-runtime).
 - `admin-ui`
 	- A REST API which provides meta-data about smart connectors in a knowledge network. Can be used in an administration inferface for a knowledge network. It is implemented as a knowledge base that uses metadata of other knowledge bases.
+- `reasoner`
+	- This module contains the reasoner specifically designed for the distributive nature of the knowledge engine.
+- `knowledge-directory`
+	- This module contains the Knowledge Directory which is used to find other knowledge engine runtimes.
 
 ## Release steps
 These are instructions on what to do when we release a new version of the knowledge engine.
@@ -199,37 +205,18 @@ These are instructions on what to do when we release a new version of the knowle
 	- all `pom.xml` files
 	- `openapi-sc.yaml` version
 	- Docker image tags in the Docker Compose examples.
-2. Make a commit for the release, and tag it with `git tag {x}.{y}.{z}`.
-3. `mvn deploy` (for this you need `Deploy-Token` or `Private-Token` configured in your Maven's `settings.xml`, see [GitLab's documentation on this](https://docs.gitlab.com/ee/user/packages/maven_repository/#authenticate-to-the-package-registry-with-maven))
-4. Push the commit and the tag.
-5. Build and push the new Docker images to GitLab:
-
-```bash
-docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/smart-connector-rest-dist:1.2.5 --push
-docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/knowledge-directory:1.2.5 --push
-docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag docker-registry.inesctec.pt/interconnect/knowledge-engine/admin-ui:1.2.5 --push
-```
-
-6. Build and push the new Docker images to GitHub:
-
-```bash
-docker buildx build ./smart-connector-rest-dist --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/smart-connector:1.2.5 --push
-docker buildx build ./knowledge-directory --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/knowledge-directory:1.2.5 --push
-docker buildx build ./admin-ui --platform linux/arm64,linux/amd64 --tag ghcr.io/tno/knowledge-engine/admin-ui:1.2.5 --push
-```
-
-7. Prepare the next SNAPSHOT version and make a commit for that too.
+2. Make a commit and push it to a new branch for the release.
+3. Make a Pull Request and merge it into master after tests have succeeded.
+4. Go to Actions on GitHub and trigger the workflow "Make draft release" with the new version as input.
+5. When the workflow is finished, go to the newly generated draft release. Check the release notes, make any changes if necessary, and publish the release.
+6. Prepare the next SNAPSHOT version and make a commit for that in a PR and merge into master.
    1. `openapi-sc.yaml`
    2. `pom.xml`
    3. Leave the non-SNAPSHOT version in this README, and in the Docker Compose examples.
-8. In GitLab, create a new release at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/releases
-   1. Use the new tag for the release
-   2. Write release notes
-   3. Find the latest version of the package at https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/packages/976 and copy the link to the JAR with dependencies. Include it in "Release assets" with type "Package" and link title "Knowledge Engine REST server JAR (with dependencies)" (see previous releases)
-9. In GitHub, create a new release at https://github.com/TNO/knowledge-engine/releases/new
-   1. Use the new tag for the release
-   2. Include the same release notes
-10. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
+7. Inform mailing list(s) (and [the blog](https://www.knowledge-engine.eu/blog/)) about the new release.
+
+## Code conventions
+The code conventions of the knowledge-engine can be found in the `/ide` folder in the Eclipse IDE format. The format can often also be imported in other Java IDEs like IntelliJ, VSCode or Netbeans.
 
 ## (advanced) Administering a Knowledge Engine runtime
 To start a new instance of the REST API knowledge engine version 1.2.5, make sure you have `git checkout 1.2.5` the tag `1.2.5`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
@@ -258,12 +245,15 @@ nohup java -cp "smart-connector-rest-dist-1.2.5.jar:dependency/*" eu.knowledge.e
 ### Starting the Knowledge Engine in distributed mode
 The Knowledge Engine can also start in distributed mode, where it connects with a remote knowledge directory and where different instances of the Knowledge Engine (each instance hosting one or more smart connectors) can communicate with each other. More information about starting the Knowledge Engine in distributed mode can be found in the [documentation](docs/docs/distributed_mode.md).
 
-### Additional configuration environment variables
+### Configuration
+TNO Knowledge Engine uses the [MicroProfile Config 3.1](https://microprofile.io/specifications/config/) specification to configure its behaviour and we use [SmallRye](https://smallrye.io/smallrye-config/) as the implementation of this specification. The default configuration values can be found in the [microprofile-config.properties](./smart-connector/src/main/resources/META-INF/microprofile-config.properties) configuration file. And, as described in the specification, these configuration values can be overridden by [environment variables and system properties](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources). Note that environment variables can use underscores and capital letters to adhere to their naming conventions and the MicroProfile Config automatically maps those to corresponding configuration properties using [specific rules](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources.env.mapping).
+
+A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector/src/main/java/eu/knowledge/engine/smartconnector/impl/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
 
 *Increasing the wait time for other KBs to respond*
 
-By default, a Smart Connector waits `10` seconds max for a reply from another Smart Connector when sending an ASK/POST message. This time is configurable via the `KE_KB_WAIT_TIMEOUT` environment variable and setting it to `0` means the Smart Connector will wait indefinitely (this can be useful when dealing with Human KBs).
+By default, a Smart Connector waits `10` seconds max for a reply from another Smart Connector when sending an ASK/POST message. This time is configurable via the `ke.kb.wait.timeout` property and setting it to `0` means the Smart Connector will wait indefinitely (this can be useful when dealing with Human KBs).
 
 *Increasing the HTTP timeouts*
 
-By default, a KER waits `5` seconds max for a HTTP response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `KE_HTTP_TIMEOUT` environment variable.
+By default, a KER waits `5` seconds max for a HTTP connection response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `ke.http.timeout` property

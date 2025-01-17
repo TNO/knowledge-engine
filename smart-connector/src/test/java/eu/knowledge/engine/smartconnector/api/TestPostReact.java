@@ -16,11 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestPostReact {
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	public boolean kb2Received = false;
 
@@ -33,9 +33,9 @@ public class TestPostReact {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
