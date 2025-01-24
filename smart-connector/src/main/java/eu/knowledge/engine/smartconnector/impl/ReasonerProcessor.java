@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
@@ -746,33 +747,23 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_TRIPLE;
 	}
 
-	private static KnowledgeGap applyMatchAction(TripleMatchType action, KnowledgeGap existingTriple, TriplePattern tripleToAdd, TriplePattern tripleToRemove) {
-		KnowledgeGap result = existingTriple;
-		switch(action) {
-			case ADD_GAP -> result.add(tripleToAdd);
-			case REPLACE_TRIPLE -> {
-				result.remove(tripleToRemove);
+	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
+		KnowledgeGap result = new KnowledgeGap(gap);
+		for (TriplePattern tripleToAdd : gapToAdd) {
+			Map<TriplePattern, TripleMatchType> tripleActions = new HashMap<>();
+			for (TriplePattern existingTriple : gap) {
+				TripleMatchType tripleAction = getTripleMatchType(existingTriple, tripleToAdd);
+				tripleActions.put(existingTriple, tripleAction);
+			}
+			Set<Map.Entry<TriplePattern, TripleMatchType>> replaces = tripleActions.entrySet().stream().filter(t -> t.getValue() == TripleMatchType.REPLACE_TRIPLE).collect(Collectors.toSet());
+
+			if (replaces.size() == 1) {
+				TriplePattern toReplace = replaces.iterator().next().getKey();
+				result.remove(toReplace);
+				result.add(tripleToAdd);
+			} else if (!tripleActions.values().contains(TripleMatchType.IGNORE_TRIPLE)) {
 				result.add(tripleToAdd);
 			}
-		}
-		return result;
-	}
-
-	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
-		KnowledgeGap result = null;
-		for (TriplePattern tripleToAdd : gapToAdd) {
-			TripleMatchType actionToTake = null;
-			for (TriplePattern existingTriple : gap) {
-				TripleMatchType newActionToTake = getTripleMatchType(existingTriple, tripleToAdd);
-				if (actionToTake == null) {
-					actionToTake = newActionToTake;
-				} else if (newActionToTake != actionToTake) {
-					// What to do if the actions to take are contradictory
-
-				}
-			}
-			// Compare actionToTake to previous actionToTakes?
-			//result = applyMatchAction(actionToTake, gap, tripleToAdd, tripleToRemove);
 		}
 		return result;
 	}
