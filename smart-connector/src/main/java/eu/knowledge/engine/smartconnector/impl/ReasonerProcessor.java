@@ -726,6 +726,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return existingOrGaps;
 	}
 
+	/**
+	 * Given two triples, decides how they should be combined into a (single) knowledge gap
+	 * @return Action that should be taken when merging these two triples in a knowledge gap
+	 */
 	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
 		Map<TripleNode, TripleNode> matches = existingTriple.findMatches(newTriple);
 		if (matches == null) {
@@ -747,6 +751,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_TRIPLE;
 	}
 
+	/**
+	 * Merges two Knowledge Gaps into one Knowledge Gap
+	 * @return one Knowledge Gap containing triples from both provided knowledge gaps, ignoring triples that
+	 * are duplicates or more generic (e.g. ?id hasCountry ?c is ignored if there is already ?id hasCountry Ireland)
+	 */
 	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
 		KnowledgeGap result = new KnowledgeGap(gap);
 		for (TriplePattern tripleToAdd : gapToAdd) {
@@ -768,6 +777,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return result;
 	}
 
+	/**
+	 * Given multiple knowledge gaps, adds the gaps in gapstoAdd to all knowledge gaps in listOfGaps
+	 * @param listOfGaps list of knowledge gaps to which new knowledge gaps should be added
+	 * @param gapsToAdd knowledge gaps that should be added to the gaps in listOfGaps
+	 * @return Set of KnowledgeGaps where knowledge gaps in gapsToAdd have been merged/added to the gaps in listOfGaps
+	 */
 	private static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
 		if (listOfGaps.isEmpty()) {
 			return gapsToAdd;
