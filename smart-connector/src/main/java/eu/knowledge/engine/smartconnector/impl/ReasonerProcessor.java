@@ -2,15 +2,13 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
@@ -668,21 +666,21 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		assert plan instanceof AntSide;
 
-		Set<KnowledgeGap> existingOrGaps = new HashSet<KnowledgeGap>();
+		Set<KnowledgeGap> existingOrGaps = new HashSet<>();
 
 		// TODO do we need to include the parent if we are not backward chaining?
 		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
 				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
 
 		// collect triple patterns that have an empty set
-		Set<KnowledgeGap> collectedOrGaps, someGaps = new HashSet<KnowledgeGap>();
+		Set<KnowledgeGap> collectedOrGaps, someGaps = new HashSet<>();
 
 		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
 
 			LOG.debug("Entry key is {}", entry.getKey());
 			LOG.debug("Entry value is {}", entry.getValue());
 
-			collectedOrGaps = new HashSet<KnowledgeGap>();
+			collectedOrGaps = new HashSet<>();
 			boolean foundNeighborWithoutGap = false;
 			for (RuleNode neighbor : entry.getValue()) {
 				LOG.debug("Neighbor is {}", neighbor);
@@ -711,38 +709,81 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
-			if (!foundNeighborWithoutGap) {
-				// there is a gap here, either in the current node or in a neighbor.
+			if (foundNeighborWithoutGap) continue;
 
-				if (collectedOrGaps.isEmpty()) {
-					KnowledgeGap kg = new KnowledgeGap();
-					kg.add(entry.getKey());
-					collectedOrGaps.add(kg);
-				}
-				LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+			// there is a gap here, either in the current node or in a neighbor
 
-				Set<KnowledgeGap> newExistingOrGaps = new HashSet<KnowledgeGap>();
-				if (existingOrGaps.isEmpty()) {
-					existingOrGaps.addAll(collectedOrGaps);
-					LOG.debug("Added collectedOrGaps to existingOrGaps");
-				} else {
-					KnowledgeGap newGap;
-					for (KnowledgeGap existingOrGap : existingOrGaps) {
-						for (KnowledgeGap collectedOrGap : collectedOrGaps) {
-							newGap = new KnowledgeGap();
-							newGap.addAll(existingOrGap);
-							newGap.addAll(collectedOrGap);
-							LOG.debug("Found newGap {}", newGap);
-							newExistingOrGaps.add(newGap);
-						}
-					}
-					existingOrGaps = newExistingOrGaps;
-				}
-
+			if (collectedOrGaps.isEmpty()) {
+				KnowledgeGap kg = new KnowledgeGap();
+				kg.add(entry.getKey());
+				collectedOrGaps.add(kg);
 			}
+			LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+
+			existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 		}
 		LOG.debug("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
+	}
+
+	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
+		Map<TripleNode, TripleNode> matches = existingTriple.findMatches(newTriple);
+		if (matches == null) {
+			return TripleMatchType.ADD_TRIPLE;
+		}
+
+		ArrayList<TripleMatchType> matchType = new ArrayList<>();
+		for (Entry<TripleNode, TripleNode> match : matches.entrySet()) {
+			if (match.getKey().node.isVariable() && match.getValue().node.isConcrete()) {
+				matchType.add(TripleMatchType.REPLACE_TRIPLE);
+			} else if (match.getKey().node.isConcrete() && match.getValue().node.isVariable()) {
+				matchType.add(TripleMatchType.IGNORE_TRIPLE);
+			}
+		}
+
+		if (matchType.isEmpty()) return TripleMatchType.IGNORE_TRIPLE;
+
+		boolean equalMatchTypes = matchType.stream().allMatch(m -> m.equals(matchType.get(0)));
+		return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_TRIPLE;
+	}
+
+	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
+		KnowledgeGap result = new KnowledgeGap(gap);
+		for (TriplePattern tripleToAdd : gapToAdd) {
+			Map<TriplePattern, TripleMatchType> tripleActions = new HashMap<>();
+			for (TriplePattern existingTriple : gap) {
+				TripleMatchType tripleAction = getTripleMatchType(existingTriple, tripleToAdd);
+				tripleActions.put(existingTriple, tripleAction);
+			}
+			Set<Map.Entry<TriplePattern, TripleMatchType>> replaces = tripleActions.entrySet().stream().filter(t -> t.getValue() == TripleMatchType.REPLACE_TRIPLE).collect(Collectors.toSet());
+
+			if (replaces.size() == 1) {
+				TriplePattern toReplace = replaces.iterator().next().getKey();
+				result.remove(toReplace);
+				result.add(tripleToAdd);
+			} else if (!tripleActions.containsValue(TripleMatchType.IGNORE_TRIPLE)) {
+				result.add(tripleToAdd);
+			}
+		}
+		return result;
+	}
+
+	private static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
+		if (listOfGaps.isEmpty()) {
+			return gapsToAdd;
+		} else if (gapsToAdd.isEmpty()) {
+			return listOfGaps;
+		}
+
+		Set<KnowledgeGap> knowledgeGaps = new HashSet<>();
+		for (KnowledgeGap existingGap : listOfGaps) {
+			for (KnowledgeGap gapToAdd : gapsToAdd) {
+				KnowledgeGap g = mergeGap(existingGap, gapToAdd);
+				knowledgeGaps.add(g);
+			}
+		}
+
+		return knowledgeGaps;
 	}
 
 	private boolean isMetaKI(RuleNode neighbor) {
