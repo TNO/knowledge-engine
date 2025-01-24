@@ -768,7 +768,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return result;
 	}
 
-	public static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
+	private static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
 		if (listOfGaps.isEmpty()) {
 			return gapsToAdd;
 		} else if (gapsToAdd.isEmpty()) {
