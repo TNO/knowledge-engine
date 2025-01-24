@@ -21,14 +21,14 @@ import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestKnowledgeGapDetection {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestKnowledgeGapDetection.class);
 
-    private MockedKnowledgeBase kbEggObserver;
-    private MockedKnowledgeBase kbImperialEggSearcher;
+    private KnowledgeBaseImpl kbEggObserver;
+    private KnowledgeBaseImpl kbImperialEggSearcher;
     private KnowledgeNetwork kn;
     private PrefixMappingMem prefixes;
     private AskKnowledgeInteraction askKI;
@@ -156,7 +156,7 @@ public class TestKnowledgeGapDetection {
     }
 
     public void instantiateImperialEggSearcherKB() {
-        kbImperialEggSearcher = new MockedKnowledgeBase("ImperialEggSearcher");
+        kbImperialEggSearcher = new KnowledgeBaseImpl("ImperialEggSearcher");
         kbImperialEggSearcher.setReasonerEnabled(true);
 
         GraphPattern gp2 = new GraphPattern(prefixes,
@@ -167,7 +167,7 @@ public class TestKnowledgeGapDetection {
     }
 
     public void instantiateObserverKB() {
-        kbEggObserver = new MockedKnowledgeBase("EggObserver");
+        kbEggObserver = new KnowledgeBaseImpl("EggObserver");
         kbEggObserver.setReasonerEnabled(true);
 
         GraphPattern gp1 = new GraphPattern(prefixes, "?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/FabergeEgg> . ?id <https://www.tno.nl/example/hasImage> ?image .");
