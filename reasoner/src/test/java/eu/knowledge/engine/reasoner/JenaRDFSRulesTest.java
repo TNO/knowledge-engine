@@ -1,5 +1,7 @@
 package eu.knowledge.engine.reasoner;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,9 +14,12 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -45,9 +50,9 @@ public class JenaRDFSRulesTest {
 
 		Set<BaseRule> rdfsRules = JenaRuleTest.convertRules(readRuleFile());
 
-//		for (BaseRule br : rdfsRules) {
-//			LOG.info("{}", br);
-//		}
+		for (BaseRule br : rdfsRules) {
+			LOG.info("{}", br);
+		}
 
 		RuleStore rs = new RuleStore();
 		rs.addRules(rdfsRules);
@@ -94,6 +99,42 @@ public class JenaRDFSRulesTest {
 			m.add(m.asStatement(Triple.create(binding.get("s"), binding.get("p"), binding.get("o"))));
 		}
 
+		StmtIterator iter = m.listStatements();
+		LOG.info("------------------------");
+		while (iter.hasNext()) {
+			Statement st = iter.next();
+			LOG.info("{}", st);
+		}
+		iter.close();
+
+		StmtIterator iter2 = m.listStatements(
+				ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"), RDF.type,
+				(Resource) null);
+
+		Set<Statement> actualStatements = new HashSet<>();
+		while (iter2.hasNext()) {
+			actualStatements.add(iter2.next());
+		}
+
+		Set<Statement> expectedStatements = new HashSet<>();
+		expectedStatements.add(
+				m.createStatement(ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"),
+						RDF.type, ResourceFactory.createResource("http://purl.org/dc/dcmitype/Dataset")));
+		expectedStatements.add(
+				m.createStatement(ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"),
+						RDF.type, ResourceFactory.createResource("http://www.incf.org/ns/nidash/nidm#Database")));
+		expectedStatements.add(
+				m.createStatement(ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"),
+						RDF.type, ResourceFactory.createResource("http://www.w3.org/2000/01/rdf-schema#Resource")));
+		expectedStatements.add(
+				m.createStatement(ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"),
+						RDF.type, ResourceFactory.createResource("http://www.w3.org/ns/prov#Collection")));
+		expectedStatements.add(
+				m.createStatement(ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"),
+						RDF.type, ResourceFactory.createResource("http://www.w3.org/ns/prov#Entity")));
+
+		assertEquals(expectedStatements, actualStatements);
+
 //		Model m = Util.generateModel(new TriplePattern(genericTriple), results2);
 //
 //		StmtIterator iter = m.listStatements();
@@ -103,7 +144,7 @@ public class JenaRDFSRulesTest {
 //			LOG.info("{}", st);
 //		}
 //		iter.close();
-
+//
 //		Model m2 = ModelFactory.createDefaultModel();
 //		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/example.rdf"), null, "TTL");
 //		m2.read(JenaRDFSRulesTest.class.getResourceAsStream("/prov.ttl"), null, "TTL");
@@ -124,12 +165,14 @@ public class JenaRDFSRulesTest {
 //		LOG.info("Difference im2<->m: {}", m4.size());
 //
 //		LOG.info("------------------------");
-////		StmtIterator iter2 = m3.listStatements(
-////				ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"), RDF.type,
-////				(Resource) null);
-//		StmtIterator iter2 = m4.listStatements((Resource) null, null, (RDFNode) null);
+//		StmtIterator iter2 = m3.listStatements(
+//				ResourceFactory.createResource("http://openfmri.s3.amazonaws.com/nidm.ttl#openfmri"), RDF.type,
+//				(Resource) null);
+////		StmtIterator iter2 = m4.listStatements((Resource) null, null, (RDFNode) null);
+//		int teller = 0;
 //		while (iter2.hasNext()) {
 //			LOG.info("{}", iter2.next());
+//			teller = teller + 1;
 //		}
 //		assertEquals(5, teller);
 	}
