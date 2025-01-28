@@ -728,6 +728,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	/**
 	 * Given two triples, decides how they should be combined into a (single) knowledge gap
+	 *
+	 * @param existingTriple First triple
+	 * @param newTriple Second triple
 	 * @return Action that should be taken when merging these two triples in a knowledge gap
 	 */
 	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
@@ -745,16 +748,24 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 		}
 
-		if (matchType.isEmpty()) return TripleMatchType.IGNORE_TRIPLE;
-
-		boolean equalMatchTypes = matchType.stream().allMatch(m -> m.equals(matchType.get(0)));
-		return equalMatchTypes ? matchType.get(0) : TripleMatchType.ADD_TRIPLE;
+		TripleMatchType result;
+		if (matchType.isEmpty()) {
+			result = TripleMatchType.IGNORE_TRIPLE;
+		} else if (matchType.stream().allMatch(m -> m.equals(matchType.get(0)))) {
+			result = matchType.get(0);
+		} else {
+			result = TripleMatchType.ADD_TRIPLE;
+		}
+		return result;
 	}
 
 	/**
 	 * Merges two Knowledge Gaps into one Knowledge Gap
+	 * @param gap First knowledge gap
+	 * @param gapToAdd Knowledge gap that should be added/merged into the first knowledge gap
 	 * @return one Knowledge Gap containing triples from both provided knowledge gaps, ignoring triples that
-	 * are duplicates or more generic (e.g. ?id hasCountry ?c is ignored if there is already ?id hasCountry Ireland)
+	 * are duplicates or more generic (e.g. {@code ?id hasCountry ?c} is ignored if there is already
+	 * {@code ?id hasCountry Ireland})
 	 */
 	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
 		KnowledgeGap result = new KnowledgeGap(gap);
@@ -764,10 +775,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				TripleMatchType tripleAction = getTripleMatchType(existingTriple, tripleToAdd);
 				tripleActions.put(existingTriple, tripleAction);
 			}
-			Set<Map.Entry<TriplePattern, TripleMatchType>> replaces = tripleActions.entrySet().stream().filter(t -> t.getValue() == TripleMatchType.REPLACE_TRIPLE).collect(Collectors.toSet());
+			Set<TriplePattern> replaces = tripleActions.entrySet().stream().filter(t ->
+					t.getValue() == TripleMatchType.REPLACE_TRIPLE).map(Map.Entry::getKey).collect(Collectors.toSet());
 
 			if (replaces.size() == 1) {
-				TriplePattern toReplace = replaces.iterator().next().getKey();
+				TriplePattern toReplace = replaces.iterator().next();
 				result.remove(toReplace);
 				result.add(tripleToAdd);
 			} else if (!tripleActions.containsValue(TripleMatchType.IGNORE_TRIPLE)) {
@@ -820,5 +832,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	public void setMatchStrategy(MatchStrategy aStrategy) {
 		this.matchStrategy = aStrategy;
+	}
+
+	/**
+	 * Enum that represents which action to take for a triple when merging two knowledge gaps
+	 * Given a triple, compared to another triple, the first triple can either be
+	 * (1) Added to the Knowledge Gap, (2) Ignored, or (3) Replace the other triple
+	 */
+	private enum TripleMatchType {
+		ADD_TRIPLE, IGNORE_TRIPLE, REPLACE_TRIPLE
 	}
 }
