@@ -52,7 +52,7 @@ public class TestAskAnswer {
 
 		LOG.info("Waiting for ready...");
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> <https://www.tno.nl/example/c>.");
 
 		CommunicativeAct act1 = new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 				new HashSet<>(Arrays.asList(Vocab.RETRIEVE_KNOWLEDGE_PURPOSE)));
@@ -66,7 +66,6 @@ public class TestAskAnswer {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -103,8 +102,8 @@ public class TestAskAnswer {
 		Binding b = iter.next();
 
 		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
-				"The variable names should follow the graph pattern of the current KB.");
-
+				"The variable names should follow the graph pattern of the requesting KB.");
+		
 		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
 		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
 
