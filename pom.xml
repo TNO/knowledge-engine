@@ -74,7 +74,7 @@
 	<properties>
 		<jetty-version>11.0.24</jetty-version>
 		<java.version>17</java.version>
-		<jersey3-version>3.1.9</jersey3-version>
+		<jersey3-version>3.1.10</jersey3-version>
 		<jackson-version>2.18.2</jackson-version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
