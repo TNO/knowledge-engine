@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
