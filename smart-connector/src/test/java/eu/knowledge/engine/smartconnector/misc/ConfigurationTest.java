@@ -21,7 +21,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 

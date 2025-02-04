@@ -13,6 +13,7 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
@@ -131,18 +132,18 @@ public interface InteractionProcessor {
 	void setDomainKnowledge(Set<Rule> someRules);
 
 	/**
-	 * Whether the InteractionProcessor should use reasoning to orchestrate the data
-	 * exchange, or should use a matcher instead. Enabling the reasoner increases
-	 * the flexibility of the data exchange, but decreases the performance.
+	 * Which reasoner level the InteractionProcessor should use to orchestrate the
+	 * data exchange. Different levels increases the flexibility of the data
+	 * exchange, but decreases the performance.
 	 * 
-	 * @param aReasonerEnabled {@code true} if this interaction processor should use
-	 *                         reasoning, {@code false} otherwise.
+	 * @param aReasonerLevel The reasoner level to use if no specific level is
+	 *                       configured.
 	 */
-	void setReasonerEnabled(boolean aReasonerEnabled);
+	void setReasonerLevel(int aReasonerLevel);
 
 	/**
-	 * @return {@code true} if the reasoner for this interaction processor is
-	 *         enabled, {@code false} otherwise.
+	 * @return The reasoner level that is being used by this interaction processor
+	 *         when no specific level is given by the user.
 	 */
-	boolean isReasonerEnabled();
+	int getReasonerLevel();
 }

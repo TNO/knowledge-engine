@@ -45,6 +45,7 @@ import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
@@ -72,10 +73,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final LoggerProvider loggerProvider;
 
 	/**
-	 * Whether this interaction processor should use reasoning to orchestrate the
-	 * data exchange.
+	 * The default reasoner level of this smart connector is retrieved from the
+	 * configuration.
 	 */
-	private boolean reasonerEnabled = false;
+	private int reasonerLevel = ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL,
+			Integer.class);
 
 	private static final Query query = QueryFactory.create(
 			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
@@ -127,16 +129,10 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// But filter on the communicative act. These have to match!
 		filterWithCommunicativeActMatcher(anAKI, otherKnowledgeInteractions);
 
-		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor;
-		if (this.reasonerEnabled) {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
-					this.additionalDomainKnowledge);
-		} else {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
-					this.additionalDomainKnowledge);
-			((ReasonerProcessor) processor).setMatchStrategy(MatchStrategy.ENTRY_LEVEL);
-		}
+		// create a new ReasonerProcessor to handle this ask.
+		ReasonerProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
+				this.additionalDomainKnowledge);
+		processor.setMatchStrategy(SmartConnectorConfig.toMatchStrategy(this.reasonerLevel));
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -297,16 +293,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// But filter on the communicative act. These have to match!
 		filterWithCommunicativeActMatcher(aPKI, otherKnowledgeInteractions);
 
-		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor;
-		if (this.reasonerEnabled) {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
-					this.additionalDomainKnowledge);
-		} else {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
-					this.additionalDomainKnowledge);
-			((ReasonerProcessor) processor).setMatchStrategy(MatchStrategy.ENTRY_LEVEL);
-		}
+		// create a new ReasonerProcessor to handle this ask.
+		ReasonerProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
+				this.additionalDomainKnowledge);
+		processor.setMatchStrategy(SmartConnectorConfig.toMatchStrategy(this.reasonerLevel));
+
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
 		// outstanding message replies. Then it returns the future. Threads from the
@@ -513,13 +504,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.reasonerEnabled = aReasonerEnabled;
+	public void setReasonerLevel(int aReasonerLevel) {
+		this.reasonerLevel = aReasonerLevel;
 	}
 
 	@Override
-	public boolean isReasonerEnabled() {
-		return this.reasonerEnabled;
+	public int getReasonerLevel() {
+		return this.reasonerLevel;
 	}
 
 }

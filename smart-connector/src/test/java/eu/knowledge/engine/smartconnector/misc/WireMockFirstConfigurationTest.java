@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
 import eu.knowledge.engine.smartconnector.runtime.messaging.RemoteKerConnection;

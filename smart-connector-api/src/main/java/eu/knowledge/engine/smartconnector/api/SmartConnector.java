@@ -274,20 +274,22 @@ public interface SmartConnector {
 	void setDomainKnowledge(Set<Rule> someDomainKnowledge);
 
 	/**
-	 * Sets the reasoner enabled property of this Smart Connector to true or false.
-	 * Enabling the reasoner causes the data exchange to become more flexible, but
-	 * also causes the data exchange to be slower.
+	 * Sets the default reasoner level of this Smart Connector between 1-5.
+	 * Increasing the level of the reasoner causes the data exchange to become more
+	 * flexible, but also causes the data exchange to be slower.
 	 * 
-	 * @param aReasonerEnabled {@code true} if the reasoner should be enabled,
-	 *                         {@code false} otherwise.
+	 * @param aReasonerLevel The default level of the reasoner. For details on the
+	 *                       different reasoner levels, see
+	 *                       {@link SmartConnectorConfig#CONF_KEY_KE_REASONER_LEVEL}.
 	 */
-	void setReasonerEnabled(boolean aReasonerEnabled);
+	void setReasonerLevel(int aReasonerLevel);
 
 	/**
-	 * @return {@code true} if this smart connector uses the reasoner for data
-	 *         exchange, {@code false} otherwise.
+	 * @return The default reasoner level of this smart connector for data exchange.
+	 *         For details on the different reasoner levels, see
+	 *         {@link SmartConnectorConfig#CONF_KEY_KE_REASONER_LEVEL}
 	 */
-	boolean isReasonerEnabled();
+	int getReasonerLevel();
 
 	/**
 	 * Stops the current {@link SmartConnectorImpl}. Note that this methods is

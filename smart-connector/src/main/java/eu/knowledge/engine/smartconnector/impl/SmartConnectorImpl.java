@@ -21,6 +21,7 @@ import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.PostResult;
@@ -543,13 +544,13 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	}
 
 	@Override
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.interactionProcessor.setReasonerEnabled(aReasonerEnabled);
+	public void setReasonerLevel(int aReasonerLevel) {
+		this.interactionProcessor.setReasonerLevel(aReasonerLevel);
 	}
 
 	@Override
-	public boolean isReasonerEnabled() {
-		return this.interactionProcessor.isReasonerEnabled();
+	public int getReasonerLevel() {
+		return this.interactionProcessor.getReasonerLevel();
 	}
 
 }

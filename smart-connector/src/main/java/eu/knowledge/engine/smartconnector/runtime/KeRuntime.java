@@ -14,7 +14,7 @@ import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.runtime.messaging.MessageDispatcher;
 
 /**
