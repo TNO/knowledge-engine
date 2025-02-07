@@ -22,8 +22,6 @@ public class TestRegisterSmartConnectorWithSameId {
     var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
     kb1.setPhaser(this.readyPhaser);
     kb1.start();
-
-    Thread.sleep(1000);
     
     var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
     kb1.setPhaser(this.readyPhaser);
@@ -46,7 +44,7 @@ public class TestRegisterSmartConnectorWithSameId {
 
 		kd.start();
 
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 
 		// this ID is REUSED in both smart connectors!
 		URI kb1Id = new URI("http://example.org/kb1");
