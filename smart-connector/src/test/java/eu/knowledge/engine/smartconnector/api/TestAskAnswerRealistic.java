@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 @Disabled
 public class TestAskAnswerRealistic {
@@ -52,25 +52,15 @@ public class TestAskAnswerRealistic {
 		var kn = new KnowledgeNetwork();
 
 		kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kb2 = new KnowledgeBaseImpl("kb2");
-		kb2.setReasonerEnabled(true);
 		kb3 = new KnowledgeBaseImpl("kb3");
-		kb3.setReasonerEnabled(true);
 		kb4 = new KnowledgeBaseImpl("kb4");
-		kb4.setReasonerEnabled(true);
 		kb5 = new KnowledgeBaseImpl("kb5");
-		kb5.setReasonerEnabled(true);
 		kb6 = new KnowledgeBaseImpl("kb6");
-		kb6.setReasonerEnabled(true);
 		kb7 = new KnowledgeBaseImpl("kb7");
-		kb7.setReasonerEnabled(true);
 		kb8 = new KnowledgeBaseImpl("kb8");
-		kb8.setReasonerEnabled(true);
 		kb9 = new KnowledgeBaseImpl("kb9");
-		kb9.setReasonerEnabled(true);
 		kb10 = new KnowledgeBaseImpl("kb10");
-		kb10.setReasonerEnabled(true);
 
 		var rules = new HashSet<Rule>();
 

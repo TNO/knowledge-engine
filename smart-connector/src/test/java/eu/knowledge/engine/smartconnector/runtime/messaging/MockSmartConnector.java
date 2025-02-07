@@ -189,15 +189,15 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 	}
 
 	@Override
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
+	public void setReasonerLevel(int aReasonerLevel) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public boolean isReasonerEnabled() {
+	public int getReasonerLevel() {
 		// TODO Auto-generated method stub
-		return false;
+		return 0;
 	}
 
 	@Override

@@ -251,8 +251,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 		this.sc = smartConnectorProvider.create(this);
 
-		if (scModel.getReasonerEnabled() != null)
-			this.sc.setReasonerEnabled(scModel.getReasonerEnabled());
+		if (scModel.getReasonerLevel() != null)
+			this.sc.setReasonerLevel(scModel.getReasonerLevel());
 	}
 
 	protected void tryProcessHandleRequestElseEnqueue(HandleRequest handleRequest) {
@@ -396,10 +396,6 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 
 		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false : ki.getKnowledgeGapsEnabled();
-		if (knowledgeGapsEnabled && !this.sc.isReasonerEnabled()) {
-			throw new IllegalArgumentException(
-					"You can only set knowledgeGapsEnabled when the Knowledge Base is reasonerEnabled.");
-		}
 
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
@@ -414,6 +410,9 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			MatchStrategy strategy = null;
 			if (aki.getKnowledgeGapsEnabled() != null && aki.getKnowledgeGapsEnabled()) {
 				strategy = MatchStrategy.SUPREME_LEVEL;
+				LOG.info(
+						"The MatchStrategy should be '{}' when Knowledge Gaps are enabled. Overriding default.",
+						MatchStrategy.SUPREME_LEVEL);
 			}
 
 			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
@@ -512,8 +511,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			return kiToModelKiWithId(kiId, this.knowledgeInteractions.get(kiId));
 
 		} catch (URISyntaxException e) {
-			assert false
-					: "There should never occur an invalid URI here because it should have been checked in the service implementation.";
+			assert false : "There should never occur an invalid URI here because it should have been checked in the service implementation.";
 		}
 		return null;
 
@@ -864,7 +862,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return this.suspended;
 	}
 
-	public Boolean getReasonerEnabled() {
-		return this.sc.isReasonerEnabled();
+	public int getReasonerLevel() {
+		return this.sc.getReasonerLevel();
 	}
 }

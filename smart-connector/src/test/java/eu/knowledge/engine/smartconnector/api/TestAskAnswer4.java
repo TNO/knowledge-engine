@@ -41,10 +41,8 @@ public class TestAskAnswer4 {
 
 		var kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c .");

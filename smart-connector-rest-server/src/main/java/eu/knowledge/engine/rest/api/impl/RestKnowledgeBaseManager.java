@@ -86,9 +86,9 @@ public class RestKnowledgeBaseManager {
 		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel, () -> {
 			f.complete(null);
 		}));
+
 		LOG.info("Added KB {}", scModel.getKnowledgeBaseId());
 		return f.handle((r, e) -> {
-
 			if (r == null && e != null) {
 				LOG.error("An exception has occured while creating KB ", e);
 				return null;

@@ -36,13 +36,10 @@ public class TestPostReact3 {
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
-		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 		kb3 = new KnowledgeBaseImpl("kb3");
-		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 
 		// start registering

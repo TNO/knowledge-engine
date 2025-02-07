@@ -565,6 +565,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 	}
 
+	/** {@link SmartConnectorConfig#CONF_KEY_KE_REASONER_LEVEL} */
 	public void setReasonerLevel(int aReasonerLevel) {
 		this.reasonerLevel = aReasonerLevel;
 

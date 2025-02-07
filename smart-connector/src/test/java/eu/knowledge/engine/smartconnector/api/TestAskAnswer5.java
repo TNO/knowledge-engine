@@ -43,16 +43,12 @@ public class TestAskAnswer5 {
 
 		this.kn = new KnowledgeNetwork();
 		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("kb2");
-		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 		KnowledgeBaseImpl kb3 = new KnowledgeBaseImpl("kb3");
-		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 		KnowledgeBaseImpl kb4 = new KnowledgeBaseImpl("kb4");
-		kb4.setReasonerEnabled(true);
 		kn.addKB(kb4);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, """
