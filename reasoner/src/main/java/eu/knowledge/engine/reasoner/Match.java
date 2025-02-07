@@ -76,19 +76,16 @@ public class Match {
 
 		Match m = null;
 
+		var mergedMatchingPatterns = mergeMatchingPatterns(this.getMatchingPatterns(),
+				otherMatch.getMatchingPatterns());
+
 		// if both sides of the matching patterns do not overlap
-		boolean doMapsIntersect = doIntersect(this.getMatchingPatterns(), otherMatch.getMatchingPatterns());
-
-		if (!doMapsIntersect) {
-
+		if (mergedMatchingPatterns != null) {
 			// and if the mappings do not conflict
 			Map<TripleNode, TripleNode> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
 			if (mergedMapping != null) {
 				// if both patterns and mappings do not conflict.
-				Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
-				newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
-
-				m = new Match(newMatchingPatterns, mergedMapping);
+				m = new Match(mergedMatchingPatterns, mergedMapping);
 			}
 		}
 		return m;
@@ -99,19 +96,29 @@ public class Match {
 	 * 
 	 * @param aFirstMap
 	 * @param aSecondMap
-	 * @return
+	 * @return {@code null} if the matching patterns overlap on either keys or
+	 *         values, otherwise the merged mapping.
 	 */
-	private boolean doIntersect(Map<TriplePattern, TriplePattern> aFirstMap,
+	private HashMap<TriplePattern, TriplePattern> mergeMatchingPatterns(Map<TriplePattern, TriplePattern> aFirstMap,
 			Map<TriplePattern, TriplePattern> aSecondMap) {
+
+		var mergedMatchingPatterns = new HashMap<TriplePattern, TriplePattern>(aFirstMap.size() + aSecondMap.size());
+
+		boolean firstTime = true;
 
 		for (Entry<TriplePattern, TriplePattern> entry1 : aFirstMap.entrySet()) {
 			for (Entry<TriplePattern, TriplePattern> entry2 : aSecondMap.entrySet()) {
 				if (entry1.getKey().equals(entry2.getKey()) || entry1.getValue().equals(entry2.getValue()))
-					return true;
+					return null;
+
+				if (firstTime)
+					mergedMatchingPatterns.put(entry2.getKey(), entry2.getValue());
 			}
+			mergedMatchingPatterns.put(entry1.getKey(), entry1.getValue());
+			firstTime = false;
 		}
 
-		return false;
+		return mergedMatchingPatterns;
 	}
 
 	public Map<TripleNode, TripleNode> getMappings() {
