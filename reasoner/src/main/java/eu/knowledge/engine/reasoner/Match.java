@@ -88,9 +88,7 @@ public class Match {
 				Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
 				newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
 
-				Map<TripleNode, TripleNode> newMapping = new HashMap<>(this.getMappings());
-				newMapping.putAll(otherMatch.getMappings());
-				m = new Match(newMatchingPatterns, newMapping);
+				m = new Match(newMatchingPatterns, mergedMapping);
 			}
 		}
 		return m;
@@ -135,7 +133,10 @@ public class Match {
 			Map<TripleNode, TripleNode> newContext) {
 
 		Collection<TripleNode> existingContextValues = existingContext.values();
-		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(existingContext);
+		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(
+				existingContext.size() + newContext.size());
+		mergedContext.putAll(existingContext);
+
 		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
 			Node node;
 			if ((node = getOtherNode(existingContext, newEntry.getKey().node)) != null) {
