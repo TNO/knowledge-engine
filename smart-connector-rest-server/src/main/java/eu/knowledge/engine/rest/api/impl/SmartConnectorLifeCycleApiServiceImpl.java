@@ -143,15 +143,23 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return;
 		}
 
-		final boolean reasonerEnabled = smartConnector.getReasonerEnabled() == null ? false
-				: smartConnector.getReasonerEnabled();
-				
-		LOG.info("Creating smart connector with ID {} and reasoner enabled '{}'.", kbId, reasonerEnabled);
-		
+		Integer lvl = smartConnector.getReasonerLevel();
+
+		if (lvl != null && (lvl < 1 || lvl > 5)) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("The reasoner level should be between 1 and 5, inclusive and not " + lvl);
+			asyncResponse.resume(Response.status(400).entity(response).build());
+			return;
+		}
+
+		LOG.info("Creating smart connector with ID {} and {}reasoner level{}.", kbId, lvl != null ? "" : "default ",
+				lvl != null ? " " + lvl : "");
+
 		// Tell the manager to create a KB, store it, and have it set up a SC etc.
 		this.manager.createKB(new SmartConnector().knowledgeBaseId(kbId.toString()).knowledgeBaseName(kbName)
 				.knowledgeBaseDescription(kbDescription).leaseRenewalTime(smartConnector.getLeaseRenewalTime())
-				.reasonerEnabled(reasonerEnabled)).thenRun(() -> {
+				.reasonerLevel(smartConnector.getReasonerLevel())).thenRun(() -> {
 					LOG.info("Returning response for smart connector with ID {}", kbId);
 					asyncResponse.resume(Response.ok().build());
 				});
@@ -220,7 +228,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 					.knowledgeBaseId(restKb.getKnowledgeBaseId().toString())
 					.knowledgeBaseName(restKb.getKnowledgeBaseName())
 					.knowledgeBaseDescription(restKb.getKnowledgeBaseDescription())
-					.leaseRenewalTime(restKb.getLeaseRenewalTime()).reasonerEnabled(restKb.getReasonerEnabled());
+					.leaseRenewalTime(restKb.getLeaseRenewalTime()).reasonerLevel(restKb.getReasonerLevel());
 		}).toArray(eu.knowledge.engine.rest.model.SmartConnector[]::new);
 	}
 }

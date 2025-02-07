@@ -5,10 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -22,17 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
@@ -54,10 +42,8 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 		var kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
-		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 
 		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");

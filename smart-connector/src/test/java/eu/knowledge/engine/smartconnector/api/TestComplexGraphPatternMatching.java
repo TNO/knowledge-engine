@@ -134,7 +134,6 @@ public class TestComplexGraphPatternMatching {
 	private AskKnowledgeInteraction createDashboardKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 
 		dashboardKB = new KnowledgeBaseImpl("dashboardKB");
-		dashboardKB.setReasonerEnabled(true);
 		kn.addKB(dashboardKB);
 
 		String gp = """
@@ -270,7 +269,6 @@ public class TestComplexGraphPatternMatching {
 
 	private void createDevicesKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 		devicesKB = new KnowledgeBaseImpl("devicesKB");
-		devicesKB.setReasonerEnabled(true);
 		kn.addKB(devicesKB);
 		GraphPattern gp1 = new GraphPattern(prefixes, TestUtils.convertGP("""
 				?d rdf:type ?type .
@@ -384,7 +382,6 @@ public class TestComplexGraphPatternMatching {
 
 	private void createObservationsKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 		observationsKB = new KnowledgeBaseImpl("observationsKB");
-		observationsKB.setReasonerEnabled(true);
 		kn.addKB(observationsKB);
 
 		GraphPattern gp12 = new GraphPattern(prefixes, TestUtils.convertGP("""

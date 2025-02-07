@@ -33,7 +33,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 	private static KnowledgeBaseImpl kbRelationAsker;
 	private static KnowledgeBaseImpl kbRelationProvider;
 	private static KnowledgeBaseImpl kbRelationReactor;
-	
+
 	private static KnowledgeNetwork kn;
 
 	private static PrefixMappingMem prefixes;
@@ -51,22 +51,23 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 	@Test
 	public void testAskAnswerReactWithGapsEnabled() throws InterruptedException, URISyntaxException {
-		
+
 		// In this test there will be an Ask KB with an AskKI with 2 triplepatterns,
-		// an AnswerKB with a single AnswerKI that answers only the first triplepattern of the Ask pattern, and
+		// an AnswerKB with a single AnswerKI that answers only the first triplepattern
+		// of the Ask pattern, and
 		// a ReactKB that can answer the , but needs another pattern to be satisfied.
 		// The test will execute the AskKI with knowledge gaps enabled.
 		// As a result, the set of knowledge gaps should contain a single gap.
 
 		setupNetwork();
-		
+
 		// Perform the ASK
 		try {
 			AskResult result = kbRelationAsker.ask(askKIGaps, new BindingSet()).get();
 			// check whether set of knowledge gaps contains a single gap
-			Set<KnowledgeGap> gaps = result.getKnowledgeGaps();		
+			Set<KnowledgeGap> gaps = result.getKnowledgeGaps();
 			LOG.info("Found gaps: " + gaps);
-			assertFalse(gaps.isEmpty(),"The set of knowledge gaps should not be empty");
+			assertFalse(gaps.isEmpty(), "The set of knowledge gaps should not be empty");
 			assertEquals(1, gaps.size(), "Number of gaps should be 1");
 			Iterator<KnowledgeGap> iter = gaps.iterator();
 			while (iter.hasNext()) {
@@ -80,11 +81,11 @@ public class TestAskAnswerWithGapsEnabled3 {
 			}
 			BindingSet bindings = result.getBindings();
 			LOG.info("Resulting binding set is: " + bindings);
-			assertTrue(bindings.isEmpty(),"The resulting bindingset should be empty");
+			assertTrue(bindings.isEmpty(), "The resulting bindingset should be empty");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
 		}
-		
+
 	}
 
 	private void setupNetwork() {
@@ -106,11 +107,12 @@ public class TestAskAnswerWithGapsEnabled3 {
 	public void instantiateAskRelationsKB() {
 		// start a knowledge base with the behavior "I am interested in related people"
 		kbRelationAsker = new KnowledgeBaseImpl("RelationAsker");
-		kbRelationAsker.setReasonerEnabled(true);
-		
+		kbRelationAsker.setReasonerLevel(4);
+
 		// Register an Ask pattern for relations with knowledge gaps enabled
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:isRelatedTo ?b . ?a ex:isFatherOf ?c .");
-		this.askKIGaps = new AskKnowledgeInteraction(new CommunicativeAct(), gp1, "askRelations",  false, true, true, MatchStrategy.SUPREME_LEVEL);
+		this.askKIGaps = new AskKnowledgeInteraction(new CommunicativeAct(), gp1, "askRelations", false, true, true,
+				MatchStrategy.SUPREME_LEVEL);
 		kbRelationAsker.register(this.askKIGaps);
 
 	}
@@ -118,7 +120,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 	public void instantiateAnswerRelationsKB() {
 		// start a knowledge base with the behavior "I can supply related people"
 		kbRelationProvider = new KnowledgeBaseImpl("RelationProvider");
-		kbRelationProvider.setReasonerEnabled(true);
+		kbRelationProvider.setReasonerLevel(4);
 
 		// Patterns for the RelationProvider: an Answer pattern for relations
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:isRelatedTo1 ?b .");
@@ -142,10 +144,11 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 	public void instantiateReactRelationsKB() {
 
-		// start a knowledge base with the behavior "I can react to supply related people"
+		// start a knowledge base with the behavior "I can react to supply related
+		// people"
 		// when I get couples of "people that live in the same house".
 		kbRelationReactor = new KnowledgeBaseImpl("relationReactor");
-		kbRelationReactor.setReasonerEnabled(true);
+		kbRelationReactor.setReasonerLevel(4);
 
 		// Patterns for the relationReactor: an React pattern to supply relations
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:liveInTheSameHouse ?b .");
@@ -160,7 +163,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 			while (iter.hasNext()) {
 				Binding b = iter.next();
 				LOG.info("Incoming tuple of people living in the same house is {}", b);
-				Binding binding1 = new Binding();				
+				Binding binding1 = new Binding();
 				binding1.put("a", b.get("a"));
 				binding1.put("b", b.get("b"));
 				bindingSet.add(binding1);
@@ -168,7 +171,7 @@ public class TestAskAnswerWithGapsEnabled3 {
 
 			return bindingSet;
 		});
-		
+
 	}
 
 	@AfterAll

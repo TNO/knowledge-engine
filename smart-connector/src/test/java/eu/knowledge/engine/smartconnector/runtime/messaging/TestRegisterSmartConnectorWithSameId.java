@@ -16,13 +16,17 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 public class TestRegisterSmartConnectorWithSameId {
   private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
   private Phaser readyPhaser = new Phaser(1);
+  
   @Test
-  public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() {
+	public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() throws InterruptedException {
     var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
     kb1.setPhaser(this.readyPhaser);
     kb1.start();
 
+    Thread.sleep(1000);
+    
     var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
+    kb1.setPhaser(this.readyPhaser);
 
     assertThrows(IllegalArgumentException.class, () -> {
       kb1AsWell.start();
@@ -42,7 +46,7 @@ public class TestRegisterSmartConnectorWithSameId {
 
 		kd.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(2000);
 
 		// this ID is REUSED in both smart connectors!
 		URI kb1Id = new URI("http://example.org/kb1");

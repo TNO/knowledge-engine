@@ -107,7 +107,7 @@ public class TestAskAnswerWithGapsEnabled2 {
 	public void instantiateAskRelationsKB() {
 		// start a knowledge base with the behavior "I am interested in related people"
 		kbRelationAsker = new KnowledgeBaseImpl("RelationAsker");
-		kbRelationAsker.setReasonerEnabled(true);
+		kbRelationAsker.setReasonerLevel(4);
 
 		// Register an Ask pattern for relations with knowledge gaps enabled
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:isRelatedTo ?b . ?a ex:isFatherOf ?c .");
@@ -120,7 +120,7 @@ public class TestAskAnswerWithGapsEnabled2 {
 	public void instantiateAnswerRelationsKB() {
 		// start a knowledge base with the behavior "I can supply related people"
 		kbRelationProvider = new KnowledgeBaseImpl("RelationProvider");
-		kbRelationProvider.setReasonerEnabled(true);
+		kbRelationProvider.setReasonerLevel(4);
 
 		// Patterns for the RelationProvider: an Answer pattern for relations
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a ex:isRelatedTo ?b .");

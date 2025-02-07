@@ -545,6 +545,10 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 
 	@Override
 	public void setReasonerLevel(int aReasonerLevel) {
+		if (aReasonerLevel < 1 || aReasonerLevel > 5)
+			throw new IllegalArgumentException(
+					"The reasoner level should lie between 1 and 5, inclusive and should not be '" + aReasonerLevel
+							+ "'");
 		this.interactionProcessor.setReasonerLevel(aReasonerLevel);
 	}
 

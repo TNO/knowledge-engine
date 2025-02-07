@@ -48,7 +48,6 @@ public class NotDesignedToWorkTogetherTest {
 	public void test() throws InterruptedException {
 
 		kn.addKB(appKb);
-		this.appKb.setReasonerEnabled(true);
 		kn.addKB(lamp1Kb);
 		kn.addKB(lamp2Kb);
 
