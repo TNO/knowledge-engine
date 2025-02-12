@@ -25,6 +25,8 @@ The Knowledge Engine consists of a number of components:
 
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
+Detailed documentation can be found [here](https://docs.knowledge-engine.eu/).
+
 The rest of this README is structured as follows:
 
 - [Knowledge Engine](#knowledge-engine)
