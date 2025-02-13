@@ -2,10 +2,10 @@ package eu.knowledge.engine.smartconnector.api;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
- * knowledge between the {@link SmartConnectorImpl} and the
+ * knowledge between the {@link SmartConnector} and the
  * {@link KnowledgeBase}. It expresses the 'shape' of knowledge that a
  * {@link KnowledgeBase} asks from, or can provide to its
- * {@link SmartConnectorImpl}.
+ * {@link SmartConnector}.
  */
 public abstract class KnowledgeInteraction {
 
