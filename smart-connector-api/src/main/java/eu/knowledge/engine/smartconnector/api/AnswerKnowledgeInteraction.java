@@ -6,7 +6,7 @@ package eu.knowledge.engine.smartconnector.api;
  * {@code pattern}.
  *
  * In other words, the {@link KnowledgeBase} can answer those kinds of questions
- * for its {@link SmartConnectorImpl}.
+ * for its {@link SmartConnector}.
  */
 public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 
@@ -35,7 +35,7 @@ public final class AnswerKnowledgeInteraction extends KnowledgeInteraction {
 
 	/**
 	 * Create an {@link AnswerKnowledgeInteraction}. See
-	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, MatchStrategy)
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, boolean, MatchStrategy)}
 	 *
 	 * @param aPattern The {@link GraphPattern} expresses the 'shape' of knowledge
 	 *                 that this {@link KnowledgeInteraction} can provide.

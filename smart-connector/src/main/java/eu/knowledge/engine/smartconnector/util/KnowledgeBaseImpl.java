@@ -138,7 +138,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	 * connectors in the knowledge network and be able to wait for everyone to be up
 	 * to date.
 	 * 
-	 * @param aPhaser a concurrent object that allows multiple parties to wait for
+	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait for
 	 *                each other to go through different phases.
 	 */
 	public void setPhaser(Phaser aReadyPhaser) {

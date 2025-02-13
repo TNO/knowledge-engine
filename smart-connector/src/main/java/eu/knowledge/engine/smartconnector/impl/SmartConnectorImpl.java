@@ -169,7 +169,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 * that it no longer answers certain types of questions. This allows the
 	 * {@link SmartConnectorImpl} to prepare.
 	 *
-	 * @param anAnswerKI The {@link AswerKnowledgeInteraction} that the
+	 * @param anAnswerKI The {@link AnswerKnowledgeInteraction} that the
 	 *                   {@link KnowledgeBase} wants to unregister from this
 	 *                   {@link SmartConnectorImpl}.
 	 */

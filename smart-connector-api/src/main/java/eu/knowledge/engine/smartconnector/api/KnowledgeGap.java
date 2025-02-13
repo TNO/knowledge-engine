@@ -10,7 +10,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
  * to be present in order to satisfy an ask/post interaction.
  *
  * Note that there can be multiple knowledge gaps in an ask or post interaction.
- * They will be combined in a Set<KnowledgeGap>s that contains one or more
+ * They will be combined in a {@code Set<KnowledgeGap>}s that contains one or more
  * {@link KnowledgeGap}s in an <i><b>OR</b></i> fashion.
  *
  *  */
