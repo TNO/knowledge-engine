@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
-//@Disabled //it works, but takes about 230 seconds
+@Disabled //it works, but takes about 230 seconds
 @Tag("Long")
 public class AdditionForAudienceTest {
 
