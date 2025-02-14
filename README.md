@@ -25,6 +25,8 @@ The Knowledge Engine consists of a number of components:
 
 To quickly see how to use the Knowledge Engine through examples, see [`./examples/`](./examples/).
 
+Detailed documentation can be found [here](https://docs.knowledge-engine.eu/).
+
 The rest of this README is structured as follows:
 
 - [Knowledge Engine](#knowledge-engine)
@@ -256,7 +258,8 @@ By default, a Smart Connector waits `10` seconds max for a reply from another Sm
 
 *Increasing the HTTP timeouts*
 
-By default, a KER waits `5` seconds max for a HTTP connection response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `ke.http.timeout` property
+By default, a KER waits `5` seconds max for a HTTP connection response from another KER when sending a message via the inter-KER protocol. The time is configurable via the `ke.http.timeout` property.
 
 *Configure the reasoner level*
+
 By default, the reasoner level is set to `2`, but can be overridden as described above. The reasoner level (1-5) determines how advanced the reasoner mechanism will be. Every Smart Connector within the Knowledge Engine Runtime will use the configured reasoning level unless specified otherwise. The level can be configured via the `ke.reasoner.level` property.

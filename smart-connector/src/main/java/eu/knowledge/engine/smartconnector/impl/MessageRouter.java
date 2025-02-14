@@ -19,8 +19,8 @@ import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
  * reply has been received.</li>
  * <li>Incoming messages, for which this {@link SmartConnector} needs to create
  * a reply, are forwarded to the right internal component. For normal messages
- * this is the {@link ProactiveInteractionProcessor}, for meta data related
- * messages this is the {@link MyMetaKnowledgeBase}.
+ * this is the {@link InteractionProcessor}, for meta data related
+ * messages this is the {@link MetaKnowledgeBase}.
  * </ul>
  */
 public interface MessageRouter {
@@ -50,7 +50,7 @@ public interface MessageRouter {
 	CompletableFuture<ReactMessage> sendPostMessage(PostMessage postMessage) throws IOException;
 
 	/**
-	 * Register the {@link MyMetaKnowledgeBase} so it can receive incoming messages
+	 * Register the {@link MetaKnowledgeBase} so it can receive incoming messages
 	 * for which a reply needs to be created.
 	 *
 	 * @param metaKnowledgeBase
