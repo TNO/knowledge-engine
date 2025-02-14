@@ -7,14 +7,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
+//@Disabled //it works, but takes about 230 seconds
 @Tag("Long")
 public class AdditionForAudienceTest {
 
