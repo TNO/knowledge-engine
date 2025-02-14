@@ -84,11 +84,6 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	private int reasonerLevel = ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL,
 			Integer.class);
 
-	/**
-	 * Whether the Knowledge Base is threadsafe.
-	 */
-	private boolean isThreadSafe = false;
-
 	public KnowledgeBaseImpl(String aName) {
 		this(null, aName, null);
 	}
@@ -581,10 +576,6 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
 		return this.getSC().planPost(aPKI, aSelector);
-	}
-
-	public void setIsThreadSafe(boolean aIsThreadSafe) {
-		this.isThreadSafe = aIsThreadSafe;
 	}
 
 	public boolean isStarted() {

@@ -32,7 +32,6 @@ import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.AnswerBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactBindingSetHandler;
 import eu.knowledge.engine.smartconnector.impl.ReasonerProcessor.ReactVoidBindingSetHandler;
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class TestUtils {
 

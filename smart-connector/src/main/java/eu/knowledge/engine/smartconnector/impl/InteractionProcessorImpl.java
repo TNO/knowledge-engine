@@ -40,7 +40,6 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
@@ -86,7 +85,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
-		this.LOG = loggerProvider.getLogger(this.getClass());
+		this.LOG = this.loggerProvider.getLogger(this.getClass());
 
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
@@ -103,8 +102,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	public AskPlan planAskFromKnowledgeBase(MyKnowledgeInteractionInfo anAKI, RecipientSelector aSelector) {
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aSelector != null : "the selector should be non-null";
-
-		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
 
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
@@ -268,8 +265,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	public PostPlan planPostFromKnowledgeBase(MyKnowledgeInteractionInfo aPKI, RecipientSelector aSelector) {
 		assert aPKI != null : "the knowledge interaction should be non-null";
 		assert aSelector != null : "the selector should be non-null";
-
-		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
 
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();

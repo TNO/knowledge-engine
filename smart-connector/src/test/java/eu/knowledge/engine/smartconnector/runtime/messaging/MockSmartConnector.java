@@ -197,7 +197,7 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 	@Override
 	public int getReasonerLevel() {
 		// TODO Auto-generated method stub
-		return 0;
+		return 2;
 	}
 
 	@Override
