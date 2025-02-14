@@ -2,19 +2,20 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import eu.knowledge.engine.reasoner.api.TripleNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.serializer.SerializationContext;
-import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulenode.RuleNode;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -113,7 +115,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (kii.getType().equals(Type.ANSWER)) {
 				AnswerKnowledgeInteraction aki = (AnswerKnowledgeInteraction) ki;
 				GraphPattern gp = aki.getPattern();
-				Rule aRule = new Rule(ruleName, new HashSet<>(translateGraphPatternTo(gp)),
+				Rule aRule = new Rule(ruleName, new HashSet<>(Util.translateGraphPatternTo(gp)),
 						new AnswerBindingSetHandler(kii));
 				store.addRule(aRule);
 				LOG.debug("Adding ANSWER to store: {}", aRule);
@@ -125,10 +127,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Set<TriplePattern> resPattern;
 				Rule aRule;
 				if (resGp == null) {
-					aRule = new Rule(ruleName, translateGraphPatternTo(argGp), new ReactVoidBindingSetHandler(kii));
+					aRule = new Rule(ruleName, Util.translateGraphPatternTo(argGp),
+							new ReactVoidBindingSetHandler(kii));
 				} else {
-					resPattern = new HashSet<>(translateGraphPatternTo(resGp));
-					aRule = new Rule(ruleName, translateGraphPatternTo(argGp), resPattern,
+					resPattern = new HashSet<>(Util.translateGraphPatternTo(resGp));
+					aRule = new Rule(ruleName, Util.translateGraphPatternTo(argGp), resPattern,
 							new ReactBindingSetHandler(kii));
 				}
 
@@ -151,7 +154,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					? aAKI.getKnowledgeInteraction().getName()
 					: aAKI.getId().toString();
 
-			ProactiveRule aRule = new ProactiveRule(ruleName, translateGraphPatternTo(aki.getPattern()),
+			ProactiveRule aRule = new ProactiveRule(ruleName, Util.translateGraphPatternTo(aki.getPattern()),
 					new HashSet<>());
 			this.store.addRule(aRule);
 			MatchStrategy aStrategy;
@@ -193,11 +196,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			if (myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
-				this.knowledgeGaps = bs.isEmpty()
-						? getKnowledgeGaps(this.reasonerPlan.getStartNode())
-								: new HashSet<KnowledgeGap>();
+				this.knowledgeGaps = bs.isEmpty() ? getKnowledgeGaps(this.reasonerPlan.getStartNode())
+						: new HashSet<KnowledgeGap>();
 			}
-			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan, this.knowledgeGaps);
+			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan,
+					this.knowledgeGaps);
 		});
 	}
 
@@ -238,11 +241,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			if (pki.getResult() != null) {
 				this.captureResultBindingSetHandler = new CaptureBindingSetHandler();
 
-				store.addRule(new Rule(ruleName, translateGraphPatternTo(pki.getResult()),
+				store.addRule(new Rule(ruleName, Util.translateGraphPatternTo(pki.getResult()),
 						this.captureResultBindingSetHandler));
 			}
 
-			Set<TriplePattern> translatedGraphPattern = translateGraphPatternTo(pki.getArgument());
+			Set<TriplePattern> translatedGraphPattern = Util.translateGraphPatternTo(pki.getArgument());
 
 			ProactiveRule aRule = new ProactiveRule(ruleName, new HashSet<>(), new HashSet<>(translatedGraphPattern));
 			store.addRule(aRule);
@@ -347,29 +350,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		return newBindingSet;
-	}
-
-	private Set<TriplePattern> translateGraphPatternTo(GraphPattern pattern) {
-
-		TriplePattern tp;
-		TriplePath triplePath;
-		String triple;
-		ElementPathBlock epb = pattern.getGraphPattern();
-		Iterator<TriplePath> iter = epb.patternElts();
-
-		Set<TriplePattern> triplePatterns = new HashSet<TriplePattern>();
-
-		while (iter.hasNext()) {
-
-			triplePath = iter.next();
-
-			triple = FmtUtils.stringForTriple(triplePath.asTriple(), new PrefixMappingZero());
-
-			tp = new TriplePattern(triple);
-			triplePatterns.add(tp);
-		}
-
-		return triplePatterns;
 	}
 
 	public static class CaptureBindingSetHandler implements SinkBindingSetHandler {
@@ -709,7 +689,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
-			if (foundNeighborWithoutGap) continue;
+			if (foundNeighborWithoutGap)
+				continue;
 
 			// there is a gap here, either in the current node or in a neighbor
 
@@ -727,11 +708,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	/**
-	 * Given two triples, decides how they should be combined into a (single) knowledge gap
+	 * Given two triples, decides how they should be combined into a (single)
+	 * knowledge gap
 	 *
 	 * @param existingTriple First triple
-	 * @param newTriple Second triple
-	 * @return Action that should be taken when merging these two triples in a knowledge gap
+	 * @param newTriple      Second triple
+	 * @return Action that should be taken when merging these two triples in a
+	 *         knowledge gap
 	 */
 	private static TripleMatchType getTripleMatchType(TriplePattern existingTriple, TriplePattern newTriple) {
 		Map<TripleNode, TripleNode> matches = existingTriple.findMatches(newTriple);
@@ -761,11 +744,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	/**
 	 * Merges two Knowledge Gaps into one Knowledge Gap
-	 * @param gap First knowledge gap
-	 * @param gapToAdd Knowledge gap that should be added/merged into the first knowledge gap
-	 * @return one Knowledge Gap containing triples from both provided knowledge gaps, ignoring triples that
-	 * are duplicates or more generic (e.g. {@code ?id hasCountry ?c} is ignored if there is already
-	 * {@code ?id hasCountry Ireland})
+	 * 
+	 * @param gap      First knowledge gap
+	 * @param gapToAdd Knowledge gap that should be added/merged into the first
+	 *                 knowledge gap
+	 * @return one Knowledge Gap containing triples from both provided knowledge
+	 *         gaps, ignoring triples that are duplicates or more generic (e.g.
+	 *         {@code ?id hasCountry ?c} is ignored if there is already
+	 *         {@code ?id hasCountry Ireland})
 	 */
 	private static KnowledgeGap mergeGap(KnowledgeGap gap, KnowledgeGap gapToAdd) {
 		KnowledgeGap result = new KnowledgeGap(gap);
@@ -775,8 +761,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				TripleMatchType tripleAction = getTripleMatchType(existingTriple, tripleToAdd);
 				tripleActions.put(existingTriple, tripleAction);
 			}
-			Set<TriplePattern> replaces = tripleActions.entrySet().stream().filter(t ->
-					t.getValue() == TripleMatchType.REPLACE_TRIPLE).map(Map.Entry::getKey).collect(Collectors.toSet());
+			Set<TriplePattern> replaces = tripleActions.entrySet().stream()
+					.filter(t -> t.getValue() == TripleMatchType.REPLACE_TRIPLE).map(Map.Entry::getKey)
+					.collect(Collectors.toSet());
 
 			if (replaces.size() == 1) {
 				TriplePattern toReplace = replaces.iterator().next();
@@ -790,10 +777,15 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	/**
-	 * Given multiple knowledge gaps, adds the gaps in gapstoAdd to all knowledge gaps in listOfGaps
-	 * @param listOfGaps list of knowledge gaps to which new knowledge gaps should be added
-	 * @param gapsToAdd knowledge gaps that should be added to the gaps in listOfGaps
-	 * @return Set of KnowledgeGaps where knowledge gaps in gapsToAdd have been merged/added to the gaps in listOfGaps
+	 * Given multiple knowledge gaps, adds the gaps in gapstoAdd to all knowledge
+	 * gaps in listOfGaps
+	 * 
+	 * @param listOfGaps list of knowledge gaps to which new knowledge gaps should
+	 *                   be added
+	 * @param gapsToAdd  knowledge gaps that should be added to the gaps in
+	 *                   listOfGaps
+	 * @return Set of KnowledgeGaps where knowledge gaps in gapsToAdd have been
+	 *         merged/added to the gaps in listOfGaps
 	 */
 	private static Set<KnowledgeGap> mergeGaps(Set<KnowledgeGap> listOfGaps, Set<KnowledgeGap> gapsToAdd) {
 		if (listOfGaps.isEmpty()) {
@@ -835,9 +827,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	}
 
 	/**
-	 * Enum that represents which action to take for a triple when merging two knowledge gaps
-	 * Given a triple, compared to another triple, the first triple can either be
-	 * (1) Added to the Knowledge Gap, (2) Ignored, or (3) Replace the other triple
+	 * Enum that represents which action to take for a triple when merging two
+	 * knowledge gaps Given a triple, compared to another triple, the first triple
+	 * can either be (1) Added to the Knowledge Gap, (2) Ignored, or (3) Replace the
+	 * other triple
 	 */
 	private enum TripleMatchType {
 		ADD_TRIPLE, IGNORE_TRIPLE, REPLACE_TRIPLE

@@ -1,11 +1,9 @@
 package eu.knowledge.engine.smartconnector.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.cache.Cache;
@@ -21,11 +19,15 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.TriplePath;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.syntax.ElementPathBlock;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
@@ -97,6 +99,29 @@ public class Util {
 			}
 		}
 		return m;
+	}
+	
+	public static Set<TriplePattern> translateGraphPatternTo(GraphPattern pattern) {
+
+		TriplePattern tp;
+		TriplePath triplePath;
+		String triple;
+		ElementPathBlock epb = pattern.getGraphPattern();
+		Iterator<TriplePath> iter = epb.patternElts();
+
+		Set<TriplePattern> triplePatterns = new HashSet<TriplePattern>();
+
+		while (iter.hasNext()) {
+
+			triplePath = iter.next();
+
+			triple = FmtUtils.stringForTriple(triplePath.asTriple(), new PrefixMappingZero());
+
+			tp = new TriplePattern(triple);
+			triplePatterns.add(tp);
+		}
+
+		return triplePatterns;
 	}
 
 	public static void removeRedundantBindingsAnswer(BindingSet incoming, BindingSet outgoing) {

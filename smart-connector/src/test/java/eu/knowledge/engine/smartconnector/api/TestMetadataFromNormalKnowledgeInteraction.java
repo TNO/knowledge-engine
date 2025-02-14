@@ -34,6 +34,7 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
+		kb1.setReasonerLevel(1);
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
@@ -46,23 +47,14 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
 		var metaGraphPattern = new GraphPattern(prefixes,
-		// @formatter:off
-				"?kb rdf:type ke:KnowledgeBase .", 
-				"?kb ke:hasName ?name .",
-				"?kb ke:hasDescription ?description .", 
-				"?kb ke:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", 
-				"?ki ke:isMeta ?isMeta .", 
-				"?ki ke:hasCommunicativeAct ?act .",
-				"?act rdf:type ke:CommunicativeAct .", 
-				"?act ke:hasRequirement ?req .",
-				"?act ke:hasSatisfaction ?sat .", 
-				"?req rdf:type ?reqType .", 
-				"?sat rdf:type ?satType .",
-				"?ki ke:hasGraphPattern ?gp .", 
-				"?gp rdf:type ?patternType .", 
+				// @formatter:off
+				"?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .", "?kb ke:hasDescription ?description .",
+				"?kb ke:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki ke:isMeta ?isMeta .",
+				"?ki ke:hasCommunicativeAct ?act .", "?act rdf:type ke:CommunicativeAct .",
+				"?act ke:hasRequirement ?req .", "?act ke:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .", "?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
 				"?gp ke:hasPattern ?pattern .");
-				// @formatter:on
+		// @formatter:on
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),

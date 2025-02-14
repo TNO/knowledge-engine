@@ -12,7 +12,43 @@ import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
  * extremely slow and often throws out of memory exceptions.
  */
 public enum MatchStrategy {
-	SUPREME_LEVEL, ULTRA_LEVEL, ADVANCED_LEVEL, NORMAL_LEVEL, ENTRY_LEVEL;
+	/**
+	 * Fastest but finds least matches between rules. Matches cannot consist of
+	 * multiple rules and should also fully cover the target graph pattern.
+	 */
+	ENTRY_LEVEL,
+
+	/**
+	 * Faster but finds only limited matches between rules. Matches can consist of
+	 * multiple rules, but should still fully cover the target graph pattern which
+	 * means detecting knowledge gaps is not supported.
+	 */
+	NORMAL_LEVEL,
+
+	/**
+	 * Slower but finds more matches between rules. Matches can consist of multiple
+	 * rules and transitive rules (that refer to themselves) are supported as well,
+	 * but matches should still fully cover the target graph pattern which means
+	 * detecting knowledge gaps is not supported.
+	 */
+	ADVANCED_LEVEL,
+
+	/**
+	 * Even slower but finds almost all matches between rules. Matches can consist
+	 * of multiple rules and transitive rules (that refer to themselves) are
+	 * supported as well and matches do not need to fully cover the target graph
+	 * pattern and this means knowledge gap detection is supported.
+	 */
+	ULTRA_LEVEL,
+
+	/**
+	 * Slowest, but finds all possible matches between rules. Matches can consist of
+	 * multiple rules and transitive rules (that refer to themselves) are supported.
+	 * Matches do not need to fully cover the target graph pattern and this means
+	 * knowledge gap detection is supported. This level also finds matches that are
+	 * already encompassed by other matches.
+	 */
+	SUPREME_LEVEL;
 
 	public EnumSet<MatchFlag> toConfig(boolean antecedentOfTarget) {
 		EnumSet<MatchFlag> config;

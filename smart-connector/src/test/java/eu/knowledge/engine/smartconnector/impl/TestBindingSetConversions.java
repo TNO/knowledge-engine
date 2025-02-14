@@ -8,7 +8,6 @@ import java.util.Set;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.junit.jupiter.api.Test;
 

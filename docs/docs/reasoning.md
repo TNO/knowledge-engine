@@ -12,8 +12,7 @@ We can distinguish between two types of reasoning as it happens within the knowl
 1. reasoning to infer new data, and 
 2. reasoning for orchestration of data 
 
-It is optional to use the reasoner, and you have to specifically opt in to enable it.
-If you don't opt in, the *matcher* is used, which simply only facilitates data exchange when graph patterns match exactly (except for order of triples and variable names).
+The reasoner is always enabled, but you can configure the reasoner level with a number between 1 and 5, inclusive. The lower reasoner level facilitates data exchange when graph patterns match exactly (except for order of triples and variable names) and will not combine multiple actors to satisfy the interaction.
 
 ## Reasoning to infer new data
 
@@ -184,32 +183,34 @@ In `examples/reasoner/` in the Knowledge Engine repository, you can find a compl
 That example is a variant on the unit conversion orchestration.
 
 
-## Enabling the reasoner
+## Setting the reasoner level
+
+You can configure the default reasoner level via the `ke.reasoner.level` configuration option. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
 
 <Tabs groupId="tke-usage">
 <TabItem value="java" label="Java">
 
 ```java
-smartConnector.setReasonerEnabled(true);
+smartConnector.setReasonerLevel(4);
 ```
 
 </TabItem>
 <TabItem value="bash" label="Rest API">
 
-When using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerEnabled` property during knowledge base registration:
+When using the REST API, you can enable the reasoner in your smart connector by adding the `reasonerLevel` property during knowledge base registration:
 
 ```json
 {
   "knowledgeBaseId": "http://example.org/kb-with-reasoner-enabled",
   "knowledgeBaseName": "My reasonable knowledge base",
   "knowledgeBaseDescription": "This is an example knowledge base with the reasoner turned on.",
-  "reasonerEnabled": true
+  "reasonerLevel": 4
 }
 ```
 
 </TabItem>
 </Tabs>
-When reasoning is enabled, any **proactive** Knowledge Interaction (i.e. ASK and POST) that you trigger in the smart connector will use the reasoner.
+Any **proactive** Knowledge Interaction (i.e. ASK and POST) that you trigger in the smart connector will use the specified reasoner level.
 
 
 ## Performance warning

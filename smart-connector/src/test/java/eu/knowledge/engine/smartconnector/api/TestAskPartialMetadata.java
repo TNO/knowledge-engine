@@ -1,15 +1,11 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -20,16 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class TestAskPartialMetadata {
 
@@ -52,13 +40,10 @@ public class TestAskPartialMetadata {
 
 		var kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
-		kb1.setReasonerEnabled(true);
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
-		kb2.setReasonerEnabled(true);
 		kn.addKB(kb2);
 		kb3 = new KnowledgeBaseImpl("kb3");
-		kb3.setReasonerEnabled(true);
 		kn.addKB(kb3);
 
 		GraphPattern gp2 = new GraphPattern(prefixes,

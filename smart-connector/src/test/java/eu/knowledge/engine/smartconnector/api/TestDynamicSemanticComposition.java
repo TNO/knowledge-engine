@@ -102,11 +102,12 @@ public class TestDynamicSemanticComposition {
 
 		setupNetwork();
 
-		// perform an ASK that should produce gaps and if found update network to fix gaps
+		// perform an ASK that should produce gaps and if found update network to fix
+		// gaps
 		try {
 			AskResult resultWithGaps = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			// check for knowledge gaps
-			Set<KnowledgeGap> gaps = resultWithGaps.getKnowledgeGaps();		
+			Set<KnowledgeGap> gaps = resultWithGaps.getKnowledgeGaps();
 			LOG.info("Found gaps: " + gaps);
 			// add KB that fills the knowledge gap
 			updateNetwork(gaps);
@@ -245,12 +246,11 @@ public class TestDynamicSemanticComposition {
 		// start a knowledge base with the behaviour "I am interested in high-value
 		// targets"
 		kbHVTSearcher = new KnowledgeBaseImpl("HVTSearcher");
-		kbHVTSearcher.setReasonerEnabled(true);
 
 		// Patterns for the HVTSearcher
 		// a pattern to ask for High Value Target searches
 		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets",true);
+		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets", true);
 		kbHVTSearcher.register(this.askKI);
 		// a pattern to react to incoming new High Value Targets
 		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
@@ -273,7 +273,6 @@ public class TestDynamicSemanticComposition {
 		// start a knowledge base with the behaviour "I can supply observations of
 		// targets"
 		kbTargetObserver = new KnowledgeBaseImpl("TargetObserver");
-		kbTargetObserver.setReasonerEnabled(true);
 
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
@@ -307,7 +306,6 @@ public class TestDynamicSemanticComposition {
 
 	public void instantiateTargetLanguageSupplierKB() {
 		kbTargetLanguageSupplier = new KnowledgeBaseImpl("TargetLanguageSupplier");
-		kbTargetLanguageSupplier.setReasonerEnabled(true);
 
 		// Patterns for the TargetLanguageSupplier
 		// a react pattern to get from targets to language
@@ -349,14 +347,12 @@ public class TestDynamicSemanticComposition {
 
 	public void instantiateTargetAgeSupplierKB() {
 		kbTargetAgeSupplier = new KnowledgeBaseImpl("TargetAgeSupplier");
-		kbTargetAgeSupplier.setReasonerEnabled(true);
 	}
 
 	public void instantiateTargetCountrySupplierKB() {
 		// start a knowledge base with the behaviour "Give me a target and I can supply
 		// its basic attributes"
 		kbTargetCountrySupplier = new KnowledgeBaseImpl("TargetCountrySupplier");
-		kbTargetCountrySupplier.setReasonerEnabled(true);
 
 		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries

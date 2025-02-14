@@ -322,6 +322,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 
 	@Override
 	public void stop() {
+		this.LOG.trace("Stopping KnowledgeBaseStoreImpl");
 		this.listeners.forEach(l -> l.smartConnectorStopping());
 	}
 }

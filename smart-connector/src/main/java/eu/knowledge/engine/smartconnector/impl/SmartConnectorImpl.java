@@ -17,7 +17,6 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
@@ -56,7 +55,6 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	private final MessageRouterImpl messageRouter;
 	private boolean isStopped = false;
 	private final ExecutorService knowledgeBaseExecutorService;
-	private final BindingValidator bindingValidator = new BindingValidator();
 	private CompletableFuture<Void> constructorFinished = new CompletableFuture<Void>();
 	private Instant started;
 
@@ -543,13 +541,17 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	}
 
 	@Override
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.interactionProcessor.setReasonerEnabled(aReasonerEnabled);
+	public void setReasonerLevel(int aReasonerLevel) {
+		if (aReasonerLevel < 1 || aReasonerLevel > 5)
+			throw new IllegalArgumentException(
+					"The reasoner level should lie between 1 and 5, inclusive and should not be '" + aReasonerLevel
+							+ "'");
+		this.interactionProcessor.setReasonerLevel(aReasonerLevel);
 	}
 
 	@Override
-	public boolean isReasonerEnabled() {
-		return this.interactionProcessor.isReasonerEnabled();
+	public int getReasonerLevel() {
+		return this.interactionProcessor.getReasonerLevel();
 	}
 
 }

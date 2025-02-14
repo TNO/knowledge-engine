@@ -22,6 +22,7 @@ import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
@@ -77,14 +79,10 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
 
 	/**
-	 * Enable the reasoner. Off by default (for now).
+	 * Using the default reasoner level from the configuration.
 	 */
-	private boolean reasonerEnabled = false;
-
-	/**
-	 * Whether the Knowledge Base is threadsafe.
-	 */
-	private boolean isThreadSafe = false;
+	private int reasonerLevel = ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL,
+			Integer.class);
 
 	public KnowledgeBaseImpl(String aName) {
 		this(null, aName, null);
@@ -494,7 +492,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	public void start() {
 		if (!isStarted()) {
 			this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
-			this.sc.setReasonerEnabled(this.reasonerEnabled);
+			this.sc.setReasonerLevel(this.reasonerLevel);
 		}
 	}
 
@@ -558,17 +556,18 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
-		this.getSC().setReasonerEnabled(this.reasonerEnabled);
+		this.getSC().setReasonerLevel(this.reasonerLevel);
 
 	}
 
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.reasonerEnabled = aReasonerEnabled;
+	/** {@link SmartConnectorConfig#CONF_KEY_KE_REASONER_LEVEL} */
+	public void setReasonerLevel(int aReasonerLevel) {
+		this.reasonerLevel = aReasonerLevel;
 
 	}
 
-	public boolean isReasonerEnabled() {
-		return this.reasonerEnabled;
+	public int getReasonerLevel() {
+		return this.reasonerLevel;
 	}
 
 	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
@@ -577,10 +576,6 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
 		return this.getSC().planPost(aPKI, aSelector);
-	}
-
-	public void setIsThreadSafe(boolean aIsThreadSafe) {
-		this.isThreadSafe = aIsThreadSafe;
 	}
 
 	public boolean isStarted() {

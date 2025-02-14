@@ -294,8 +294,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 		LOG.trace("BindingSet: {}", bindings);
 
-		String val = bindings.iterator().next().get("isMeta");
-
 		if (incoming != null) {
 			Util.removeRedundantBindingsAnswer(incoming, bindings);
 		}

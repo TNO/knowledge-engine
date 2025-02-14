@@ -22,7 +22,6 @@ import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +31,9 @@ import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
-import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.smartconnector.impl.Util;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class TestComplexGraphPatternMatching {
 
@@ -134,7 +132,6 @@ public class TestComplexGraphPatternMatching {
 	private AskKnowledgeInteraction createDashboardKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 
 		dashboardKB = new KnowledgeBaseImpl("dashboardKB");
-		dashboardKB.setReasonerEnabled(true);
 		kn.addKB(dashboardKB);
 
 		String gp = """
@@ -270,7 +267,6 @@ public class TestComplexGraphPatternMatching {
 
 	private void createDevicesKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 		devicesKB = new KnowledgeBaseImpl("devicesKB");
-		devicesKB.setReasonerEnabled(true);
 		kn.addKB(devicesKB);
 		GraphPattern gp1 = new GraphPattern(prefixes, TestUtils.convertGP("""
 				?d rdf:type ?type .
@@ -384,7 +380,6 @@ public class TestComplexGraphPatternMatching {
 
 	private void createObservationsKB(PrefixMappingMem prefixes, KnowledgeNetwork kn) {
 		observationsKB = new KnowledgeBaseImpl("observationsKB");
-		observationsKB.setReasonerEnabled(true);
 		kn.addKB(observationsKB);
 
 		GraphPattern gp12 = new GraphPattern(prefixes, TestUtils.convertGP("""

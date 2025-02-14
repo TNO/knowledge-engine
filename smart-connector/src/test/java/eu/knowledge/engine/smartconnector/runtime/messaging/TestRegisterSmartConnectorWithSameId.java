@@ -16,13 +16,15 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 public class TestRegisterSmartConnectorWithSameId {
   private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
   private Phaser readyPhaser = new Phaser(1);
+  
   @Test
-  public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() {
+	public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() throws InterruptedException {
     var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
     kb1.setPhaser(this.readyPhaser);
     kb1.start();
-
+    
     var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
+    kb1.setPhaser(this.readyPhaser);
 
     assertThrows(IllegalArgumentException.class, () -> {
       kb1AsWell.start();

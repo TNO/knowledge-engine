@@ -152,10 +152,8 @@ public class MultiThreadingPerformanceTest {
 
 		kn = new KnowledgeNetwork();
 		poster = new KnowledgeBaseImpl("poster");
-		poster.setIsThreadSafe(true);
 		kn.addKB(poster);
 		reacter = new KnowledgeBaseImpl("reacter");
-		reacter.setIsThreadSafe(true);
 		kn.addKB(reacter);
 
 		// add KIs

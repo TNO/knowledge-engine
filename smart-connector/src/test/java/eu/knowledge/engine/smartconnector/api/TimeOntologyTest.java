@@ -38,10 +38,6 @@ public class TimeOntologyTest {
 
 		// add KBs
 
-		this.calendar.setReasonerEnabled(true);
-		this.app.setReasonerEnabled(true);
-		this.time.setReasonerEnabled(true);
-
 		kn.addKB(this.calendar);
 		kn.addKB(this.app);
 		kn.addKB(this.time);

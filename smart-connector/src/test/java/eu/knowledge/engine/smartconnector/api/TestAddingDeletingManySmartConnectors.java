@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
-import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class TestAddingDeletingManySmartConnectors {

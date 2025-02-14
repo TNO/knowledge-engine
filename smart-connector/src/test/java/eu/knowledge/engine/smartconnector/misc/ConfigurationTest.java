@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.misc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -21,9 +22,9 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorConfig;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class ConfigurationTest {
 
@@ -164,6 +165,20 @@ public class ConfigurationTest {
 
 		LOG.info("Result: {}", askResult);
 		System.clearProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT);
+	}
+
+	@Test
+	public void testConfigReasonerLevelOutOfRange() {
+
+		var kb = new KnowledgeBaseImpl("kb11");
+		this.kn.addKB(kb);
+		kb.setReasonerLevel(0);
+		assertThrowsExactly(IllegalArgumentException.class, () -> kb.start());
+
+		var kbb = new KnowledgeBaseImpl("kb22");
+		this.kn.addKB(kbb);
+		kbb.setReasonerLevel(6);
+		assertThrowsExactly(IllegalArgumentException.class, () -> kbb.start());
 	}
 
 	@AfterEach

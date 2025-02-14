@@ -47,7 +47,7 @@ public class GeneralizeIfNecessaryTest {
 	public void test() throws InterruptedException, ExecutionException {
 
 		kn.addKB(appKb);
-		this.appKb.setReasonerEnabled(true);
+		this.appKb.setReasonerLevel(2);
 		kn.addKB(sensor1Kb);
 		kn.addKB(sensor2Kb);
 		kn.addKB(floorplanKb);
