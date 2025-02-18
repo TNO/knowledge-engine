@@ -5,10 +5,10 @@ This is an example of combining anomaly detection with the knowledge engine. We 
 - using context data about sensors to improve anomaly detection performance.
 - using a converter knowledge base to convert from fahrenheit to celsius and improve the anomaly detection performance.
 
-The example consists of three knowledge bases:
+The example consists of 6 knowledge bases:
 
-- `anomaly-detection-kb`: A knowledge base that represents an anomaly detection algorithm
-  - It reacts to sensor measurements by printing the results
+- `anomaly-detection-kb`: A knowledge base that represents an anomaly detection algorithm which only looks at `building1`.
+  - It reacts to sensor measurements by printing the results.
 - `sensor1-kb`: A knowledge base that publishes celsius temperature measurements from a Dutch sensor type.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and SAREF.
@@ -23,17 +23,20 @@ The example consists of three knowledge bases:
   - It converts bindings in the `ARGUMENT_PATTERN` form into bindings in the `RESULT_PATTERN` form, using the Python function `react` defined in `REACT_FUNCTION_DEF`.
 - `building-kb`: A knowledge base that contains static building information to provide more context information to the anomaly detector.
 
-When running the project, and showing the logs of the `anomaly-detector-kb` service:
+When running the project, and showing the logs of the `anomaly-detection-kb` service:
 
 ```
 docker compose up -d
-docker compose logs -f kb1
+docker compose logs -f anomaly-detection-kb
 ```
 
-You see that it receives the measurements in celsius and from both the Dutch and US sensor type.
+You see that it receives the measurements in celsius and from both the Dutch and US sensor type and ignores the sensor from the other building.
 
 ```
-Not yet available.
+anomaly-detection-kb-1  | INFO:anomaly-detection-kb:REACT KI is handling a request...
+anomaly-detection-kb-1  | INFO:anomaly-detection-kb:Reacting with empty bindingset to [{'celsius': '"20.11111111111111"^^<http://www.w3.org/2001/XMLSchema#decimal>', 'sensor': '<http://example.org/sensor2>', 'm': '<http://example.org/sensor2/measurement>'}]...
+anomaly-detection-kb-1  | INFO:anomaly-detection-kb:REACT KI is handling a request...
+anomaly-detection-kb-1  | INFO:anomaly-detection-kb:Reacting with empty bindingset to [{'celsius': '"15.3"^^<http://www.w3.org/2001/XMLSchema#decimal>', 'sensor': '<http://example.org/sensor1>', 'm': '<http://example.org/sensor1/measurement>'}]...
 ```
 
 ## Ontology

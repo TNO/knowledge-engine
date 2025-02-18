@@ -26,7 +26,7 @@ services:
         ?m ex:hasValueInCelsius ?celsius .
         ?m ex:madeBy ?sensor .
         ?sensor rdf:type ex:Sensor .
-#        ?sensor ex:isContainedIn ?building .
+        ?sensor ex:isContainedIn <http://example.org/building1> .
 
   #SENSOR1
   sensor1-ker:
@@ -50,7 +50,7 @@ services:
         ?m rdf:type ex:Measurement .
         ?m ex:hasValueInCelsius ?celsius .
         ?m ex:madeBy ex:sensor1 .
-        ex:sensor1 rdf:type ex:Sensor .
+        ex:sensor1 rdf:type ex:DutchTemperatureSensor .
       KB_DATA: |
         [
           {
@@ -112,7 +112,7 @@ services:
         ?m rdf:type ex:Measurement .
         ?m ex:hasValueInCelsius ?celsius .
         ?m ex:madeBy ex:sensor3 .
-        ex:sensor3 rdf:type ex:Sensor .
+        ex:sensor3 rdf:type ex:DutchTemperatureSensor .
       KB_DATA: |
         [
           {
