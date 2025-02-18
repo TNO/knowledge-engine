@@ -2,7 +2,7 @@
 
 This is an example of combining anomaly detection with the knowledge engine. We want to have a scenario that demonstrates/uses the following:
 - using a (saref + custom) ontology to reach semantic interoperability.
-- using context data about sensors to improve anomaly detection performance.
+- using context data (i.e. building data) about sensors to improve anomaly detection performance.
 - using a converter knowledge base to convert from fahrenheit to celsius and improve the anomaly detection performance.
 
 The example consists of 6 knowledge bases:
