@@ -15,7 +15,7 @@ The example consists of three knowledge bases:
 - `sensor2-kb`: A knowledge base that publishes fahrenheit measurements from a US sensor type.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and a custom ontology.
-- `sensor3-kb`: A knowledge base that publishes celsius measurements from a Dutch sensor type but is contained in a different building than the otehr two sensors.
+- `sensor3-kb`: A knowledge base that publishes celsius measurements from a Dutch sensor type but is contained in a different building than the other two sensors.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and a custom ontology.
   - The idea is that this sensor's data is not received by the anomaly detector.

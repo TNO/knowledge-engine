@@ -54,7 +54,8 @@ services:
         def react(bindings):
           result = []
           for binding in bindings:
-            fahrenheit = float(binding["fahrenheit"])
+            index = binding["fahrenheit"].rfind("\"")
+            fahrenheit = float(binding["fahrenheit"][1:index])
             celsius = (fahrenheit - 32) / 1.8
             result.append({"m": binding["m"], "celsius": str(celsius)})
           return result
