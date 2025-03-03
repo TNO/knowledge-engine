@@ -35,8 +35,7 @@ public class JenaRules {
 
 		var rules = new HashSet<Rule>();
 
-		Model m = ModelFactory.createDefaultModel();
-		m.read(turtleSource, null, "turtle");
+		Model m = createJenaModelFromTurtle(turtleSource);
 
 		StmtIterator iter = m.listStatements();
 
@@ -65,4 +64,52 @@ public class JenaRules {
 		return rules;
 	}
 
+	private static Model createJenaModelFromTurtle(Reader turtleSource) {
+		Model m = ModelFactory.createDefaultModel();
+		m.read(turtleSource, null, "turtle");
+		return m;
+	}
+
+	/**
+	 * Convert a given turtle string into a string that follows the
+	 * <a href="https://jena.apache.org/documentation/inference/#RULEsyntax">Apache
+	 * Jena Rules specification</a>. This syntax is used to load two kinds of domain
+	 * knowledge into the knowledge engine: facts and rules. Note that the facts are
+	 * actually rules without an antecedent and only a consequent
+	 * ({@code (if/antecedent) -> (then/consequent) .}), which can be read as
+	 * meaning "if no particular condition holds, then the following holds".
+	 * 
+	 * Every fact present in the turtle file will be converted to the following
+	 * format:
+	 * 
+	 * <pre>
+	 * {@code
+	 * -> ( <subject> <predicate> <object> ) .
+	 * }
+	 * </pre>
+	 * 
+	 * Note that literals with language tags are not supported.
+	 * 
+	 * @param turtleSource The turtle string that contains the facts.
+	 * @return A string of fact rules that follow the Apache Jena Rules syntax and
+	 *         can be loaded into the knowledge engine as domain knowledge.
+	 */
+	public static String createApacheJenaRulesFromTurtle(Reader turtleSource) {
+		StringBuilder sb = new StringBuilder();
+
+		Model m = createJenaModelFromTurtle(turtleSource);
+		StmtIterator iter = m.listStatements();
+
+		SerializationContext context = new SerializationContext();
+		context.setUsePlainLiterals(false);
+
+		while (iter.hasNext()) {
+			Statement s = iter.next();
+			sb.append("-> (").append(FmtUtils.stringForNode(s.getSubject().asNode(), context)).append(" ")
+					.append(FmtUtils.stringForNode(s.getPredicate().asNode(), context)).append(" ")
+					.append(FmtUtils.stringForNode(s.getObject().asNode(), context)).append(") .").append("\n");
+		}
+
+		return sb.toString();
+	}
 }
