@@ -1,4 +1,4 @@
-package eu.knowledge.engine.smartconnector.util;
+package eu.knowledge.engine.reasoner.util;
 
 import java.io.Reader;
 import java.util.Arrays;
@@ -14,8 +14,6 @@ import org.apache.jena.sparql.util.FmtUtils;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
-import eu.knowledge.engine.reasoner.util.Table;
 
 public class JenaRules {
 

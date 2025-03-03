@@ -1,4 +1,4 @@
-package eu.knowledge.engine.smartconnector.misc;
+package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
+import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.reasoner.util.Table;
-import eu.knowledge.engine.smartconnector.util.JenaRules;
 
 public class JenaRulesTest {
 
