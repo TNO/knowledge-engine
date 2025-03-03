@@ -9,18 +9,21 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.JenaRDFSRulesTest;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
 import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.reasoner.util.Table;
 
-public class JenaRulesTest {
+public class JenaRuleConversionTest {
 
 	/**
 	 * <a href="https://www.w3.org/TR/turtle/#sec-intro">source</a>
 	 * 
 	 * Removed Russian literal with language tag, because language tags are not
-	 * supported by Apache Jena Rules syntax. Created feature request <a href="https://github.com/apache/jena/issues/3042">here</a>.
+	 * supported by Apache Jena Rules syntax. Created feature request
+	 * <a href="https://github.com/apache/jena/issues/3042">here</a>.
 	 * 
 	 */
 	private static String turtleSource = """
@@ -73,6 +76,13 @@ public class JenaRulesTest {
 				.parseRules(ruleString);
 
 		assertEquals(6, jenaRules.size());
+	}
+
+	@Test
+	public void testJenaRulesToKeRules() {
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(JenaRDFSRulesTest.readRuleFile());
+
+		assertEquals(12, rdfsRules.size());
 	}
 
 }

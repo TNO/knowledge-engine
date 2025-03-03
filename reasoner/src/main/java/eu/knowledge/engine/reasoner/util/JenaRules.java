@@ -1,21 +1,30 @@
 package eu.knowledge.engine.reasoner.util;
 
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.reasoner.rulesys.ClauseEntry;
+import org.apache.jena.reasoner.rulesys.Node_RuleVariable;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.util.FmtUtils;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
 public class JenaRules {
+
+	private static SerializationContext context = new SerializationContext(false);
 
 	/**
 	 * Create rules that return (part of) the turtle facts. Maybe in the future
@@ -41,9 +50,6 @@ public class JenaRules {
 		int nrOfStatements = (int) m.size();
 		String[] columns = new String[] { "s", "p", "o" };
 		String[] rows = new String[nrOfStatements];
-
-		SerializationContext context = new SerializationContext();
-		context.setUsePlainLiterals(false);
 
 		int idx = 0;
 		while (iter.hasNext()) {
@@ -98,9 +104,6 @@ public class JenaRules {
 		Model m = createJenaModelFromTurtle(turtleSource);
 		StmtIterator iter = m.listStatements();
 
-		SerializationContext context = new SerializationContext();
-		context.setUsePlainLiterals(false);
-
 		while (iter.hasNext()) {
 			Statement s = iter.next();
 			sb.append("-> (").append(FmtUtils.stringForNode(s.getSubject().asNode(), context)).append(" ")
@@ -109,5 +112,86 @@ public class JenaRules {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Converts a string with Apache Jena Rules that can contain both facts and
+	 * rules into KE rules that can be used in the reasoner.
+	 * 
+	 * Note that all fact rules (i.e. rules without an antecedent and only a
+	 * consequent) are collected and created into a single data rule suitable for
+	 * the reasoner.
+	 * 
+	 * @param someRules A string of rules in the Apache Jena Rules syntax.
+	 * @return A set of rules that can be used with the KE reasoner.
+	 */
+	public static Set<BaseRule> convertJenaToKeRules(String someRules) {
+		List<org.apache.jena.reasoner.rulesys.Rule> jenaRules = org.apache.jena.reasoner.rulesys.Rule
+				.parseRules(someRules);
+
+		List<String> stringRows = new ArrayList<>();
+
+		Set<BaseRule> keRules = new HashSet<>();
+		for (org.apache.jena.reasoner.rulesys.Rule r : jenaRules) {
+
+			Set<TriplePattern> antecedent = new HashSet<>();
+			for (ClauseEntry ce : r.getBody()) {
+				antecedent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+			}
+
+			Set<TriplePattern> consequent = new HashSet<>();
+			for (ClauseEntry ce : r.getHead()) {
+				consequent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+			}
+
+			if (antecedent.isEmpty()) {
+				// create KE data rule from consequent
+
+				assert consequent.size() == 1;
+
+				TriplePattern tp = consequent.iterator().next();
+
+				String row = FmtUtils.stringForNode(tp.getSubject(), context) + ","
+						+ FmtUtils.stringForNode(tp.getPredicate(), context) + ","
+						+ FmtUtils.stringForNode(tp.getObject(), context);
+
+				stringRows.add(row);
+
+			} else if (consequent.isEmpty()) {
+				throw new IllegalArgumentException("Rule '" + r.toShortString() + "' should have a consequent.");
+			} else {
+				// create normal rule
+				keRules.add(new Rule(antecedent, consequent));
+			}
+		}
+
+		String[] columns = new String[] { "s", "p", "o" };
+		String[] rows = stringRows.toArray(new String[stringRows.size()]);
+
+		Table t = new Table(columns, rows);
+
+		keRules.add(new Rule(new HashSet<TriplePattern>(),
+				new HashSet<TriplePattern>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
+				new DataBindingSetHandler(t)));
+
+		return keRules;
+	}
+
+	private static TriplePattern convertToTriplePattern(org.apache.jena.reasoner.TriplePattern triple) {
+
+		Node subject = triple.getSubject();
+		Node predicate = triple.getPredicate();
+		Node object = triple.getObject();
+
+		if (subject instanceof Node_RuleVariable)
+			subject = Var.alloc(subject.getName().substring(1));
+
+		if (predicate instanceof Node_RuleVariable)
+			predicate = Var.alloc(predicate.getName().substring(1));
+
+		if (object instanceof Node_RuleVariable)
+			object = Var.alloc(object.getName().substring(1));
+
+		return new TriplePattern(subject, predicate, object);
 	}
 }
