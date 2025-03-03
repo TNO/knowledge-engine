@@ -55,4 +55,11 @@ public class DataBindingSetHandler implements TransformBindingSetHandler {
 		future.complete(newBS);
 		return future;
 	}
+
+	/**
+	 * @return The data of this {@code DataBindingSetHandler}
+	 */
+	public Table getTable() {
+		return this.data;
+	}
 }

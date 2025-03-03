@@ -9,6 +9,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.util.FmtUtils;
 
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -34,7 +36,7 @@ public class JenaRules {
 		var rules = new HashSet<Rule>();
 
 		Model m = ModelFactory.createDefaultModel();
-		m.read(turtleSource, null);
+		m.read(turtleSource, null, "turtle");
 
 		StmtIterator iter = m.listStatements();
 
@@ -43,10 +45,15 @@ public class JenaRules {
 		String[] columns = new String[] { "s", "p", "o" };
 		String[] rows = new String[nrOfStatements];
 
+		SerializationContext context = new SerializationContext();
+		context.setUsePlainLiterals(false);
+
 		int idx = 0;
 		while (iter.hasNext()) {
 			Statement s = iter.next();
-			rows[idx] = s.getSubject() + "," + s.getPredicate() + "," + s.getObject();
+			rows[idx] = FmtUtils.stringForNode(s.getSubject().asNode(), context) + ","
+					+ FmtUtils.stringForNode(s.getPredicate().asNode(), context) + ","
+					+ FmtUtils.stringForNode(s.getObject().asNode(), context);
 			idx++;
 		}
 
