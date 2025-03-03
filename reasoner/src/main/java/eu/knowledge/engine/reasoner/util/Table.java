@@ -21,20 +21,22 @@ public class Table {
 	public Table(String[] columns, String[] rows) {
 
 		assert columns.length > 0;
-		assert rows.length > 0;
-		assert columns.length == rows[0]
-				.split(",").length : "Rows should have the same number of values as there are columns.";
 
-		Map<String, String> newRow;
-		for (String row : rows) {
-			newRow = new HashMap<>();
-			String[] values = row.split(",");
+		if (rows.length > 0) {
+			assert columns.length == rows[0]
+					.split(",").length : "Rows should have the same number of values as there are columns.";
 
-			for (int i = 0; i < values.length; i++) {
-				String val = values[i];
-				newRow.put(columns[i], val);
+			Map<String, String> newRow;
+			for (String row : rows) {
+				newRow = new HashMap<>();
+				String[] values = row.split(",");
+
+				for (int i = 0; i < values.length; i++) {
+					String val = values[i];
+					newRow.put(columns[i], val);
+				}
+				data.add(newRow);
 			}
-			data.add(newRow);
 		}
 	}
 
