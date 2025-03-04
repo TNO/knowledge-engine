@@ -29,6 +29,9 @@ import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
+import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
+import eu.knowledge.engine.reasoner.util.JenaRules;
+import eu.knowledge.engine.reasoner.util.Table;
 
 public class JenaRDFSRulesTest {
 
@@ -48,7 +51,7 @@ public class JenaRDFSRulesTest {
 	@Test
 	public void test() throws InterruptedException, ExecutionException, ParseException {
 
-		Set<BaseRule> rdfsRules = JenaRuleTest.convertRules(readRuleFile());
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(readRuleFile());
 
 		for (BaseRule br : rdfsRules) {
 			LOG.info("{}", br);
@@ -212,7 +215,7 @@ public class JenaRDFSRulesTest {
 		return n.toString();
 	}
 
-	public String readRuleFile() {
+	public static String readRuleFile() {
 		BufferedReader br = new BufferedReader(
 				new InputStreamReader(JenaRDFSRulesTest.class.getResourceAsStream("/rdfs.rules")));
 

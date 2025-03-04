@@ -27,6 +27,8 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
+import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
+import eu.knowledge.engine.reasoner.util.Table;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ForwardTest {
