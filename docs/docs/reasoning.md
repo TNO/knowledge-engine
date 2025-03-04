@@ -201,7 +201,7 @@ smartConnector.setDomainKnowledge(someDomainKnowledge);
 </TabItem>
 <TabItem value="bash" label="Rest API">
 
-When using the REST API, you can load the domain knowledge into a specific smart connector using the `/domainknowledge/` operation:
+When using the REST API, you can load the domain knowledge into a specific smart connector using the `POST /knowledge/` operation:
 
 ```sparql
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
