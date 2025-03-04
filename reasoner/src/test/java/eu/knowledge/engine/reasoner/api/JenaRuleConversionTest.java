@@ -48,9 +48,9 @@ public class JenaRuleConversionTest {
 	public void testTurtleToKERule() {
 		StringReader sr = new StringReader(turtleSource);
 
-		Set<Rule> rules = JenaRules.createFactRulesFromTurtle(sr);
+		Set<BaseRule> rules = JenaRules.createFactRulesFromTurtle(sr);
 
-		Rule r = rules.iterator().next();
+		Rule r = (Rule) rules.iterator().next();
 
 		Table t = ((DataBindingSetHandler) r.getBindingSetHandler()).getTable();
 

@@ -536,6 +536,9 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
+  /sc/domainknowledge:
+	post:
+      summary: Use the specified domain knowledge for the given knowledge base during activating proactive (i.e. ASk/POST) knowledge interactions. Using additional domain knowledge can increase semantic interoperability. Note that a sufficient reasoner level determines whether the domain knowledge is actually used.  
   /version:
     get:
       summary: Get version info.

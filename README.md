@@ -250,7 +250,7 @@ The Knowledge Engine can also start in distributed mode, where it connects with 
 ### Configuration
 TNO Knowledge Engine uses the [MicroProfile Config 3.1](https://microprofile.io/specifications/config/) specification to configure its behaviour and we use [SmallRye](https://smallrye.io/smallrye-config/) as the implementation of this specification. The default configuration values can be found in the [microprofile-config.properties](./smart-connector/src/main/resources/META-INF/microprofile-config.properties) configuration file. And, as described in the specification, these configuration values can be overridden by [environment variables and system properties](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources). Note that environment variables can use underscores and capital letters to adhere to their naming conventions and the MicroProfile Config automatically maps those to corresponding configuration properties using [specific rules](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources.env.mapping).
 
-A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector/src/main/java/eu/knowledge/engine/smartconnector/impl/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
+A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
 
 *Increasing the wait time for other KBs to respond*
 
@@ -263,3 +263,7 @@ By default, a KER waits `5` seconds max for a HTTP connection response from anot
 *Configure the reasoner level*
 
 By default, the reasoner level is set to `2`, but can be overridden as described above. The reasoner level (1-5) determines how advanced the reasoner mechanism will be. Every Smart Connector within the Knowledge Engine Runtime will use the configured reasoning level unless specified otherwise. The level can be configured via the `ke.reasoner.level` property.
+
+*Configure default domain knowledge*
+
+By default, the smart connectors created within a KE Runtime do not load any domain knowledge (i.e. rules and ontology facts) that are used during reasoning. Using the `ke.domain.knowledge.path` configuration property sets the (absolute) path to additional domain knowledge that will be loaded by default for every smart connector being started in this runtime. The syntax for this domain knowledge is defined by the [Apache Jena Rules specification](https://jena.apache.org/documentation/inference/index.html#RULEsyntax). Example domain knowledge about [RDFS](https://www.w3.org/TR/rdf-schema/) can be found in [rdfs.rules](reasoner/src/test/resources/rdfs.rules).

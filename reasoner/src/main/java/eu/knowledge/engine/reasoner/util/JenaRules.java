@@ -38,9 +38,9 @@ public class JenaRules {
 	 * @param turtleSource
 	 * @return
 	 */
-	public static Set<Rule> createFactRulesFromTurtle(Reader turtleSource) {
+	public static Set<BaseRule> createFactRulesFromTurtle(Reader turtleSource) {
 
-		var rules = new HashSet<Rule>();
+		var rules = new HashSet<BaseRule>();
 
 		Model m = createJenaModelFromTurtle(turtleSource);
 

@@ -178,6 +178,42 @@ Now, upon receiving the new measurement the rule for the Temperature Converter w
 
 From these example it becomes clear that a reasoner can also be used to orchestrate data exchange between different Knowledge Bases. 
 
+## Including domain knowledge
+
+The reasoning mentioned in this section works by using the graph patterns defined in the knowledge interactions from all smart connectors in the network. Additionally, the reasoner of a smart connector can also work with domain knowledge that is not tied to knowledge interactions. This domain knowledge can be loaded into a Smart Connector and typically consists of domain rules and facts. Some examples of the former were already mentioned above and a simple example of such a fact and rule is:
+
+```sparql
+-> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+
+```
+
+Loading the above domain knowledge into a smart connector will allow its reasoner to derive that every `saref:Sensor` in the network is also a `saref:Device` and whenever a device is requested using the graph pattern `?d rdf:type saref:Device` it will also return data from KIs with the `?s rdf:type saref:Sensor` graph pattern. The default domain knowledge for every smart connector created in a KE Runtime can be configured using the `ke.domain.knowledge.path` configuration property. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
+
+<Tabs groupId="tke-usage">
+<TabItem value="java" label="Java">
+
+```java
+smartConnector.setDomainKnowledge(someDomainKnowledge);
+```
+
+</TabItem>
+<TabItem value="bash" label="Rest API">
+
+When using the REST API, you can load the domain knowledge into a specific smart connector using the `/domainknowledge/` operation:
+
+```sparql
+-> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+```
+
+</TabItem>
+</Tabs>
+
+
+
 ## Full example
 In `examples/reasoner/` in the Knowledge Engine repository, you can find a complete example in a Docker Compose project.
 That example is a variant on the unit conversion orchestration.
