@@ -180,7 +180,11 @@ From these example it becomes clear that a reasoner can also be used to orchestr
 
 ## Including domain knowledge
 
-The reasoning mentioned in this section works by using the graph patterns defined in the knowledge interactions from all smart connectors in the network. Additionally, the reasoner of a smart connector can also work with domain knowledge that is not tied to knowledge interactions. This domain knowledge can be loaded into a Smart Connector and typically consists of domain rules and facts. Some examples of the former were already mentioned above and a simple example of such a fact and rule is:
+The reasoning mentioned in this section works by using the graph patterns defined in the knowledge interactions from all smart connectors in the network. Additionally, the reasoner of a smart connector can also work with domain knowledge that is not tied to knowledge interactions. This domain knowledge can be loaded into a smart connector and typically consists of domain rules and facts. 
+
+The KE reasoner only works with `eu.knowledge.engine.reasoner.Rule` objects, so both domain facts and rules should be encoded as rules. There are two ways in which domain facts can be represented as rules: 1) as rules with only a consequent (and no antecedent) that represents the actual triple (without variables), or 2) as a rule with only a consequent (without antecedent) of the form `?s ?o ?o` which functions as a source for multiple or all domain facts.
+
+It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using the [Apache Jena Rules specification](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
 
 ```sparql
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
@@ -188,6 +192,10 @@ The reasoning mentioned in this section works by using the graph patterns define
 (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
 
 ```
+
+:::tip
+Note that the domain fact `saref:Sensor rdfs:subClassOf saref:Device` above is represented as a body-less rule.
+:::
 
 Loading the above domain knowledge into a smart connector will allow its reasoner to derive that every `saref:Sensor` in the network is also a `saref:Device` and whenever a device is requested using the graph pattern `?d rdf:type saref:Device` it will also return data from KIs with the `?s rdf:type saref:Sensor` graph pattern. The default domain knowledge for every smart connector created in a KE Runtime can be configured using the `ke.domain.knowledge.path` configuration property. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
 
@@ -198,16 +206,19 @@ Loading the above domain knowledge into a smart connector will allow its reasone
 smartConnector.setDomainKnowledge(someDomainKnowledge);
 ```
 
+The `someDomainKnowledge` variable should be a set of `eu.knowledge.engine.reasoner.Rule` objects. The `eu.knowledge.engine.reasoner.util.JenaRules` class provides some helper methods for creating these objects from files/strings.
+
 </TabItem>
 <TabItem value="bash" label="Rest API">
 
-When using the REST API, you can load the domain knowledge into a specific smart connector using the [`POST /knowledge/`](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml#L539) operation:
+When using the REST API, you can load the domain knowledge into a specific smart connector using the [`POST /knowledge/`](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml#L539) operation. The body of the request should contain `text/plain` text following the Apache Jena Rules spec mentioned above:
 
 ```sparql
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
 
 (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
 ```
+
 
 </TabItem>
 </Tabs>
