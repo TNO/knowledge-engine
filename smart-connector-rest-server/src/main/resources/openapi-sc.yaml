@@ -115,7 +115,7 @@ paths:
     put:
       summary: Renew the lease of a Smart Connector.
       tags:
-        - smart connector life cycle
+        - smart connector lease
       parameters:
         - name: Knowledge-Base-Id
           in: header
