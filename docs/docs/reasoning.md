@@ -184,7 +184,7 @@ The reasoning mentioned in this section works by using the graph patterns define
 
 The KE reasoner only works with `eu.knowledge.engine.reasoner.Rule` objects, so both domain facts and rules should be encoded as rules. There are two ways in which domain facts can be represented as rules: 1) as rules with only a consequent (and no antecedent) that represents the actual triple (without variables), or 2) as a rule with only a consequent (without antecedent) of the form `?s ?o ?o` which functions as a source for multiple or all domain facts.
 
-It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using the [Apache Jena Rules specification](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
+It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using [Apache Jena Rules](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
 
 ```sparql
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
