@@ -165,14 +165,16 @@ public class JenaRules {
 			}
 		}
 
-		String[] columns = new String[] { "s", "p", "o" };
-		String[] rows = stringRows.toArray(new String[stringRows.size()]);
+		if (stringRows.size() > 0) {
+			String[] columns = new String[] { "s", "p", "o" };
+			String[] rows = stringRows.toArray(new String[stringRows.size()]);
 
-		Table t = new Table(columns, rows);
+			Table t = new Table(columns, rows);
 
-		keRules.add(new Rule(new HashSet<TriplePattern>(),
-				new HashSet<TriplePattern>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
-				new DataBindingSetHandler(t)));
+			keRules.add(new Rule(new HashSet<TriplePattern>(),
+					new HashSet<TriplePattern>(Arrays.asList(new TriplePattern("?s ?p ?o"))),
+					new DataBindingSetHandler(t)));
+		}
 
 		return keRules;
 	}

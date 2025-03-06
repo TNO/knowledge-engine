@@ -555,6 +555,12 @@ paths:
           text/plain; charset=UTF-8:
             schema:
               type: string
+            example:  |
+              #domain facts
+              -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+              #domain rules
+              (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
       responses:
         '200':
           description: If the provided domain knowledge is succesfully loaded into the smart connector of the given knowledge base.
