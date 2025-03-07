@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -273,11 +274,11 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		try {
 			// convert and set the domain knowledge
 			restKb.setDomainKnowledge(someDomainKnowledge);
-		} catch (ParserException pe) {
+		} catch (ParserException | IllegalArgumentException e) {
 			// deal with parse exceptions.
 			var response = new ResponseMessage();
 			response.setMessageType("error");
-			response.setMessage("The provided doman knowledge should parse correctly: " + pe.getMessage());
+			response.setMessage("The provided doman knowledge should parse correctly: " + e.getMessage());
 			return Response.status(Status.BAD_REQUEST).entity(response).build();
 		}
 		return Response.ok().build();

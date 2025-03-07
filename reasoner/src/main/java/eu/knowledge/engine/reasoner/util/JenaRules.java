@@ -22,6 +22,10 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 
+/**
+ * This class contains several helper methods to deal with Jena Rules in the
+ * Knowledge Engine.
+ */
 public class JenaRules {
 
 	private static SerializationContext context = new SerializationContext(false);
@@ -136,26 +140,36 @@ public class JenaRules {
 
 			Set<TriplePattern> antecedent = new HashSet<>();
 			for (ClauseEntry ce : r.getBody()) {
-				antecedent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+				if (ce instanceof org.apache.jena.reasoner.TriplePattern)
+					antecedent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+				else
+					throw new IllegalArgumentException("The rule '" + r.toString()
+							+ "' should not contain non-triple pattern clauses in its antecedent such as: "
+							+ ce.getClass().getSimpleName());
 			}
 
 			Set<TriplePattern> consequent = new HashSet<>();
 			for (ClauseEntry ce : r.getHead()) {
-				consequent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+				if (ce instanceof org.apache.jena.reasoner.TriplePattern)
+					consequent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
+				else
+					throw new IllegalArgumentException("The rule '" + r.toString()
+							+ "' should not contain non-triple pattern clauses in its consequent such as: "
+							+ ce.getClass().getSimpleName());
 			}
 
 			if (antecedent.isEmpty()) {
 				// create KE data rule from consequent
 
-				assert consequent.size() == 1;
+				assert !consequent.isEmpty();
 
-				TriplePattern tp = consequent.iterator().next();
+				for (TriplePattern tp : consequent) {
+					String row = FmtUtils.stringForNode(tp.getSubject(), context) + ","
+							+ FmtUtils.stringForNode(tp.getPredicate(), context) + ","
+							+ FmtUtils.stringForNode(tp.getObject(), context);
 
-				String row = FmtUtils.stringForNode(tp.getSubject(), context) + ","
-						+ FmtUtils.stringForNode(tp.getPredicate(), context) + ","
-						+ FmtUtils.stringForNode(tp.getObject(), context);
-
-				stringRows.add(row);
+					stringRows.add(row);
+				}
 
 			} else if (consequent.isEmpty()) {
 				throw new IllegalArgumentException("Rule '" + r.toShortString() + "' should have a consequent.");
@@ -165,7 +179,9 @@ public class JenaRules {
 			}
 		}
 
-		if (stringRows.size() > 0) {
+		if (stringRows.size() > 0)
+
+		{
 			String[] columns = new String[] { "s", "p", "o" };
 			String[] rows = stringRows.toArray(new String[stringRows.size()]);
 

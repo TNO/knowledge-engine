@@ -85,4 +85,75 @@ public class JenaRuleConversionTest {
 		assertEquals(12, rdfsRules.size());
 	}
 
+	/**
+	 * Test body-less rule with multiple heads.
+	 */
+	@Test
+	public void testJenaRulesToKeRulesMultipleFactsPerRule() {
+
+		String ruleSource = """
+				-> (rdf:type rdfs:range rdfs:Class) (rdfs:Resource rdf:type rdfs:Class).
+				""";
+
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
+		assertEquals(1, rdfsRules.size());
+
+		Rule r = (Rule) rdfsRules.iterator().next();
+		DataBindingSetHandler handler = (DataBindingSetHandler) r.getBindingSetHandler();
+
+		assertEquals(2, handler.getTable().getData().size());
+
+	}
+
+	/**
+	 * Test empty rule string.
+	 */
+	@Test
+	public void testJenaRulesToKeRulesEmptyString() {
+
+		// without newline
+		String ruleSource = "";
+
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
+		assertEquals(0, rdfsRules.size());
+
+		// with newline
+		ruleSource = """
+
+				""";
+
+		rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
+		assertEquals(0, rdfsRules.size());
+	}
+
+	/**
+	 * Test loading backward rule.
+	 */
+	@Test
+	public void testJenaRulesToKeRulesBackward() {
+
+		// without newline
+		String ruleSource = """
+				(?s ?p ?o) <- (?s ?p ?o) .
+				""";
+
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
+		assertEquals(1, rdfsRules.size());
+	}
+
+	/**
+	 * Test loading backward rule.
+	 */
+	@Test
+	public void testJenaRulesToKeRulesBuiltin() {
+
+		// without newline
+		String ruleSource = """
+				[max1: (?s rdf:type <http://www.example.org/Sensor>) -> print(?s) ]
+				""";
+
+		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
+		assertEquals(1, rdfsRules.size());
+	}
+	
 }

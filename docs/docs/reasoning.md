@@ -186,6 +186,14 @@ The KE reasoner only works with `eu.knowledge.engine.reasoner.Rule` objects, so 
 
 It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using [Apache Jena Rules](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
 
+:::tip
+There are some limitations with respect to the Apache Jena Rules syntax:
+- The Apache Jena Rules syntax does not support literals with language tags.
+- The Knowledge Engine does not support [builtin primitives](https://jena.apache.org/documentation/inference/#RULEbuiltins).
+- The Knowledge Engine does not distinguish between backward and forward chaining rules, so both are parsed equally into KE rules.
+:::
+
+
 ```sparql
 @prefix saref: <https://saref.etsi.org/core/> .
 
@@ -196,13 +204,23 @@ It is possible to load domain knowledge (i.e. facts and rules) from a file or st
 ```
 
 :::tip
-Note that the domain fact `saref:Sensor rdfs:subClassOf saref:Device` above is represented as a body-less rule.
+Note that the domain fact `saref:Sensor rdfs:subClassOf saref:Device` above is represented as a body-less rule (i.e. a rule without an antecedent).
 :::
 
 Loading the above domain knowledge into a smart connector will allow its reasoner to derive that every `saref:Sensor` in the network is also a `saref:Device` and whenever a device is requested using the graph pattern `?d rdf:type saref:Device` it will also return data from KIs with the `?s rdf:type saref:Sensor` graph pattern. The default domain knowledge for every smart connector created in a KE Runtime can be configured using the `ke.domain.knowledge.path` configuration property. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
 
+:::tip
+If you set the domain knowledge via the Java or REST API multiple times, it'll overwrite previously set domain knowledge for that particular SC.
+:::
+
+:::tip
+There are multiple reasoner levels (1-5) and utilizing domain knowledge requires at least reasoner level 2. See [SmartConnectorConfig](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java#L62-L79) class for more info.
+:::
+
 <Tabs groupId="tke-usage">
 <TabItem value="java" label="Java">
+
+You can load the domain knowledge into a specific smart connector using the following Java code:
 
 ```java
 smartConnector.setDomainKnowledge(someDomainKnowledge);
