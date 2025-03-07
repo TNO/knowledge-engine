@@ -187,6 +187,8 @@ The KE reasoner only works with `eu.knowledge.engine.reasoner.Rule` objects, so 
 It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using [Apache Jena Rules](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
 
 ```sparql
+@prefix saref: <https://saref.etsi.org/core/> .
+
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
 
 (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
@@ -211,9 +213,11 @@ The `someDomainKnowledge` variable should be a set of `eu.knowledge.engine.reaso
 </TabItem>
 <TabItem value="bash" label="Rest API">
 
-When using the REST API, you can load the domain knowledge into a specific smart connector using the [`POST /knowledge/`](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml#L539) operation. The body of the request should contain `text/plain` text following the Apache Jena Rules spec mentioned above:
+When using the REST API, you can load the domain knowledge into a specific smart connector using the [`POST /sc/knowledge/`](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml#L539) operation. The body of the request should contain `text/plain` text following the Apache Jena Rules spec mentioned above:
 
 ```sparql
+@prefix saref: <https://saref.etsi.org/core/> .
+
 -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
 
 (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
