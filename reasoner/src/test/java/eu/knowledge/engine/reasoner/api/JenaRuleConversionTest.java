@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.StringReader;
 import java.util.List;
@@ -142,18 +143,20 @@ public class JenaRuleConversionTest {
 	}
 
 	/**
-	 * Test loading backward rule.
+	 * Test exception when loading rule with builtin.
 	 */
 	@Test
 	public void testJenaRulesToKeRulesBuiltin() {
 
-		// without newline
+		// with unsupported builtin
 		String ruleSource = """
 				[max1: (?s rdf:type <http://www.example.org/Sensor>) -> print(?s) ]
 				""";
 
-		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(ruleSource);
-		assertEquals(1, rdfsRules.size());
+		assertThrows(IllegalArgumentException.class, () -> {
+			JenaRules.convertJenaToKeRules(ruleSource);
+		});
+
 	}
-	
+
 }
