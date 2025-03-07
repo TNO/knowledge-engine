@@ -79,6 +79,18 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_REASONER_LEVEL = "ke.reasoner.level";
 
 	/**
+	 * Path to a file that contains the default domain knowledge that will be
+	 * included in every smart connector created in this KE Runtime. This domain
+	 * knowledge can include both rules and facts, where the latter are encoded as
+	 * body-less (or antecedent-less) rules with a single head triple pattern.
+	 * 
+	 * The syntax used to describe the domain knowledge is the
+	 * <a href="https://jena.apache.org/documentation/inference/#RULEsyntax">Apache
+	 * Jena Rules specification</a>.
+	 */
+	public static final String CONF_KEY_KE_DOMAIN_KNOWLEDGE_PATH = "ke.domain.knowledge.path";
+
+	/**
 	 * Convert the configuration reasoner levels to matching strategies used in the
 	 * reasoner code.
 	 * 

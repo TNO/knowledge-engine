@@ -18,6 +18,8 @@ import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
+import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
+import eu.knowledge.engine.reasoner.util.Table;
 
 /**
  * This fundamental error occurs when the matches do not contain all possible

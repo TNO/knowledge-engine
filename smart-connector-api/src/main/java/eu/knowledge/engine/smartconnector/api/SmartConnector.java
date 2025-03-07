@@ -263,8 +263,8 @@ public interface SmartConnector {
 	 * be taken into account when the reasoner orchestrates the knowledge
 	 * interactions. Note that by default there is no domain knowledge and setting
 	 * it will overwrite the existing set of rules. The domain knowledge is only
-	 * used when the reasoner is enabled. See
-	 * {@link SmartConnector#setReasonerEnabled(boolean)}.
+	 * utilised when the reasoner is set to level 2 or above. See
+	 * {@link SmartConnector#setReasonerLevel(int)}.
 	 * 
 	 * @param someRules The rules to take into account.
 	 */

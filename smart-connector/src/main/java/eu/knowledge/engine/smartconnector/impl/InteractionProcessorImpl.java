@@ -1,10 +1,17 @@
 package eu.knowledge.engine.smartconnector.impl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -31,7 +38,9 @@ import org.apache.jena.vocabulary.RDF;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
@@ -63,9 +72,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final Reasoner reasoner;
 
 	/**
-	 * A set of rules that represent the domain knowledge this smart connector
-	 * should take into account while orchestrating data exchange. Only available if
-	 * reasoning is enabled.
+	 * A set of rules (or facts) that represent the domain knowledge this smart
+	 * connector should take into account while orchestrating data exchange.
 	 */
 	private Set<Rule> additionalDomainKnowledge = new HashSet<>();
 
@@ -89,6 +97,15 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
+
+		// load default domain knowledge if available
+		Optional<String> pathToDomainKnowledge = ConfigProvider.getConfig()
+				.getOptionalValue(SmartConnectorConfig.CONF_KEY_KE_DOMAIN_KNOWLEDGE_PATH, String.class);
+		if (pathToDomainKnowledge.isPresent()) {
+
+			String pathString = pathToDomainKnowledge.get();
+			readAdditionalDomainKnowledge(pathString);
+		}
 
 		ontology = ModelFactory.createDefaultModel();
 		ontology.read(InteractionProcessorImpl.class.getResourceAsStream(Vocab.ONTOLOGY_RESOURCE_LOCATION), null,
@@ -506,6 +523,31 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	@Override
 	public int getReasonerLevel() {
 		return this.reasonerLevel;
+	}
+
+	private void readAdditionalDomainKnowledge(String pathString) {
+		Path p = FileSystems.getDefault().getPath(pathString);
+
+		LOG.debug("Reading additional domain knowledge from path: " + p.toAbsolutePath());
+
+		try (BufferedReader r = Files.newBufferedReader(p.toAbsolutePath(), StandardCharsets.UTF_8)) {
+
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = r.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+
+			Set<BaseRule> baseRules = JenaRules.convertJenaToKeRules(sb.toString());
+			Set<Rule> rules = new HashSet<>();
+			for (BaseRule br : baseRules)
+				rules.add((Rule) br);
+			this.setDomainKnowledge(rules);
+
+		} catch (IOException e) {
+			LOG.warn("Reading the configured domain knowledge via config property '{}' from path '{}' should succeed.",
+					SmartConnectorConfig.CONF_KEY_KE_DOMAIN_KNOWLEDGE_PATH, p.toAbsolutePath(), e);
+		}
 	}
 
 }
