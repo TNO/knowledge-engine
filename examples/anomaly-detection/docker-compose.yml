@@ -1,0 +1,196 @@
+services:
+  knowledge-directory:
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.3.0
+
+  #ANOMALY DETECTION
+  anomaly-detection-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://anomaly-detection-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+  anomaly-detection-kb:
+    build: ../common/reacting_kb
+    environment:
+      KE_URL: http://anomaly-detection-ker:8280/rest
+      KB_ID: http://example.org/anomaly-detection-kb
+      KE_REASONER_LEVEL: 5
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInCelsius ?celsius .
+        ?m ex:madeBy ?sensor .
+        ?sensor rdf:type ex:Sensor .
+        ?sensor ex:isContainedIn <http://example.org/building1> .
+
+  #SENSOR1
+  sensor1-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://sensor1-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+    volumes:
+      - '.:/tke/'
+  sensor1-kb:
+    build: ../common/posting_kb
+    environment:
+      KE_URL: http://sensor1-ker:8280/rest
+      KB_ID: http://example.org/sensor1-kb
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInCelsius ?celsius .
+        ?m ex:madeBy ex:sensor1 .
+        ex:sensor1 rdf:type ex:DutchTemperatureSensor .
+      KB_DATA: |
+        [
+          {
+            "m": "<http://example.org/sensor1/measurement>",
+            "celsius": "15.3"
+          }
+        ]
+  
+  #SENSOR2
+  sensor2-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://sensor2-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+    volumes:
+      - '.:/tke/'
+  sensor2-kb:
+    build: ../common/posting_kb
+    environment:
+      KE_URL: http://sensor2-ker:8280/rest
+      KB_ID: http://example.org/sensor2-kb
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInFahrenheit ?fahrenheit .
+        ?m ex:madeBy ex:sensor2 .
+        ex:sensor2 rdf:type ex:USTemperatureSensor .
+      KB_DATA: |
+        [
+          {
+            "m": "<http://example.org/sensor2/measurement>",
+            "fahrenheit": "68.2"
+          }
+        ]
+
+  #SENSOR3
+  sensor3-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://sensor3-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+    volumes:
+      - '.:/tke/'
+  sensor3-kb:
+    build: ../common/posting_kb
+    environment:
+      KE_URL: http://sensor3-ker:8280/rest
+      KB_ID: http://example.org/sensor3-kb
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInCelsius ?celsius .
+        ?m ex:madeBy ex:sensor3 .
+        ex:sensor3 rdf:type ex:DutchTemperatureSensor .
+      KB_DATA: |
+        [
+          {
+            "m": "<http://example.org/sensor3/measurement>",
+            "celsius": "23.9"
+          }
+        ]
+  building-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://building-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+  building-kb:
+    build: ../common/answering_kb
+    environment:
+      KE_URL: http://building-ker:8280/rest
+      KB_ID: http://example.org/building-kb
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      GRAPH_PATTERN: |
+        ?s ex:isContainedIn ?b .
+      KB_DATA: |
+        [
+          {
+            "s": "<http://example.org/sensor1>",
+            "b": "<http://example.org/building1>"
+          },
+          {
+            "s": "<http://example.org/sensor2>",
+            "b": "<http://example.org/building1>"
+          },
+          {
+            "s": "<http://example.org/sensor3>",
+            "b": "<http://example.org/buildingX>"
+          }
+        ]
+  converter-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://converter-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+  converter-kb:
+    build: ../common/react_function_kb
+    environment:
+      KE_URL: http://converter-ker:8280/rest
+      KB_ID: http://example.org/converter-kb
+      PREFIXES: |
+        {
+          "ex": "http://example.org/",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      ARGUMENT_GRAPH_PATTERN: |
+        ?m rdf:type ex:Measurement .
+        ?m ex:hasValueInFahrenheit ?fahrenheit .
+      RESULT_GRAPH_PATTERN: |
+        ?m ex:hasValueInCelsius ?celsius .
+      REACT_FUNCTION_DEF: |
+        def react(bindings):
+          result = []
+          for binding in bindings:
+            index = binding["fahrenheit"].rfind("\"")
+            fahrenheit = float(binding["fahrenheit"][1:index])
+            celsius = (fahrenheit - 32) / 1.8
+            result.append({"m": binding["m"], "celsius": str(celsius)})
+          return result
