@@ -10,12 +10,14 @@ import java.util.Set;
 import org.apache.jena.irix.IRIException;
 import org.apache.jena.irix.IRIProvider;
 import org.apache.jena.irix.IRIProviderJenaIRI;
+import org.apache.jena.reasoner.rulesys.Rule.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -220,6 +222,66 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			asyncResponse.resume(Response.status(404).entity(response).build());
 			return;
 		}
+	}
+
+	@POST
+	@Path("/knowledge")
+	@Consumes({ "text/plain; charset=UTF-8" })
+	@Produces({ "application/json; charset=UTF-8" })
+	@Operation(summary = "Set the domain knowledge for a specific smart connector.", description = "Use the specified domain knowledge for the given knowledge base during activating proactive (i.e. ASk/POST) knowledge interactions. Using additional domain knowledge can increase semantic interoperability. Note that a sufficient reasoner level determines whether the domain knowledge is actually used.", tags = {
+			"smart connector life cycle", })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "If the provided domain knowledge is succesfully loaded into the smart connector of the given knowledge base.", content = @Content(schema = @Schema(implementation = Void.class))),
+			@ApiResponse(responseCode = "400", description = "If the provided domain knowledge could not be loaded into the smart connector of the given knowledge base.", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response scKnowledgePost(
+			@Parameter(description = "The Knowledge Base Id into whose Smart Connector the domain knowledge should be loaded.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
+			@Parameter(description = "The domain knowledge (using Apache Jena Rules syntax) to be loaded into the smart connector of the given knowledge base.", required = true) String someDomainKnowledge,
+			@Context SecurityContext securityContext) throws NotFoundException {
+
+		if (knowledgeBaseId == null) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Missing valid Knowledge-Base-Id header.");
+			return Response.status(Status.BAD_REQUEST).entity(response).build();
+		}
+
+		try {
+			new URI(knowledgeBaseId);
+		} catch (URISyntaxException e) {
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its knowledge base ID must be a valid URI.");
+			return Response.status(Status.BAD_REQUEST).entity(response).build();
+		}
+
+		var restKb = manager.getKB(knowledgeBaseId);
+		if (restKb == null) {
+			if (manager.hasSuspendedKB(knowledgeBaseId)) {
+				manager.removeSuspendedKB(knowledgeBaseId);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage(
+						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
+				return Response.status(Status.NOT_FOUND).entity(response).build();
+			} else {
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("Knowledge base not found. (Has its lease already expired?)");
+				return Response.status(Status.NOT_FOUND).entity(response).build();
+			}
+		}
+
+		try {
+			// convert and set the domain knowledge
+			restKb.setDomainKnowledge(someDomainKnowledge);
+		} catch (ParserException | IllegalArgumentException e) {
+			// deal with parse exceptions.
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("The provided domain knowledge should parse correctly: " + e.getMessage());
+			return Response.status(Status.BAD_REQUEST).entity(response).build();
+		}
+		return Response.ok().build();
 	}
 
 	private eu.knowledge.engine.rest.model.SmartConnector[] convertToModel(Set<RestKnowledgeBase> kbs) {

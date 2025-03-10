@@ -178,6 +178,74 @@ Now, upon receiving the new measurement the rule for the Temperature Converter w
 
 From these example it becomes clear that a reasoner can also be used to orchestrate data exchange between different Knowledge Bases. 
 
+## Including domain knowledge
+
+The reasoning mentioned in this section works by using the graph patterns defined in the knowledge interactions from all smart connectors in the network. Additionally, the reasoner of a smart connector can also work with domain knowledge that is not tied to knowledge interactions. This domain knowledge can be loaded into a smart connector and typically consists of domain rules and facts. 
+
+The KE reasoner only works with `eu.knowledge.engine.reasoner.Rule` objects, so both domain facts and rules should be encoded as rules. There are two ways in which domain facts can be represented as rules: 1) as rules with only a consequent (and no antecedent) that represents the actual triple (without variables), or 2) as a rule with only a consequent (without antecedent) of the form `?s ?o ?o` which functions as a source for multiple or all domain facts.
+
+It is possible to load domain knowledge (i.e. facts and rules) from a file or string by using [Apache Jena Rules](https://jena.apache.org/documentation/inference/#RULEsyntax). This format allows both facts and rules to reside in the same file and the `eu.knowledge.engine.reasoner.util.JenaRules` class provides some methods to create/load these files. A very simple example of a fact and rule in the Apache Jena Rules syntax is:
+
+:::warning
+There are some limitations with respect to the Apache Jena Rules syntax:
+- The Apache Jena Rules syntax does not support literals with language tags.
+- The Knowledge Engine does not support [builtin primitives](https://jena.apache.org/documentation/inference/#RULEbuiltins).
+- The Knowledge Engine does not distinguish between backward and forward chaining rules, so both are parsed equally into KE rules.
+:::
+
+
+```sparql
+@prefix saref: <https://saref.etsi.org/core/> .
+
+-> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+
+```
+
+:::tip
+Domain facts, such as `saref:Sensor rdfs:subClassOf saref:Device` above, can be represented as a body-less rule (i.e. a rule without an antecedent).
+:::
+
+Loading the above domain knowledge into a smart connector will allow its reasoner to derive that every `saref:Sensor` in the network is also a `saref:Device` and whenever a device is requested using the graph pattern `?d rdf:type saref:Device` it will also return data from KIs with the `?s rdf:type saref:Sensor` graph pattern. The default domain knowledge for every smart connector created in a KE Runtime can be configured using the `ke.domain.knowledge.path` configuration property. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
+
+:::warning
+If you set the domain knowledge via the Java or REST API multiple times, it'll overwrite previously set domain knowledge for that particular SC.
+:::
+
+:::tip
+There are multiple reasoner levels (1-5) and utilizing domain knowledge requires at least reasoner level 2. See [SmartConnectorConfig](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java#L62-L79) class for more info.
+:::
+
+<Tabs groupId="tke-usage">
+<TabItem value="java" label="Java">
+
+You can load the domain knowledge into a specific smart connector using the following Java code:
+
+```java
+smartConnector.setDomainKnowledge(someDomainKnowledge);
+```
+
+The `someDomainKnowledge` variable should be a set of `eu.knowledge.engine.reasoner.Rule` objects. The `eu.knowledge.engine.reasoner.util.JenaRules` class provides some helper methods for creating these objects from files/strings.
+
+</TabItem>
+<TabItem value="bash" label="Rest API">
+
+When using the REST API, you can load the domain knowledge into a specific smart connector using the [`POST /sc/knowledge/`](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml#L539) operation. The body of the request should contain `text/plain` text following the Apache Jena Rules spec mentioned above:
+
+```sparql
+@prefix saref: <https://saref.etsi.org/core/> .
+
+-> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+```
+
+
+</TabItem>
+</Tabs>
+
+
 ## Full example
 In `examples/reasoner/` in the Knowledge Engine repository, you can find a complete example in a Docker Compose project.
 That example is a variant on the unit conversion orchestration.

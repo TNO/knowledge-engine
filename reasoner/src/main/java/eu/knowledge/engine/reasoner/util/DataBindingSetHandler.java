@@ -1,4 +1,4 @@
-package eu.knowledge.engine.reasoner;
+package eu.knowledge.engine.reasoner.util;
 
 import java.util.Map;
 import java.util.Set;
@@ -54,5 +54,12 @@ public class DataBindingSetHandler implements TransformBindingSetHandler {
 		});
 		future.complete(newBS);
 		return future;
+	}
+
+	/**
+	 * @return The data of this {@code DataBindingSetHandler}
+	 */
+	public Table getTable() {
+		return this.data;
 	}
 }
