@@ -43,9 +43,10 @@ anomaly-detection-kb-1  | INFO:anomaly-detection-kb:Reacting with empty bindings
 We use the following simple custom ontology based on SAREF:
 
 ```
-<https://www.example.org/anomaly/DutchTemperatureSensor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://saref.etsi.org/core/Sensor> .
-<https://www.example.org/anomaly/USTemperatureSensor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://saref.etsi.org/core/Sensor> .
+@prefix ex: <http://example.org/> .
 
+ex:DutchTemperatureSensor rdfs:subClassOf ex:Sensor .
+ex:USTemperatureSensor rdfs:subClassOf ex:Sensor .
 
 ```
 
@@ -56,17 +57,17 @@ We use the RDFS rules that can be found [here](../../reasoner/src/test/resources
 We use the following static building information as context information to the anomaly detector.
 
 ```
-<sensor1> s4bldg:isContainedIn <room1> .
-<sensor2> s4bldg:isContainedIn <room2> .
-<sensor3> s4bldg:isContainedIn <roomX> .
-<room1> s4bldg:isSpaceOf <floor1> .
-<room2> s4bldg:isSpaceOf <floor1> .
-<roomX> s4bldg:isSpaceOf <floorX> .
-<floor1> s4bldg:isSpaceOf <building1> .
-<floorX> s4bldg:isSpaceOf <buildingX> .
+<http://example.org/sensor1> ex:isContainedIn <http://example.org/building1> .
+
+<http://example.org/sensor2> ex:isContainedIn <http://example.org/building1> .
+
+<http://example.org/sensor3> ex:isContainedIn <http://example.org/buildingX> .
+
 ```
 
 
 #Remarks
 Following questions/remarks:
 - we could use `owl:inverseOf` property and [related rule](https://github.com/apache/jena/blob/main/jena-core/src/main/resources/etc/owl.rules) to go from `s4bldg:isSpaceOf` to `s4bldg:hasSpace`.
+- we cannot use the `@include <RDFS>` directive, because it contains all kinds of builtins (such as `-> tableAll()`) which we do not support.
+- When we copy all the RDFS axioms/rules from [here](../../reasoner/src/test/resources/rdfs.rules) and add them to the `dk.rules`, the example slows down considerably and uses most of the available resources on the computer.

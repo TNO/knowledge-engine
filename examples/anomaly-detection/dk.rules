@@ -1,0 +1,11 @@
+#------------------------------------------------------------------
+# Domain knowledge
+#------------------------------------------------------------------
+
+@prefix ex: <http://example.org/> .
+
+-> ( ex:DutchTemperatureSensor rdfs:subClassOf ex:Sensor ) .
+-> ( ex:USTemperatureSensor rdfs:subClassOf ex:Sensor ) .
+
+(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+
