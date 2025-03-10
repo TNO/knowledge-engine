@@ -536,6 +536,46 @@ paths:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
+  /sc/knowledge:
+    post:
+      summary: Use the specified domain knowledge for the given knowledge base during activating proactive (i.e. ASK/POST) knowledge interactions. Using additional domain knowledge can increase semantic interoperability. Note that a sufficient reasoner level determines whether the domain knowledge is actually used.
+      tags:
+        - smart connector life cycle
+      parameters:
+        - name: Knowledge-Base-Id
+          in: header
+          required: true
+          description: The id of the knowledge base whose smart connector should be loaded with the given domain knowledge.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: The actual domain knowledge (both facts and rules) in the form of plain text according to the <a href="https://jena.apache.org/documentation/inference/#RULEsyntax">Apache Jena Rules specification</a>. Note that it replaces/overrides all previously loaded domain knowledge for the particular smart connector.
+        content:
+          text/plain; charset=UTF-8:
+            schema:
+              type: string
+            example:  |
+              #domain facts
+              -> ( saref:Sensor rdfs:subClassOf saref:Device ) .
+
+              #domain rules
+              (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+      responses:
+        '200':
+          description: If the provided domain knowledge is succesfully loaded into the smart connector of the given knowledge base.
+        '400':
+          description: If the provided domain knowledge could not be loaded into the smart connector of the given knowledge base. More info about the problem is provided in the response message.
+          content:
+            application:json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/ResponseMessage'
+        '404':
+          description: If the given Knowledge-Base-Id could not be found.
+          content:
+            application:json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/ResponseMessage'
   /version:
     get:
       summary: Get version info.

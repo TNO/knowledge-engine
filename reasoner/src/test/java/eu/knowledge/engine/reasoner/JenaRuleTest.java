@@ -4,17 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.reasoner.rulesys.ClauseEntry;
-import org.apache.jena.reasoner.rulesys.Node_RuleVariable;
-import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +18,9 @@ import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.Util;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
+import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
+import eu.knowledge.engine.reasoner.util.JenaRules;
+import eu.knowledge.engine.reasoner.util.Table;
 
 /**
  * Based on:
@@ -162,7 +160,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack1() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
+		doTest(JenaRules.convertJenaToKeRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
 				new TriplePattern("<a> <p> ?o"), "o=<b>|o=<c>|o=<d>");
 
 	}
@@ -176,7 +174,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack2() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
+		doTest(JenaRules.convertJenaToKeRules("[r1: (?x r ?y) <- (?x p ?y)]"), "<a>,<p>,<b>|<a>,<p>,<c>|<a>,<p>,<d>",
 				new TriplePattern("<a> <r> ?o"), "o=<b>|o=<c>|o=<d>");
 	}
 
@@ -189,7 +187,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack3() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"),
 				"<a>,<p>,<b>", new TriplePattern("<a> <r> ?o"), "o=<C1>|o=<C2>|o=<C3>");
 	}
@@ -203,7 +201,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack4() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]"
+		doTest(JenaRules.convertJenaToKeRules("[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]"
 				+ "[r3: (?x r C3) <- (?x p b)]" + "[r4: (?x s ?z) <- (?x p ?w), (?x r ?y) (?y p ?z)]"),
 				"<a>,<p>,<b>|<C1>,<p>,<D1>|<C2>,<p>,<D2>|<C3>,<p>,<D3>", new TriplePattern("<a> <s> ?o"),
 				"o=<D1>|o=<D2>|o=<D3>");
@@ -218,7 +216,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack5() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[r1: (?x r C3) <- (C1 p ?x)]" + "[r2: (?x r C2) <- (C2 p ?x)]" + "[r4: (?x s ?y) <- (?x r ?y)]"),
 				"<C1>,<p>,<D1>|<C1>,<p>,<a>|<C2>,<p>,<D2>|<C2>,<p>,<b>", new TriplePattern("?s <s> ?o"),
 				"s=<D1>,o=<C3>|s=<a>,o=<C3>|s=<D2>,o=<C2>|s=<b>,o=<C2>");
@@ -234,7 +232,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack6() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[r1: (?x r C1) <- (?x p a)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x q C1) <- (?x p b)]"
 						+ "[r4: (?x q C2) <- (?x p a)]" + "[r5: (?x s ?y) <- (?x r ?y) (?x q ?y)]"),
 				"<D1>,<p>,<a>|<D2>,<p>,<a>|<D2>,<p>,<b>|<D3>,<p>,<b>", new TriplePattern("?s <s> ?o"),
@@ -250,7 +248,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack7() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"
 						+ "[r3: (?x r D1) <- (?x p b)]" + "[r4: (?x q C2) <- (?x p b)]" + "[r5: (?x q C3) <- (?x p b)]"
 						+ "[r5: (?x q D1) <- (?x p b)]" + "[r6: (?x t C1) <- (?x p b)]" + "[r7: (?x t C2) <- (?x p b)]"
@@ -268,7 +266,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack8() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[r1: (?x r C1) <- (?x p b)]" + "[r2: (?x r C2) <- (?x p b)]" + "[r3: (?x r C3) <- (?x p b)]"
 						+ "[r3: (?x r D1) <- (?x p b)]" + "[r4: (?x q C2) <- (?x p b)]" + "[r5: (?x q C3) <- (?x p b)]"
 						+ "[r5: (?x q D1) <- (?x p b)]" + "[r6: (?x t C1) <- (?x p b)]" + "[r7: (?x t C2) <- (?x p b)]"
@@ -285,7 +283,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testBacktrack9() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (?x s ?y) <- (?x r ?y) (?x q ?y)]"),
+		doTest(JenaRules.convertJenaToKeRules("[r1: (?x s ?y) <- (?x r ?y) (?x q ?y)]"),
 				"<a>,<r>,<D1>|<a>,<r>,<D2>|<a>,<r>,<D3>|<b>,<r>,<D2>|<a>,<q>,<D2>|<b>,<q>,<D2>|<b>,<q>,<D3>",
 				new TriplePattern("?s <s> ?o"), "s=<a>,o=<D2>|s=<b>,o=<D2>");
 	}
@@ -316,7 +314,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testAxioms() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules(
+		doTest(JenaRules.convertJenaToKeRules(
 				"[a1: -> (a r C1) ]" + "[a2: -> (a r C2) ]" + "[a3: (b r C1) <- ]" + "[r1: (?x s ?y) <- (?x r ?y)]"),
 				"", new TriplePattern("?s <s> ?o"), "s=<a>,o=<C1>|s=<a>,o=<C2>|s=<b>,o=<C1>");
 	}
@@ -330,7 +328,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testNestedPvars() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (?x r ?y) <- (?x p ?z) (?z q ?y)]" + "[r1: (?y t ?x) <- (?x p ?z) (?z q ?y)]"
+		doTest(JenaRules.convertJenaToKeRules("[r1: (?x r ?y) <- (?x p ?z) (?z q ?y)]" + "[r1: (?y t ?x) <- (?x p ?z) (?z q ?y)]"
 				+ "[r3: (?x s ?y) <- (?x r ?y) (?y t ?x)]"),
 				"<a>,<p>,<C1>|<a>,<p>,<C2>|<a>,<p>,<C3>|<C2>,<q>,<b>|<C3>,<q>,<c>|<D1>,<q>,<D2>",
 				new TriplePattern("?s <s> ?o"), "s=<a>,o=<b>|s=<a>,o=<c>");
@@ -346,7 +344,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testWildPredicate1() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (b r ?y) <- (a ?y ?v)]"), "<a>,<p>,<C1>|<a>,<q>,<C2>|<a>,<q>,<C3>",
+		doTest(JenaRules.convertJenaToKeRules("[r1: (b r ?y) <- (a ?y ?v)]"), "<a>,<p>,<C1>|<a>,<q>,<C2>|<a>,<q>,<C3>",
 				new TriplePattern("<b> <r> ?o"), "o=<p>|o=<q>");
 	}
 
@@ -360,7 +358,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testWildPredicate2() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (a r ?y) <- (b ?y ?v)]" + "[r2: (?x q ?y) <- (?x p ?y)]"
+		doTest(JenaRules.convertJenaToKeRules("[r1: (a r ?y) <- (b ?y ?v)]" + "[r2: (?x q ?y) <- (?x p ?y)]"
 				+ "[r3: (?x s C1) <- (?x p C1)]" + "[r4: (?x t C2) <- (?x p C2)]"),
 				"<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<a>,<p>,<C1>|<a>,<p>,<C2>|<c>,<p>,<C1>",
 				new TriplePattern("<a> ?p ?o"),
@@ -381,9 +379,9 @@ public class JenaRuleTest {
 				+ "[r4: (?x t ?y) <- (?x ?y C1)]";
 		String data = "<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<a>,<p>,<C1>|<a>,<p>,<C2>|<c>,<p>,<C1>";
 
-		doTest(convertRules(rules), data, new TriplePattern("<a> ?p <C1>"), "p=<q>|p=<s>|p=<p>");
-		doTest(convertRules(rules), data, new TriplePattern("<a> <t> ?o"), "o=<q>|o=<s>|o=<p>");
-		doTest(convertRules(rules), data, new TriplePattern("?s <t> <q>"), "s=<a>|s=<b>|s=<c>");
+		doTest(JenaRules.convertJenaToKeRules(rules), data, new TriplePattern("<a> ?p <C1>"), "p=<q>|p=<s>|p=<p>");
+		doTest(JenaRules.convertJenaToKeRules(rules), data, new TriplePattern("<a> <t> ?o"), "o=<q>|o=<s>|o=<p>");
+		doTest(JenaRules.convertJenaToKeRules(rules), data, new TriplePattern("?s <t> <q>"), "s=<a>|s=<b>|s=<c>");
 	}
 
 	/**
@@ -395,7 +393,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testWildPredicate4() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[r1: (a ?p ?x) <- (b ?p ?x)]"), "<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<c>,<q>,<d>",
+		doTest(JenaRules.convertJenaToKeRules("[r1: (a ?p ?x) <- (b ?p ?x)]"), "<b>,<p>,<C1>|<b>,<q>,<C2>|<b>,<q>,<C3>|<c>,<q>,<d>",
 				new TriplePattern("<a> ?p ?o"), "p=<p>,o=<C1>|p=<q>,o=<C2>|p=<q>,o=<C3>");
 	}
 
@@ -408,7 +406,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testRDFS1() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C2) <- (?a <type> C3) ]"
+		doTest(JenaRules.convertJenaToKeRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C2) <- (?a <type> C3) ]"
 				+ "[ (?a <type> C3) <- (?a <type> C4) ]"),
 				"<a>,<type>,<C1>|<b>,<type>,<C2>|<c>,<type>,<C3>|<d>,<type>,<C4>", new TriplePattern("?s <type> <C1>"),
 				"s=<a>|s=<b>|s=<c>|s=<d>");
@@ -423,7 +421,7 @@ public class JenaRuleTest {
 	 */
 	@Test
 	public void testRDFS2() throws InterruptedException, ExecutionException, ParseException {
-		doTest(convertRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C1) <- (?a <type> C3) ]"
+		doTest(JenaRules.convertJenaToKeRules("[ (?a <type> C1) <- (?a <type> C2) ]" + "[ (?a <type> C1) <- (?a <type> C3) ]"
 				+ "[ (?a <type> C1) <- (?a <type> C4) ]"),
 				"<a>,<type>,<C1>|<b>,<type>,<C2>|<c>,<type>,<C3>|<d>,<type>,<C4>", new TriplePattern("?s <type> <C1>"),
 				"s=<a>|s=<b>|s=<c>|s=<d>");
@@ -440,7 +438,7 @@ public class JenaRuleTest {
 	public void testProblem2() throws InterruptedException, ExecutionException, ParseException {
 		String ruleSrc = "[rdfs8:  (?a <subClass> ?c) <- (?a <subClass> ?b), (?b <subClass> ?c)]"
 				+ "[rdfs7:  (?a <subClass> ?a) <- (?a <type> <class>)]";
-		doTest(convertRules(ruleSrc),
+		doTest(JenaRules.convertJenaToKeRules(ruleSrc),
 				"<C1>,<subClass>,<C2>|<C2>,<subClass>,<C3>|<C1>,<type>,<class>|<C2>,<type>,<class>|<C3>,<type>,<class>",
 				new TriplePattern("?s <subClass> ?o"),
 				"s=<C1>,o=<C2>|s=<C1>,o=<C3>|s=<C1>,o=<C1>|s=<C2>,o=<C3>|s=<C2>,o=<C2>|s=<C3>,o=<C3>");
@@ -456,7 +454,7 @@ public class JenaRuleTest {
 	@Test
 	public void testProblem4() throws InterruptedException, ExecutionException, ParseException {
 		String rules = "[r1: (c r ?x) <- (?x p ?x)]" + "[r2: (?x p ?y) <- (a q ?x), (b q ?y)]";
-		doTest(convertRules(rules), "<a>,<q>,<a>|<a>,<q>,<b>|<a>,<q>,<c>|<b>,<q>,<b>|<b>,<q>,<d>",
+		doTest(JenaRules.convertJenaToKeRules(rules), "<a>,<q>,<a>|<a>,<q>,<b>|<a>,<q>,<c>|<b>,<q>,<b>|<b>,<q>,<d>",
 				new TriplePattern("<c> <r> ?o"), "o=<b>");
 	}
 
@@ -474,7 +472,7 @@ public class JenaRuleTest {
 				+ "[rdfs9:   (?a <type> ?y) <- (?x <subClass> ?y), (?a <type> ?x)]" + "[(<type> <range> <class>) <-]"
 				+ "[rdfs3:  (?y <type> ?c) <- (?x ?p ?y), (?p <range> ?c)]"
 				+ "[rdfs7:  (?a <subClass> ?a) <- (?a <type> <class>)]";
-		doTest(convertRules(ruleSrc),
+		doTest(JenaRules.convertJenaToKeRules(ruleSrc),
 				"<p>,<subProp>,<q>|<q>,<subProp>,<r>|<C1>,<subClass>,<C2>|<C2>,<subClass>,<C3>|<a>,<type>,<C1>",
 				new TriplePattern("<a> <type> ?o"), "o=<C1>|o=<C2>|o=<C3>");
 
@@ -493,7 +491,7 @@ public class JenaRuleTest {
 		String ruleSrc = "[test:   (?x <sameAs> ?x) <- (?x <type> <thing>) ]"
 				+ "[sameIndividualAs6: (?X <type> <thing>) <- (?X <sameAs> ?Y) ]"
 				+ "[ans:    (?x <p> C1) <- (?y <sameAs> ?x)]";
-		doTest(convertRules(ruleSrc), "<a>,<type>,<thing>|<b>,<sameAs>,<c>", new TriplePattern("?s <p> ?o"),
+		doTest(JenaRules.convertJenaToKeRules(ruleSrc), "<a>,<type>,<thing>|<b>,<sameAs>,<c>", new TriplePattern("?s <p> ?o"),
 				"s=<a>,o=<C1>|s=<b>,o=<C1>|s=<c>,o=<C1>");
 
 	}
@@ -511,30 +509,9 @@ public class JenaRuleTest {
 	private void doBasicTest(String ruleSrc, TriplePattern query, String results)
 			throws InterruptedException, ExecutionException, ParseException {
 
-		Set<BaseRule> keRules = convertRules(ruleSrc);
+		Set<BaseRule> keRules = JenaRules.convertJenaToKeRules(ruleSrc);
 
 		doTest(keRules, "<a>,<p>,<b>", query, results);
-	}
-
-	public static Set<BaseRule> convertRules(String someRules) {
-		List<org.apache.jena.reasoner.rulesys.Rule> jenaRules = org.apache.jena.reasoner.rulesys.Rule
-				.parseRules(someRules);
-
-		Set<BaseRule> keRules = new HashSet<>();
-		for (org.apache.jena.reasoner.rulesys.Rule r : jenaRules) {
-
-			Set<TriplePattern> antecedent = new HashSet<>();
-			for (ClauseEntry ce : r.getBody()) {
-				antecedent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
-			}
-
-			Set<TriplePattern> consequent = new HashSet<>();
-			for (ClauseEntry ce : r.getHead()) {
-				consequent.add(convertToTriplePattern(((org.apache.jena.reasoner.TriplePattern) ce)));
-			}
-			keRules.add(new Rule(antecedent, consequent));
-		}
-		return keRules;
 	}
 
 	private void doTest(Set<BaseRule> keRules, String data, TriplePattern query, String results)
@@ -587,25 +564,6 @@ public class JenaRuleTest {
 			bindset = Util.toBindingSet(results);
 
 		assertEquals(bindset, results2);
-	}
-
-	private static TriplePattern convertToTriplePattern(org.apache.jena.reasoner.TriplePattern triple) {
-
-		Node subject = triple.getSubject();
-		Node predicate = triple.getPredicate();
-		Node object = triple.getObject();
-
-		if (subject instanceof Node_RuleVariable)
-			subject = Var.alloc(subject.getName().substring(1));
-
-		if (predicate instanceof Node_RuleVariable)
-			predicate = Var.alloc(predicate.getName().substring(1));
-
-		if (object instanceof Node_RuleVariable)
-			object = Var.alloc(object.getName().substring(1));
-
-		return new TriplePattern(subject, predicate, object);
-
 	}
 
 }

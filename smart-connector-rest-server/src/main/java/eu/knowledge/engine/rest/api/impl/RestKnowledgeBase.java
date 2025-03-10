@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,17 +22,18 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import jakarta.ws.rs.container.AsyncResponse;
-import jakarta.ws.rs.core.Response;
-
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.reasoner.rulesys.Rule.ParserException;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionBase;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.ResponseMessage;
@@ -56,6 +58,8 @@ import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorProvider;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorSPI;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.core.Response;
 
 public class RestKnowledgeBase implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBase.class);
@@ -410,8 +414,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			MatchStrategy strategy = null;
 			if (aki.getKnowledgeGapsEnabled() != null && aki.getKnowledgeGapsEnabled()) {
 				strategy = MatchStrategy.SUPREME_LEVEL;
-				LOG.info(
-						"The MatchStrategy should be '{}' when Knowledge Gaps are enabled. Overriding default.",
+				LOG.info("The MatchStrategy should be '{}' when Knowledge Gaps are enabled. Overriding default.",
 						MatchStrategy.SUPREME_LEVEL);
 			}
 
@@ -864,5 +867,23 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	public int getReasonerLevel() {
 		return this.sc.getReasonerLevel();
+	}
+
+	/**
+	 * Converts the given domain knowledge into KE rules provide them to the Smart
+	 * Connector.
+	 * 
+	 * @param someDomainKnowledge The domain knowledge to load into the Smart
+	 *                            Connector in Apache Jena Rules syntax.
+	 */
+	public void setDomainKnowledge(String someDomainKnowledge) {
+		Set<BaseRule> firstRules = JenaRules.convertJenaToKeRules(someDomainKnowledge);
+
+		Set<Rule> theRules = new HashSet<>();
+		for (BaseRule r : firstRules) {
+			theRules.add((Rule) r);
+		}
+
+		this.sc.setDomainKnowledge(theRules);
 	}
 }
