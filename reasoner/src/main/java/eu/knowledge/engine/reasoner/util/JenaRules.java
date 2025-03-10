@@ -179,9 +179,7 @@ public class JenaRules {
 			}
 		}
 
-		if (stringRows.size() > 0)
-
-		{
+		if (stringRows.size() > 0) {
 			String[] columns = new String[] { "s", "p", "o" };
 			String[] rows = stringRows.toArray(new String[stringRows.size()]);
 

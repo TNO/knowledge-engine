@@ -209,7 +209,7 @@ Note that the domain fact `saref:Sensor rdfs:subClassOf saref:Device` above is r
 
 Loading the above domain knowledge into a smart connector will allow its reasoner to derive that every `saref:Sensor` in the network is also a `saref:Device` and whenever a device is requested using the graph pattern `?d rdf:type saref:Device` it will also return data from KIs with the `?s rdf:type saref:Sensor` graph pattern. The default domain knowledge for every smart connector created in a KE Runtime can be configured using the `ke.domain.knowledge.path` configuration property. See [configuration](https://github.com/TNO/knowledge-engine?tab=readme-ov-file#configuration) section for more info.
 
-:::tip
+:::warning
 If you set the domain knowledge via the Java or REST API multiple times, it'll overwrite previously set domain knowledge for that particular SC.
 :::
 

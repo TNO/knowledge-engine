@@ -278,7 +278,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			// deal with parse exceptions.
 			var response = new ResponseMessage();
 			response.setMessageType("error");
-			response.setMessage("The provided doman knowledge should parse correctly: " + e.getMessage());
+			response.setMessage("The provided domain knowledge should parse correctly: " + e.getMessage());
 			return Response.status(Status.BAD_REQUEST).entity(response).build();
 		}
 		return Response.ok().build();
