@@ -116,6 +116,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				RemoteKerConnection messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime);
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
+				messageSender.sendMyKerDetailsToPeer(messageDispatcher.getMyKnowledgeEngineRuntimeDetails());
 			}
 		}
 		// Check if there are KERs that need to be removed
@@ -151,6 +152,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	public void stop() {
 		this.scheduledScheduleFuture.cancel(false);
+
+		// let other KERs know we are stopping
+		for (RemoteKerConnection remoteKerConnection : this.remoteKerConnections.values()) {
+			remoteKerConnection.stop();
+		}
 	}
 
 	public RemoteKerConnection getRemoteKerConnection(URI toKnowledgeBase) {
@@ -203,6 +209,12 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			// That one didn't exist
 			return Response.status(404).build();
 		} else {
+			// make sure all SCs are notified correctly. We use fake/empty details for that.
+			KnowledgeEngineRuntimeDetails details = new KnowledgeEngineRuntimeDetails();
+			details.setRuntimeId(kerConnection.getRemoteKerUri().toString());
+			details.setSmartConnectorIds(new ArrayList<>());
+			kerConnection.updateKerDetails(details);
+
 			// Done!
 			return Response.status(204).build();
 		}

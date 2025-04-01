@@ -235,7 +235,7 @@ public class RemoteKerConnection {
 						.header("Content-Type", "application/json").DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				if (response.statusCode() == 200) {
+				if (response.statusCode() == 204) {
 					LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
 				} else {
 					this.remoteKerDetails = null;
