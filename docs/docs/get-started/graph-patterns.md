@@ -69,8 +69,7 @@ So, if you write them twice, they will still only occur once.
 So, by using a fixed individual for `property` in the graph pattern, it becomes semantically impossible to determine that `sensor1` is measuring the property Motion and Smoke, while sensor2 is measuring Energy!
 
 Therefore, while using a fixed property is syntactically correct, it is semantically incorrect.
-Using a fixed property in the current version of the KE (with a matcher instead of a reasoner) will probably work fine and the data is exchanged as expected.
-This is, however, probably not the case with the future version of the KE with reasoner, because the reasoner will actually semantically interpret the graph pattern and binding set and when you ask something like:
+Using a fixed property in the KE with reasoner will not work, because the reasoner will actually semantically interpret the graph pattern and binding set and when you ask something like:
 
   ```sparql
   ?device <https://saref.etsi.org/core/measuresProperty> <http://interconnectproject.eu/pilots/greek/property#property> .
