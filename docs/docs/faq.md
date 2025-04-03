@@ -254,8 +254,7 @@ For ontologies, the subset/superset definition is sometimes explained as follows
 
 Since the idea of the Knowledge Engine is that the *data* is always kept at the source and is only retrieved when necessary for an interaction, it is more suitable to talk about subset/superset at the definition level and not at the data level.
 This is because all data is simply not available in a single location.
-The definition level is also the level where currently the *matching* between graph patterns happens.
-The *matcher* (as opposed to the *reasoner*) does not support subset/superset matching.
+The definition level is also the level where currently the *matching* between graph patterns happens and the *reasoner* supports subset/superset matching.
 
 We can consider the following concrete questions when dealing with subset/superset:
 1. Is `a b c.` a subset or superset of `a b c . d e f .`?
@@ -263,9 +262,7 @@ We can consider the following concrete questions when dealing with subset/supers
    		Note that graph pattern typically contain variables like `?a`.
    		Graph pattern _matching_ ignores variable names and triple order.
 2. When using POST/REACT, do argument and result graph patterns *both* need to match or can they be a subset/superset?
-	- Yes, the argument graph pattern and result graph pattern should both match if two POST/REACT interactions want to exchange data.
-   	This may change when you use the reasoner instead of the matcher.
+	- No, the argument graph pattern and result graph pattern do not need to match if two POST/REACT interactions want to exchange data. If the POST does not have a result graph pattern, but the REACT does have a result graph pattern, the result binding set from the REACT will not reach the results of the POST. When the POST has both a argument and result graph pattern, but the REACT does not have a result graph pattern, then the REACT will still trigger, but its result will end up being empty in the results of the POST.
 3. Would the following interactions match? A REACT with result graph pattern `a b c. d e f.` and a POST with result graph pattern `a b c.`
-	- This will not match if you are using the graph pattern _matcher_ instead of a _reasoner_.
-    The reasoner would allow them to interact if the POST result pattern is a subset of the REACT result pattern.
+    - The reasoner would allow them to interact if the POST result pattern is a subset of the REACT result pattern.
     In that case, the result binding set at the POST side should also be a subset (in fields) of the binding set given by the REACT side.

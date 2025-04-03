@@ -6,7 +6,7 @@ services:
     environment:
       KE_URL: http://knowledge-engine:8280/rest
       KB_ID: http://example.org/kb1
-      ENABLE_REASONER: true
+      KE_REASONER_LEVEL: 2
       PREFIXES: |
         {
           "ex": "http://example.org/",
