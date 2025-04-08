@@ -21,6 +21,7 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
@@ -73,7 +74,8 @@ public class MetadataKB extends KnowledgeBaseImpl {
 		this.metaGraphPattern = new GraphPattern(this.prefixes, META_GRAPH_PATTERN_STR);
 
 		// create the correct Knowledge Interactions
-		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, true);
+		this.aKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, false, true,
+				false, MatchStrategy.ENTRY_LEVEL);
 		this.rKINew = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<Resource>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<Resource>(Arrays.asList(Vocab.INFORM_PURPOSE))),
