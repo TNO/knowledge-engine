@@ -95,32 +95,32 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				(anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(anAnswerExchangeInfo.getIncomingBindings()),
 				true);
 
-		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true, false,
-				MatchStrategy.ENTRY_LEVEL);
+		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true,
+				false, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);
 
 		this.metaPostNewKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "post-new", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaPostNewKI, true);
 
 		this.metaPostChangedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "post-changed", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaPostChangedKI, true);
 
 		this.metaPostRemovedKI = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "post-removed", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaPostRemovedKI, true);
 
 		this.metaReactNewKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "react-new", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
@@ -140,7 +140,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		this.metaReactChangedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "react-changed", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
@@ -160,7 +160,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 		this.metaReactRemovedKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
-				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
+				this.metaGraphPattern, null, "react-removed", true, true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
@@ -410,8 +410,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			var kiMeta = model.listObjectsOfProperty(ki, Vocab.IS_META).next();
 
 			boolean isMeta = kiMeta.asLiteral().getBoolean();
-			assert isMeta == kiMeta.toString().contains("true")
-					: "If the text contains 'true' (=" + kiMeta + ") then the boolean should be true.";
+			assert isMeta == kiMeta.toString().contains("true") : "If the text contains 'true' (=" + kiMeta
+					+ ") then the boolean should be true.";
 
 			this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
 
