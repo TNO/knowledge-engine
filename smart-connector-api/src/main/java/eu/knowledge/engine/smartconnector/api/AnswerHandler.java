@@ -2,6 +2,8 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.LoggerFactory;
+
 /**
  * An {@link AnswerHandler} provides a handler
  * {@code AnswerHandler#answer(AnswerKnowledgeInteraction, BindingSet)} method
@@ -36,6 +38,7 @@ public interface AnswerHandler {
 			BindingSet bs = this.answer(anAKI, anAnswerExchangeInfo);
 			future.complete(bs);
 		} catch (Exception e) {
+			LoggerFactory.getLogger(AnswerHandler.class).error("{}", e);
 			future.completeExceptionally(e);
 		}
 		return future;
