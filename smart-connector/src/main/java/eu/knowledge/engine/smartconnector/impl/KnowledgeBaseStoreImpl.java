@@ -209,7 +209,8 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	private void tryPut(MyKnowledgeInteractionInfo kii) throws IllegalArgumentException {
 		var existing = this.kiis.putIfAbsent(kii.id, kii);
 		if (existing != null) {
-			throw new IllegalArgumentException("A Knowledge Interaction with that URI was already registered.");
+			throw new IllegalArgumentException(
+					"The Knowledge Interaction with URI '" + kii.getId() + "' should not be already registered.");
 		}
 	}
 
@@ -243,7 +244,7 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 					return new URI(this.getKnowledgeBaseId().toString() + "/interaction/" + aKI.getName());
 				} else {
 					return new URI(this.knowledgeBase.getKnowledgeBaseId().toString() + "/interaction/"
-						+ UUID.randomUUID().toString());
+							+ UUID.randomUUID().toString());
 				}
 			}
 		} catch (URISyntaxException e) {

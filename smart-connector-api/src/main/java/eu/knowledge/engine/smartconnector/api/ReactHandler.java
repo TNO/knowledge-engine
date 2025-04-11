@@ -39,7 +39,8 @@ public interface ReactHandler {
 			BindingSet bs = this.react(anRKI, aReactExchangeInfo);
 			future.complete(bs);
 		} catch (Exception e) {
-			LoggerFactory.getLogger(ReactHandler.class).error("{}", e);
+			LoggerFactory.getLogger(ReactHandler.class)
+					.error("Reacting should not result in the following exception.", e);
 			future.completeExceptionally(e);
 
 		}

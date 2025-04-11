@@ -38,7 +38,8 @@ public interface AnswerHandler {
 			BindingSet bs = this.answer(anAKI, anAnswerExchangeInfo);
 			future.complete(bs);
 		} catch (Exception e) {
-			LoggerFactory.getLogger(AnswerHandler.class).error("{}", e);
+			LoggerFactory.getLogger(AnswerHandler.class)
+					.error("Answering should not result in the following exception.", e);
 			future.completeExceptionally(e);
 		}
 		return future;
