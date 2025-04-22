@@ -100,7 +100,7 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
-			<artifactId>smart-connector-api</artifactId>
+			<artifactId>smart-connector</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

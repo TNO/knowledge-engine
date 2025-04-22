@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.reasoner.rulesys.Rule.ParserException;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
@@ -56,8 +54,8 @@ import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.SmartConnectorProvider;
-import eu.knowledge.engine.smartconnector.api.SmartConnectorSPI;
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorImpl;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.core.Response;
 
@@ -65,23 +63,6 @@ public class RestKnowledgeBase implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBase.class);
 
 	public static int INACTIVITY_TIMEOUT_SECONDS = 60;
-
-	/**
-	 * A way to allow the RestServer to use different versions of the Smart
-	 * Connector (typically v1 and v2). We assume there is only a single provider on
-	 * the classpath.
-	 */
-	private static SmartConnectorProvider smartConnectorProvider = null;
-
-	static {
-		Iterator<SmartConnectorProvider> iter = SmartConnectorSPI.providers(true);
-		if (iter.hasNext()) {
-			smartConnectorProvider = iter.next();
-		} else {
-			LOG.error(
-					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
-		}
-	}
 
 	private String knowledgeBaseId;
 	private String knowledgeBaseName;
@@ -249,11 +230,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			this.lease = null;
 		}
 
-		if (smartConnectorProvider == null) {
-			throw new IllegalStateException(
-					"SmartConnectorProvider not initialized. Make sure there is a SmartConnectorProvider implementation registered on the classpath.");
-		}
-		this.sc = smartConnectorProvider.create(this);
+		this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
 
 		if (scModel.getReasonerLevel() != null)
 			this.sc.setReasonerLevel(scModel.getReasonerLevel());
