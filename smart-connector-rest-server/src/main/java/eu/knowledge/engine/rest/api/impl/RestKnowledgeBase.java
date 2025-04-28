@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorImpl;
 import jakarta.ws.rs.container.AsyncResponse;
@@ -340,11 +342,13 @@ public class RestKnowledgeBase implements KnowledgeBase {
 				hr = this.beingProcessedHandleRequests.get(handleRequestId);
 				bs = this.listToBindingSet(responseBody.getBindingSet());
 
-				// Moved the validation to the {@link
-				// eu.knowledge.engine.smartconnector.impl.InteractionProcessorImpl} so that
-				// also the Java API benefits this, but unfortunately we also have to validate
-				// here to be able to return an error to the Knowledge Base using the REST API.
-				hr.validateBindings(bs);
+				if (this.shouldValidateInputOutputBindings()) {
+					// Moved the validation to the {@link
+					// eu.knowledge.engine.smartconnector.impl.InteractionProcessorImpl} so that
+					// also the Java API benefits this, but unfortunately we also have to validate
+					// here to be able to return an error to the Knowledge Base using the REST API.
+					hr.validateBindings(bs);
+				}
 
 				// Now that the validation is done, from the reactive side we are done, so
 				// we can remove the HandleRequest from our list.
@@ -862,5 +866,14 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 
 		this.sc.setDomainKnowledge(theRules);
+	}
+
+	/**
+	 * Checks the configuration option to determine whether validation is turned on
+	 * or off.
+	 */
+	private boolean shouldValidateInputOutputBindings() {
+		return ConfigProvider.getConfig().getValue(
+				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, Boolean.class);
 	}
 }
