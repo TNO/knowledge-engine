@@ -156,6 +156,10 @@ public class TripleVarBindingSet {
 	 * @return
 	 */
 	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
+
+		LOG.trace("Merging {} bindings with our {} bindings.", aGraphBindingSet.getBindings().size(),
+				this.getBindings().size());
+
 		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 
 		if (this.bindings.isEmpty()) {
@@ -176,6 +180,9 @@ public class TripleVarBindingSet {
 				}
 			});
 		}
+
+		LOG.trace("Merged {} bindings with our {} bindings into {} bindings.", aGraphBindingSet.getBindings().size(),
+				this.getBindings().size(), gbs.getBindings().size());
 
 		return gbs;
 	}
@@ -251,6 +258,7 @@ public class TripleVarBindingSet {
 					newOne.add(toB);
 			}
 		}
+		LOG.trace("Translated binding set with '{}' bindings and '{}' matches.", this.bindings.size(), match.size());
 
 		return newOne;
 

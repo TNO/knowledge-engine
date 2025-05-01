@@ -64,7 +64,7 @@ public class TriplePattern {
 	 * @return
 	 */
 	public Map<TripleNode, TripleNode> findMatches(TriplePattern other) {
-		Map<TripleNode, TripleNode> substitutionMap = new HashMap<>();
+		Map<TripleNode, TripleNode> substitutionMap = new HashMap<>(3);
 
 		if (this.getSubject() instanceof Var || other.getSubject() instanceof Var) {
 			substitutionMap.put(new TripleNode(this, this.getSubject(), 0),
