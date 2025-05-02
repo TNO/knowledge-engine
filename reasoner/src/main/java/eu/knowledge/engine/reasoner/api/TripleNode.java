@@ -18,10 +18,10 @@ public class TripleNode {
 
 	public TripleNode(TriplePattern aTriplePattern, Node aNode, int aNodeIdx) {
 		assert (0 <= aNodeIdx && aNodeIdx <= 2);
-		this.hashCodeValue = this.calcHashCode();
 		this.tp = aTriplePattern;
 		this.node = aNode;
 		this.nodeIdx = aNodeIdx;
+		this.hashCodeValue = this.calcHashCode();
 	}
 
 	public TripleNode(TriplePattern aTriplePattern, String aNode, int aNodeIdx) {
