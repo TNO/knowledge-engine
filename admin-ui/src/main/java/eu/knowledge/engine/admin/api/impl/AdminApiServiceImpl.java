@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +33,10 @@ import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.impl.KnowledgeInteractionInfo;
 import eu.knowledge.engine.smartconnector.impl.MessageRouter;
 import eu.knowledge.engine.smartconnector.impl.MyKnowledgeInteractionInfo;
@@ -107,8 +110,9 @@ public class AdminApiServiceImpl {
 	@Operation(summary = "Manually reload the admin-ui's smart connectors within the network. This is sometimes necessary when the initial load did not pick up all SCs correctly.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "If the SC were reloaded."),
 			@ApiResponse(responseCode = "500", description = "If a problem occurred.") })
-	public void reloadSCs() {
+	public Response reloadSCs() {
 		AdminUI.newInstance(false).fetchInitialData();
+		return Response.noContent().status(200).build();
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {
@@ -130,10 +134,18 @@ public class AdminApiServiceImpl {
 		List<Connection> identifiedConnections = null;
 		for (SmartConnector sc : smartConnectors) {
 
+			LOG.debug("Processing sc: {}", sc.getKnowledgeBaseId());
 			for (KnowledgeInteractionBase ki : sc.getKnowledgeInteractions()) {
+				LOG.debug("Processing ki: {}", ki.getKnowledgeInteractionId());
 				if (!Boolean.valueOf(ki.getIsMeta())) {
 					ReasonerProcessor rp = new ReasonerProcessor(allRelevantKnowledgeInteractions, (MessageRouter) null,
 							new HashSet<Rule>());
+
+					// make sure we use the default reasoner level from this runtime
+					int aReasonerLevel = ConfigProvider.getConfig()
+							.getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL, Integer.class);
+
+					rp.setMatchStrategy(SmartConnectorConfig.toMatchStrategy((aReasonerLevel)));
 
 					RuleNode rn = null;
 					if (ki.getKnowledgeInteractionType().equalsIgnoreCase("AskKnowledgeInteraction")) {
