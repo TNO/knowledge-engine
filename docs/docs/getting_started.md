@@ -1,14 +1,17 @@
-# Java Developer API
+---
+   sidebar_position: 5
+---
+
+# Getting Started
 
 As a developer, you might be thinking "this all seems awfully complex and painful".
 If that sounds like you, we have good news: you don't have to bother with most of it!
 
-This section explains the Java Developer API of the Knowledge Engine. The requirements of the Knowledge Engine are described in Test Cases and can be found [here](./04_test_cases.md).
-
-Note that there is also a [REST Developer API](https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/blob/master/rest-api/src/main/resources/openapi-sc.yaml) available.
+This section will take you through the main steps that are needed to get started.
+We will show this using the Java Developer API, but it can also be done using the [REST Developer API](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-rest-server/src/main/resources/openapi-sc.yaml).
 
 We provide an implementation of a `SmartConnector` that you can instantiate as a Java object.
-You are responsible for:
+When you want to exchange information within a Knowledge Network, you are responsible for:
 
 - Registering the knowledge that your knowledge base requests or provides.
 - Implementing handlers that are called when certain knowledge is requested or provided.
@@ -16,9 +19,9 @@ You are responsible for:
 <!-- TODO: Add instructions on how to use it in a Maven project once that's possible. (Also how to include it as a jar?) -->
 
 The SmartConnector uses this to register itself in the knowledge network.
-The following subsections further explain how a SmartConnector can be instantiated and, how the different kinds of knowledge can be registered.
+The following sections further explain how a SmartConnector can be instantiated and, how you can register the knowledge that your knowledge base provides.
 
-## Instantiating and configuring a SmartConnector
+## Instantiating and Configuring a SmartConnector
 
 <!-- TODO: Show how to instantiate a `SmartConnector`, and explain that it needs network ports. -->
 
@@ -28,8 +31,8 @@ Assuming `this` is your knowledge base, you can make a `SmartConnector` as follo
 SmartConnector sc = SmartConnectorBuilder.newSmartConnector(this).create();
 ```
 
-## Registering and using Knowledge Interactions
-Currently, a SmartConnector is required to register the patterns of knowledge that it will request from the network. (See #67)
+## Registering and Using Knowledge Interactions
+Currently, a SmartConnector is required to register the patterns of knowledge that it will request from the network.
 
 A knowledge request can be registered as follows:
 ```java
@@ -40,10 +43,9 @@ sc.register(
 ```
 where `graphPattern` is a string describing an RDF graph pattern where variables are prefixed with a `?`.
 
-Graph patterns consist of one or more triples separated by a dot (.) and each triple consists of a subject, predicate and object node. Each node can be either a variable (using a question mark `?var` prefix), a URI (using the `<https://...>` or a literal (using quotes `"hello"`).
-More information on graph patterns can be found in:
-- this presentation (from slide 16 onwards): https://drive.inesctec.pt/f/16079670
-- Graph Pattern syntax is based on W3C's [SPARQL 1.1 graph pattern](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
+Graph patterns consist of one or more triples separated by a dot (.) and each triple consists of a subject, predicate and object node.
+Each node can be either a variable (using a question mark `?var` prefix), a URI (using the `<https://...>` or a literal (using quotes `"hello"`).
+Graph Pattern syntax is based on W3C's [SPARQL 1.1 basic graph patterns](https://www.w3.org/TR/rdf-sparql-query/#BasicGraphPatterns).
 
 As an example, assume `graphPattern` is the following graph pattern:
 ```sparql
@@ -54,13 +56,13 @@ As an example, assume `graphPattern` is the following graph pattern:
 ?measurement saref:hasSimpleResult ?temperature .
 ```
 It can be illustrated with this diagram:
-![illustration of aforementioned graph pattern](./img/temperature-measurement-example.png)
+![illustration of aforementioned graph pattern](./../static/img/temperature-measurement-example.png)
 
 where the variables are represented by circles and the fixed URIs are represented by rectangles.
 
 The graph pattern above matches on temperature measurements in rooms.
 
-### Querying the network
+### Querying the Network
 
 When querying the network for the pattern, the variables (`?measurement`, `?room`, and `?temperature`) can be bound to known values, to limit the possible matches.
 
@@ -78,9 +80,12 @@ BindingSet resultBindings = askResult.getBindings();
 The results from the knowledge network are in the set of bindings.
 The `AskResult` contains other useful information, such as `AskExchangeInfo`, which gives information about the data's origins.
 
-## Registering and using other kinds of Knowledge Interactions
+### Other Types of Knowledge Interactions
 
-Aside from `ASK` knowledge interactions, there are also `ANSWER`, `REACT`, and `POST` interactions, which will be explained here in the future.
+Aside from `ASK` knowledge interactions, there are also `ANSWER`, `REACT`, and `POST` interactions.
+`ASK` is used to request information, `ANSWER` is used to reply to a request, `POST` is used to publish information, and `REACT` can be used to subscribe to information.
+They can be registered and executed in a similar way to the `ASK` explained above (see [here](./get-started/knowledge-interactions.md)).
+
 ## Bindings
 
 The data that is shared is inside the `Binding` objects.
@@ -98,18 +103,28 @@ As you can see, a `Binding` object is essentially a map from variable names to t
 
 Two important things should be noted:
 
-1. The keys of the bindings MUST correspond to the variable names in the graph pattern, and they must be complete (all variables must have a value bound to them). (This last restriction does not apply to the bindings given with ASK requests; they can be partial of even empty.)
+1. The keys of the bindings MUST correspond to the variable names in the graph pattern, and they must be complete (all variables must have a value bound to them).
+   (This last restriction does not apply to the bindings given with ASK requests; they can be partial of even empty.)
 2. The values of the bindings MUST be valid IRIs (https://www.w3.org/TR/turtle/#sec-iri) (for now without prefixes, so full IRIs) or valid literals (https://www.w3.org/TR/turtle/#literals).
 
-### Binding sets
+### Binding Sets
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.
 
-## Expressibility
+The Knowledge Engine does not guarantee the ordering of bindings in a binding set.
+The reason why we call it a binding set is because the elements in a set are unordered. 
+Due to the nature of RDF, the ordering of the bindings in a binding set cannot be used to encode any information when exchanging data.
+Thus, if you need ordering, this should be encoded explicitly, e.g. by using numbers or timestamps, and the receiving end should use this information to put the information in the correct order.
 
-The Graph Pattern syntax has a limited expressibility. This means there are certain things that you might want to express with them, but are unable to. Sometimes this means it limits the actual data exchange, but sometimes there are work-arounds. One of the limitations is related to one-to-many relations. Take the following RDF about parents and children in which a parent has a one-to-many relation with its children:
+## Expressiveness
 
-```
+The Graph Pattern syntax has a limited expressivity.
+This means there are certain things that you might want to express with them, but are unable to.
+Sometimes this means it limits the actual data exchange, but sometimes there are workarounds.
+One of the limitations is related to one-to-many relations.
+Take the following RDF about parents and children in which a parent has a one-to-many relation with its children:
+
+```sparql
 ex:parent1 rdf:type ex:Parent .
 
 ex:parent1 ex:hasChild ex:child1 .
@@ -122,19 +137,28 @@ ex:parent1 ex:hasChild ex:child3 .
 ex:child3 rdf:type ex:Child .
 ```
 
-As you can see, RDF is perfectly capable of expressing one-to-many relations. Now imagine that you want to use the Interoperability layer to exchange information about parents and their children. For this you need to let the Interoperability layer know that you can participate in data exchanges about parents and their children. You do this using a graph pattern (and for example an AnswerKnowledgeInteraction). Let's take the following graph pattern:
- 
-```
+As you can see, RDF is perfectly capable of expressing one-to-many relations. 
+Now imagine that you want to use the Knowledge Engine to exchange information about parents and their children.
+For this you need to let the Knowledge Engine know that you can participate in data exchanges about parents and their children.
+You do this using a graph pattern (and for example an AnswerKnowledgeInteraction).
+Let's take the following graph pattern:
+
+```sparql
 ?parent rdf:type ex:Parent .
 ?parent ex:hasChild ?someChild .
 ?someChild rdf:type ex:Child .
 ```
 
-Since the syntax of graph patterns is limited, you cannot express that the `ex:hasChild` relation between a parent and a child is a one to many relation. So, how does the interoperability layer exchange the RDF data about parents and their children above? This is where bindingsets come in.
+Since the syntax of graph patterns is limited, you cannot express that the `ex:hasChild` relation between a parent and a child is a one-to-many relation.
+So, how does the Knowledge Engine exchange the RDF data about parents and their children above?
+This is where binding sets come in.
 
-A bindingset provides a collection of 'solutions' to the graph pattern, i.e. combinations of values for the available variables (those start with a question mark `?`) in the graph pattern. So, in the graph pattern above there are two variables (note that both variables occur twice). A binding set consists of zero or more bindings and each binding represents a single mapping of some or all of the variables to a value. For example, when the graph pattern above is applied to the RDF data above, this results in the following bindingset (note that we use JSON here to express the bindingset):
+A binding set provides a collection of 'solutions' to the graph pattern, i.e. combinations of values for the available variables (those start with a question mark `?`) in the graph pattern.
+So, in the graph pattern above there are two variables (note that both variables occur twice).
+A binding set consists of zero or more bindings and each binding represents a single mapping of some or all of the variables to a value.
+For example, when the graph pattern above is applied to the RDF data above, this results in the following binding set (note that we use JSON here to express the binding set):
 
-```
+```json
 [
   {
     "parent": "<https://example.com/parent1>",
@@ -151,13 +175,14 @@ A bindingset provides a collection of 'solutions' to the graph pattern, i.e. com
 ]
 ```
 
-As you can see, the one-to-many relations in the RDF data is represented in the bindingset by having 3 bindings. Note that all bindings have the same value for the `parent` variable.
+As you can see, the one-to-many relations in the RDF data is represented in the binding set by having 3 bindings.
+Note that all bindings have the same value for the `parent` variable.
 
-### Hierarchy example
+### Hierarchy Example
 
-Imagine your graph pattern looks something like this (note that we use a non existing ontology):
+Imagine your graph pattern looks something like this (note that we use a non-existing ontology):
 
-```
+```sparql
 ?ts rdf:type ex:TimeSeries .
 ?ts ex:hasUnitOfValue ?unit .
 ?ts ex:hasMeasurement ?meas .
@@ -183,7 +208,7 @@ Imagine you have JSON data of the form:
 }
 ```
 
-How would the bindingset look like that represents the JSON corresponding to the graph pattern?
+How would the binding set look like that represents the JSON corresponding to the graph pattern?
 
 ```json
 [

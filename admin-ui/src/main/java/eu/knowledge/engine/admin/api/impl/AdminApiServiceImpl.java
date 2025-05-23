@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.admin.MetadataKB;
 import eu.knowledge.engine.admin.Util;
 import eu.knowledge.engine.admin.model.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.admin.model.AskKnowledgeInteraction;
@@ -91,7 +92,7 @@ public class AdminApiServiceImpl {
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
 			throws NotFoundException {
 		admin = AdminUI.newInstance(false);
-		model = this.admin.getModel(); // todo: needs locking for multi-threading? Read while write is busy.
+		model = this.admin.getMetadata(); // todo: needs locking for multi-threading? Read while write is busy.
 		if (model != null && !model.isEmpty()) {
 			Set<Resource> kbs = Util.getKnowledgeBaseURIs(model);
 			SmartConnector[] responses = findAndAddConnections(convertToModel(kbs, model, includeMeta));
@@ -99,6 +100,15 @@ public class AdminApiServiceImpl {
 		} else {
 			asyncResponse.resume(Response.ok().entity(new ArrayList<SmartConnector>()).build());
 		}
+	}
+
+	@GET
+	@Path("/reload")
+	@Operation(summary = "Manually reload the admin-ui's smart connectors within the network. This is sometimes necessary when the initial load did not pick up all SCs correctly.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "If the SC were reloaded."),
+			@ApiResponse(responseCode = "500", description = "If a problem occurred.") })
+	public void reloadSCs() {
+		AdminUI.newInstance(false).fetchInitialData();
 	}
 
 	private eu.knowledge.engine.admin.model.SmartConnector[] findAndAddConnections(SmartConnector[] smartConnectors) {

@@ -22,6 +22,7 @@ import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,13 +43,14 @@ import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
-public class MockedKnowledgeBase implements KnowledgeBase {
+public class KnowledgeBaseImpl implements KnowledgeBase {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MockedKnowledgeBase.class);
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
 
 	private final Set<AskKnowledgeInteraction> registeredAskKIs;
 	private final Map<AnswerKnowledgeInteraction, AnswerHandler> registeredAnswerKIs;
@@ -68,22 +70,27 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	private Set<Rule> domainKnowledge = new HashSet<>();
 
 	private SmartConnector sc;
+
+	protected URI id;
 	protected String name;
+	protected String description;
 	private Phaser readyPhaser;
 
 	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
 
 	/**
-	 * Enable the reasoner. Off by default (for now).
+	 * Using the default reasoner level from the configuration.
 	 */
-	private boolean reasonerEnabled = false;
+	private int reasonerLevel = ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL,
+			Integer.class);
 
-	/**
-	 * Whether the Knowledge Base is threadsafe.
-	 */
-	private boolean isThreadSafe = false;
+	public KnowledgeBaseImpl(String aName) {
+		this(null, aName, null);
+	}
 
-	public MockedKnowledgeBase(String aName) {
+	public KnowledgeBaseImpl(String anId, String aName, String aDescription) {
+
+		assert aName != null;
 
 		this.registeredAskKIs = ConcurrentHashMap.newKeySet();
 		this.registeredAnswerKIs = new ConcurrentHashMap<>();
@@ -100,7 +107,28 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		this.unregisteredPostKIs = ConcurrentHashMap.newKeySet();
 		this.unregisteredReactKIs = ConcurrentHashMap.newKeySet();
 
+		// name
 		this.name = aName;
+
+		// id
+		var someId = anId;
+		if (someId == null)
+			someId = "https://www.tno.nl/" + this.name;
+
+		URI uri = null;
+		try {
+			uri = new URI(someId);
+		} catch (URISyntaxException e) {
+			LOG.error("Could not parse the uri.", e);
+		}
+		this.id = uri;
+
+		// description
+		var someDescr = aDescription;
+		if (someDescr == null)
+			someDescr = "Description of " + this.name;
+
+		this.description = someDescr;
 	}
 
 	/**
@@ -108,7 +136,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	 * connectors in the knowledge network and be able to wait for everyone to be up
 	 * to date.
 	 * 
-	 * @param aPhaser a concurrent object that allows multiple parties to wait for
+	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait for
 	 *                each other to go through different phases.
 	 */
 	public void setPhaser(Phaser aReadyPhaser) {
@@ -119,18 +147,12 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	@Override
 	public URI getKnowledgeBaseId() {
-		URI uri = null;
-		try {
-			uri = new URI("https://www.tno.nl/" + this.name);
-		} catch (URISyntaxException e) {
-			LOG.error("Could not parse the uri.", e);
-		}
-		return uri;
+		return this.id;
 	}
 
 	@Override
 	public String getKnowledgeBaseDescription() {
-		return "description of " + this.name;
+		return this.description;
 	}
 
 	@Override
@@ -161,7 +183,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		return this.name;
 	}
 
-	private SmartConnector getSC() {
+	protected SmartConnector getSC() {
 		return this.sc;
 	}
 
@@ -267,7 +289,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
-			Set<MockedKnowledgeBase> someKnowledgeBases) {
+			Set<KnowledgeBaseImpl> someKnowledgeBases) {
 
 		boolean isUpToDate = true;
 
@@ -282,7 +304,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 //			m.write(System.out, "turtle");
 //			System.out.println("-----------------------");
 
-			for (MockedKnowledgeBase aKnowledgeBase : someKnowledgeBases) {
+			for (KnowledgeBaseImpl aKnowledgeBase : someKnowledgeBases) {
 				if (!this.getKnowledgeBaseId().toString().equals(aKnowledgeBase.getKnowledgeBaseId().toString())) {
 					isUpToDate &= isKnowledgeBaseUpToDate(aKnowledgeBase, m);
 				}
@@ -296,7 +318,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	}
 
-	private boolean isKnowledgeBaseUpToDate(MockedKnowledgeBase aMockedKB, Model aModel) {
+	private boolean isKnowledgeBaseUpToDate(KnowledgeBaseImpl aMockedKB, Model aModel) {
 
 		boolean isSame = true;
 		Resource kb = ResourceFactory.createResource(aMockedKB.getKnowledgeBaseId().toString());
@@ -470,7 +492,7 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 	public void start() {
 		if (!isStarted()) {
 			this.sc = SmartConnectorBuilder.newSmartConnector(this).create();
-			this.sc.setReasonerEnabled(this.reasonerEnabled);
+			this.sc.setReasonerLevel(this.reasonerLevel);
 		}
 	}
 
@@ -534,17 +556,18 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
-		this.getSC().setReasonerEnabled(this.reasonerEnabled);
+		this.getSC().setReasonerLevel(this.reasonerLevel);
 
 	}
 
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.reasonerEnabled = aReasonerEnabled;
+	/** {@link SmartConnectorConfig#CONF_KEY_KE_REASONER_LEVEL} */
+	public void setReasonerLevel(int aReasonerLevel) {
+		this.reasonerLevel = aReasonerLevel;
 
 	}
 
-	public boolean isReasonerEnabled() {
-		return this.reasonerEnabled;
+	public int getReasonerLevel() {
+		return this.reasonerLevel;
 	}
 
 	public AskPlan planAsk(AskKnowledgeInteraction anAKI, RecipientSelector aSelector) {
@@ -553,10 +576,6 @@ public class MockedKnowledgeBase implements KnowledgeBase {
 
 	public PostPlan planPost(PostKnowledgeInteraction aPKI, RecipientSelector aSelector) {
 		return this.getSC().planPost(aPKI, aSelector);
-	}
-
-	public void setIsThreadSafe(boolean aIsThreadSafe) {
-		this.isThreadSafe = aIsThreadSafe;
 	}
 
 	public boolean isStarted() {

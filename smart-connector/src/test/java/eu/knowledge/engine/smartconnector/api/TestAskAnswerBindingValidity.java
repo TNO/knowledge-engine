@@ -18,14 +18,14 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestAskAnswerBindingValidity {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerBindingValidity.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	@Test
 	public void testAskAnswerInvalidOutgoingBindings() throws InterruptedException {
@@ -35,9 +35,9 @@ public class TestAskAnswerBindingValidity {
 		prefixes.setNsPrefix("ex", "https://example.org/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
 		final AtomicBoolean wasInAnswerHandler = new AtomicBoolean(false);

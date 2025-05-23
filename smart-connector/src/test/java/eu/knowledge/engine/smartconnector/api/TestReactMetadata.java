@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestReactMetadata {
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestReactMetadata.class);
 
@@ -31,32 +31,30 @@ public class TestReactMetadata {
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
 		kn.sync();
 
-		GraphPattern gp2 = new GraphPattern(prefixes, 
-			"""
-				?kb rdf:type kb:KnowledgeBase .
-				?kb kb:hasName ?name .
-				?kb kb:hasDescription ?description .
-				?kb kb:hasKnowledgeInteraction ?ki .
-				?ki rdf:type ?kiType .
-				?ki kb:isMeta ?isMeta .
-				?ki kb:hasCommunicativeAct ?act .
-				?act rdf:type kb:CommunicativeAct .
-				?act kb:hasRequirement ?req .
-				?act kb:hasSatisfaction ?sat .
-				?req rdf:type ?reqType .
-				?sat rdf:type ?satType .
-				?ki kb:hasGraphPattern ?gp .
-				?gp rdf:type ?patternType .
-				?gp kb:hasPattern ?pattern .
-			"""
-		);
+		GraphPattern gp2 = new GraphPattern(prefixes, """
+					?kb rdf:type kb:KnowledgeBase .
+					?kb kb:hasName ?name .
+					?kb kb:hasDescription ?description .
+					?kb kb:hasKnowledgeInteraction ?ki .
+					?ki rdf:type ?kiType .
+					?ki kb:isMeta ?isMeta .
+					?ki kb:hasCommunicativeAct ?act .
+					?act rdf:type kb:CommunicativeAct .
+					?act kb:hasRequirement ?req .
+					?act kb:hasSatisfaction ?sat .
+					?req rdf:type ?reqType .
+					?sat rdf:type ?satType .
+					?ki kb:hasGraphPattern ?gp .
+					?gp rdf:type ?patternType .
+					?gp kb:hasPattern ?pattern .
+				""");
 
 		var ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, new ReactHandler() {

@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TimeOntologyTest {
 
@@ -29,18 +29,14 @@ public class TimeOntologyTest {
 
 	private KnowledgeNetwork kn = new KnowledgeNetwork();
 
-	private MockedKnowledgeBase calendar = new MockedKnowledgeBase("Calendar");
-	private MockedKnowledgeBase app = new MockedKnowledgeBase("App");
-	private MockedKnowledgeBase time = new MockedKnowledgeBase("Time");
+	private KnowledgeBaseImpl calendar = new KnowledgeBaseImpl("Calendar");
+	private KnowledgeBaseImpl app = new KnowledgeBaseImpl("App");
+	private KnowledgeBaseImpl time = new KnowledgeBaseImpl("Time");
 
 	@Test
 	public void test() throws InterruptedException, ExecutionException {
 
 		// add KBs
-
-		this.calendar.setReasonerEnabled(true);
-		this.app.setReasonerEnabled(true);
-		this.time.setReasonerEnabled(true);
 
 		kn.addKB(this.calendar);
 		kn.addKB(this.app);

@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -22,42 +22,40 @@ import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestDynamicSemanticComposition {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
 
-	private static MockedKnowledgeBase kbTargetObserver;
-	private static MockedKnowledgeBase kbHVTSearcher;
-	private static MockedKnowledgeBase kbTargetCountrySupplier;
-	private static MockedKnowledgeBase kbTargetLanguageSupplier;
-	private static MockedKnowledgeBase kbTargetAgeSupplier;
+	private KnowledgeBaseImpl kbTargetObserver;
+	private KnowledgeBaseImpl kbHVTSearcher;
+	private KnowledgeBaseImpl kbTargetCountrySupplier;
+	private KnowledgeBaseImpl kbTargetLanguageSupplier;
+	private KnowledgeBaseImpl kbTargetAgeSupplier;
 
-	private static KnowledgeNetwork kn;
+	private KnowledgeNetwork kn;
 
-	private static PrefixMappingMem prefixes;
+	private PrefixMappingMem prefixes;
 
 	private AskKnowledgeInteraction askKI;
 	private PostKnowledgeInteraction postKI;
 
-	private static Set<Rule> ruleSet;
+	private Set<Rule> ruleSet;
 
-	@BeforeAll
-	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
+	@BeforeEach
+	public void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
@@ -98,25 +96,27 @@ public class TestDynamicSemanticComposition {
 
 	}
 
+//	@RepeatedTest(100)
 	@Test
 	public void testAskAnswer() throws InterruptedException, URISyntaxException {
 
 		setupNetwork();
 
-		// start planning ask for targets!
+		// perform an ASK that should produce gaps and if found update network to fix
+		// gaps
+		try {
+			AskResult resultWithGaps = kbHVTSearcher.ask(askKI, new BindingSet()).get();
+			// check for knowledge gaps
+			Set<KnowledgeGap> gaps = resultWithGaps.getKnowledgeGaps();
+			LOG.info("Found gaps: " + gaps);
+			// add KB that fills the knowledge gap
+			updateNetwork(gaps);
+		} catch (InterruptedException | ExecutionException e) {
+			fail();
+		}
+
+		// perform ask for targets and knowledge gaps should have been fixed
 		BindingSet bindings = null;
-		AskPlan plan = kbHVTSearcher.planAsk(askKI, new RecipientSelector());
-		ReasonerPlan rn = plan.getReasonerPlan();
-		rn.getStore().printGraphVizCode(rn);
-		// check for knowledge gaps
-		Set<Set<TriplePattern>> gaps = Util.getKnowledgeGaps(rn.getStartNode());
-		LOG.info("Found gaps: " + gaps);
-
-		// add KB that fills the knowledge gap
-		updateNetwork(gaps);
-
-		// start testing ask for targets!
-		bindings = null;
 		try {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
@@ -161,6 +161,7 @@ public class TestDynamicSemanticComposition {
 					postKI.getArgument(), result.getReasonerPlan(), prefixes);
 		} catch (Exception e) {
 			LOG.error("Error", e);
+			fail(e);
 		}
 	}
 
@@ -180,19 +181,19 @@ public class TestDynamicSemanticComposition {
 		LOG.info("Duration: {}", (((double) (end - start)) / 1_000_000));
 	}
 
-	private void updateNetwork(Set<Set<TriplePattern>> gaps) {
+	private void updateNetwork(Set<KnowledgeGap> gaps) {
 
 		instantiateTargetCountrySupplierKB();
 		instantiateTargetLanguageSupplierKB();
 		instantiateTargetAgeSupplierKB();
 
-		List<MockedKnowledgeBase> availableKBs = new ArrayList<>();
+		List<KnowledgeBaseImpl> availableKBs = new ArrayList<>();
 		availableKBs.add(kbTargetAgeSupplier);
 		availableKBs.add(kbTargetCountrySupplier);
 		availableKBs.add(kbTargetLanguageSupplier);
 
 		// add the first KB that fulfills the gap
-		kbs: for (MockedKnowledgeBase kb : availableKBs) {
+		kbs: for (KnowledgeBaseImpl kb : availableKBs) {
 
 			for (ReactKnowledgeInteraction ki : kb.getReactKnowledgeInteractions().keySet()) {
 
@@ -201,7 +202,7 @@ public class TestDynamicSemanticComposition {
 					Rule r = new Rule(translateGraphPatternTo(ki.getArgument()),
 							translateGraphPatternTo(ki.getResult()));
 
-					Set<Match> matches = r.consequentMatches(gap, MatchStrategy.FIND_ONLY_BIGGEST_MATCHES);
+					Set<Match> matches = r.consequentMatches(gap, EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
 					if (!matches.isEmpty()) {
 						kn.addKB(kb);
@@ -244,13 +245,12 @@ public class TestDynamicSemanticComposition {
 	public void instantiateHVTSearcherKB() {
 		// start a knowledge base with the behaviour "I am interested in high-value
 		// targets"
-		kbHVTSearcher = new MockedKnowledgeBase("HVTSearcher");
-		kbHVTSearcher.setReasonerEnabled(true);
+		kbHVTSearcher = new KnowledgeBaseImpl("HVTSearcher");
 
 		// Patterns for the HVTSearcher
 		// a pattern to ask for High Value Target searches
 		GraphPattern gp2 = new GraphPattern(prefixes, "?id rdf:type v1905:HighValueTarget . ?id v1905:hasName ?name .");
-		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets");
+		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askHVTargets", true);
 		kbHVTSearcher.register(this.askKI);
 		// a pattern to react to incoming new High Value Targets
 		ReactKnowledgeInteraction reactKIsearcher = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
@@ -272,8 +272,7 @@ public class TestDynamicSemanticComposition {
 	public void instantiateObserverKB() {
 		// start a knowledge base with the behaviour "I can supply observations of
 		// targets"
-		kbTargetObserver = new MockedKnowledgeBase("TargetObserver");
-		kbTargetObserver.setReasonerEnabled(true);
+		kbTargetObserver = new KnowledgeBaseImpl("TargetObserver");
 
 		// Patterns for the TargetObserver
 		// an Answer pattern for Target observations
@@ -306,8 +305,7 @@ public class TestDynamicSemanticComposition {
 	}
 
 	public void instantiateTargetLanguageSupplierKB() {
-		kbTargetLanguageSupplier = new MockedKnowledgeBase("TargetLanguageSupplier");
-		kbTargetLanguageSupplier.setReasonerEnabled(true);
+		kbTargetLanguageSupplier = new KnowledgeBaseImpl("TargetLanguageSupplier");
 
 		// Patterns for the TargetLanguageSupplier
 		// a react pattern to get from targets to language
@@ -348,15 +346,13 @@ public class TestDynamicSemanticComposition {
 	}
 
 	public void instantiateTargetAgeSupplierKB() {
-		kbTargetAgeSupplier = new MockedKnowledgeBase("TargetAgeSupplier");
-		kbTargetAgeSupplier.setReasonerEnabled(true);
+		kbTargetAgeSupplier = new KnowledgeBaseImpl("TargetAgeSupplier");
 	}
 
 	public void instantiateTargetCountrySupplierKB() {
 		// start a knowledge base with the behaviour "Give me a target and I can supply
 		// its basic attributes"
-		kbTargetCountrySupplier = new MockedKnowledgeBase("TargetCountrySupplier");
-		kbTargetCountrySupplier.setReasonerEnabled(true);
+		kbTargetCountrySupplier = new KnowledgeBaseImpl("TargetCountrySupplier");
 
 		// Patterns for the TargetCountrySupplier
 		// a react pattern to get from targets to countries
@@ -398,8 +394,8 @@ public class TestDynamicSemanticComposition {
 
 	}
 
-	@AfterAll
-	public static void cleanup() throws InterruptedException, ExecutionException {
+	@AfterEach
+	public void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestDynamicSemanticComposition.class.getSimpleName());
 		kn.stop().get();
 	}

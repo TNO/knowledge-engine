@@ -18,12 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @Tag("Long")
 public class TestMetadataFromNormalKnowledgeInteraction {
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestMetadataFromNormalKnowledgeInteraction.class);
 
@@ -33,9 +33,10 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 	public void testPostReact() throws InterruptedException {
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
+		kb1.setReasonerLevel(1);
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 		LOG.info("Before everyone is ready!");
 		kn.sync();
@@ -45,12 +46,15 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		var prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ke", Vocab.ONTO_URI);
-		var metaGraphPattern = new GraphPattern(prefixes, "?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .",
-				"?kb ke:hasDescription ?description .", "?kb ke:hasKnowledgeInteraction ?ki .",
-				"?ki rdf:type ?kiType .", "?ki ke:isMeta ?isMeta .", "?ki ke:hasCommunicativeAct ?act .",
-				"?act rdf:type ke:CommunicativeAct .", "?act ke:hasRequirement ?req .",
-				"?act ke:hasSatisfaction ?sat .", "?req rdf:type ?reqType .", "?sat rdf:type ?satType .",
-				"?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .", "?gp ke:hasPattern ?pattern .");
+		var metaGraphPattern = new GraphPattern(prefixes,
+				// @formatter:off
+				"?kb rdf:type ke:KnowledgeBase .", "?kb ke:hasName ?name .", "?kb ke:hasDescription ?description .",
+				"?kb ke:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki ke:isMeta ?isMeta .",
+				"?ki ke:hasCommunicativeAct ?act .", "?act rdf:type ke:CommunicativeAct .",
+				"?act ke:hasRequirement ?req .", "?act ke:hasSatisfaction ?sat .", "?req rdf:type ?reqType .",
+				"?sat rdf:type ?satType .", "?ki ke:hasGraphPattern ?gp .", "?gp rdf:type ?patternType .",
+				"?gp ke:hasPattern ?pattern .");
+		// @formatter:on
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE))),
@@ -101,9 +105,9 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 		binding.put("reqType", "<https://w3id.org/knowledge-engine/InformPurpose>");
 		binding.put("satType", "<https://w3id.org/knowledge-engine/InformPurpose>");
 		binding.put("gp", "<https://example.org/gp>");
-		binding.put("patternType", "https://w3id.org/knowledge-engine/ArgumentGraphPattern");
+		binding.put("patternType", "<https://w3id.org/knowledge-engine/ArgumentGraphPattern>");
 		binding.put("pattern",
-				"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp kb:hasPattern ?pattern .");
+				"\"?kb rdf:type kb:KnowledgeBase . ?kb kb:hasName ?name . ?kb kb:hasDescription ?description . ?kb kb:hasKnowledgeInteraction ?ki . ?ki rdf:type ?kiType . ?ki kb:isMeta ?isMeta . ?ki kb:hasCommunicativeAct ?act . ?act rdf:type kb:CommunicativeAct . ?act kb:hasRequirement ?req . ?act kb:hasSatisfaction ?sat . ?req rdf:type ?reqType . ?sat rdf:type ?satType . ?ki kb:hasGraphPattern ?gp . ?gp rdf:type ?patternType . ?gp kb:hasPattern ?pattern .\"");
 		bindingSet.add(binding);
 
 		try {
@@ -115,7 +119,8 @@ public class TestMetadataFromNormalKnowledgeInteraction {
 
 			LOG.info("After post!");
 		} catch (Exception e) {
-			LOG.error("Erorr", e);
+			LOG.error("Error", e);
+			fail();
 		}
 	}
 

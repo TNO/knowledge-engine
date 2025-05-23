@@ -1,18 +1,22 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
+@Disabled //it works, but takes about 230 seconds
 @Tag("Long")
 public class AdditionForAudienceTest {
 
@@ -72,12 +76,12 @@ public class AdditionForAudienceTest {
 		}
 	};
 
-	MockedKnowledgeBase kb1;
-	MockedKnowledgeBase kb10;
-	MockedKnowledgeBase kb100;
-	MockedKnowledgeBase kbSum;
-	MockedKnowledgeBase kbNum;
-	MockedKnowledgeBase kbRule;
+	KnowledgeBaseImpl kb1;
+	KnowledgeBaseImpl kb10;
+	KnowledgeBaseImpl kb100;
+	KnowledgeBaseImpl kbSum;
+	KnowledgeBaseImpl kbNum;
+	KnowledgeBaseImpl kbRule;
 	private AskKnowledgeInteraction askKI;
 	private static KnowledgeNetwork kn;
 
@@ -86,8 +90,8 @@ public class AdditionForAudienceTest {
 		kn = new KnowledgeNetwork();
 
 		// kb1
-		kb1 = new MockedKnowledgeBase("kb1");
-		kb1.setReasonerEnabled(true);
+		kb1 = new KnowledgeBaseImpl("kb1");
+		kb1.setReasonerLevel(4);
 		kn.addKB(kb1);
 
 		var reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
@@ -97,8 +101,8 @@ public class AdditionForAudienceTest {
 		kb1.register(reactKI, new MyReactHandler(1));
 
 		// kb10
-		kb10 = new MockedKnowledgeBase("kb10");
-		kb10.setReasonerEnabled(true);
+		kb10 = new KnowledgeBaseImpl("kb10");
+		kb10.setReasonerLevel(4);
 		kn.addKB(kb10);
 		reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
 				"?e <http://example.org/type> <http://example.org/Expression> . ?e <http://example.org/hasFirstNr> ?n1 . ?e <http://example.org/hasSecondNr> ?n2 . ?n1 <http://example.org/type> <http://example.org/Number> . ?n1 <http://example.org/hasDigit> ?d1 . ?d1 <http://example.org/hasPlace> \"2\" . ?d1 <http://example.org/hasActualDigit> ?ad1 . ?n2 <http://example.org/type> <http://example.org/Number> . ?n2 <http://example.org/hasDigit> ?d2 . ?d2 <http://example.org/hasPlace> \"2\" . ?d2 <http://example.org/hasActualDigit> ?ad2 ."),
@@ -106,8 +110,8 @@ public class AdditionForAudienceTest {
 						"?e <http://example.org/hasOutcome> ?n3 . ?n3 <http://example.org/type> <http://example.org/Number> . ?n3 <http://example.org/hasDigit> ?d3 . ?d3 <http://example.org/hasPlace> \"2\" . ?d3 <http://example.org/hasActualDigit> ?ad3 . ?d3 <http://example.org/hasOverflow> ?o ."));
 		kb10.register(reactKI, new MyReactHandler(2));
 
-		kb100 = new MockedKnowledgeBase("kb100");
-		kb100.setReasonerEnabled(true);
+		kb100 = new KnowledgeBaseImpl("kb100");
+		kb100.setReasonerLevel(4);
 		kn.addKB(kb100);
 		reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
 				"?e <http://example.org/type> <http://example.org/Expression> . ?e <http://example.org/hasFirstNr> ?n1 . ?e <http://example.org/hasSecondNr> ?n2 . ?n1 <http://example.org/type> <http://example.org/Number> . ?n1 <http://example.org/hasDigit> ?d1 . ?d1 <http://example.org/hasPlace> \"3\" . ?d1 <http://example.org/hasActualDigit> ?ad1 . ?n2 <http://example.org/type> <http://example.org/Number> . ?n2 <http://example.org/hasDigit> ?d2 . ?d2 <http://example.org/hasPlace> \"3\" . ?d2 <http://example.org/hasActualDigit> ?ad2 ."),
@@ -115,8 +119,8 @@ public class AdditionForAudienceTest {
 						"?e <http://example.org/hasOutcome> ?n3 . ?n3 <http://example.org/type> <http://example.org/Number> . ?n3 <http://example.org/hasDigit> ?d3 . ?d3 <http://example.org/hasPlace> \"3\" . ?d3 <http://example.org/hasActualDigit> ?ad3 . ?d3 <http://example.org/hasOverflow> ?o ."));
 		kb100.register(reactKI, new MyReactHandler(3));
 
-		kbSum = new MockedKnowledgeBase("kbSum");
-		kbSum.setReasonerEnabled(true);
+		kbSum = new KnowledgeBaseImpl("kbSum");
+		kbSum.setReasonerLevel(4);
 		kn.addKB(kbSum);
 
 		var answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
@@ -187,8 +191,8 @@ public class AdditionForAudienceTest {
 			return bs;
 		});
 
-		kbNum = new MockedKnowledgeBase("kbNum");
-		kbNum.setReasonerEnabled(true);
+		kbNum = new KnowledgeBaseImpl("kbNum");
+		kbNum.setReasonerLevel(4);
 		kn.addKB(kbNum);
 
 		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern(
@@ -218,6 +222,31 @@ public class AdditionForAudienceTest {
 		AskResult ar = ap.execute(new BindingSet()).get();
 
 		System.out.println("Result: " + ar.getBindings());
+
+		BindingSet bs = new BindingSet();
+		Binding b1 = new Binding();
+		b1.put("p", "\"2\"");
+		b1.put("n1", "<123/456>");
+		b1.put("e", "<e1>");
+		b1.put("d1", "<123/456/digit/2>");
+		b1.put("ad1", "\"7\"");
+		bs.add(b1);
+		Binding b2 = new Binding();
+		b2.put("p", "\"1\"");
+		b2.put("n1", "<123/456>");
+		b2.put("e", "<e1>");
+		b2.put("d1", "<123/456/digit/1>");
+		b2.put("ad1", "\"5\"");
+		bs.add(b2);
+		Binding b3 = new Binding();
+		b3.put("p", "\"3\"");
+		b3.put("n1", "<123/456>");
+		b3.put("e", "<e1>");
+		b3.put("d1", "<123/456/digit/3>");
+		b3.put("ad1", "\"9\"");
+		bs.add(b3);
+
+		assertEquals(bs, ar.getBindings());
 
 	}
 

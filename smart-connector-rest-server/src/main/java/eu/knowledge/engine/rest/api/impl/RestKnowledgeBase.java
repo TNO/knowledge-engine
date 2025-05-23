@@ -47,6 +47,7 @@ import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
@@ -250,8 +251,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		}
 		this.sc = smartConnectorProvider.create(this);
 
-		if (scModel.getReasonerEnabled() != null)
-			this.sc.setReasonerEnabled(scModel.getReasonerEnabled());
+		if (scModel.getReasonerLevel() != null)
+			this.sc.setReasonerLevel(scModel.getReasonerLevel());
 	}
 
 	protected void tryProcessHandleRequestElseEnqueue(HandleRequest handleRequest) {
@@ -352,22 +353,28 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		HandleRequest hr = null;
 		BindingSet bs = null;
 
-		synchronized (this.beingProcessedHandleRequests) {
-			hr = this.beingProcessedHandleRequests.get(handleRequestId);
-			bs = this.listToBindingSet(responseBody.getBindingSet());
+		try {
 
-			// TODO: Can this be moved to somewhere internal so that it can also be
-			// caught in the Java developer api?
-			// See https://gitlab.inesctec.pt/interconnect/knowledge-engine/-/issues/148
-			hr.validateBindings(bs);
+			synchronized (this.beingProcessedHandleRequests) {
+				hr = this.beingProcessedHandleRequests.get(handleRequestId);
+				bs = this.listToBindingSet(responseBody.getBindingSet());
 
-			// Now that the validation is done, from the reactive side we are done, so
-			// we can remove the HandleRequest from our list.
-			this.beingProcessedHandleRequests.remove(handleRequestId);
-		}
+				// Moved the validation to the {@link
+				// eu.knowledge.engine.smartconnector.impl.InteractionProcessorImpl} so that
+				// also the Java API benefits this, but unfortunately we also have to validate
+				// here to be able to return an error to the Knowledge Base using the REST API.
+				hr.validateBindings(bs);
 
-		if (hr != null && bs != null) {
-			hr.getFuture().complete(bs);
+				// Now that the validation is done, from the reactive side we are done, so
+				// we can remove the HandleRequest from our list.
+				this.beingProcessedHandleRequests.remove(handleRequestId);
+			}
+
+		} finally {
+			// we always want to complete the future, also when the binding set is invalid.
+			if (hr != null && bs != null) {
+				hr.getFuture().complete(bs);
+			}
 		}
 	}
 
@@ -388,6 +395,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			prefixMapping = new PrefixMappingZero();
 		}
 
+		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false : ki.getKnowledgeGapsEnabled();
+
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
 		if (type.equals("AskKnowledgeInteraction")) {
@@ -397,8 +406,18 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			if (aki.getGraphPattern() == null) {
 				throw new IllegalArgumentException("graphPattern must be given for ASK knowledge interactions.");
 			}
+
+			MatchStrategy strategy = null;
+			if (aki.getKnowledgeGapsEnabled() != null && aki.getKnowledgeGapsEnabled()) {
+				strategy = MatchStrategy.SUPREME_LEVEL;
+				LOG.info(
+						"The MatchStrategy should be '{}' when Knowledge Gaps are enabled. Overriding default.",
+						MatchStrategy.SUPREME_LEVEL);
+			}
+
 			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
-					ki.getKnowledgeInteractionName());
+					ki.getKnowledgeInteractionName(), false, false, knowledgeGapsEnabled, strategy);
+
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
 		} else if (type.equals("AnswerKnowledgeInteraction")) {
@@ -508,7 +527,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var requirements = act.getRequirementPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var satisfactions = act.getSatisfactionPurposes().stream().map(r -> r.toString()).collect(Collectors.toList());
 		var kiwid = new KnowledgeInteractionWithId().knowledgeInteractionId(kiId.toString())
-				.knowledgeInteractionName(ki.getName())
+				.knowledgeInteractionName(ki.getName()).knowledgeGapsEnabled(ki.knowledgeGapsEnabled())
 				.communicativeAct(new eu.knowledge.engine.rest.model.CommunicativeAct().requiredPurposes(requirements)
 						.satisfiedPurposes(satisfactions));
 
@@ -843,7 +862,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		return this.suspended;
 	}
 
-	public Boolean getReasonerEnabled() {
-		return this.sc.isReasonerEnabled();
+	public int getReasonerLevel() {
+		return this.sc.getReasonerLevel();
 	}
 }

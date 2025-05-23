@@ -7,8 +7,6 @@ import org.apache.jena.iri.IRI;
 import org.apache.jena.iri.IRIFactory;
 import org.junit.jupiter.api.Test;
 
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-
 class TestIRI {
 
 	private String[] validUris = new String[] {

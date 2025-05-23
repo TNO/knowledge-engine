@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * A {@link ReactHandler} provides a handler method
- * ({@link ReactHandler#react(ReactKnowledgeInteraction, BindingSet)}) that
+ * ({@link ReactHandler#react(ReactKnowledgeInteraction, ReactExchangeInfo)}) that
  * returns a {@link BindingSet} for the provided input. Unlike in the
  * {@link AnswerHandler}, which only has a single {@link GraphPattern}, the
  * {@link GraphPattern} of the result *can* be different from the argument's.

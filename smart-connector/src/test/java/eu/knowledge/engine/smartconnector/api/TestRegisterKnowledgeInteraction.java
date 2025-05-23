@@ -1,12 +1,8 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,10 +47,12 @@ public class TestRegisterKnowledgeInteraction {
 
 		String kiName = "some-name";
 
-		sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <foo> ?c"), kiName));
+		sc1.register(
+				new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <foo> ?c"), kiName, false));
 
 		assertThrows(IllegalArgumentException.class, () -> {
-			sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <bar> ?c"), kiName));
+			sc1.register(new AskKnowledgeInteraction(new CommunicativeAct(), new GraphPattern("?a <bar> ?c"), kiName,
+					false));
 		});
 
 		sc1.stop();

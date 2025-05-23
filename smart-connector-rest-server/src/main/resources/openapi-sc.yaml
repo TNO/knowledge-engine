@@ -7,7 +7,7 @@ info:
     Interactions are (un)registered and data is exchanged. Each Smart Connector
     is coupled with a Knowledge Base Id, so every rest call uses this Knowledge
     Base Id to identify yourself.
-  version: 1.2.5-SNAPSHOT
+  version: 1.3.1-SNAPSHOT
   
 paths:
   /sc:
@@ -70,22 +70,18 @@ paths:
                   after about 60 seconds. To postpone the cleanup, your
                   knowledge base has to call /sc/lease/renew to extend the lease
                   by 60 seconds.
-              with reasoner enabled:
+              with reasoner level:
                 value:
                   knowledgeBaseId: http://example.org/a-knowledge-base-id
                   knowledgeBaseName: Example Knowledge Base
                   knowledgeBaseDescription: This is a detailed description
-                  reasonerEnabled: true
+                  reasonerLevel: 4
                 description:
-                  The reasoner is disabled by default. If enabled, the created smart 
-                  connector will use a reasoner to orchestrate the data exchange. 
-                  This increases the flexibility, but can decrease the performance 
-                  and cause unexpected behaviour, for now. This flexibility means the 
-                  smart connector will automatically try to combine data coming 
-                  from different knowledge bases or try to convert units of measures. 
-                  If the reasoner is disabled, the smart connector will only exchange 
-                  data with other smart connectors if their graph patterns match 
-                  entirely (apart from ordering and variable names).
+                  The reasoner is always enabled, but can operate at different reasoner 
+                  levels. The smart connector uses a reasoner to infer new data and 
+                  orchestrate the data exchange. Higher reasoner levels increase the 
+                  flexibility and power, but can decrease the performance and can cause 
+                  unexpected behaviour.
       responses:
         '200':
           description: If the Smart Connector for the given Knowledge Base is successfully created.
@@ -180,6 +176,13 @@ paths:
             type: string
       requestBody:
         required: true
+        description:
+          The body of the ASK can contain the option "knowledgeGapEnabled"
+          (See the example "ASK with knowledge gaps enabled"). 
+          This option is disabled by default. If enabled, each activation of the knowledge interaction will
+          provide a set of knowledge gaps as part of the result. If this set is empty, the binding set of the 
+          result contains the answer. If the set of knowledge gaps is not empty, this contains one or more
+          knowledge gaps that need to be fixed for the knowledge interaction to produce an answer.
         content:
           application/json; charset=UTF-8:
             schema:
@@ -216,6 +219,11 @@ paths:
                   prefixes:
                     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                     ex: "http://example.org/"
+              ASK with knowledge gaps enabled:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+                  knowledgeGapsEnabled: "true"
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -321,10 +329,22 @@ paths:
             bindings together with additional exchange info. The returned bindings form 
             a set and there is no quaranteed ordering. The exchange info shows the other 
             Knowledge Bases that contributed to the answer with timing, initiator information.
+            If KnowledgeGaps are enabled, a list of knowledge gaps that are found will be returned
+            as well. See, the different examples below.
           content:
             application/json; charset=UTF-8:
               schema:
                 $ref: '#/components/schemas/AskResult'
+              examples:
+                knowledge gaps NOT enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                knowledge gaps enabled:
+                  value:
+                    bindingSet: [{"a": "<http://example.org/Barry>","b": "<http://example.org/Jack>"}]
+                    exchangeInfo: []
+                    knowledgeGaps: [["?a <http://example.org/isFatherOf> ?c", "?a <http://example.org/liveInTheSameHouse> ?b"]]
         '400':
           description: If the ask failed.
           content:
@@ -548,13 +568,13 @@ components:
             base automatically unregistered when you don't renew your lease. Expiry
             is checked periodically, so your knowledge base may actually be
             valid for longer than the given time.
-        reasonerEnabled:
-          type: boolean
-          description: Include this optional property if you want to specify whether 
-            the smart connector should use a reasoner or a matcher to orchestrate data 
-            exchange. In general the reasoner increases the flexibility, but decreases 
-            the performance. The matcher decreases the flexibility, but increases 
-            the performance.
+        reasonerLevel:
+          type: integer
+          description: Include this optional property if you want to specify which reasoner level (1-5)
+            this smart connector should use to infer new data and orchestrate data exchange. In general 
+            a higher reasoner level increases the flexibility and power, but decreases the performance. 
+            A lower reasoner level decreases the flexibility and power, but increases the performance.
+            The default reasoner level is 2 and can be configured via the configuration options.
     BindingSet:
       type: array
       items:
@@ -608,6 +628,8 @@ components:
         knowledgeInteractionName:
           type: string
           pattern: '^[a-zA-Z0-9-]*$'
+        knowledgeGapsEnabled:
+          type: boolean
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'
         prefixes:
@@ -686,6 +708,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AskExchangeInfo'
+        knowledgeGaps:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeGap'
+          nullable: true
     PostResult:
       type: object
       required: [resultBindingSet, exchangeInfo]
@@ -735,6 +762,11 @@ components:
               $ref: '#/components/schemas/BindingSet'
             resultBindingSet:
               $ref: '#/components/schemas/BindingSet'
+    KnowledgeGap:
+      type: array
+      items:
+        nullable: false # Enforced manually, but kept here nonetheless.
+        type: string
     HandleRequest:
       type: object
       properties:

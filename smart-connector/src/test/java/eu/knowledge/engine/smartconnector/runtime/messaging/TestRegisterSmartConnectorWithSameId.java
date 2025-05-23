@@ -4,23 +4,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.concurrent.Phaser;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.knowledgedirectory.KnowledgeDirectory;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestRegisterSmartConnectorWithSameId {
   private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
-
+  private Phaser readyPhaser = new Phaser(1);
+  
   @Test
-  public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() {
-    var kb1 = new MockedKnowledgeBase("http://example.org/kb1");
+	public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() throws InterruptedException {
+    var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
+    kb1.setPhaser(this.readyPhaser);
     kb1.start();
-
-    var kb1AsWell = new MockedKnowledgeBase("http://example.org/kb1");
+    
+    var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
+    kb1.setPhaser(this.readyPhaser);
 
     assertThrows(IllegalArgumentException.class, () -> {
       kb1AsWell.start();

@@ -2,17 +2,17 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.BaseRule.MatchStrategy;
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -39,7 +39,7 @@ public class ReasonerPlan {
 	private final ProactiveRule start;
 	private final Map<BaseRule, RuleNode> ruleToRuleNode;
 	private boolean done;
-	private MatchStrategy strategy = MatchStrategy.FIND_ALL_MATCHES;
+	private EnumSet<MatchFlag> matchConfig = EnumSet.noneOf(MatchFlag.class);
 	private boolean useTaskBoard = true;
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
@@ -49,11 +49,11 @@ public class ReasonerPlan {
 		createOrGetReasonerNode(this.start, null);
 	}
 
-	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, MatchStrategy aStrategy) {
+	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, EnumSet<MatchFlag> aConfig) {
 		this.store = aStore;
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
-		this.strategy = aStrategy;
+		this.matchConfig = aConfig;
 		createOrGetReasonerNode(this.start, null);
 	}
 
@@ -101,6 +101,7 @@ public class ReasonerPlan {
 		Set<RuleNode> changed = new HashSet<>();
 
 		do {
+			LOG.trace("New round.");
 			stack.clear();
 			visited.clear();
 			changed.clear();
@@ -120,9 +121,9 @@ public class ReasonerPlan {
 
 				// Ready, and current version of input has not been scheduled on taskboard? ->
 				// Add to taskboard otherwise -> Do not add to taskboard
-				if (current.readyForApplyRule() && !current.isResultBindingSetInputScheduled()) {
+				if (current.readyForApplyRule() && !current.isResultBindingSetInputAlreadyScheduledOrDone()) {
 					this.scheduleOrDoTask(current, taskBoard);
-					current.setResultBindingSetInputScheduled(true);
+					current.setResultBindingSetInputAlreadyScheduledOrDone(true);
 				}
 
 				if (current.shouldPropagateFilterBindingSetOutput()) {
@@ -145,10 +146,18 @@ public class ReasonerPlan {
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
 								Match.invertAll(matches));
+
+						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
+						TripleVarBindingSet afterBindingSet = n.getResultBindingSetInput();
 						if (itChanged) {
 							changed.add(n);
-							n.setResultBindingSetInputScheduled(false);
+
+							// We should only set this to false if the actual binding set of the
+							// BindngSetStore.get() method changes. Otherwise rules get applied multiple
+							// times with the same binding set.
+							if (!beforeBindingSet.equals(afterBindingSet))
+								n.setResultBindingSetInputAlreadyScheduledOrDone(false);
 						}
 					});
 					current.setResultBindingSetOutputPropagated();
@@ -223,7 +232,7 @@ public class ReasonerPlan {
 			// for now we only are interested in antecedent neighbors.
 			// TODO for looping we DO want to consider consequent neighbors as well.
 
-			this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+			this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert reasonerNode instanceof AntSide;
 					var newNode = createOrGetReasonerNode(rule, aRule);
@@ -239,7 +248,7 @@ public class ReasonerPlan {
 			});
 		} else {
 			// interested in both consequent and antecedent neighbors
-			this.store.getConsequentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert reasonerNode instanceof ConsSide;
 					var newNode = createOrGetReasonerNode(rule, aRule);
@@ -258,13 +267,14 @@ public class ReasonerPlan {
 			// determine whether our parent matches us partially
 			boolean ourAntecedentFullyMatchesParentConsequent = false;
 
-			if (aParent != null && this.store.getAntecedentNeighbors(aRule, this.strategy).containsKey(aParent)) {
-				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule.getAntecedent(),
-						aParent.getConsequent(), this.getMatchStrategy());
+			Map<BaseRule, Set<Match>> antecedentNeighbors = this.store.getAntecedentNeighbors(aRule, this.matchConfig);
+			if (aParent != null && antecedentNeighbors.containsKey(aParent)) {
+				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
+						antecedentNeighbors.get(aParent));
 			}
 
 			if (!ourAntecedentFullyMatchesParentConsequent) {
-				this.store.getAntecedentNeighbors(aRule, this.strategy).forEach((rule, matches) -> {
+				antecedentNeighbors.forEach((rule, matches) -> {
 					if (!(rule instanceof ProactiveRule)) {
 						assert reasonerNode instanceof AntSide;
 						var newNode = createOrGetReasonerNode(rule, aRule);
@@ -287,7 +297,6 @@ public class ReasonerPlan {
 	private void scheduleOrDoTask(RuleNode current, TaskBoard taskBoard) {
 		if (this.useTaskBoard) {
 			taskBoard.addTask(current);
-			current.setResultBindingSetInputScheduled(true);
 		} else {
 			try {
 				current.applyRule().get();
@@ -305,12 +314,15 @@ public class ReasonerPlan {
 	 * that if the antecedent is a subset of the consequent this method also return
 	 * true.
 	 * 
-	 * @param consequent
-	 * @param antecedent
+	 * @param consequentRule
+	 * @param antecedentRule
 	 * @return
 	 */
-	private boolean antecedentFullyMatchesConsequent(Set<TriplePattern> antecedent, Set<TriplePattern> consequent,
-			MatchStrategy aMatchStrategy) {
+	private boolean antecedentFullyMatchesConsequent(BaseRule antecedentRule, BaseRule consequentRule,
+			Set<Match> someMatches) {
+
+		var antecedent = antecedentRule.getAntecedent();
+		var consequent = consequentRule.getConsequent();
 
 		assert !antecedent.isEmpty();
 		assert !consequent.isEmpty();
@@ -318,9 +330,7 @@ public class ReasonerPlan {
 		if (antecedent.size() > consequent.size())
 			return false;
 
-		Set<Match> matches = BaseRule.matches(antecedent, consequent, aMatchStrategy);
-
-		for (Match m : matches) {
+		for (Match m : someMatches) {
 			// check if there is a match that is full
 			boolean allFound = true;
 			for (TriplePattern tp : antecedent) {
@@ -340,12 +350,17 @@ public class ReasonerPlan {
 		return false;
 	}
 
-	public MatchStrategy getMatchStrategy() {
-		return this.strategy;
+	public EnumSet<MatchFlag> getMatchConfig() {
+		return this.matchConfig;
 	}
 
 	public RuleStore getStore() {
 		return this.store;
+	}
+
+	@Override
+	public String toString() {
+		return "ReasonerPlan [link=" + this.store.getGraphVizCode(this, true) + "]";
 	}
 
 }

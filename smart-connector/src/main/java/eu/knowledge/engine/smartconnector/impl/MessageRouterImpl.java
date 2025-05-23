@@ -8,9 +8,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
@@ -28,14 +31,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 * capacity, but to prevent memory leaks we cap them at the number below.
 	 */
 	private static final int MAX_ENTRIES = 5000;
-
-	/**
-	 * How many seconds should the MessageRouter wait for ANSWER/REACT Message when
-	 * sending a ASK/POST Message? 0 means wait forever (useful when working with a
-	 * human KB)
-	 */
-	private static final String CONF_KEY_WAIT_TIMEOUT = "KE_KB_WAIT_TIMEOUT";
-	private static final int DEFAULT_WAIT_TIMEOUT = 10;
 
 	private final SmartConnectorImpl smartConnector;
 	private final Map<UUID, CompletableFuture<AnswerMessage>> openAskMessages = Collections
@@ -86,7 +81,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	}
 
 	private int getWaitTimeout() {
-		return Integer.parseInt(this.getConfigProperty(CONF_KEY_WAIT_TIMEOUT, Integer.toString(DEFAULT_WAIT_TIMEOUT)));
+		return ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, Integer.class);
 	}
 
 	@Override
@@ -104,6 +99,17 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		}
 
 		future.whenComplete((m, e) -> {
+			if (m == null)
+				if (e != null)
+					if (e instanceof TimeoutException)
+						LOG.error("KB '{}' did not respond within {}s to AskMessage '{}'.",
+								askMessage.getToKnowledgeBase(), this.getWaitTimeout(), askMessage.getMessageId(), e);
+					else
+						LOG.error("A {} occurred while sending an AskMessage.", e.getClass().getSimpleName(), e);
+				else
+					LOG.error(
+							"The AnswerMessage future should complete either exceptionally or normally. Not with both AnswerMessage and Exception null.");
+
 			this.openAskMessages.remove(askMessage.getMessageId());
 		});
 
@@ -130,6 +136,16 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		}
 
 		future.whenComplete((m, e) -> {
+			if (m == null)
+				if (e != null)
+					if (e instanceof TimeoutException)
+						LOG.error("KB '{}' did not respond within {}s to PostMessage '{}'.",
+								postMessage.getToKnowledgeBase(), this.getWaitTimeout(), postMessage.getMessageId(), e);
+					else
+						LOG.error("A {} occurred while sending an PostMessage.", e.getClass().getSimpleName(), e);
+				else
+					LOG.error(
+							"The ReactMessage future should complete either exceptionally or normally. Not with both ReactMessage and Exception null.");
 			this.openAskMessages.remove(postMessage.getMessageId());
 		});
 
@@ -210,20 +226,12 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	@Override
 	public void handleAnswerMessage(AnswerMessage answerMessage) {
-		CompletableFuture<AnswerMessage> future = this.openAskMessages.remove(answerMessage.getReplyToAskMessage());
+		CompletableFuture<AnswerMessage> future = this.openAskMessages.get(answerMessage.getReplyToAskMessage());
 		if (future == null) {
 			this.LOG.warn("I received a reply for an AskMessage with ID " + answerMessage.getReplyToAskMessage()
-					+ ", but I don't remember sending a message with that ID");
+					+ ", but I don't remember sending a message with that ID. It might have taken more than {}s to respond.",
+					this.getWaitTimeout());
 		} else {
-			future.handle((r, e) -> {
-
-				if (r == null) {
-					LOG.error("An exception has occured while handling Answer Message ", e);
-					return null;
-				} else {
-					return r;
-				}
-			});
 			LOG.debug("Received AnswerMessage: {}", answerMessage);
 			future.complete(answerMessage);
 		}
@@ -235,22 +243,14 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	 */
 	@Override
 	public void handleReactMessage(ReactMessage reactMessage) {
-		CompletableFuture<ReactMessage> future = this.openPostMessages.remove(reactMessage.getReplyToPostMessage());
+		CompletableFuture<ReactMessage> future = this.openPostMessages.get(reactMessage.getReplyToPostMessage());
 		if (future == null) {
 			this.LOG.warn("I received a reply for a PostMessage with ID " + reactMessage.getReplyToPostMessage()
-					+ ", but I don't remember sending a message with that ID");
+					+ ", but I don't remember sending a message with that ID. It might have take more than {}s to respond.",
+					this.getWaitTimeout());
 		} else {
 			assert reactMessage != null;
 			assert future != null;
-			future.handle((r, e) -> {
-
-				if (r == null) {
-					LOG.error("An exception has occured while handling React Message ", e);
-					return null;
-				} else {
-					return r;
-				}
-			});
 			LOG.debug("Received ReactMessage: {}", reactMessage);
 			future.complete(reactMessage);
 		}
@@ -278,21 +278,6 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 	@Override
 	public URI getKnowledgeBaseId() {
 		return this.smartConnector.getKnowledgeBaseId();
-	}
-
-	public String getConfigProperty(String key, String defaultValue) {
-		// We might replace this with something a bit more fancy in the future...
-		String value = System.getenv(key);
-		if (value == null) {
-			value = defaultValue;
-			LOG.trace("No value for the configuration parameter '{}' was provided, using the default value '{}'", key,
-					defaultValue);
-		}
-		return value;
-	}
-
-	public boolean hasConfigProperty(String key) {
-		return System.getenv(key) != null;
 	}
 
 	@Override

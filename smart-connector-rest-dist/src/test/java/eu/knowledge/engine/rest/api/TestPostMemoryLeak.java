@@ -177,6 +177,7 @@ public class TestPostMemoryLeak {
 
 	@AfterAll
 	public void cleanUp() {
+		TestUtil.unregisterAllKBs("http://localhost:" + PORT + "/rest");
 		rsh.cleanUp();
 	}
 }

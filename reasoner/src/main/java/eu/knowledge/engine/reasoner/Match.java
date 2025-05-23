@@ -76,21 +76,16 @@ public class Match {
 
 		Match m = null;
 
+		var mergedMatchingPatterns = mergeMatchingPatterns(this.getMatchingPatterns(),
+				otherMatch.getMatchingPatterns());
+
 		// if both sides of the matching patterns do not overlap
-		boolean doMapsIntersect = doIntersect(this.getMatchingPatterns(), otherMatch.getMatchingPatterns());
-
-		if (!doMapsIntersect) {
-
+		if (mergedMatchingPatterns != null) {
 			// and if the mappings do not conflict
 			Map<TripleNode, TripleNode> mergedMapping = mergeContexts(this.getMappings(), otherMatch.getMappings());
 			if (mergedMapping != null) {
 				// if both patterns and mappings do not conflict.
-				Map<TriplePattern, TriplePattern> newMatchingPatterns = new HashMap<>(this.getMatchingPatterns());
-				newMatchingPatterns.putAll(otherMatch.getMatchingPatterns());
-
-				Map<TripleNode, TripleNode> newMapping = new HashMap<>(this.getMappings());
-				newMapping.putAll(otherMatch.getMappings());
-				m = new Match(newMatchingPatterns, newMapping);
+				m = new Match(mergedMatchingPatterns, mergedMapping);
 			}
 		}
 		return m;
@@ -101,19 +96,29 @@ public class Match {
 	 * 
 	 * @param aFirstMap
 	 * @param aSecondMap
-	 * @return
+	 * @return {@code null} if the matching patterns overlap on either keys or
+	 *         values, otherwise the merged mapping.
 	 */
-	private boolean doIntersect(Map<TriplePattern, TriplePattern> aFirstMap,
+	private HashMap<TriplePattern, TriplePattern> mergeMatchingPatterns(Map<TriplePattern, TriplePattern> aFirstMap,
 			Map<TriplePattern, TriplePattern> aSecondMap) {
+
+		var mergedMatchingPatterns = new HashMap<TriplePattern, TriplePattern>(aFirstMap.size() + aSecondMap.size());
+
+		boolean firstTime = true;
 
 		for (Entry<TriplePattern, TriplePattern> entry1 : aFirstMap.entrySet()) {
 			for (Entry<TriplePattern, TriplePattern> entry2 : aSecondMap.entrySet()) {
 				if (entry1.getKey().equals(entry2.getKey()) || entry1.getValue().equals(entry2.getValue()))
-					return true;
+					return null;
+
+				if (firstTime)
+					mergedMatchingPatterns.put(entry2.getKey(), entry2.getValue());
 			}
+			mergedMatchingPatterns.put(entry1.getKey(), entry1.getValue());
+			firstTime = false;
 		}
 
-		return false;
+		return mergedMatchingPatterns;
 	}
 
 	public Map<TripleNode, TripleNode> getMappings() {
@@ -135,7 +140,10 @@ public class Match {
 			Map<TripleNode, TripleNode> newContext) {
 
 		Collection<TripleNode> existingContextValues = existingContext.values();
-		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(existingContext);
+		Map<TripleNode, TripleNode> mergedContext = new HashMap<TripleNode, TripleNode>(
+				existingContext.size() + newContext.size());
+		mergedContext.putAll(existingContext);
+
 		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
 			Node node;
 			if ((node = getOtherNode(existingContext, newEntry.getKey().node)) != null) {
@@ -169,7 +177,41 @@ public class Match {
 
 	@Override
 	public String toString() {
-		return "Match " + mapping;
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		for (Map.Entry<TriplePattern, TriplePattern> entry : this.matchingPatterns.entrySet()) {
+
+			boolean firstTriplePattern = true;
+			for (TriplePattern tp : new TriplePattern[] { entry.getKey(), entry.getValue() }) {
+				boolean firstTime = true;
+				Node[] nodes = new Node[] { tp.getSubject(), tp.getPredicate(), tp.getObject() };
+				for (int i = 0; i < 3; i++) {
+					Node n = nodes[i];
+
+					if (!firstTime) {
+						sb.append(" ");
+					}
+					var truncatedNode = TriplePattern.trunc(n);
+
+					var tn = new TripleNode(tp, n, i);
+
+					if (firstTriplePattern ? this.mapping.containsValue(tn) : this.mapping.containsKey(tn)) {
+						sb.append("|").append(truncatedNode).append("|");
+					} else {
+						sb.append(truncatedNode);
+					}
+					firstTime = false;
+				}
+				if (firstTriplePattern)
+					sb.append("=");
+				firstTriplePattern = false;
+			}
+			sb.append(", ");
+		}
+		sb.deleteCharAt(sb.length() - 1).deleteCharAt(sb.length() - 1).append("}");
+
+		return "Match " + sb.toString();
 	}
 
 	/**

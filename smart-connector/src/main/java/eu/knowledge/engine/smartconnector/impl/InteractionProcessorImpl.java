@@ -28,6 +28,7 @@ import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.apache.jena.sparql.syntax.ElementData;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.reasoner.Rule;
@@ -43,6 +44,7 @@ import eu.knowledge.engine.smartconnector.api.PostPlan;
 import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.RecipientSelector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
@@ -70,12 +72,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private final LoggerProvider loggerProvider;
 
 	/**
-	 * Whether this interaction processor should use reasoning to orchestrate the
-	 * data exchange.
+	 * The default reasoner level of this smart connector is retrieved from the
+	 * configuration.
 	 */
-	private boolean reasonerEnabled = false;
-
-	private static boolean VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT = true;
+	private int reasonerLevel = ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_REASONER_LEVEL,
+			Integer.class);
 
 	private static final Query query = QueryFactory.create(
 			"ASK WHERE { ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass . FILTER NOT EXISTS {?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?someClass .} VALUES (?req ?sat) {} }");
@@ -84,7 +85,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			KnowledgeBaseStore myKnowledgeBaseStore) {
 		super();
 		this.loggerProvider = loggerProvider;
-		this.LOG = loggerProvider.getLogger(this.getClass());
+		this.LOG = this.loggerProvider.getLogger(this.getClass());
 
 		this.otherKnowledgeBaseStore = otherKnowledgeBaseStore;
 		this.myKnowledgeBaseStore = myKnowledgeBaseStore;
@@ -102,8 +103,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		assert anAKI != null : "the knowledge interaction should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
-		var myKnowledgeInteraction = anAKI.getKnowledgeInteraction();
-
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
 
@@ -118,21 +117,19 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
-				// But filter on the communicative act. These have to match!
-				return communicativeActMatcher(anAKI, r);
+				return anAKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
+
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
 
-		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor;
-		if (this.reasonerEnabled) {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
-					this.additionalDomainKnowledge);
-		} else {
-			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
-					this.messageRouter);
-		}
+		// But filter on the communicative act. These have to match!
+		filterWithCommunicativeActMatcher(anAKI, otherKnowledgeInteractions);
+
+		// create a new ReasonerProcessor to handle this ask.
+		ReasonerProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, messageRouter,
+				this.additionalDomainKnowledge);
+		processor.setMatchStrategy(SmartConnectorConfig.toMatchStrategy(this.reasonerLevel));
 
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
@@ -206,7 +203,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			AnswerMessage m = new AnswerMessage(anAskMsg.getToKnowledgeBase(), anAskMsg.getToKnowledgeInteraction(),
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					"Received AskMessage wth unknown ToKnowledgeInteractionId");
-			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "+anAskMsg.getToKnowledgeInteraction().toString());
+			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "
+					+ anAskMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<AnswerMessage> f = new CompletableFuture<>();
 			f.complete(m);
 			return f;
@@ -236,6 +234,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(answerKnowledgeInteraction.getPattern(), b);
 					validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
 							anAskMsg.getBindings(), b);
 				}
@@ -267,8 +266,6 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		assert aPKI != null : "the knowledge interaction should be non-null";
 		assert aSelector != null : "the selector should be non-null";
 
-		var myKnowledgeInteraction = aPKI.getKnowledgeInteraction();
-
 		// retrieve other knowledge bases
 		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
 
@@ -283,21 +280,19 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		for (OtherKnowledgeBase otherKB : filteredOtherKnowledgeBases) {
 			// Use the knowledge interactions from the other KB
 			var knowledgeInteractions = otherKB.getKnowledgeInteractions().stream().filter((r) -> {
-				// But filter on the communicative act. These have to match!
-				return communicativeActMatcher(aPKI, r);
+				return aPKI.getKnowledgeInteraction().includeMetaKIs() ? true : !r.isMeta();
 			});
 			otherKnowledgeInteractions.addAll(knowledgeInteractions.collect(Collectors.toList()));
 		}
 
-		// create a new SingleInteractionProcessor to handle this ask.
-		SingleInteractionProcessor processor;
-		if (this.reasonerEnabled) {
-			processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
-					this.additionalDomainKnowledge);
-		} else {
-			processor = new SerialMatchingProcessor(this.loggerProvider, otherKnowledgeInteractions,
-					this.messageRouter);
-		}
+		// But filter on the communicative act. These have to match!
+		filterWithCommunicativeActMatcher(aPKI, otherKnowledgeInteractions);
+
+		// create a new ReasonerProcessor to handle this ask.
+		ReasonerProcessor processor = new ReasonerProcessor(otherKnowledgeInteractions, this.messageRouter,
+				this.additionalDomainKnowledge);
+		processor.setMatchStrategy(SmartConnectorConfig.toMatchStrategy(this.reasonerLevel));
+
 		// give the caller something to chew on while it waits. This method starts the
 		// interaction process as far as it can until it is blocked because it waits for
 		// outstanding message replies. Then it returns the future. Threads from the
@@ -319,7 +314,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			ReactMessage m = new ReactMessage(aPostMsg.getToKnowledgeBase(), aPostMsg.getToKnowledgeInteraction(),
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					"Received PostMessage with unknown ToKnowledgeInteractionId");
-			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "+aPostMsg.getToKnowledgeInteraction().toString());
+			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "
+					+ aPostMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<ReactMessage> f = new CompletableFuture<>();
 			f.complete(m);
 			return f;
@@ -348,6 +344,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
+					validator.validateCompleteBindings(reactKnowledgeInteraction.getResult(), b);
 					validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
 							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
 				}
@@ -376,9 +373,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	private boolean shouldValidateInputOutputBindings() {
-		return SmartConnectorConfig.getBoolean(
-				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS,
-				VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS_DEFAULT);
+		return ConfigProvider.getConfig().getValue(
+				SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, Boolean.class);
 	}
 
 	@Override
@@ -397,11 +393,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	 * model.
 	 * 
 	 * @param myKI
-	 * @param otherKI
-	 * @return {@code true} if the communicative acts of the given
-	 *         KnowledgeInteractions match, {@code false} otherwise.
+	 * @param otherKIs The collection that will be modified by removing all
+	 *                 non-matching KIs.
 	 */
-	private boolean communicativeActMatcher(MyKnowledgeInteractionInfo myKI, KnowledgeInteractionInfo otherKI) {
+	private void filterWithCommunicativeActMatcher(MyKnowledgeInteractionInfo myKI,
+			Set<KnowledgeInteractionInfo> otherKIs) {
 
 		Instant start = Instant.now();
 
@@ -430,23 +426,25 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		}
 
 		// then add the other knowledge interaction communicative act
-		CommunicativeAct otherAct = otherKI.getKnowledgeInteraction().getAct();
-		Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
+		for (KnowledgeInteractionInfo otherKI : otherKIs) {
+			CommunicativeAct otherAct = otherKI.getKnowledgeInteraction().getAct();
+			Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
 
-		m.add(otherActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
+			m.add(otherActResource, RDF.type, Vocab.COMMUNICATIVE_ACT);
 
-		Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
-		Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
+			Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
+			Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
 
-		m.add(otherActResource, Vocab.HAS_REQ, otherRequirementPurpose);
-		m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, otherSatisfactionPurpose);
+			m.add(otherActResource, Vocab.HAS_REQ, otherRequirementPurpose);
+			m.add(otherSatisfactionPurpose, Vocab.HAS_SAT, otherSatisfactionPurpose);
 
-		// give the purposes the correct types
-		for (Resource r : otherAct.getRequirementPurposes()) {
-			m.add(otherRequirementPurpose, RDF.type, r);
-		}
-		for (Resource r : otherAct.getSatisfactionPurposes()) {
-			m.add(otherSatisfactionPurpose, RDF.type, r);
+			// give the purposes the correct types
+			for (Resource r : otherAct.getRequirementPurposes()) {
+				m.add(otherRequirementPurpose, RDF.type, r);
+			}
+			for (Resource r : otherAct.getSatisfactionPurposes()) {
+				m.add(otherSatisfactionPurpose, RDF.type, r);
+			}
 		}
 
 		// then apply the reasoner
@@ -457,32 +455,42 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// faster. either we set multiple iris for the same params. Or we change the ASK
 		// to include myReq/otherReq and mySat/otherSat vars.
 
-		// my perspective
-		Var reqVar = Var.alloc("req");
-		Var satVar = Var.alloc("sat");
-		org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
-				NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
-				NodeFactory.createURI(otherSatisfactionPurpose.toString()));
+		// my and other perspective
+		var iter = otherKIs.iterator();
+		while (iter.hasNext()) {
+			KnowledgeInteractionInfo otherKI = iter.next();
+			Resource otherActResource = ResourceFactory.createResource(otherKI.id + "/act");
+			Resource otherRequirementPurpose = ResourceFactory.createResource(otherActResource + "/requirement");
+			Resource otherSatisfactionPurpose = ResourceFactory.createResource(otherActResource + "/satisfaction");
 
-		org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
-				NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
-				NodeFactory.createURI(mySatisfactionPurpose.toString()));
+			Var reqVar = Var.alloc("req");
+			Var satVar = Var.alloc("sat");
+			org.apache.jena.sparql.engine.binding.Binding theFirstBinding = BindingFactory.binding(reqVar,
+					NodeFactory.createURI(myRequirementPurpose.toString()), satVar,
+					NodeFactory.createURI(otherSatisfactionPurpose.toString()));
 
-		Query q = (Query) query.clone();
-		ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
+			org.apache.jena.sparql.engine.binding.Binding theSecondBinding = BindingFactory.binding(reqVar,
+					NodeFactory.createURI(otherRequirementPurpose.toString()), satVar,
+					NodeFactory.createURI(mySatisfactionPurpose.toString()));
 
-		List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
-		data.add(theFirstBinding);
-		data.add(theSecondBinding);
+			Query q = (Query) query.clone();
+			ElementData de = ((ElementData) ((ElementGroup) q.getQueryPattern()).getLast());
 
-		QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
-		boolean execAskMy = myQe.execAsk();
-		myQe.close();
+			List<org.apache.jena.sparql.engine.binding.Binding> data = de.getRows();
+			data.add(theFirstBinding);
+			data.add(theSecondBinding);
 
-		doTheyMatch = !execAskMy;
+			QueryExecution myQe = QueryExecutionFactory.create(q, infModel);
+			boolean execAskMy = myQe.execAsk();
+			myQe.close();
+
+			doTheyMatch = !execAskMy;
+
+			if (!doTheyMatch) {
+				iter.remove();
+			}
+		}
 		LOG.trace("Communicative Act time ({}): {}ms", doTheyMatch, Duration.between(start, Instant.now()).toMillis());
-
-		return doTheyMatch;
 	}
 
 	@Override
@@ -491,13 +499,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	}
 
 	@Override
-	public void setReasonerEnabled(boolean aReasonerEnabled) {
-		this.reasonerEnabled = aReasonerEnabled;
+	public void setReasonerLevel(int aReasonerLevel) {
+		this.reasonerLevel = aReasonerLevel;
 	}
 
 	@Override
-	public boolean isReasonerEnabled() {
-		return this.reasonerEnabled;
+	public int getReasonerLevel() {
+		return this.reasonerLevel;
 	}
 
 }

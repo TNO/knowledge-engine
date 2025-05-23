@@ -19,14 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestAskAnswer4 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer4.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -40,14 +40,12 @@ public class TestAskAnswer4 {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
-		kb1.setReasonerEnabled(true);
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
-		kb1.setReasonerEnabled(true);
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> \"test\".");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c .");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -58,7 +56,7 @@ public class TestAskAnswer4 {
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
 			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("c", "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -76,6 +74,11 @@ public class TestAskAnswer4 {
 			LOG.trace("Before ask.");
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
+
+			System.out.println("Bindings: " + bindings);
+			System.out
+					.println("Bindings2: " + result.getExchangeInfoPerKnowledgeBase().iterator().next().getBindings());
+
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {
 			fail();

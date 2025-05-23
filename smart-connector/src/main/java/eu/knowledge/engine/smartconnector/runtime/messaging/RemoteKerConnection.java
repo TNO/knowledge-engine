@@ -5,7 +5,11 @@ import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -18,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +30,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
@@ -43,13 +49,6 @@ import nl.tno.tke.edc.TkeEdcInMemoryTokenManager;
  * up-to-date (both ways).
  */
 public class RemoteKerConnection {
-
-	/**
-	 * How many seconds the HttpClient waits for a HTTP response when sending a HTTP
-	 * request. Default 5 seconds.
-	 */
-	private static final String CONF_KEY_HTTP_TIMEOUT = "KE_HTTP_TIMEOUT";
-	private static final int DEFAULT_HTTP_TIMEOUT = 5;
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
@@ -166,7 +165,7 @@ public class RemoteKerConnection {
 	}
 
 	private int getHttpTimeout() {
-		return Integer.parseInt(this.getConfigProperty(CONF_KEY_HTTP_TIMEOUT, Integer.toString(DEFAULT_HTTP_TIMEOUT)));
+		return ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KE_HTTP_TIMEOUT, Integer.class);
 	}
 
 	public URI getRemoteKerUri() {
@@ -316,9 +315,7 @@ public class RemoteKerConnection {
 			try {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
-				HttpRequest request = HttpRequest
-						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/"
-								+ dispatcher.getKnowledgeDirectoryConnectionManager().getMyKnowledgeDirectoryId()))
+				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
 						.headers("Content-Type", "application/json", "Authorization", authToken).DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());

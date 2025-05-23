@@ -32,7 +32,7 @@ import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
  *
  * For this, it needs to know which knowledge interactions are offered by the
  * knowledge base that this smart connector is attached to. For this, it uses
- * {@link KnowledgeBaseStore}, and also {@link MyMetaKnowledgeBase} for the
+ * {@link KnowledgeBaseStore}, and also {@link MetaKnowledgeBase} for the
  * knowledge interactions about the metadata that all smart connectors
  * automatically offer.
  *
@@ -63,10 +63,6 @@ public interface InteractionProcessor {
 	 * @param aSelector   The {@link RecipientSelector} to limit the
 	 *                    OtherKnowledgeBases who's
 	 *                    {@link AnswerKnowledgeInteraction} will be called.
-	 * @param aBindingSet The {@link BindingSet} containing limitations on the
-	 *                    expected answers. The variable names in the bindings
-	 *                    should occur in the {@link GraphPattern} of the
-	 *                    {@link AskKnowledgeInteraction}.
 	 * @return A future to an {@link AskResult}. This means this method immediately
 	 *         returns and will continue processing the
 	 *         {@link AskKnowledgeInteraction} in the background. Once the
@@ -82,10 +78,6 @@ public interface InteractionProcessor {
 	 * @param aSelector   The {@link RecipientSelector} to limit the
 	 *                    OtherKnowledgeBases who's
 	 *                    {@link ReactKnowledgeInteraction} will be called.
-	 * @param aBindingSet The {@link BindingSet} containing limitations on the
-	 *                    expected answers. The variable names in the bindings
-	 *                    should occur in the {@link GraphPattern} of the
-	 *                    {@link PostKnowledgeInteraction}.
 	 * @return A future to an {@link AskResult}. This means this method immediately
 	 *         returns and will continue processing the
 	 *         {@link PostKnowledgeInteraction} in the background. Once the
@@ -97,10 +89,10 @@ public interface InteractionProcessor {
 	/**
 	 * Interprets the given {@link AskMessage} and returns an {@link AnswerMessage}
 	 * by delegating the {@link BindingSet} to the correct {@link AnswerHandler}, OR
-	 * to a handler in {@link MyMetaKnowledgeBase} if the incoming message asks for
+	 * to a handler in {@link MetaKnowledgeBase} if the incoming message asks for
 	 * metadata about this knowledge base.
 	 *
-	 * @param anAskMsg The {@link AskMessage} that requires an answer.
+	 * @param askMessage The {@link AskMessage} that requires an answer.
 	 * @return A future {@link AnswerMessage}.
 	 */
 	CompletableFuture<AnswerMessage> processAskFromMessageRouter(AskMessage askMessage);
@@ -111,7 +103,7 @@ public interface InteractionProcessor {
 	 * to a handler in {@link OtherKnowledgeBaseStore} if it concerns metadata about
 	 * other knowledge bases.
 	 *
-	 * @param aPostMsg The {@link PostMessage} that requires a reaction.
+	 * @param postMessage The {@link PostMessage} that requires a reaction.
 	 * @return A future {@link ReactMessage}.
 	 */
 	CompletableFuture<ReactMessage> processPostFromMessageRouter(PostMessage postMessage);
@@ -131,18 +123,18 @@ public interface InteractionProcessor {
 	void setDomainKnowledge(Set<Rule> someRules);
 
 	/**
-	 * Whether the InteractionProcessor should use reasoning to orchestrate the data
-	 * exchange, or should use a matcher instead. Enabling the reasoner increases
-	 * the flexibility of the data exchange, but decreases the performance.
+	 * Which reasoner level the InteractionProcessor should use to orchestrate the
+	 * data exchange. Different levels increases the flexibility of the data
+	 * exchange, but decreases the performance.
 	 * 
-	 * @param aReasonerEnabled {@code true} if this interaction processor should use
-	 *                         reasoning, {@code false} otherwise.
+	 * @param aReasonerLevel The reasoner level to use if no specific level is
+	 *                       configured.
 	 */
-	void setReasonerEnabled(boolean aReasonerEnabled);
+	void setReasonerLevel(int aReasonerLevel);
 
 	/**
-	 * @return {@code true} if the reasoner for this interaction processor is
-	 *         enabled, {@code false} otherwise.
+	 * @return The reasoner level that is being used by this interaction processor
+	 *         when no specific level is given by the user.
 	 */
-	boolean isReasonerEnabled();
+	int getReasonerLevel();
 }

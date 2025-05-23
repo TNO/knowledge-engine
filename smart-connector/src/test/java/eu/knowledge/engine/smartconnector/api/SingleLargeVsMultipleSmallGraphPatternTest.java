@@ -1,5 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -10,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 /**
  * What is faster:
@@ -37,13 +39,10 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 	public void testSingleLargeGP() throws InterruptedException, ExecutionException {
 
 		// creating SCs
-		MockedKnowledgeBase kb1 = new MockedKnowledgeBase("KB1");
+		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("KB1");
 		kn1.addKB(kb1);
-		kb1.setReasonerEnabled(true);
-		MockedKnowledgeBase kb2 = new MockedKnowledgeBase("KB2");
+		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("KB2");
 		kn1.addKB(kb2);
-		kb2.setReasonerEnabled(true);
-
 		// prepare large binding
 		final BindingSet bs = new BindingSet();
 		Binding b1;
@@ -89,18 +88,18 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 
 		kn1.stop().get();
 
+		assertTrue(ar.getBindings().size() > 0);
+
 	}
 
 	@Test
 	public void testMultipleSmallGPs() throws InterruptedException, ExecutionException {
 
 		// creating SCs
-		MockedKnowledgeBase kb1 = new MockedKnowledgeBase("KB1");
+		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("KB1");
 		kn2.addKB(kb1);
-		kb1.setReasonerEnabled(true);
-		MockedKnowledgeBase kb2 = new MockedKnowledgeBase("KB2");
+		KnowledgeBaseImpl kb2 = new KnowledgeBaseImpl("KB2");
 		kn2.addKB(kb2);
-		kb2.setReasonerEnabled(true);
 
 		// prepare large binding
 		final BindingSet bs1 = new BindingSet();
@@ -158,6 +157,8 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 		LOG.info("Duration: {}s", (((double) end - (double) start) / 1000000000));
 
 		LOG.info("Bindings: {}", ar.getBindings());
+
+		assertTrue(ar.getBindings().size() > 0);
 
 		kn2.stop().get();
 

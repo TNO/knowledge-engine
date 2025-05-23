@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 /**
  * This test tries to illustrate <i>forward compatibility</i>. We instantiate an
@@ -37,9 +37,9 @@ public class NotDesignedToWorkTogetherTest {
 	private static final Logger LOG = LoggerFactory.getLogger(NotDesignedToWorkTogetherTest.class);
 
 	private static KnowledgeNetwork kn = new KnowledgeNetwork();
-	private MockedKnowledgeBase appKb = new MockedKnowledgeBase("AppKB");
-	private MockedKnowledgeBase lamp1Kb = new MockedKnowledgeBase("Lamp1KB");
-	private MockedKnowledgeBase lamp2Kb = new MockedKnowledgeBase("Lamp2KB");
+	private KnowledgeBaseImpl appKb = new KnowledgeBaseImpl("AppKB");
+	private KnowledgeBaseImpl lamp1Kb = new KnowledgeBaseImpl("Lamp1KB");
+	private KnowledgeBaseImpl lamp2Kb = new KnowledgeBaseImpl("Lamp2KB");
 	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "http://example.org/")
 			.setNsPrefix("time", "https://www.w3.org/TR/owl-time/")
 			.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
@@ -48,7 +48,6 @@ public class NotDesignedToWorkTogetherTest {
 	public void test() throws InterruptedException {
 
 		kn.addKB(appKb);
-		this.appKb.setReasonerEnabled(true);
 		kn.addKB(lamp1Kb);
 		kn.addKB(lamp2Kb);
 

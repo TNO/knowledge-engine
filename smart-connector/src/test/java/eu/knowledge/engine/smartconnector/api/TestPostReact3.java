@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import org.apache.jena.shared.PrefixMapping;
@@ -16,13 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestPostReact3 {
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
-	private static MockedKnowledgeBase kb3;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact3.class);
 
@@ -35,11 +33,11 @@ public class TestPostReact3 {
 		prefixes.setNsPrefix("ex", "https://example.org/");
 
 		KnowledgeNetwork kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
-		kb3 = new MockedKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kn.addKB(kb3);
 
 		// start registering
@@ -66,8 +64,8 @@ public class TestPostReact3 {
 
 			var bs = new BindingSet();
 			b = new Binding();
-			b.put("c", "<https://example.org/example/c>");
-			b.put("d", "<https://example.org/example/d>");
+			b.put("c", "<https://example.org/example/c1>");
+			b.put("d", "<https://example.org/example/d1>");
 			bs.add(b);
 			return bs;
 		});
@@ -90,10 +88,10 @@ public class TestPostReact3 {
 
 			var bs = new BindingSet();
 			b = new Binding();
-			b.put("c", "<https://example.org/example/c>");
-			b.put("d", "<https://example.org/example/d>");
-			b.put("e", "<https://example.org/example/e>");
-			b.put("f", "<https://example.org/example/f>");
+			b.put("c", "<https://example.org/example/c2>");
+			b.put("d", "<https://example.org/example/d2>");
+			b.put("e", "<https://example.org/example/e2>");
+			b.put("f", "<https://example.org/example/f2>");
 			bs.add(b);
 			return bs;
 		});
@@ -109,18 +107,33 @@ public class TestPostReact3 {
 		bindingSet.add(binding);
 
 		try {
-			PostResult result = kb1.post(ki1, bindingSet).get();
+
+			PostPlan plan = kb1.planPost(ki1, new RecipientSelector());
+
+			plan.getReasonerPlan().getStore().printGraphVizCode(plan.getReasonerPlan());
+
+			PostResult result = plan.execute(bindingSet).get();
 
 			assertTrue(this.kb2Received, "KB2 should have received the posted data.");
-			assertFalse(this.kb3Received, "KB3 should not have received the posted data.");
+			assertTrue(this.kb3Received, "KB3 should have received the posted data.");
 			BindingSet bs = result.getBindings();
 			LOG.info("received post results: {}", bs);
-			assertTrue(bs.size() == 1);
-			bs.forEach(b -> {
-				assertEquals(new HashSet<String>(Arrays.asList("c", "d")), b.getVariables());
-			});
+			assertTrue(bs.size() == 2);
+
+			BindingSet expected = new BindingSet();
+			Binding b = new Binding();
+			b.put("c", "<https://example.org/example/c1>");
+			b.put("d", "<https://example.org/example/d1>");
+			expected.add(b);
+			b = new Binding();
+			b.put("c", "<https://example.org/example/c2>");
+			b.put("d", "<https://example.org/example/d2>");
+			expected.add(b);
+
+			assertEquals(expected, bs);
 		} catch (Exception e) {
 			LOG.error("Error", e);
+			fail();
 		}
 	}
 

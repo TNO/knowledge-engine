@@ -6,7 +6,7 @@ package eu.knowledge.engine.smartconnector.api;
  * {@code pattern}.
  *
  * In other words, the {@link KnowledgeBase} asks these kinds of questions to
- * its {@link SmartConnectorImpl}.
+ * its {@link SmartConnector}.
  */
 public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 
@@ -16,36 +16,34 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 	 */
 	private final GraphPattern pattern;
 
-	/**
-	 * Create a {@link AskKnowledgeInteraction}.
-	 *
-	 * @param act     The {@link CommunicativeAct} of this
-	 *                {@link KnowledgeInteraction}. It can be read as the 'goal' or
-	 *                'purpose' of the data exchange and whether it has side-effects
-	 *                or not.
-	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
-	 *                that this {@link KnowledgeInteraction} asks for.
-	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern) {
-		this(act, pattern, null, false, false);
+		this(act, pattern, null, false, false, false, null);
 	}
 
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
-		this(act, pattern, name, false, false);
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name,
+			boolean aKnowledgeGapsEnabled) {
+		this(act, pattern, name, false, false, aKnowledgeGapsEnabled, null);
 	}
 
-	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIsFullMatch) {
-		this(act, pattern, null, false, anIsFullMatch);
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anIncludeMetaKIs) {
+		this(act, pattern, null, false, anIncludeMetaKIs, false, null);
 	}
 
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, boolean anisMeta,
-			boolean anIsFullMatch) {
-		this(act, pattern, null, anisMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs) {
+		this(act, pattern, null, anisMeta, anIncludeMetaKIs, false, null);
 	}
 
+	/**
+	 * Create a {@link AskKnowledgeInteraction}. See
+	 * {@link KnowledgeInteraction#KnowledgeInteraction(CommunicativeAct, String, boolean, boolean, boolean, MatchStrategy)}.
+	 *
+	 * @param pattern The {@link GraphPattern} expresses the 'shape' of knowledge
+	 *                that this {@link KnowledgeInteraction} asks for.
+	 */
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name, boolean anisMeta,
-			boolean anIsFullMatch) {
-		super(act, name, anisMeta, anIsFullMatch);
+			boolean anIncludeMetaKIs, boolean aKnowledgeGapsEnabled, MatchStrategy aMatchStrategy) {
+		super(act, name, anisMeta, anIncludeMetaKIs, aKnowledgeGapsEnabled, aMatchStrategy);
 		this.pattern = pattern;
 	}
 

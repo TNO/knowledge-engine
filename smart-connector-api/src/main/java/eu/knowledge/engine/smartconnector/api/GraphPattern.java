@@ -23,9 +23,8 @@ import eu.knowledge.engine.smartconnector.util.GraphPatternSerialization;
 
 /**
  * A {@link GraphPattern} expresses a 'shape' of knowledge. We use Basic Graph
- * Pattern syntax from SPARQL 1.1
- * {@linkplain https://www.w3.org/TR/sparql11-query/} to represent this
- * knowledge.
+ * Pattern syntax from <a href="https://www.w3.org/TR/sparql11-query/">SPARQL
+ * 1.1</a> to represent this knowledge.
  *
  * It is a conjunction of triple patterns, where each triple pattern consists of
  * a {@code subject}, {@code predicate} and {@code object}. Each of these can be

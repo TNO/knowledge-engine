@@ -1,11 +1,18 @@
 package eu.knowledge.engine.reasoner.rulenode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.graph.Node;
+
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
+import eu.knowledge.engine.reasoner.api.TripleVarBinding;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 /**
@@ -96,6 +103,102 @@ public class BindingSetStore {
 	@Override
 	public String toString() {
 		return "BindingSetStore [neighborBindingSet=" + neighborBindingSet + "]";
+	}
+
+	private String getName(BaseRule r) {
+		if (r.getName().isEmpty()) {
+			return r.toString();
+		} else {
+			return r.getName();
+		}
+	}
+
+	public void printDebuggingTable() {
+		StringBuilder table = new StringBuilder();
+
+		List<RuleNode> allNeighbors = new ArrayList<>(neighbors);
+
+		// header row
+		int count = 0;
+		table.append("| Graph Pattern |");
+		count++;
+		for (RuleNode neighbor : allNeighbors) {
+
+			if (this.neighborBindingSet.containsKey(neighbor)) {
+				for (int i = 0; i < this.neighborBindingSet.get(neighbor).getBindings().size(); i++) {
+					table.append(this.getName(neighbor.getRule()) + "-" + i).append(" | ");
+					count++;
+				}
+			} else {
+				table.append(this.getName(neighbor.getRule())).append(" | ");
+				count++;
+			}
+		}
+
+		table.append("\n");
+
+		// separator row
+		table.append("|");
+		for (int i = 0; i < count; i++) {
+			table.append("-------|");
+		}
+		table.append("\n");
+
+		// content rows
+		for (TriplePattern tp : this.graphPattern) {
+			// triple pattern
+			table.append(" | ").append(tp.toString()).append(" | ");
+
+			// bindings
+			for (RuleNode neigh : allNeighbors) {
+
+				TripleVarBindingSet tvbs = this.neighborBindingSet.get(neigh);
+
+				if (tvbs != null) {
+					for (TripleVarBinding tvb : tvbs.getBindings()) {
+						Set<TripleNode> nodes = tvb.getTripleNodes(tp);
+						if (!nodes.isEmpty()) {
+
+							Node subject = null;
+							Node predicate = null;
+							Node object = null;
+
+							for (TripleNode tn : nodes) {
+								if (tn.nodeIdx == 0) {
+									subject = tvb.get(tn);
+								} else if (tn.nodeIdx == 1)
+									predicate = tvb.get(tn);
+								else if (tn.nodeIdx == 2)
+									object = tvb.get(tn);
+							}
+
+//							tp.getSubject().isVariable() ?
+
+							table.append(subject != null ? subject : formatNode(tp.getSubject())).append(" ");
+							table.append(predicate != null ? predicate : formatNode(tp.getPredicate())).append(" ");
+							table.append(object != null ? object : formatNode(tp.getObject())).append(" ");
+
+						} else {
+							table.append("");
+						}
+
+						table.append(" | ");
+					}
+				} else {
+					table.append("|");
+				}
+			}
+			table.append("\n");
+		}
+		System.out.println(table.toString());
+	}
+
+	private String formatNode(Node n) {
+
+		String before = "<span style=\"color:red\">";
+		String after = "</span>";
+
+		return n.isVariable() ? before + TriplePattern.trunc(n) + after : TriplePattern.trunc(n);
 	}
 
 }

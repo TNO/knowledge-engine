@@ -3,28 +3,23 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.sparql.core.TriplePath;
-import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.impl.GraphPatternMatcher;
+import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.Match;
+import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
+import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestGraphPatternMatch {
 
@@ -36,8 +31,7 @@ public class TestGraphPatternMatch {
 		GraphPattern gp1 = new GraphPattern("<a> <p1> <c> . <b> ?p <c> .");
 		GraphPattern gp2 = new GraphPattern("<b> ?p <c> . <a> <p1> <c> .");
 
-//		assertTrue(GraphPatternMatcher.areIsomorphic(gp1, gp2));
-		Map<Integer, Integer> isomorphism = GraphPatternMatcher.getIsomorphisms(gp1, gp2);
+		var isomorphism = getIsos(gp1, gp2);
 		LOG.info("iso: {}", isomorphism);
 		assertTrue(!isomorphism.isEmpty());
 
@@ -53,7 +47,7 @@ public class TestGraphPatternMatch {
 				new String[] { "?a ?b ?c", "?x ?y ?z" }, new String[] { "<a> ?b ?c", "<a> ?y ?z" },
 				// this is a known problem in the isomorphism testing. The ordering becomes
 				// important if the nodes are all concrete.
-				// new String[] {"<a> <p> <c> . <b> <p> <c>", "<b> <p> <c> . <a> <p> <c>"}, 
+				// new String[] {"<a> <p> <c> . <b> <p> <c>", "<b> <p> <c> . <a> <p> <c>"},
 				new String[] { "?id <type> <HVT> . ?id <hasName> ?name . ?obs <type> <Observation> .",
 						"?a <type> <Observation> . ?c <type> <HVT> . ?c <hasName> ?d ." },
 				new String[] {
@@ -96,8 +90,8 @@ public class TestGraphPatternMatch {
 			GraphPattern ks1 = new GraphPattern(pair[0]);
 			GraphPattern ks2 = new GraphPattern(pair[1]);
 
-			boolean doesMatch = GraphPatternMatcher.areIsomorphic(ks1, ks2);
-			LOG.info("SSpace graph should be equal: {}", doesMatch);
+			boolean doesMatch = !getIsos(ks1, ks2).isEmpty();
+			LOG.info("Should be equal: {}", doesMatch);
 			assertTrue(doesMatch);
 
 			LOG.info("--------------------");
@@ -144,9 +138,9 @@ public class TestGraphPatternMatch {
 			GraphPattern ks1 = new GraphPattern(pair[0]);
 			GraphPattern ks2 = new GraphPattern(pair[1]);
 
-			boolean doesMatch = GraphPatternMatcher.areIsomorphic(ks1, ks2);
+			boolean doesMatch = !this.getIsos(ks1, ks2).isEmpty();
 
-			LOG.info("SSpace graph shoud not be equal: {}", doesMatch);
+			LOG.info("Should not be equal: {}", doesMatch);
 			assertFalse(doesMatch);
 
 			LOG.info("--------------------");
@@ -154,86 +148,38 @@ public class TestGraphPatternMatch {
 	}
 
 	@Test
-	public void testMetadataBindingSetTransformation() {
-		String[] patterns = new String[] {
-				"?kb1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb1 <https://w3id.org/knowledge-engine/hasName> ?name1 . ?kb1 <https://w3id.org/knowledge-engine/hasDescription> ?description1 . ?kb1 <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki1 . ?ki1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType1 . ?ki1 <https://w3id.org/knowledge-engine/isMeta> ?isMeta1 . ?ki1 <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act1 . ?act1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act1 <https://w3id.org/knowledge-engine/hasRequirement> ?req1 . ?act1 <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat1 . ?req1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType1 . ?sat1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType1 . ?ki1 <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp1 . ?gp1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType1 . ?gp1 <https://w3id.org/knowledge-engine/hasPattern> ?pattern1 . ",
-				"?kb2 <https://w3id.org/knowledge-engine/hasName> ?name2 . ?kb2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb2 <https://w3id.org/knowledge-engine/hasDescription> ?description2 . ?kb2 <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki2 . ?ki2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType2 . ?ki2 <https://w3id.org/knowledge-engine/isMeta> ?isMeta2 . ?ki2 <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act2 . ?act2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act2 <https://w3id.org/knowledge-engine/hasRequirement> ?req2 . ?act2 <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat2 . ?req2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType2 . ?sat2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType2 . ?ki2 <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp2 . ?gp2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType2 . ?gp2 <https://w3id.org/knowledge-engine/hasPattern> ?pattern2 . " };
-
-		GraphPattern gp1 = new GraphPattern(patterns[0]);
-		GraphPattern gp2 = new GraphPattern(patterns[1]);
-
-		Model m = ModelFactory.createDefaultModel();
-
-		m.read(this.getClass().getResourceAsStream("/metadata.ttl"), null, "turtle");
-
-		// then use the Knowledge Interaction as a query to retrieve the bindings.
-		Query q = QueryFactory.create("SELECT * WHERE {" + this.convertToPattern(gp1) + "}");
-		LOG.trace("Query: {}", q);
-		QueryExecution qe = QueryExecutionFactory.create(q, m);
-		ResultSet rs = qe.execSelect();
-		BindingSet fromBindingSet = new BindingSet(rs);
-		qe.close();
-
-		for (Binding binding : fromBindingSet) {
-			assertTrue(binding.containsKey("kb1"));
-			assertTrue(binding.containsKey("name1"));
-			assertTrue(binding.containsKey("description1"));
-			assertTrue(binding.containsKey("ki1"));
-			assertTrue(binding.containsKey("kiType1"));
-			assertTrue(binding.containsKey("isMeta1"));
-			assertTrue(binding.containsKey("act1"));
-			assertTrue(binding.containsKey("req1"));
-			assertTrue(binding.containsKey("sat1"));
-			assertTrue(binding.containsKey("reqType1"));
-			assertTrue(binding.containsKey("satType1"));
-			assertTrue(binding.containsKey("gp1"));
-			assertTrue(binding.containsKey("patternType1"));
-			assertTrue(binding.containsKey("pattern1"));
-		}
-
-		BindingSet toBindingSet = GraphPatternMatcher.transformBindingSet(gp1, gp2, fromBindingSet);
-
-		for (Binding binding : toBindingSet) {
-			assertTrue(binding.containsKey("kb2"));
-			assertTrue(binding.containsKey("name2"));
-			assertTrue(binding.containsKey("description2"));
-			assertTrue(binding.containsKey("ki2"));
-			assertTrue(binding.containsKey("kiType2"));
-			assertTrue(binding.containsKey("isMeta2"));
-			assertTrue(binding.containsKey("act2"));
-			assertTrue(binding.containsKey("req2"));
-			assertTrue(binding.containsKey("sat2"));
-			assertTrue(binding.containsKey("reqType2"));
-			assertTrue(binding.containsKey("satType2"));
-			assertTrue(binding.containsKey("gp2"));
-			assertTrue(binding.containsKey("patternType2"));
-			assertTrue(binding.containsKey("pattern2"));
-		}
-
-		LOG.info("{}", fromBindingSet);
-		LOG.info("{}", toBindingSet);
-
-	}
-
-	private String convertToPattern(GraphPattern gp) {
-		Iterator<TriplePath> iter = gp.getGraphPattern().patternElts();
-
-		StringBuilder sb = new StringBuilder();
-
-		while (iter.hasNext()) {
-
-			TriplePath tp = iter.next();
-			sb.append(FmtUtils.stringForTriple(tp.asTriple(), new PrefixMappingMem()));
-			sb.append(" . ");
-		}
-
-		return sb.toString();
-	}
-	
-	@Test
-	public void testGraphPatternWithLiteral()
-	{
+	public void testGraphPatternWithLiteral() {
 		GraphPattern gp = new GraphPattern("?s <http://example.org/something> \"test\" .");
+		assertTrue(true);
+	}
+
+	private Set<Match> getIsos(GraphPattern gp1, GraphPattern gp2) {
+
+		Rule anteRule = new Rule(Util.translateGraphPatternTo(gp1),
+				(SinkBindingSetHandler) new SinkBindingSetHandler() {
+
+					@Override
+					public CompletableFuture<Void> handle(eu.knowledge.engine.reasoner.api.BindingSet aBindingSet) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				});
+
+		Rule consRule = new Rule(Util.translateGraphPatternTo(gp2), new TransformBindingSetHandler() {
+
+			@Override
+			public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
+					eu.knowledge.engine.reasoner.api.BindingSet bs) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		});
+
+//		assertTrue(GraphPatternMatcher.areIsomorphic(gp1, gp2));
+		Map<BaseRule, Set<Match>> isomorphism = BaseRule.getMatches(anteRule, Collections.singleton(consRule), true,
+				MatchStrategy.ENTRY_LEVEL.toConfig(true));
+
+		return isomorphism.containsKey(consRule) ? isomorphism.get(consRule) : new HashSet<Match>();
 	}
 
 }

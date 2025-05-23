@@ -1,5 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,29 +11,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.ReactExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.ReactHandler;
-import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class Thermostat {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Thermostat.class);
 
-	private MockedKnowledgeBase sensor;
-	private MockedKnowledgeBase thermostat;
-	private MockedKnowledgeBase heating;
+	private KnowledgeBaseImpl sensor;
+	private KnowledgeBaseImpl thermostat;
+	private KnowledgeBaseImpl heating;
 	private Room r;
 
 	ExecutorService es = Executors.newFixedThreadPool(4);
@@ -68,11 +60,11 @@ public class Thermostat {
 
 		// first add the relevant knowledge bases
 		var kn = new KnowledgeNetwork();
-		sensor = new MockedKnowledgeBase("temperatureSensor");
+		sensor = new KnowledgeBaseImpl("temperatureSensor");
 		kn.addKB(sensor);
-		thermostat = new MockedKnowledgeBase("thermostat");
+		thermostat = new KnowledgeBaseImpl("thermostat");
 		kn.addKB(thermostat);
-		heating = new MockedKnowledgeBase("heatingSource");
+		heating = new KnowledgeBaseImpl("heatingSource");
 		kn.addKB(heating);
 
 		// then register the relevant knowledge interactions
@@ -172,6 +164,7 @@ public class Thermostat {
 					}
 				} catch (InterruptedException e) {
 					LOG.debug("", e);
+					fail();
 				}
 			}
 

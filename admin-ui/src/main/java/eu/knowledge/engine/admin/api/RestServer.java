@@ -1,8 +1,5 @@
 package eu.knowledge.engine.admin.api;
 
-import eu.knowledge.engine.admin.AdminUI;
-import eu.knowledge.engine.rest.api.CORSFilter;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -11,6 +8,9 @@ import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.rest.api.CORSFilter;
 
 public class RestServer {
 
@@ -45,7 +45,7 @@ public class RestServer {
 		ServletContainer scRuntime = new ServletContainer(rcRuntime);
 		ServletHolder jerseyRuntimeServlet = new ServletHolder(scRuntime);
 		ctx.addServlet(jerseyRuntimeServlet, "/runtime/*");
-		
+
 		ResourceConfig rcAdmin = new ResourceConfig();
 		rcAdmin.property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 		rcAdmin.property(ServerProperties.WADL_FEATURE_DISABLE, true);

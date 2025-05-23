@@ -1,19 +1,9 @@
 package eu.knowledge.engine.admin.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import eu.knowledge.engine.admin.AdminUI;
-import eu.knowledge.engine.smartconnector.api.*;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
-
-import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,15 +19,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.graph.PrefixMappingMem;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import eu.knowledge.engine.admin.AdminUI;
+import eu.knowledge.engine.smartconnector.api.AnswerHandler;
+import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.Binding;
+import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
+import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestApiRoutes {
 	private Thread thread;
 	private static final Logger LOG = LoggerFactory.getLogger(TestApiRoutes.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
 
 	private static AdminUI admin;
 	private HttpClient httpClient;
@@ -186,6 +196,44 @@ public class TestApiRoutes {
 		stopKbs();
 	}
 
+	@Test
+	public void testSmartConnectorUpdate() throws InterruptedException {
+		startKbs();
+
+		try {
+			URI uri = new URI("http://localhost:8283/admin/sc/all/false");
+			HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			eu.knowledge.engine.admin.model.SmartConnector[] result = objectMapper.readValue(response.body(),
+					eu.knowledge.engine.admin.model.SmartConnector[].class);
+			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertNotNull(list);
+			assertEquals(2, list.size());
+			assertEquals(1, list.get(0).getKnowledgeInteractions().size());
+			assertEquals(200, response.statusCode());
+
+			// now stop one KB and check if the admin UI correctly updates.
+			stopKb(kb1);
+			Thread.sleep(1000);
+
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			result = objectMapper.readValue(response.body(), eu.knowledge.engine.admin.model.SmartConnector[].class);
+			list = new ArrayList<>();
+			Collections.addAll(list, result);
+			assertEquals(1, list.size());
+			assertEquals(200, response.statusCode());
+
+		} catch (IOException | InterruptedException | URISyntaxException e) {
+			LOG.warn("Was not able to retrieve smart connectors", e);
+			fail();
+		}
+		stopKb(kb2);
+	}
+
 	@AfterAll
 	public void cleanup() {
 		LOG.info("Clean up: {}", TestApiRoutes.class.getSimpleName());
@@ -204,7 +252,7 @@ public class TestApiRoutes {
 		int wait = 2;
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
 
-		kb1 = new MockedKnowledgeBase("kb1") {
+		kb1 = new KnowledgeBaseImpl("kb1") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -231,7 +279,7 @@ public class TestApiRoutes {
 		// todo: ask/poll if ready instead of waiting
 		Thread.sleep(5000);
 		kb2 = null;
-		kb2 = new MockedKnowledgeBase("kb2") {
+		kb2 = new KnowledgeBaseImpl("kb2") {
 			@Override
 			public void smartConnectorReady(SmartConnector aSC) {
 				LOG.info("smartConnector of {} ready.", this.name);
@@ -252,12 +300,13 @@ public class TestApiRoutes {
 	}
 
 	public void stopKbs() {
-		if (kb1 != null) {
-			kb1.stop();
-		}
+		stopKb(kb1);
+		stopKb(kb2);
+	}
 
-		if (kb2 != null) {
-			kb2.stop();
+	public void stopKb(KnowledgeBaseImpl aKb) {
+		if (aKb != null) {
+			aKb.stop();
 		}
 	}
 }

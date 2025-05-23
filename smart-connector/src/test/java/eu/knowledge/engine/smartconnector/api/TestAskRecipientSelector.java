@@ -22,27 +22,17 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.api.AnswerHandler;
-import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
-import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.RecipientSelector;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
-import eu.knowledge.engine.smartconnector.util.MockedKnowledgeBase;
 
 public class TestAskRecipientSelector {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskRecipientSelector.class);
 
-	private static MockedKnowledgeBase kb1;
-	private static MockedKnowledgeBase kb2;
-	private static MockedKnowledgeBase kb3;
-	private static MockedKnowledgeBase kb4;
+	private static KnowledgeBaseImpl kb1;
+	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeBaseImpl kb3;
+	private static KnowledgeBaseImpl kb4;
 
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
@@ -56,13 +46,13 @@ public class TestAskRecipientSelector {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
 		var kn = new KnowledgeNetwork();
-		kb1 = new MockedKnowledgeBase("kb1");
+		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
-		kb2 = new MockedKnowledgeBase("kb2");
+		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
-		kb3 = new MockedKnowledgeBase("kb3");
+		kb3 = new KnowledgeBaseImpl("kb3");
 		kn.addKB(kb3);
-		kb4 = new MockedKnowledgeBase("kb4");
+		kb4 = new KnowledgeBaseImpl("kb4");
 		kn.addKB(kb4);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");

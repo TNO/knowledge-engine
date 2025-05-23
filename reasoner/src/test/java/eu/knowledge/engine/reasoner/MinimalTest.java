@@ -59,7 +59,7 @@ public class MinimalTest {
 
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(this.store, startRule);
-		System.out.println(root);
+		this.store.printGraphVizCode(root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
