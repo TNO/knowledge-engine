@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
@@ -16,6 +17,8 @@ import eu.knowledge.engine.reasoner.Match;
 
 public class TripleVarBindingSet {
 
+	private static final int PROGRESS_MILESTONE_SIZE = 1000;
+	private static final int LARGE_BS_SIZE = 30000;
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
@@ -156,7 +159,17 @@ public class TripleVarBindingSet {
 	 * @return
 	 */
 	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
+
+		LOG.trace("Merging {} bindings with our {} bindings.", aGraphBindingSet.getBindings().size(),
+				this.getBindings().size());
+
 		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
+
+		final int otherBindingSetSize = aGraphBindingSet.getBindings().size();
+		final long totalCount = (long) otherBindingSetSize * (long) this.getBindings().size();
+		if (totalCount > LARGE_BS_SIZE)
+			LOG.warn("Merging 2 large BindingSets ({} * {} = {}). This can take some time.",
+					aGraphBindingSet.getBindings().size(), this.getBindings().size(), totalCount);
 
 		if (this.bindings.isEmpty()) {
 			for (TripleVarBinding tvb2 : aGraphBindingSet.getBindings()) {
@@ -166,16 +179,29 @@ public class TripleVarBindingSet {
 			// Cartesian product is the base case
 			gbs.addAll(aGraphBindingSet.getBindings());
 			gbs.addAll(this.bindings);
-			this.bindings.stream().parallel().forEach(tvb1 -> {
+			AtomicLong progress = new AtomicLong(0);
 
+			final int milestoneSize = PROGRESS_MILESTONE_SIZE;
+			AtomicLong nextMilestone = new AtomicLong(milestoneSize);
+
+			this.bindings.stream().parallel().forEach(tvb1 -> {
 				for (TripleVarBinding otherB : aGraphBindingSet.getBindings()) {
 					// always add a merged version of the two bindings, except when they conflict.
 					if (!tvb1.isConflicting(otherB)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}
+				final long current = progress.incrementAndGet();
+
+				if (totalCount > LARGE_BS_SIZE && current == nextMilestone.get()) {
+					LOG.trace("{}/{} BindingSet merge tasks done!", current * otherBindingSetSize, totalCount);
+					nextMilestone.set(current + milestoneSize);
+				}
 			});
 		}
+
+		if (totalCount > LARGE_BS_SIZE)
+			LOG.debug("Merging large BindingSets done!");
 
 		return gbs;
 	}
@@ -252,6 +278,8 @@ public class TripleVarBindingSet {
 			}
 		}
 
+		LOG.trace("Translated binding set with '{}' bindings and '{}' matches in '{}ms'.", this.bindings.size(),
+				match.size(), System.currentTimeMillis() - start);
 		return newOne;
 
 	}

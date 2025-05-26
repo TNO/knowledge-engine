@@ -319,7 +319,7 @@ public class RemoteKerConnection {
 						.headers("Content-Type", "application/json", "Authorization", authToken).DELETE().build();
 
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				if (response.statusCode() == 200) {
+				if (response.statusCode() == 204) {
 					LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
 				} else {
 					this.remoteKerDetails = null;

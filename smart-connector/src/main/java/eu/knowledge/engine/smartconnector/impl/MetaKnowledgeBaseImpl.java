@@ -95,8 +95,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				(anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(anAnswerExchangeInfo.getIncomingBindings()),
 				true);
 
-		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true, false,
-				MatchStrategy.ENTRY_LEVEL);
+		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true,
+				false, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore.register(this.metaAskKI, true);
 
 		this.metaPostNewKI = new PostKnowledgeInteraction(
@@ -410,8 +410,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			var kiMeta = model.listObjectsOfProperty(ki, Vocab.IS_META).next();
 
 			boolean isMeta = kiMeta.asLiteral().getBoolean();
-			assert isMeta == kiMeta.toString().contains("true")
-					: "If the text contains 'true' (=" + kiMeta + ") then the boolean should be true.";
+			assert isMeta == kiMeta.toString().contains("true") : "If the text contains 'true' (=" + kiMeta
+					+ ") then the boolean should be true.";
 
 			this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
 

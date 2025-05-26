@@ -11,7 +11,7 @@
 	</parent>
 
 	<properties>
-		<swagger-core-version>2.2.28</swagger-core-version>
+		<swagger-core-version>2.2.32</swagger-core-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -100,7 +100,7 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
-			<artifactId>smart-connector-api</artifactId>
+			<artifactId>smart-connector</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -134,7 +134,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>7.11.0</version>
+				<version>7.13.0</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>

@@ -9,6 +9,11 @@ The documentation can be found in the `docs/` directory.
 Required:
 - [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
   - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+ 
+If you want to use the commands below and this is your first time running/generating the website locally, you'll need to run the following command to install the dependencies:
+```bash
+npm install
+```
 
 ### Generate website files
 To statically generate the website, within this directory (`knowledge-engine/docs/`), run:

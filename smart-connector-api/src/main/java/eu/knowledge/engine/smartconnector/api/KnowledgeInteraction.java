@@ -2,10 +2,9 @@ package eu.knowledge.engine.smartconnector.api;
 
 /**
  * A {@link KnowledgeInteraction} represents an agreement about the exchange of
- * knowledge between the {@link SmartConnector} and the
- * {@link KnowledgeBase}. It expresses the 'shape' of knowledge that a
- * {@link KnowledgeBase} asks from, or can provide to its
- * {@link SmartConnector}.
+ * knowledge between the {@link SmartConnector} and the {@link KnowledgeBase}.
+ * It expresses the 'shape' of knowledge that a {@link KnowledgeBase} asks from,
+ * or can provide to its {@link SmartConnector}.
  */
 public abstract class KnowledgeInteraction {
 
@@ -131,7 +130,8 @@ public abstract class KnowledgeInteraction {
 	private void validateName(String name) {
 		if (name != null && !name.matches("[a-zA-Z0-9-]*")) {
 			throw new IllegalArgumentException(
-					"Knowledge Interaction names can only contain alphanumeric characters and hyphens.");
+					"Knowledge Interaction names should only contain alphanumeric characters and hyphens and not '"
+							+ name + "'");
 		}
 	}
 }

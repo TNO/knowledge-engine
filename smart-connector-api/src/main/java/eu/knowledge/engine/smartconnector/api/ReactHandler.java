@@ -2,10 +2,13 @@ package eu.knowledge.engine.smartconnector.api;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A {@link ReactHandler} provides a handler method
- * ({@link ReactHandler#react(ReactKnowledgeInteraction, ReactExchangeInfo)}) that
- * returns a {@link BindingSet} for the provided input. Unlike in the
+ * ({@link ReactHandler#react(ReactKnowledgeInteraction, ReactExchangeInfo)})
+ * that returns a {@link BindingSet} for the provided input. Unlike in the
  * {@link AnswerHandler}, which only has a single {@link GraphPattern}, the
  * {@link GraphPattern} of the result *can* be different from the argument's.
  */
@@ -36,7 +39,10 @@ public interface ReactHandler {
 			BindingSet bs = this.react(anRKI, aReactExchangeInfo);
 			future.complete(bs);
 		} catch (Exception e) {
+			LoggerFactory.getLogger(ReactHandler.class)
+					.error("Reacting should not result in the following exception.", e);
 			future.completeExceptionally(e);
+
 		}
 		return future;
 	}

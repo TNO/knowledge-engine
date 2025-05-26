@@ -1,12 +1,12 @@
 services:
   knowledge-engine:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.1
   kb1:
     build: ../common/asking_kb
     environment:
       KE_URL: http://knowledge-engine:8280/rest
       KB_ID: http://example.org/kb1
-      ENABLE_REASONER: true
+      KE_REASONER_LEVEL: 2
       PREFIXES: |
         {
           "ex": "http://example.org/",
@@ -54,7 +54,8 @@ services:
         def react(bindings):
           result = []
           for binding in bindings:
-            fahrenheit = float(binding["fahrenheit"])
+            index = binding["fahrenheit"].rfind("\"")
+            fahrenheit = float(binding["fahrenheit"][1:index])
             celsius = (fahrenheit - 32) / 1.8
             result.append({"m": binding["m"], "celsius": str(celsius)})
           return result

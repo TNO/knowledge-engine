@@ -32,6 +32,19 @@ public class KeRuntime {
 
 	static {
 
+		// although no guarantees can be made, let's try and shutdown gracefully and let
+		// others know.
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			LOG.warn("Graceful shutdown requested.");
+
+			// Perform cleanup tasks here
+			try {
+				getMessageDispatcher().stop();
+			} catch (Exception e) {
+				LOG.error("No error should occur when stopping the message dispatcher.", e);
+			}
+		}));
+
 		Config config = ConfigProvider.getConfig();
 		ConfigValue exposedUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
 		ConfigValue hostname = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);

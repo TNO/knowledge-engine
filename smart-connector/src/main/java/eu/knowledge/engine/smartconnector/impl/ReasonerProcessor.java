@@ -292,9 +292,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			LOG.debug("All post tasks finished.");
 			if (isComplete) {
 				eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
-				if (aBindingSetHandler != null) {
+				if (aBindingSetHandler != null && aBindingSetHandler.getBindingSet() != null) {
 					resultBS = aBindingSetHandler.getBindingSet();
 				}
+				
 				this.finalBindingSetFuture.complete(resultBS);
 			} else {
 				continueReasoningForward(incomingBS, aBindingSetHandler);
@@ -365,7 +366,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			future.handle((r, e) -> {
 
 				if (e != null) {
-					LOG.error("An exception has occured while capturing binging set", e);
+					LOG.error("An exception has occured while capturing binding set", e);
 					return null;
 				} else {
 					return r;
@@ -491,7 +492,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
 
 		} else if (incomingMessage instanceof PostMessage) {
-			outgoingMessage = (S) new AnswerMessage(incomingMessage.getToKnowledgeBase(),
+			outgoingMessage = (S) new ReactMessage(incomingMessage.getToKnowledgeBase(),
 					incomingMessage.getToKnowledgeInteraction(), incomingMessage.getFromKnowledgeBase(),
 					incomingMessage.getFromKnowledgeInteraction(), incomingMessage.getMessageId(), failedMessage);
 		}
@@ -604,12 +605,20 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
 				bsFuture = sendPostMessage.exceptionally((Throwable t) -> {
-					LOG.error("A problem occurred while handling a bindingset.", t);
-					return null; // TODO when some error happens, what do we return?
+					String failedMessage = MessageFormatter
+							.basicArrayFormat("Error '{}' occurred while waiting for response to message: {}",
+									new String[] {
+											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
+											postMessage.getMessageId().toString() });
+					LOG.warn(failedMessage);
+					LOG.debug("", t);
+					return ReasonerProcessor.this
+							.<PostMessage, ReactMessage>createFailedResponseMessageFromRequestMessage(postMessage,
+									failedMessage);
 				}).thenApply((reactMessage) -> {
-
-					ReasonerProcessor.this.postExchangeInfos
-							.add(convertMessageToExchangeInfo(newBS, new BindingSet(), reactMessage, aPreviousSend));
+					assert reactMessage != null;
+					ReasonerProcessor.this.postExchangeInfos.add(
+							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
 
 					return (Void) null;
 				});

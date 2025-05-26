@@ -2,7 +2,7 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.3.0
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.3.1
     ports:
      - "8282:8282"
 
@@ -21,7 +21,6 @@ services:
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
-      ENABLE_REASONER: false
       JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1 -agentlib:jdwp=transport=dt_socket,address=0.0.0.0:8000,server=y,suspend=n"
   runtime-2:
     build: .
@@ -31,7 +30,6 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
-      ENABLE_REASONER: false
       JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -43,7 +41,6 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
       KD_URL: http://knowledge-directory:8282
-      ENABLE_REASONER: false
       JAVA_TOOL_OPTIONS: "-Djdk.httpclient.keepalive.timeout=1"
     extra_hosts:
       - "host.docker.internal:host-gateway"     

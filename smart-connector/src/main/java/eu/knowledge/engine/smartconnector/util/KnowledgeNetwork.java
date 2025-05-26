@@ -19,6 +19,7 @@ import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.MatchStrategy;
 import eu.knowledge.engine.smartconnector.api.Vocab;
+import eu.knowledge.engine.smartconnector.impl.SmartConnectorImpl;
 
 public class KnowledgeNetwork {
 
@@ -77,7 +78,7 @@ public class KnowledgeNetwork {
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
 		GraphPattern gp = new GraphPattern(this.prefixMapping,
-		// @formatter:off
+				// @formatter:off
 				"?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
 				"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
 				"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
@@ -155,5 +156,18 @@ public class KnowledgeNetwork {
 		});
 		this.knowledgeBases.clear();
 		return CompletableFuture.allOf(kbStoppedFutures.toArray(new CompletableFuture<?>[kbStoppedFutures.size()]));
+	}
+
+	/**
+	 * Removes the given KB from this network object, but does not stop it.
+	 * 
+	 * It can be stopped manually using the {@link SmartConnectorImpl#stop()}
+	 * method.
+	 * 
+	 * @param aKb An existing knowledge base that should be removed.
+	 */
+	public void removeKB(KnowledgeBaseImpl aKb) {
+		this.knowledgeInteractionMetadata.remove(aKb);
+		this.knowledgeBases.remove(aKb);
 	}
 }

@@ -75,7 +75,7 @@ The easiest way to start a Knowledge Engine runtime is with Docker:
 ```bash
 docker run \
 	-p 8280:8280 \
-	ghcr.io/tno/knowledge-engine/smart-connector:1.3.0
+	ghcr.io/tno/knowledge-engine/smart-connector:1.3.1
 ```
 
 The Knowledge Engine runtime is now available to use via the REST API at base URL `http://localhost:8280/rest` on your host machine.
@@ -97,7 +97,7 @@ docker run \
   -p 8081:8081 \
   -e KD_URL=https://knowledge-directory.example.org \
   -e KE_RUNTIME_EXPOSED_URL=https://your-domain.example.org:8081 \
-  ghcr.io/tno/knowledge-engine/smart-connector:1.3.0
+  ghcr.io/tno/knowledge-engine/smart-connector:1.3.1
 ```
 
 ### Running with Java
@@ -115,7 +115,7 @@ export KE_RUNTIME_EXPOSED_URL=https://your-domain.example.org:8081
 # Start it. The argument (8280) denotes the port number at which it
 # will listen for connections to the Knowledge Engine REST API.
 java -jar -Dorg.slf4j.simpleLogger.logFile=smart-connector.log \
-  smart-connector-rest-dist-1.3.0-with-dependencies.jar 8280
+  smart-connector-rest-dist-1.3.1-with-dependencies.jar 8280
 ```
 
 The JAR can be retrieved by compiling the project:
@@ -221,7 +221,7 @@ These are instructions on what to do when we release a new version of the knowle
 The code conventions of the knowledge-engine can be found in the `/ide` folder in the Eclipse IDE format. The format can often also be imported in other Java IDEs like IntelliJ, VSCode or Netbeans.
 
 ## (advanced) Administering a Knowledge Engine runtime
-To start a new instance of the REST API knowledge engine version 1.3.0, make sure you have `git checkout 1.3.0` the tag `1.3.0`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
+To start a new instance of the REST API knowledge engine version 1.3.1, make sure you have `git checkout 1.3.1` the tag `1.3.1`. Now make sure you run the `mvn clean install` command successfully from the root of the repository.
 
 ### Starting the Knowledge Engine in local mode
 When no additional configuration parameters are provided, the Knowledge Engine will by default run in local mode. This means you can create multiple smart connectors that can communicate with each other through the REST API, but the Knowledge Engine will not connect to a knowledge directory and will not be able to connect with smart connectors running in other runtimes.
@@ -235,13 +235,13 @@ cd smart-connector-rest-dist/target
 Finally, start the server (note that you can configure a log file by including the `-Dorg.slf4j.simpleLogger.logFile=ke.log` system property to the JVM):
 
 ```bash
-java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.3.0.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
+java -Dorg.slf4j.simpleLogger.logFile=ke.log -cp "smart-connector-rest-dist-1.3.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280
 ```
 
 If you want to run in it in the background, you can use the `nohup` linux command (which does not use the simpleLogger configuration system property, but redirects the standard err/out):
 
 ```bash
-nohup java -cp "smart-connector-rest-dist-1.3.0.jar:dependency/*" eu.knowledge.engine.rest.Main 8280 > ke.log
+nohup java -cp "smart-connector-rest-dist-1.3.1.jar:dependency/*" eu.knowledge.engine.rest.Main 8280 > ke.log
 ```
 
 ### Starting the Knowledge Engine in distributed mode
@@ -250,7 +250,7 @@ The Knowledge Engine can also start in distributed mode, where it connects with 
 ### Configuration
 TNO Knowledge Engine uses the [MicroProfile Config 3.1](https://microprofile.io/specifications/config/) specification to configure its behaviour and we use [SmallRye](https://smallrye.io/smallrye-config/) as the implementation of this specification. The default configuration values can be found in the [microprofile-config.properties](./smart-connector/src/main/resources/META-INF/microprofile-config.properties) configuration file. And, as described in the specification, these configuration values can be overridden by [environment variables and system properties](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources). Note that environment variables can use underscores and capital letters to adhere to their naming conventions and the MicroProfile Config automatically maps those to corresponding configuration properties using [specific rules](https://download.eclipse.org/microprofile/microprofile-config-3.1/microprofile-config-spec-3.1.html#default_configsources.env.mapping).
 
-A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector/src/main/java/eu/knowledge/engine/smartconnector/impl/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
+A description of all configuration properties can be found in the [`SmartConnectorConfig`](./smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java) class. The rest of this section highlights some of these configuration properties.
 
 *Increasing the wait time for other KBs to respond*
 
@@ -263,3 +263,7 @@ By default, a KER waits `5` seconds max for a HTTP connection response from anot
 *Configure the reasoner level*
 
 By default, the reasoner level is set to `2`, but can be overridden as described above. The reasoner level (1-5) determines how advanced the reasoner mechanism will be. Every Smart Connector within the Knowledge Engine Runtime will use the configured reasoning level unless specified otherwise. The level can be configured via the `ke.reasoner.level` property.
+
+*Configure default domain knowledge*
+
+By default, the smart connectors created within a KE Runtime do not load any domain knowledge (i.e. rules and ontology facts) that are used during reasoning. Using the `ke.domain.knowledge.path` configuration property sets the (absolute) path to additional domain knowledge that will be loaded by default for every smart connector being started in this runtime. The syntax for this domain knowledge is defined by the [Apache Jena Rules specification](https://jena.apache.org/documentation/inference/index.html#RULEsyntax). Example domain knowledge about [RDFS](https://www.w3.org/TR/rdf-schema/) can be found in [rdfs.rules](reasoner/src/test/resources/rdfs.rules).
