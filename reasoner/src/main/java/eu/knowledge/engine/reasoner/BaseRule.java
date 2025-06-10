@@ -597,7 +597,7 @@ public class BaseRule {
 			CombiMatch newCombiMatch = new CombiMatch(aBiggestCombiMatch);
 			Set<Match> newBiggestMatch = new HashSet<>(biggestMatch);
 
-			// we merge it with one of the avaialble matches (does that work?)
+			// we merge it with one of the available matches (does that work?)
 			for (Match m : biggestMatch) {
 				newMatch = m.merge(candidateMatch);
 				if (newMatch != null) {
@@ -635,7 +635,7 @@ public class BaseRule {
 		for (Match biggestMatch : biggestMatches) {
 			var biggestMatchMP = biggestMatch.getMatchingPatterns();
 			for (Map.Entry<TriplePattern, TriplePattern> entry : biggestMatchMP.entrySet()) {
-				if (entry.getValue().equals(candidateMatchMP.getValue())) {
+				if (!entry.getValue().equals(candidateMatchMP.getValue())) {
 					return true;
 				}
 			}
