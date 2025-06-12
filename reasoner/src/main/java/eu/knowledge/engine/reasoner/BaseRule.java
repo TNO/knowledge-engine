@@ -670,7 +670,7 @@ public class BaseRule {
 	 * matched to the same triple pattern. This is the case in transitivity
 	 * scenario's and we there support multiple match objects.
 	 */
-	private static class CombiMatch extends HashMap<BaseRule, Set<Match>> {
+	public static class CombiMatch extends HashMap<BaseRule, Set<Match>> {
 		private static final long serialVersionUID = 1L;
 
 		public CombiMatch() {

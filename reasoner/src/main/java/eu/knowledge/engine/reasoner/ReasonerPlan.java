@@ -6,12 +6,14 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -169,6 +171,59 @@ public class ReasonerPlan {
 
 		this.done = !taskBoard.hasTasks();
 		return taskBoard;
+	}
+
+	/**
+	 * Translates the given TripleVarBindingSets from neighbors to a single
+	 * TripleVarBindingSet using the given combi matches. Because the combi matches
+	 * are very specific to how they should be formed, using this information should
+	 * speed up the binding set merging process considerably. In the previous (old)
+	 * version, the binding sets were all being merge in every possible way to make
+	 * sure all possible bindings were present (also for cases like transitivity).
+	 * But by using the combi matches this should not be necessary anymore!
+	 * 
+	 * @param aGraphPattern    The graph pattern of the binding set that is created.
+	 * @param someCombiMatches The CombiMatches of the node.
+	 * @param someNeighborBS   The binding sets from all neighbors of a node.
+	 * @return A TripleVarBindingSet that consists of only valid (according to the
+	 *         combimatches) bindings.
+	 */
+	public static TripleVarBindingSet translateWithCombiMatches(Set<TriplePattern> aGraphPattern,
+			Set<CombiMatch> someCombiMatches, Map<BaseRule, TripleVarBindingSet> someNeighborBS) {
+		var combinedTVBS = new TripleVarBindingSet(aGraphPattern);
+
+		for (CombiMatch cMatch : someCombiMatches) {
+			// keep separate binding set per combi match
+			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
+			for (Entry<BaseRule, TripleVarBindingSet> neighborEntry : someNeighborBS.entrySet()) {
+
+				BaseRule neighborRule = neighborEntry.getKey();
+				TripleVarBindingSet neighborBS = neighborEntry.getValue();
+
+				Set<Match> neighborMatches = cMatch.get(neighborRule);
+
+				// take into account that very rarely multiple matches occur (i.e. in case of
+				// transitivity)
+				var neighborTVBS = new TripleVarBindingSet(aGraphPattern);
+				for (Match match : neighborMatches) {
+					// translate neighbor BS using match
+					// TODO change translate() method (if possible) to only take a single Match
+					// object.
+					var translated = neighborBS.translate(aGraphPattern, Set.of(match));
+					neighborTVBS = neighborTVBS.merge2(translated);
+				}
+
+				// merge with combined BS
+				cMatchTVBS.merge2(neighborTVBS);
+			}
+
+			// addAll instead of merge, because different combi matches do not need to be
+			// combined.
+			combinedTVBS.addAll(cMatchTVBS.getBindings());
+		}
+
+		return combinedTVBS;
+
 	}
 
 	public boolean isDone() {
