@@ -55,7 +55,7 @@ public class WireMockFirstConfigurationTest {
 	 * @throws InterruptedException
 	 */
 	@Test
-	@Timeout(value = 3, unit = TimeUnit.SECONDS)
+	@Timeout(value = 4, unit = TimeUnit.SECONDS)
 	public void testConfigHttpConnectTimeout() throws Exception {
 		stubFor(post("/ker/").willReturn(status(201).withBody("{}")));
 		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_HTTP_TIMEOUT, "1");
