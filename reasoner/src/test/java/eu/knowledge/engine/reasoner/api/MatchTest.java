@@ -486,7 +486,7 @@ public class MatchTest {
 
 		var tvbs = new TripleVarBindingSet(obj, bs);
 
-		var nBs = tvbs.translate(rhs, findMatchesWithConsequent);
+		var nBs = tvbs.translate(rhs, findMatchesWithConsequent).values().iterator().next();
 
 		System.out.println(nBs);
 		assertTrue(nBs.isEmpty());
@@ -715,7 +715,8 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, EnumSet.noneOf(MatchFlag.class));
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());
