@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
@@ -34,6 +36,21 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	 */
 	private Map<RuleNode, Set<Match>> antecedentNeighbours = new HashMap<>();
 
+	private Set<CombiMatch> antecedentCombiMatches;
+
+	@Override
+	public void setAntecedentCombiMatches(Set<CombiMatch> someCombiMatches) {
+		this.antecedentCombiMatches = someCombiMatches;
+
+		// also set the combi matches to the rule store.
+		this.resultBindingSetInput.setCombiMatches(this.antecedentCombiMatches);
+	}
+
+	@Override
+	public Set<CombiMatch> getAntecedentCombiMatches() {
+		return this.antecedentCombiMatches;
+	}
+
 	@Override
 	public void addAntecedentNeighbour(RuleNode neighbour, Set<Match> matches) {
 		this.antecedentNeighbours.put(neighbour, matches);
@@ -50,11 +67,14 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	}
 
 	@Override
-	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet aBindingSet) {
+	public boolean addResultBindingSetInput(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
 		assert (antecedentNeighbours.keySet().contains(aNeighbor));
-		TripleVarBindingSet filteredBS = aBindingSet;
+		Map<Match, TripleVarBindingSet> filteredBS = someBindingSets;
 		if (this.filterBindingSetOutput != null && !this.hasProactiveParent(aNeighbor)) {
-			filteredBS = aBindingSet.keepCompatible(this.filterBindingSetOutput);
+
+			for (Map.Entry<Match, TripleVarBindingSet> matchBS : filteredBS.entrySet()) {
+				filteredBS.put(matchBS.getKey(), matchBS.getValue().keepCompatible(this.filterBindingSetOutput));
+			}
 		}
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);

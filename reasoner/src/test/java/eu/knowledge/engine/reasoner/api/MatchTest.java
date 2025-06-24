@@ -165,7 +165,8 @@ public class MatchTest {
 
 		BaseRule r = new ProactiveRule(obj, new HashSet<>());
 
-		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
 		for (Match m : findMatchesWithConsequent) {
@@ -340,7 +341,8 @@ public class MatchTest {
 		});
 
 		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(
-				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)),
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
 		System.out.println("Size: " + findMatchesWithAntecedent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -491,7 +493,7 @@ public class MatchTest {
 	}
 
 	@Test
-	public void testOtherBurgTranslate() {
+	public void testOtherBugTranslate() {
 		TriplePattern t1 = new TriplePattern("?p <type> ?t");
 		TriplePattern t2 = new TriplePattern("?p <hasValInC> ?q");
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
@@ -544,8 +546,9 @@ public class MatchTest {
 
 		var match = new Match(t1, t2, map);
 
-		TripleVarBindingSet tvbs2 = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
-				new HashSet<>(Arrays.asList(match)));
+		TripleVarBindingSet tvbs2 = tvbs1
+				.translate(new HashSet<>(Arrays.asList(t2)), new HashSet<>(Arrays.asList(match))).values().iterator()
+				.next();
 
 		System.out.println("BindingSet: " + tvbs2);
 
@@ -594,7 +597,8 @@ public class MatchTest {
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
 		System.out.println("Size: " + findMatchesWithAntecedent.size());
 

@@ -183,7 +183,9 @@ public class BaseRule {
 					return null;
 				}
 			});
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchConfig);
+			Set<CombiMatch> combiMatches = getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchConfig);
+
+			Map<BaseRule, Set<Match>> matches = convertToMap(combiMatches);
 
 			if (matches.containsKey(r))
 				return matches.get(r);
@@ -194,7 +196,8 @@ public class BaseRule {
 	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, EnumSet<MatchFlag> aMatchConfig) {
 		if (!this.antecedent.isEmpty()) {
 			Rule r = new Rule(new HashSet<>(), aConsequent);
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchConfig);
+			Set<CombiMatch> combiMatches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchConfig);
+			Map<BaseRule, Set<Match>> matches = convertToMap(combiMatches);
 			if (matches.containsKey(r))
 				return matches.get(r);
 		}
@@ -388,7 +391,7 @@ public class BaseRule {
 	 *                           the target rule
 	 * @return A set of matches that all contribute to some full matche.
 	 */
-	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
+	public static Set<CombiMatch> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
 			boolean antecedentOfTarget, EnumSet<MatchFlag> config) {
 
 		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
@@ -409,7 +412,7 @@ public class BaseRule {
 		// a full match.
 		if (targetGP.isEmpty() || (config.contains(MatchFlag.FULLY_COVERED)
 				&& combiMatchesPerTriple.keySet().size() < targetGP.size()))
-			return new HashMap<>();
+			return new HashSet<>();
 
 		printCombiMatchesPerTriple(aTargetRule, combiMatchesPerTriple);
 
@@ -526,7 +529,7 @@ public class BaseRule {
 
 //		printAllMatches(allMatches);
 
-		return convertToMap(allMatches);
+		return new HashSet<CombiMatch>(allMatches);
 	}
 
 	private static void printAllMatches(List<CombiMatch> allMatches) {
@@ -644,7 +647,7 @@ public class BaseRule {
 		return false;
 	}
 
-	private static Map<BaseRule, Set<Match>> convertToMap(List<CombiMatch> combiMatches) {
+	private static Map<BaseRule, Set<Match>> convertToMap(Set<CombiMatch> combiMatches) {
 		Map<BaseRule, Set<Match>> matchesPerRule = new HashMap<>();
 		for (CombiMatch combiMatch : combiMatches) {
 			for (Map.Entry<BaseRule, Set<Match>> ruleMatch : combiMatch.entrySet()) {
@@ -675,6 +678,10 @@ public class BaseRule {
 
 		public CombiMatch() {
 			super();
+		}
+
+		public CombiMatch(Map<BaseRule, Set<Match>> someRules) {
+			super(someRules);
 		}
 
 		/**
