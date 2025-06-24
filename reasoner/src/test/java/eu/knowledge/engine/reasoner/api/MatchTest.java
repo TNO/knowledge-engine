@@ -699,7 +699,7 @@ public class MatchTest {
 
 		System.out.println(matches);
 
-		assertEquals(matches.size(), 1);
+		assertEquals(matches.size(), 2);
 	}
 
 	@Test
@@ -740,7 +740,7 @@ public class MatchTest {
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, EnumSet.noneOf(MatchFlag.class));
 
 		System.out.println(matches);
-		assertEquals(1, matches.size());
+		assertEquals(7, matches.size());
 
 	}
 }

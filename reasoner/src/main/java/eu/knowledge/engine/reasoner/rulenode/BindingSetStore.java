@@ -120,7 +120,7 @@ public class BindingSetStore {
 				if (matchToBS != null) {
 					for (Match cSingleMatch : cEntry.getValue()) {
 						TripleVarBindingSet tvbs = matchToBS.get(cSingleMatch);
-						
+
 						if (tvbs != null)
 							cMatchTVBS.addAll(cMatchTVBS.merge2(tvbs).getBindings());
 					}
@@ -157,8 +157,9 @@ public class BindingSetStore {
 		}
 
 		// unfortunately, due to the asymmetry introduced with combi matches (i.e. combi
-		// matches are available at the antecedent neighbours, but not at the consequent
-		// neighbors) we use the older (slower) method when there are no combi matches.
+		// matches are only available at the antecedent/consequent neighbours, but not
+		// at the consequent/antecedent neighbors depending on backward/forward
+		// reasoning) we use the older (slower) method when there are no combi matches.
 		if (this.combiMatches != null)
 			this.cache = this.translateWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
 		else {

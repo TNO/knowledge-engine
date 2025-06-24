@@ -51,7 +51,7 @@ public class TestBindingSetStore {
 
 	private Map<Match, TripleVarBindingSet> convertToDummyMap(TripleVarBindingSet aTVBS) {
 		var map = new HashMap<Match, TripleVarBindingSet>();
-		map.put(new Match(new TriplePattern(""), new TriplePattern(""), new HashMap<>()), aTVBS);
+		map.put(new Match(new TriplePattern("?s ?p ?o"), new TriplePattern("?a ?b ?c"), new HashMap<>()), aTVBS);
 		return map;
 	}
 

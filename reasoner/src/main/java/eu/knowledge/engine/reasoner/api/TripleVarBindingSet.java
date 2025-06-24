@@ -333,9 +333,8 @@ public class TripleVarBindingSet {
 							if (toB.containsVar((Var) toTVar.node)
 									&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
 								skip = true;
-							} else if (!toB.containsVar((Var) toTVar.node)) {
+							} else
 								toB.put(toTVar, fromTNode.node);
-							}
 						}
 					}
 				}
