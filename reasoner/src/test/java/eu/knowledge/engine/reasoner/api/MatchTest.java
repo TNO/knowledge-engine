@@ -342,7 +342,7 @@ public class MatchTest {
 
 		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(
 				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)),
-				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED, MatchFlag.ONE_TO_ONE));
 
 		System.out.println("Size: " + findMatchesWithAntecedent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -430,7 +430,7 @@ public class MatchTest {
 			Rule r = new Rule(new HashSet<>(), obj);
 
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
-					EnumSet.noneOf(MatchFlag.class));
+					EnumSet.of(MatchFlag.ONE_TO_ONE));
 
 			System.out.println("graph pattern size " + gpSize + " gives matches size "
 					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
@@ -546,13 +546,16 @@ public class MatchTest {
 
 		var match = new Match(t1, t2, map);
 
-		TripleVarBindingSet tvbs2 = tvbs1
-				.translate(new HashSet<>(Arrays.asList(t2)), new HashSet<>(Arrays.asList(match))).values().iterator()
-				.next();
+		Map<Match, TripleVarBindingSet> translated = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
+				new HashSet<>(Arrays.asList(match)));
 
-		System.out.println("BindingSet: " + tvbs2);
+		for (TripleVarBindingSet aBS : translated.values()) {
+			tvbs1 = tvbs1.merge(aBS);
+		}
 
-		assertTrue(tvbs2.isEmpty());
+		System.out.println("BindingSet: " + tvbs1);
+
+		assertTrue(tvbs1.isEmpty());
 	}
 
 	@Test
