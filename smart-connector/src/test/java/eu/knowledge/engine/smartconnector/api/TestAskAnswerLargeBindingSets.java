@@ -36,6 +36,8 @@ public class TestAskAnswerLargeBindingSets {
 	private static BindingSet kb1BS;
 	private static BindingSet kb2BS;
 
+	private static int NR_OF_BINDINGS = 1500;
+
 	private static char[] chars = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g' };
 
 	@BeforeAll
@@ -44,7 +46,7 @@ public class TestAskAnswerLargeBindingSets {
 		kb1BS = new BindingSet();
 
 		Binding b;
-		for (int i = 0; i < 350; i++) {
+		for (int i = 0; i < NR_OF_BINDINGS; i++) {
 			b = new Binding();
 			for (char c : chars)
 				b.put(Character.toString(c), "<https://www.tno.nl/example/" + c + i + ">");
@@ -53,7 +55,7 @@ public class TestAskAnswerLargeBindingSets {
 
 		kb2BS = new BindingSet();
 
-		for (int i = 350; i < 700; i++) {
+		for (int i = NR_OF_BINDINGS; i < (2 * NR_OF_BINDINGS); i++) {
 			b = new Binding();
 			for (char c : chars)
 				b.put(Character.toString(c), "<https://www.tno.nl/example/" + c + i + ">");
@@ -133,7 +135,7 @@ public class TestAskAnswerLargeBindingSets {
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
 					"The result should come from kb1, kb3 and not: " + kbIds);
 
-			assertEquals(700, bindings.size());
+			assertEquals(2 * NR_OF_BINDINGS, bindings.size());
 
 		} catch (InterruptedException | ExecutionException e) {
 			fail();

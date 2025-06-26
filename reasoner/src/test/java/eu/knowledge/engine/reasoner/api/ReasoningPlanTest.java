@@ -15,6 +15,7 @@ import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -26,7 +27,6 @@ public class ReasoningPlanTest {
 
 	private static final String TEST_RULES = "/reasoningplantest.rls";
 
-	@Disabled("Until optimize() method is availble.")
 	@Test
 	public void test() throws IOException, InterruptedException, ExecutionException {
 
@@ -38,27 +38,24 @@ public class ReasoningPlanTest {
 		Rule first = someRules.get(0);
 
 		first.backwardForwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
-				//@formatter:off
+				// @formatter:off
 				"a", "b", "c"
-				//@formatter:on
+				// @formatter:on
 		}, new String[] {
-				//@formatter:off
-				"<a1>,<b1>,<c1>",
-				"<a2>,<b2>,<c2>",
-				//@formatter:on
+				// @formatter:off
+				"<a1>,<b1>,<c1>", "<a2>,<b2>,<c2>",
+				// @formatter:on
 		}));
 
 		Rule second = someRules.get(1);
 		second.backwardForwardBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
-				//@formatter:off
+				// @formatter:off
 				"x", "y", "z"
-				//@formatter:on
+				// @formatter:on
 		}, new String[] {
-				//@formatter:off
-				"<x1>,<y1>,<z1>",
-				"<x2>,<y2>,<z2>",
-				"<x3>,<y3>,<z3>",
-				//@formatter:on
+				// @formatter:off
+				"<x1>,<y1>,<z1>", "<x2>,<y2>,<z2>", "<x3>,<y3>,<z3>",
+				// @formatter:on
 		}));
 
 		store.addRules(new HashSet<>(someRules));
@@ -90,9 +87,12 @@ public class ReasoningPlanTest {
 		aBindingSet.add(b1);
 		aBindingSet.add(b2);
 
-		plan.execute(aBindingSet);
+		TaskBoard tb;
+		while ((tb = plan.execute(aBindingSet)).hasTasks()) {
+			tb.executeScheduledTasks();
+		}
 
-		BindingSet bs = null; //plan.getStartNode().getIncomingAntecedentBindingSet().toBindingSet();
+		BindingSet bs = plan.getResults();
 
 		System.out.println(bs);
 		assertEquals(2, bs.size());
