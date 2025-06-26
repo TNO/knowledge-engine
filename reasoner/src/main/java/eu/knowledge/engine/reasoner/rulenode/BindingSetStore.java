@@ -122,7 +122,7 @@ public class BindingSetStore {
 						TripleVarBindingSet tvbs = matchToBS.get(cSingleMatch);
 
 						if (tvbs != null)
-							cMatchTVBS.addAll(cMatchTVBS.merge2(tvbs).getBindings());
+							cMatchTVBS.addAll(cMatchTVBS.combine(tvbs).getBindings());
 					}
 				}
 			}
