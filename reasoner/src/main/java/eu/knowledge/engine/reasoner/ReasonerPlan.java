@@ -72,9 +72,7 @@ public class ReasonerPlan {
 		this.ruleToRuleNode.put(aRule, currentRuleNode);
 
 		if (isBackward()) {
-			// for now we only are interested in antecedent neighbors.
-			// TODO for looping we DO want to consider consequent neighbors as well.
-
+			// we are only interested in antecedent neighbors.
 			this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof AntSide;

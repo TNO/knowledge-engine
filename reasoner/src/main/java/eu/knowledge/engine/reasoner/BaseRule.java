@@ -379,20 +379,21 @@ public class BaseRule {
 	// new implementation of matching towards full match
 
 	/**
-	 * This method finds matches of {@code otherGraphPatterns} on
-	 * {@code aGraphPattern} that are part of a full match of {@code aGraphPattern}.
+	 * This method finds matches of {@code someCandidateRules} on
+	 * {@code aTargetRule} using the specific {@code aConfig}.
 	 * 
-	 * @param aGraphPattern      The graph pattern for which we want to find
-	 *                           matches.
-	 * @param otherGraphPatterns The other graph patterns that we want to check
-	 *                           whether and how they match to
-	 *                           {@code aGraphPattern}.
+	 * @param aTargetRule        The target rule for which we want to find matches.
+	 * @param someCandidateRules The candidate rules that we want to check whether
+	 *                           and how they match to {@code aTargetRule}.
 	 * @param antecedentOfTarget Whether to match the antecedent or consequent of
-	 *                           the target rule
-	 * @return A set of matches that all contribute to some full matche.
+	 *                           {@code aTargetRule}
+	 * @param aConfig            A collection of {@link MatchFlag}s that determine
+	 *                           how elaborate the matching process happens.
+	 * @return A set of combi matches of {@code someCandidateRules} to
+	 *         {@code aTargetRule}
 	 */
 	public static Set<CombiMatch> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
-			boolean antecedentOfTarget, EnumSet<MatchFlag> config) {
+			boolean antecedentOfTarget, EnumSet<MatchFlag> aConfig) {
 
 		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
 
@@ -410,7 +411,7 @@ public class BaseRule {
 
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
-		if (targetGP.isEmpty() || (config.contains(MatchFlag.FULLY_COVERED)
+		if (targetGP.isEmpty() || (aConfig.contains(MatchFlag.FULLY_COVERED)
 				&& combiMatchesPerTriple.keySet().size() < targetGP.size()))
 			return new HashSet<>();
 
@@ -427,7 +428,7 @@ public class BaseRule {
 		if (triplePatternMatchesIter.hasNext()) {
 			Set<CombiMatch> value = triplePatternMatchesIter.next().getValue();
 			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
-					biggestMatches.size(), smallerMatches.size(), config);
+					biggestMatches.size(), smallerMatches.size(), aConfig);
 			biggestMatches.addAll(value);
 		}
 
@@ -453,25 +454,25 @@ public class BaseRule {
 				for (int i = 0; i < biggestMatches.size(); i++) {
 					CombiMatch aBiggestMatch = biggestMatches.get(i);
 					// compare/combine combimatches.
-					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, config);
+					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, aConfig);
 
 					if (newCombiMatch != null) {
 						// successful merge add new biggest and demote old biggest
 						toBeAddedToBiggestMatches.add(newCombiMatch);
 						candidateWasMerged = true;
 						toBeDemotedMatchIndices.add(i);
-					} else if (config.contains(MatchFlag.FULLY_COVERED))
+					} else if (aConfig.contains(MatchFlag.FULLY_COVERED))
 						toBeDemotedMatchIndices.add(i);
 				}
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 
 					// we need to sort the smaller matches on size (from big to small)
 					// to make sure the isSubCombiMatch method works correctly in this algo
 
 					// do this 'costly' merge operation in parallel
 					var newCombiMatches = smallerMatches.stream().parallel().map(aSmallerMatch -> {
-						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
+						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, aConfig);
 					}).filter(Objects::nonNull).sorted(new CombiMatchSizeComparator()).collect(Collectors.toList());
 
 					// determine where to add new combi matches
@@ -493,7 +494,7 @@ public class BaseRule {
 					}
 				}
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 					if (!candidateWasMerged)
 						toBeAddedToBiggestMatches.add(candidateCombiMatch);
 					else
@@ -506,7 +507,7 @@ public class BaseRule {
 			Collections.sort(sortedList, Collections.reverseOrder());
 			for (int i : sortedList) {
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 					toBeAddedToSmallerMatches.add(biggestMatches.get(i));
 				}
 				biggestMatches.remove(i);
@@ -523,7 +524,7 @@ public class BaseRule {
 
 		allMatches.addAll(biggestMatches);
 
-		if (!config.contains(MatchFlag.ONLY_BIGGEST)) {
+		if (!aConfig.contains(MatchFlag.ONLY_BIGGEST)) {
 			allMatches.addAll(smallerMatches);
 		}
 

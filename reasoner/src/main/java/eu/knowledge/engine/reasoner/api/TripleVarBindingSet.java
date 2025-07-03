@@ -154,17 +154,18 @@ public class TripleVarBindingSet {
 	}
 
 	/**
-	 * Simply the union between the two bindingsets. Does nothing complex for now.
+	 * A merge between two bindingsets. Includes both the combination of bindings
+	 * from the two input binding sets as well as those bindings separately.
 	 * 
-	 * @param aGraphBindingSet
+	 * @param aBindingSet
 	 * @return a NEW (!) binding set with the merged binding sets.
 	 * @apiNote Note that this method does not modify the original (this) binding
 	 *          set.
 	 */
-	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
+	public TripleVarBindingSet merge(TripleVarBindingSet aBindingSet) {
 
-		TripleVarBindingSet gbs = combine(aGraphBindingSet);
-		gbs.addAll(aGraphBindingSet.getBindings());
+		TripleVarBindingSet gbs = combine(aBindingSet);
+		gbs.addAll(aBindingSet.getBindings());
 		gbs.addAll(this.bindings);
 
 		return gbs;
@@ -172,28 +173,30 @@ public class TripleVarBindingSet {
 
 	/**
 	 * Special merge that only combines the current bindings with the given
-	 * bindings. It does not add the bindings separately.
+	 * bindings. It only adds bindings that are a combination of two input bindings
+	 * from the input binding sets and does not add the input bindings separately
+	 * (see {@link #merge(TripleVarBindingSet)} for that).
 	 * 
-	 * @param aGraphBindingSet
+	 * @param aBindingSet
 	 * @return a NEW (!) binding set with the merged binding sets.
 	 * @apiNote Note that this method does not modify the original (this) binding
 	 *          set.
 	 */
-	public TripleVarBindingSet combine(TripleVarBindingSet aGraphBindingSet) {
+	public TripleVarBindingSet combine(TripleVarBindingSet aBindingSet) {
 
-		LOG.trace("Merging {} bindings with our {} bindings.", aGraphBindingSet.getBindings().size(),
+		LOG.trace("Merging {} bindings with our {} bindings.", aBindingSet.getBindings().size(),
 				this.getBindings().size());
 
 		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
 
-		final int otherBindingSetSize = aGraphBindingSet.getBindings().size();
+		final int otherBindingSetSize = aBindingSet.getBindings().size();
 		final long totalCount = (long) otherBindingSetSize * (long) this.getBindings().size();
 		if (totalCount > LARGE_BS_SIZE)
 			LOG.warn("Merging 2 large BindingSets ({} * {} = {}). This can take some time.",
-					aGraphBindingSet.getBindings().size(), this.getBindings().size(), totalCount);
+					aBindingSet.getBindings().size(), this.getBindings().size(), totalCount);
 
 		if (this.bindings.isEmpty()) {
-			gbs.addAll(aGraphBindingSet.getBindings());
+			gbs.addAll(aBindingSet.getBindings());
 		} else {
 			// Cartesian product is the base case
 			AtomicLong progress = new AtomicLong(0);
@@ -202,7 +205,7 @@ public class TripleVarBindingSet {
 			AtomicLong nextMilestone = new AtomicLong(milestoneSize);
 
 			this.bindings.stream().parallel().forEach(tvb1 -> {
-				for (TripleVarBinding otherB : aGraphBindingSet.getBindings()) {
+				for (TripleVarBinding otherB : aBindingSet.getBindings()) {
 					// always add a merged version of the two bindings, except when they conflict.
 					if (!tvb1.isConflicting(otherB)) {
 						gbs.add(tvb1.merge(otherB));
