@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.ConsSide;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
@@ -31,6 +33,21 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	 */
 	private Map<RuleNode, Set<Match>> consequentNeighbours = new HashMap<>();
 
+	private Set<CombiMatch> consequentCombiMatches;
+
+	@Override
+	public void setConsequentCombiMatches(Set<CombiMatch> someMatches) {
+		this.consequentCombiMatches = someMatches;
+
+		// also set the combi matches to the binding set store.
+		this.filterBindingSetInput.setCombiMatches(someMatches);
+	}
+
+	@Override
+	public Set<CombiMatch> getConsequentCombiMatches() {
+		return this.consequentCombiMatches;
+	}
+
 	@Override
 	public void addConsequentNeighbour(RuleNode neighbour, Set<Match> matches) {
 		this.consequentNeighbours.put(neighbour, matches);
@@ -47,9 +64,9 @@ public abstract class ConsRuleNode extends RuleNode implements ConsSide {
 	}
 
 	@Override
-	public boolean addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
+	public boolean addFilterBindingSetInput(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
 		assert this.consequentNeighbours.containsKey(aNeighbor);
-		return this.filterBindingSetInput.add(aNeighbor, bs);
+		return this.filterBindingSetInput.add(aNeighbor, someBindingSets);
 	}
 
 	@Override

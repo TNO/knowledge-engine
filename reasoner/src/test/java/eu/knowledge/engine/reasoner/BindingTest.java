@@ -61,7 +61,7 @@ public class BindingTest {
 
 		BaseRule r = new BaseRule("test", toTriplePattern(gp2), new HashSet<>());
 
-		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), EnumSet.of(MatchFlag.ONLY_BIGGEST));
+		Set<Match> matches = r.antecedentMatches(toTriplePattern(gp1), EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.ONE_TO_ONE));
 
 		LOG.info("matches size: {}", matches.size());
 

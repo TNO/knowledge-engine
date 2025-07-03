@@ -1,6 +1,7 @@
 package eu.knowledge.engine.reasoner.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import eu.knowledge.engine.reasoner.Match;
 public class TripleVarBindingSet {
 
 	private static final int PROGRESS_MILESTONE_SIZE = 1000;
-	private static final int LARGE_BS_SIZE = 30000;
+	private static final int LARGE_BS_SIZE = 300000;
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
@@ -156,9 +157,29 @@ public class TripleVarBindingSet {
 	 * Simply the union between the two bindingsets. Does nothing complex for now.
 	 * 
 	 * @param aGraphBindingSet
-	 * @return
+	 * @return a NEW (!) binding set with the merged binding sets.
+	 * @apiNote Note that this method does not modify the original (this) binding
+	 *          set.
 	 */
 	public TripleVarBindingSet merge(TripleVarBindingSet aGraphBindingSet) {
+
+		TripleVarBindingSet gbs = combine(aGraphBindingSet);
+		gbs.addAll(aGraphBindingSet.getBindings());
+		gbs.addAll(this.bindings);
+
+		return gbs;
+	}
+
+	/**
+	 * Special merge that only combines the current bindings with the given
+	 * bindings. It does not add the bindings separately.
+	 * 
+	 * @param aGraphBindingSet
+	 * @return a NEW (!) binding set with the merged binding sets.
+	 * @apiNote Note that this method does not modify the original (this) binding
+	 *          set.
+	 */
+	public TripleVarBindingSet combine(TripleVarBindingSet aGraphBindingSet) {
 
 		LOG.trace("Merging {} bindings with our {} bindings.", aGraphBindingSet.getBindings().size(),
 				this.getBindings().size());
@@ -172,13 +193,9 @@ public class TripleVarBindingSet {
 					aGraphBindingSet.getBindings().size(), this.getBindings().size(), totalCount);
 
 		if (this.bindings.isEmpty()) {
-			for (TripleVarBinding tvb2 : aGraphBindingSet.getBindings()) {
-				gbs.add(tvb2);
-			}
+			gbs.addAll(aGraphBindingSet.getBindings());
 		} else {
 			// Cartesian product is the base case
-			gbs.addAll(aGraphBindingSet.getBindings());
-			gbs.addAll(this.bindings);
 			AtomicLong progress = new AtomicLong(0);
 
 			final int milestoneSize = PROGRESS_MILESTONE_SIZE;
@@ -213,7 +230,7 @@ public class TripleVarBindingSet {
 	}
 
 	/**
-	 * Translate this bindingset using the given match. The variablenames will be
+	 * Translate this bindingset using the given matches. The variable names will be
 	 * changed and variables not relevant in the match will be removed.
 	 * 
 	 * The format of the mapping is expected to be translate <from triple pattern>,
@@ -221,21 +238,31 @@ public class TripleVarBindingSet {
 	 * 
 	 * It also filters bindings that are incompatible with the match.
 	 * 
-	 * @param match
-	 * @return
+	 * The resulting TripleVarBindingSets are stored per match to allow follow-up
+	 * computation to be more efficient.
+	 * 
+	 * @param someMatches The matches to use for this translation.
+	 * @return A mapping from each match to a triplevarbindingset.
 	 */
-	public TripleVarBindingSet translate(Set<TriplePattern> graphPattern, Set<Match> match) {
-		LOG.trace("Translating binding set with '{}' bindings and '{}' matches.", this.bindings.size(), match.size());
+	public Map<Match, TripleVarBindingSet> translate(Set<TriplePattern> aGraphPattern, Set<Match> someMatches) {
+		LOG.trace("Translating binding set with '{}' bindings and '{}' matches.", this.bindings.size(),
+				someMatches.size());
 
 		long start = System.currentTimeMillis();
-
-		TripleVarBindingSet newOne = new TripleVarBindingSet(graphPattern);
+		Map<Match, TripleVarBindingSet> bsPerMatch = new HashMap<>();
 		TripleVarBinding toB;
 		for (TripleVarBinding fromB : this.bindings) {
-			for (Match entry : match) {
+			for (Match aMatch : someMatches) {
+
+				TripleVarBindingSet matchBS = bsPerMatch.get(aMatch);
+				if (matchBS == null) {
+					matchBS = new TripleVarBindingSet(aGraphPattern);
+					bsPerMatch.put(aMatch, matchBS);
+				}
+
 				boolean skip = false;
 				toB = new TripleVarBinding();
-				for (Map.Entry<TriplePattern, TriplePattern> keyValue : entry.getMatchingPatterns().entrySet()) {
+				for (Map.Entry<TriplePattern, TriplePattern> keyValue : aMatch.getMatchingPatterns().entrySet()) {
 					TriplePattern fromTriple = keyValue.getKey();
 					TriplePattern toTriple = keyValue.getValue();
 					Map<TripleNode, TripleNode> mapping = fromTriple.findMatches(toTriple);
@@ -267,20 +294,19 @@ public class TripleVarBindingSet {
 							if (toB.containsVar((Var) toTVar.node)
 									&& !toB.getVarValue((Var) toTVar.node).equals(fromTNode.node)) {
 								skip = true;
-							} else if (!toB.containsVar((Var) toTVar.node)) {
+							} else
 								toB.put(toTVar, fromTNode.node);
-							}
 						}
 					}
 				}
 				if (!skip)
-					newOne.add(toB);
+					matchBS.add(toB);
 			}
 		}
 
 		LOG.trace("Translated binding set with '{}' bindings and '{}' matches in '{}ms'.", this.bindings.size(),
-				match.size(), System.currentTimeMillis() - start);
-		return newOne;
+				someMatches.size(), System.currentTimeMillis() - start);
+		return bsPerMatch;
 
 	}
 
@@ -293,7 +319,7 @@ public class TripleVarBindingSet {
 	 * the bindings in the given {@code bindingSet}.
 	 * 
 	 * @param bindingSet
-	 * @return
+	 * @return A new binding set that only contains the compatible bindings.
 	 */
 	public TripleVarBindingSet keepCompatible(TripleVarBindingSet bindingSet) {
 

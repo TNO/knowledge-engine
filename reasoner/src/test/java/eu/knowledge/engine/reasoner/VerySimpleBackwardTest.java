@@ -3,6 +3,7 @@ package eu.knowledge.engine.reasoner;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
@@ -75,14 +77,13 @@ public class VerySimpleBackwardTest {
 		// Initialize
 		store = new RuleStore();
 		bindingSetHandler = new ProxyDataBindingSetHandler(new Table(new String[] {
-		//@formatter:off
+				// @formatter:off
 				"a", "b"
-				//@formatter:on
+				// @formatter:on
 		}, new String[] {
-		//@formatter:off
-				"<sensor1>,22",
-				"<sensor2>,21",
-				//@formatter:on
+				// @formatter:off
+				"<sensor1>,22", "<sensor2>,21",
+				// @formatter:on
 		}));
 		store.addRule(new Rule(
 				new HashSet<>(
@@ -103,7 +104,8 @@ public class VerySimpleBackwardTest {
 	@Test
 	public void doReasoning() throws InterruptedException, ExecutionException {
 		// Start reasoning
-		ReasonerPlan plan = new ReasonerPlan(store, startRule);
+		ReasonerPlan plan = new ReasonerPlan(store, startRule,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();

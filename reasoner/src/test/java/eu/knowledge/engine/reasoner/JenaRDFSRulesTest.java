@@ -47,7 +47,7 @@ public class JenaRDFSRulesTest {
 	 * @throws ExecutionException
 	 * @throws ParseException
 	 */
-	@Disabled
+	
 	@Test
 	public void test() throws InterruptedException, ExecutionException, ParseException {
 

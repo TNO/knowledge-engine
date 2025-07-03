@@ -11,12 +11,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import org.apache.jena.atlas.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.AntSide;
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.ConsSide;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
@@ -43,6 +43,31 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 
 	private Map<RuleNode, Set<Match>> antecedentNeighbours = new HashMap<>();
 	private Map<RuleNode, Set<Match>> consequentNeighbours = new HashMap<>();
+
+	private Set<CombiMatch> antecedentCombiMatches;
+	private Set<CombiMatch> consequentCombiMatches;
+
+	public void setAntecedentCombiMatches(Set<CombiMatch> someMatches) {
+		this.antecedentCombiMatches = someMatches;
+
+		// also set the combi matches to the binding set store
+		this.resultBindingSetInput.setCombiMatches(someMatches);
+	}
+
+	public Set<CombiMatch> getAntecedentCombiMatches() {
+		return this.antecedentCombiMatches;
+	}
+
+	public void setConsequentCombiMatches(Set<CombiMatch> someMatches) {
+		this.consequentCombiMatches = someMatches;
+
+		// also set the combi matches to the binding set store
+		this.filterBindingSetInput.setCombiMatches(someMatches);
+	}
+
+	public Set<CombiMatch> getConsequentCombiMatches() {
+		return this.consequentCombiMatches;
+	}
 
 	@Override
 	public void addConsequentNeighbour(RuleNode neighbour, Set<Match> matches) {
@@ -75,16 +100,20 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	}
 
 	@Override
-	public boolean addFilterBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
-		return this.filterBindingSetInput.add(aNeighbor, bs);
+	public boolean addFilterBindingSetInput(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
+		assert this.consequentNeighbours.containsKey(aNeighbor);
+		return this.filterBindingSetInput.add(aNeighbor, someBindingSets);
 	}
 
 	@Override
-	public boolean addResultBindingSetInput(RuleNode aNeighbor, TripleVarBindingSet bs) {
+	public boolean addResultBindingSetInput(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
 
-		TripleVarBindingSet filteredBS = bs;
+		Map<Match, TripleVarBindingSet> filteredBS = someBindingSets;
 		if (this.filterBindingSetOutput != null && !this.hasProactiveParent(aNeighbor)) {
-			filteredBS = bs.keepCompatible(this.filterBindingSetOutput);
+
+			for (Map.Entry<Match, TripleVarBindingSet> matchBS : filteredBS.entrySet()) {
+				filteredBS.put(matchBS.getKey(), matchBS.getValue().keepCompatible(this.filterBindingSetOutput));
+			}
 		}
 
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
