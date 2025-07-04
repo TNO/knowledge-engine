@@ -91,10 +91,7 @@ public class BindingSetStore {
 	 * Translates the given TripleVarBindingSets from neighbors to a single
 	 * TripleVarBindingSet using the given combi matches. Because the combi matches
 	 * are very specific to how they should be formed, using this information should
-	 * speed up the binding set merging process considerably. In the previous (old)
-	 * version, the binding sets were all being merge in every possible way to make
-	 * sure all possible bindings were present (also for cases like transitivity).
-	 * But by using the combi matches this should not be necessary anymore!
+	 * speed up the binding set merging process considerably.
 	 * 
 	 * @param aGraphPattern    The graph pattern of the binding set that is created.
 	 * @param someCombiMatches The CombiMatches of the node.
