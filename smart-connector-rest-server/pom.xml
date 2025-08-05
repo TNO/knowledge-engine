@@ -95,7 +95,7 @@
 		<!-- okhttp for example client -->
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
+			<artifactId>okhttp-jvm</artifactId>
 			<version>5.1.0</version>
 		</dependency>
 		<dependency>
@@ -186,4 +186,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
