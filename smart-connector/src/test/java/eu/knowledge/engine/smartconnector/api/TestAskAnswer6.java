@@ -22,6 +22,8 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class TestAskAnswer6 {
 
+	private static final int MAX_SECONDS = 10000;
+
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswer6.class);
 
 	private static KnowledgeBaseImpl kb1;
@@ -100,8 +102,9 @@ public class TestAskAnswer6 {
 			LOG.info("Before ask.");
 			long start = System.currentTimeMillis();
 			AskResult result = kb1.ask(askKI, new BindingSet()).get();
-			assertTrue(System.currentTimeMillis() - start < 10000,
-					"It should take 10 seconds maximum to finish this test.");
+			long delta = System.currentTimeMillis() - start;
+			assertTrue(delta < MAX_SECONDS,
+					"It should take " + MAX_SECONDS + "ms maximum to finish this test, but was " + delta + "ms.");
 			LOG.info("After ask.");
 			bindings = result.getBindings();
 		} catch (InterruptedException | ExecutionException e) {
