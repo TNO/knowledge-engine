@@ -136,8 +136,8 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	 * connectors in the knowledge network and be able to wait for everyone to be up
 	 * to date.
 	 * 
-	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait for
-	 *                each other to go through different phases.
+	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait
+	 *                     for each other to go through different phases.
 	 */
 	public void setPhaser(Phaser aReadyPhaser) {
 		// this knowledge base will participate in phase 1.
@@ -507,53 +507,61 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		if (!this.isStarted())
 			throw new IllegalStateException("The KB should be started before registering KIs.");
 
-		for (var ki : this.registeredAskKIs) {
+		var tmpRegisteredAskKIs = new HashSet<>(registeredAskKIs);
+		this.registeredAskKIs.clear();
+		for (var ki : tmpRegisteredAskKIs) {
 			this.getSC().register(ki);
 			this.currentAskKIs.add(ki);
 		}
-		this.registeredAskKIs.clear();
 
-		for (var entry : this.registeredAnswerKIs.entrySet()) {
+		var tmpRegisteredAnswerKIs = new HashMap<>(this.registeredAnswerKIs);
+		this.registeredAnswerKIs.clear();
+		for (var entry : tmpRegisteredAnswerKIs.entrySet()) {
 			this.getSC().register(entry.getKey(), entry.getValue());
 			this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
 		}
-		this.registeredAnswerKIs.clear();
 
-		for (var ki : this.registeredPostKIs) {
+		var tmpRegisteredPostKIs = new HashSet<>(this.registeredPostKIs);
+		this.registeredPostKIs.clear();
+		for (var ki : tmpRegisteredPostKIs) {
 			this.getSC().register(ki);
 			this.currentPostKIs.add(ki);
 		}
-		this.registeredPostKIs.clear();
 
-		for (var entry : this.registeredReactKIs.entrySet()) {
+		var tmpRegisteredReactKIs = new HashMap<>(this.registeredReactKIs);
+		this.registeredReactKIs.clear();
+		for (var entry : tmpRegisteredReactKIs.entrySet()) {
 			this.getSC().register(entry.getKey(), entry.getValue());
 			this.currentReactKIs.put(entry.getKey(), entry.getValue());
 		}
-		this.registeredReactKIs.clear();
 
-		for (var ki : this.unregisteredAskKIs) {
+		var tmpUnregisteredAskKIs = new HashSet<>(this.unregisteredAskKIs);
+		this.unregisteredAskKIs.clear();
+		for (var ki : tmpUnregisteredAskKIs) {
 			this.getSC().unregister(ki);
 			this.currentAskKIs.remove(ki);
 		}
-		this.unregisteredAskKIs.clear();
 
-		for (var ki : this.unregisteredAnswerKIs) {
+		var tmpUnregisteredAnswerKIs = new HashSet<>(this.unregisteredAnswerKIs);
+		this.unregisteredAnswerKIs.clear();
+		for (var ki : tmpUnregisteredAnswerKIs) {
 			this.getSC().unregister(ki);
 			this.currentAnswerKIs.remove(ki);
 		}
-		this.unregisteredAnswerKIs.clear();
 
-		for (var ki : this.unregisteredPostKIs) {
+		var tmpUnregisteredPostKIs = new HashSet<>(this.unregisteredPostKIs);
+		this.unregisteredPostKIs.clear();
+		for (var ki : tmpUnregisteredPostKIs) {
 			this.getSC().unregister(ki);
 			this.currentPostKIs.remove(ki);
 		}
-		this.unregisteredPostKIs.clear();
 
-		for (var ki : this.unregisteredReactKIs) {
+		var tmpUnregisteredReactKIs = new HashSet<>(this.unregisteredReactKIs);
+		this.unregisteredReactKIs.clear();
+		for (var ki : tmpUnregisteredReactKIs) {
 			this.getSC().unregister(ki);
 			this.currentReactKIs.remove(ki);
 		}
-		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
 		this.getSC().setReasonerLevel(this.reasonerLevel);
