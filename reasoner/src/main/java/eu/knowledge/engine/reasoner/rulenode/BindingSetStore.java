@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
@@ -31,6 +33,8 @@ public class BindingSetStore {
 
 	private final Set<RuleNode> neighbors;
 	private final Map<BaseRule, Map<Match, TripleVarBindingSet>> neighborBindingSet = new HashMap<>();
+
+	private static final Logger LOG = LoggerFactory.getLogger(BindingSetStore.class);
 
 	/**
 	 * This combi matches set need to be initialized <strong>after</strong> the
@@ -104,7 +108,12 @@ public class BindingSetStore {
 			Set<CombiMatch> someCombiMatches, Map<BaseRule, Map<Match, TripleVarBindingSet>> someNeighborBS) {
 		var combinedTVBS = new TripleVarBindingSet(aGraphPattern);
 
+		int i = 0;
+		int size = someCombiMatches.size();
 		for (CombiMatch cMatch : someCombiMatches) {
+			i = i + 1;
+			LOG.trace("Creating binding set for combi match: {}/{}", i, size);
+
 			// keep separate binding set per combi match
 			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
 
@@ -160,6 +169,7 @@ public class BindingSetStore {
 		if (this.combiMatches != null)
 			this.cache = this.translateWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
 		else {
+			LOG.trace("Ignoring combi matches for binding set construction.");
 			TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
 
 			for (TripleVarBindingSet bs : this.neighborBindingSet.values().stream().map(x -> x.values())

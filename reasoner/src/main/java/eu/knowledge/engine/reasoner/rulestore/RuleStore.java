@@ -167,9 +167,11 @@ public class RuleStore {
 		Set<CombiMatch> combiMatches = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
 
 		// store combi matches
-		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
+		aMatchNode.setConsequentCombiMatches(combiMatches);
 
 		// store normal matches
+		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
+
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
 			aMatchNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
 			this.ruleToMatchNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
