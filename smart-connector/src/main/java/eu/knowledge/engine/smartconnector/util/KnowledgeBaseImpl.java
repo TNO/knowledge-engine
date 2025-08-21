@@ -503,65 +503,57 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	/**
 	 * Registers all KIs that have not yet already been registered.
 	 */
-	public void syncKIs() {
+	public synchronized void syncKIs() {
 		if (!this.isStarted())
 			throw new IllegalStateException("The KB should be started before registering KIs.");
 
-		var tmpRegisteredAskKIs = new HashSet<>(registeredAskKIs);
-		this.registeredAskKIs.clear();
-		for (var ki : tmpRegisteredAskKIs) {
+		for (var ki : this.registeredAskKIs) {
 			this.getSC().register(ki);
 			this.currentAskKIs.add(ki);
 		}
+		this.registeredAskKIs.clear();
 
-		var tmpRegisteredAnswerKIs = new HashMap<>(this.registeredAnswerKIs);
-		this.registeredAnswerKIs.clear();
-		for (var entry : tmpRegisteredAnswerKIs.entrySet()) {
+		for (var entry : this.registeredAnswerKIs.entrySet()) {
 			this.getSC().register(entry.getKey(), entry.getValue());
 			this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
 		}
+		this.registeredAnswerKIs.clear();
 
-		var tmpRegisteredPostKIs = new HashSet<>(this.registeredPostKIs);
-		this.registeredPostKIs.clear();
-		for (var ki : tmpRegisteredPostKIs) {
+		for (var ki : this.registeredPostKIs) {
 			this.getSC().register(ki);
 			this.currentPostKIs.add(ki);
 		}
+		this.registeredPostKIs.clear();
 
-		var tmpRegisteredReactKIs = new HashMap<>(this.registeredReactKIs);
-		this.registeredReactKIs.clear();
-		for (var entry : tmpRegisteredReactKIs.entrySet()) {
+		for (var entry : this.registeredReactKIs.entrySet()) {
 			this.getSC().register(entry.getKey(), entry.getValue());
 			this.currentReactKIs.put(entry.getKey(), entry.getValue());
 		}
+		this.registeredReactKIs.clear();
 
-		var tmpUnregisteredAskKIs = new HashSet<>(this.unregisteredAskKIs);
-		this.unregisteredAskKIs.clear();
-		for (var ki : tmpUnregisteredAskKIs) {
+		for (var ki : this.unregisteredAskKIs) {
 			this.getSC().unregister(ki);
 			this.currentAskKIs.remove(ki);
 		}
+		this.unregisteredAskKIs.clear();
 
-		var tmpUnregisteredAnswerKIs = new HashSet<>(this.unregisteredAnswerKIs);
-		this.unregisteredAnswerKIs.clear();
-		for (var ki : tmpUnregisteredAnswerKIs) {
+		for (var ki : this.unregisteredAnswerKIs) {
 			this.getSC().unregister(ki);
 			this.currentAnswerKIs.remove(ki);
 		}
+		this.unregisteredAnswerKIs.clear();
 
-		var tmpUnregisteredPostKIs = new HashSet<>(this.unregisteredPostKIs);
-		this.unregisteredPostKIs.clear();
-		for (var ki : tmpUnregisteredPostKIs) {
+		for (var ki : this.unregisteredPostKIs) {
 			this.getSC().unregister(ki);
 			this.currentPostKIs.remove(ki);
 		}
+		this.unregisteredPostKIs.clear();
 
-		var tmpUnregisteredReactKIs = new HashSet<>(this.unregisteredReactKIs);
-		this.unregisteredReactKIs.clear();
-		for (var ki : tmpUnregisteredReactKIs) {
+		for (var ki : this.unregisteredReactKIs) {
 			this.getSC().unregister(ki);
 			this.currentReactKIs.remove(ki);
 		}
+		this.unregisteredReactKIs.clear();
 
 		this.getSC().setDomainKnowledge(this.domainKnowledge);
 		this.getSC().setReasonerLevel(this.reasonerLevel);
