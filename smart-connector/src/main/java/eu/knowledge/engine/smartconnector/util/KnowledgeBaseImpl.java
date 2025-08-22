@@ -136,8 +136,8 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	 * connectors in the knowledge network and be able to wait for everyone to be up
 	 * to date.
 	 * 
-	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait for
-	 *                each other to go through different phases.
+	 * @param aReadyPhaser a concurrent object that allows multiple parties to wait
+	 *                     for each other to go through different phases.
 	 */
 	public void setPhaser(Phaser aReadyPhaser) {
 		// this knowledge base will participate in phase 1.
@@ -503,7 +503,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	/**
 	 * Registers all KIs that have not yet already been registered.
 	 */
-	public void syncKIs() {
+	public synchronized void syncKIs() {
 		if (!this.isStarted())
 			throw new IllegalStateException("The KB should be started before registering KIs.");
 
