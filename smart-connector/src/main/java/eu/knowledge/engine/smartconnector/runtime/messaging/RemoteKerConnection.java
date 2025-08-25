@@ -196,12 +196,11 @@ public class RemoteKerConnection {
 		}
 		try {
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.headers("Content-Type", "application/json").GET();
-			if (this.edcService != null) {
-				requestBuilder.setHeader("Authorization", authToken);
-			}
-			HttpRequest request = requestBuilder.build();
-
+					.headers("Content-Type", "application/json");
+			if (this.edcService != null)
+				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
+			
+			HttpRequest request = requestBuilder.GET().build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
 				KnowledgeEngineRuntimeDetails runtimeDetails = objectMapper.readValue(response.body(),
@@ -315,9 +314,12 @@ public class RemoteKerConnection {
 			try {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
-				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
-						.headers("Content-Type", "application/json", "Authorization", authToken).DELETE().build();
-
+				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
+						.headers("Content-Type", "application/json");
+				if (this.edcService != null)
+					requestBuilder = requestBuilder.headers("Authorization", authToken);
+					
+				HttpRequest request = requestBuilder.DELETE().build();
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 204) {
 					LOG.trace("Successfully said goodbye to {}", this.remoteKerUri);
@@ -356,86 +358,90 @@ public class RemoteKerConnection {
 		assert (getRemoteKerDetails() == null ? true
 				: getRemoteKerDetails().getSmartConnectorIds().contains(message.getToKnowledgeBase().toString()));
 
-		if (this.isAvailable()) {
-			if (this.edcService != null && !tokenAvailable()) {
-				LOG.warn("No token available yet!");
-				return;
-			}
-			try {
-				String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
-				HttpRequest.Builder requestBuilder = HttpRequest
-						.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
-						.headers("Content-Type", "application/json")
-						.POST(BodyPublishers.ofString(jsonMessage));
-				if (this.edcService != null) {
-					requestBuilder.setHeader("Authorization", authToken);
-				}
-				HttpRequest request = requestBuilder.build();
-
-				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-
-				if (response.statusCode() == 202) {
-					this.noError();
-					LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
-				} else {
-					this.remoteKerDetails = null;
-					int time = this.errorOccurred();
-					LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
-							this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
-							response.body());
-					this.dispatcher.notifySmartConnectorsChanged();
-					throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
-							+ ", body " + response.body());
-				}
-			} catch (URISyntaxException | InterruptedException | IOException | IllegalArgumentException e) {
-				this.remoteKerDetails = null;
-				int time = this.errorOccurred();
-				LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time,
-						e.getMessage());
-				this.dispatcher.notifySmartConnectorsChanged();
-				throw new IOException(e);
-			}
-		} else {
+		if (!this.isAvailable()) {
 			logStillIgnoring();
 			throw new IOException("KER " + this.remoteKerUri + " is currently unavailable. Trying again later.");
+		}
+
+		if (this.edcService != null && !tokenAvailable()) {
+			LOG.warn("No token available yet!");
+			return;
+		}
+
+		try {
+			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
+			HttpRequest.Builder requestBuilder = HttpRequest
+					.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
+					.headers("Content-Type", "application/json");
+			if (this.edcService != null)
+				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
+			
+			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
+			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 202) {
+				this.noError();
+				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
+			} else {
+				this.remoteKerDetails = null;
+				int time = this.errorOccurred();
+				LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
+						this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
+						response.body());
+				this.dispatcher.notifySmartConnectorsChanged();
+				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
+						+ ", body " + response.body());
+			}
+		} catch (URISyntaxException | InterruptedException | IOException | IllegalArgumentException e) {
+			this.remoteKerDetails = null;
+			int time = this.errorOccurred();
+			LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time,
+					e.getMessage());
+			this.dispatcher.notifySmartConnectorsChanged();
+			throw new IOException(e);
 		}
 	}
 
 	public void sendMyKerDetailsToPeer(KnowledgeEngineRuntimeDetails details) {
-		if (this.isAvailable()) {
-			if (this.edcService != null && !tokenAvailable()) {
-				LOG.warn("No token available yet!");
-				return;
-			}
-			try {
-				String jsonMessage = objectMapper.writeValueAsString(details);
-				HttpRequest request = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-						.headers("Content-Type", "application/json", "Authorization", authToken)
-						.POST(BodyPublishers.ofString(jsonMessage)).build();
+		if (!this.isAvailable()) {
+			logStillIgnoring();
+			return;
+		}
 
-				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				if (response.statusCode() == 200) {
-					this.noError();
-					LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}", this.remoteKerUri);
-				} else {
-					this.remoteKerDetails = null;
-					int time = this.errorOccurred();
-					this.dispatcher.notifySmartConnectorsChanged();
-					LOG.warn(
-							"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails, got response {}: {}",
-							this.remoteKerUri, time, response.statusCode(), response.body());
-				}
-			} catch (IOException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
+		if (this.edcService != null && !tokenAvailable()) {
+			LOG.warn("No token available yet!");
+			return;
+		}
+
+		try {
+			String jsonMessage = objectMapper.writeValueAsString(details);
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
+					.headers("Content-Type", "application/json");
+
+			if (this.edcService != null)
+				requestBuilder = requestBuilder.headers("Authorization", authToken);
+			
+			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
+			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 200) {
+				this.noError();
+				LOG.trace("Successfully sent updated KnowledgeEngineRuntimeDetails to {}", this.remoteKerUri);
+			} else {
 				this.remoteKerDetails = null;
 				int time = this.errorOccurred();
 				this.dispatcher.notifySmartConnectorsChanged();
 				LOG.warn(
-						"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
-						this.remoteKerUri, time, e.getMessage());
-				LOG.debug("", e);
+						"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails, got response {}: {}",
+						this.remoteKerUri, time, response.statusCode(), response.body());
 			}
-		} else
-			logStillIgnoring();
+		} catch (IOException | URISyntaxException | InterruptedException | IllegalArgumentException e) {
+			this.remoteKerDetails = null;
+			int time = this.errorOccurred();
+			this.dispatcher.notifySmartConnectorsChanged();
+			LOG.warn(
+					"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
+					this.remoteKerUri, time, e.getMessage());
+			LOG.debug("", e);
+		}
 	}
 
 	private String getPathForMessageType(KnowledgeMessage message) {
