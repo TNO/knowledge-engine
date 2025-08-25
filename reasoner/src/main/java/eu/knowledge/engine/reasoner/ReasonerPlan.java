@@ -6,7 +6,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -94,11 +93,19 @@ public class ReasonerPlan {
 		} else {
 			// interested in both consequent and antecedent neighbors
 
+//			EnumSet<MatchFlag> modMatchConfig = EnumSet.copyOf(this.matchConfig);
+//			modMatchConfig.add(MatchFlag.SINGLE_RULE);
+
 			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof ConsSide;
 					var newNode = createOrGetReasonerNode(rule, aRule);
 					((ConsSide) currentRuleNode).addConsequentNeighbour(newNode, matches);
+
+					Set<CombiMatch> antCombiMatches = filterAndInvertCombiMatches(rule, aRule,
+							this.store.getConsequentCombiMatches(currentRuleNode.getRule()));
+
+					((AntSide) newNode).setAntecedentCombiMatches(antCombiMatches);
 
 					var inverseMatches = Match.invertAll(matches);
 					((AntSide) newNode).addAntecedentNeighbour(currentRuleNode, inverseMatches);
@@ -146,6 +153,29 @@ public class ReasonerPlan {
 		}
 
 		return currentRuleNode;
+	}
+
+	private Set<CombiMatch> filterAndInvertCombiMatches(BaseRule antRule, BaseRule consRule,
+			Set<CombiMatch> consequentCombiMatches) {
+
+		Set<CombiMatch> filteredAndInvertedCombiMatches = new HashSet<CombiMatch>();
+
+		CombiMatch newCm;
+		for (CombiMatch cm : consequentCombiMatches) {
+			if (cm.containsKey(antRule)) {
+				newCm = new CombiMatch();
+				filteredAndInvertedCombiMatches.add(newCm);
+				Set<Match> matches = cm.get(antRule);
+				Set<Match> newMatches = new HashSet<Match>();
+				for (Match m : matches) {
+					newMatches.add(m.inverse());
+				}
+				newCm.put(consRule, newMatches);
+				filteredAndInvertedCombiMatches.add(newCm);
+			}
+		}
+
+		return filteredAndInvertedCombiMatches;
 	}
 
 	/**
