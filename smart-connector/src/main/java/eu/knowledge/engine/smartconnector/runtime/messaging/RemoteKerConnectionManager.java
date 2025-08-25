@@ -226,6 +226,13 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				LOG.info("Removing peer that is now gone: {}", e.getValue().getRemoteKerUri());
 				it.remove();
 				this.unavailableRemoteKerConnections.remove(e.getKey());
+
+				// make sure all SCs are notified correctly. We use fake/empty details for that.
+				KnowledgeEngineRuntimeDetails details = new KnowledgeEngineRuntimeDetails();
+				details.setRuntimeId(e.getValue().getRemoteKerUri().toString());
+				details.setSmartConnectorIds(new ArrayList<>());
+				e.getValue().updateKerDetails(details);
+
 			}
 		}
 		this.knowledgeDirectoryUpdateCooldownEnds = new Date(

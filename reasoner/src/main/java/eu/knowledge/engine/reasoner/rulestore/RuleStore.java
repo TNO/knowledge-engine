@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
@@ -41,18 +42,18 @@ public class RuleStore {
 	/**
 	 * All the rules in this store.
 	 */
-	private Map<BaseRule, MatchNode> ruleToRuleNode;
+	private Map<BaseRule, MatchNode> ruleToMatchNode;
 
 	/**
 	 * Instantiate an empty rule store.
 	 */
 	public RuleStore() {
-		ruleToRuleNode = new HashMap<>();
+		ruleToMatchNode = new HashMap<>();
 	}
 
 	public void addRule(BaseRule aRule) {
-		MatchNode aRuleNode = new MatchNode(aRule);
-		this.ruleToRuleNode.put(aRule, aRuleNode);
+		MatchNode aMatchNode = new MatchNode(aRule);
+		this.ruleToMatchNode.put(aRule, aMatchNode);
 	}
 
 	/**
@@ -70,7 +71,7 @@ public class RuleStore {
 	 */
 	public Set<BaseRule> getRules() {
 
-		return this.ruleToRuleNode.keySet();
+		return this.ruleToMatchNode.keySet();
 	}
 
 	/**
@@ -89,28 +90,55 @@ public class RuleStore {
 	 *         this rule's antecedent.
 	 */
 	public Map<BaseRule, Set<Match>> getAntecedentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
-		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
+		MatchNode aMatchNode = this.ruleToMatchNode.get(aRule);
 
-		assert aRuleNode != null;
+		assert aMatchNode != null;
 
-		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), true, aConfig);
+		// calculate matches
+		Set<CombiMatch> combiMatches = BaseRule.getMatches(aRule, this.getRules(), true, aConfig);
+
+		// store combi matches
+		aMatchNode.setAntecedentCombiMatches(combiMatches);
+
+		// store normal matches
+		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
 
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
-			this.ruleToRuleNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue());
+			aMatchNode.setAntecedentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToMatchNode.get(entry.getKey()).setConsequentNeighbor(aRule, entry.getValue());
 		}
 
 		return newMapping;
 
 	}
 
-	public void addToNewMapping(Map<BaseRule, Set<Match>> newMapping, Map.Entry<BaseRule, Match> entryToAdd) {
-		// check if rule already has entry in newMapping
-		if (!newMapping.containsKey(entryToAdd.getKey())) {
-			newMapping.put(entryToAdd.getKey(), new HashSet<>());
+	public Set<CombiMatch> getAntecedentCombiMatches(BaseRule aRule) {
+		assert aRule != null;
+		MatchNode mn = this.ruleToMatchNode.get(aRule);
+		return mn.getAntecedentCombiMatches();
+	}
+
+	public Set<CombiMatch> getConsequentCombiMatches(BaseRule aRule) {
+		assert aRule != null;
+		MatchNode mn = this.ruleToMatchNode.get(aRule);
+		return mn.getConsequentCombiMatches();
+	}
+
+	private Map<BaseRule, Set<Match>> convertToMapping(Set<CombiMatch> someMatches) {
+		var mapping = new HashMap<BaseRule, Set<Match>>();
+
+		for (CombiMatch cm : someMatches) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : cm.entrySet()) {
+				// get rule match set
+				var ruleMatchSet = mapping.get(entry.getKey());
+				if (ruleMatchSet == null) {
+					ruleMatchSet = new HashSet<Match>();
+					mapping.put(entry.getKey(), ruleMatchSet);
+				}
+				ruleMatchSet.addAll(entry.getValue());
+			}
 		}
-		Set<Match> matches = newMapping.get(entryToAdd.getKey());
-		matches.add(entryToAdd.getValue());
+		return mapping;
 	}
 
 	/**
@@ -118,7 +146,6 @@ public class RuleStore {
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule) {
 		return this.getConsequentNeighbors(aRule, EnumSet.noneOf(MatchFlag.class));
-
 	}
 
 	/**
@@ -132,15 +159,20 @@ public class RuleStore {
 	 *         this rule's consequent.
 	 */
 	public Map<BaseRule, Set<Match>> getConsequentNeighbors(BaseRule aRule, EnumSet<MatchFlag> aConfig) {
-		MatchNode aRuleNode = this.ruleToRuleNode.get(aRule);
+		MatchNode aMatchNode = this.ruleToMatchNode.get(aRule);
 
-		assert aRuleNode != null;
+		assert aMatchNode != null;
 
-		Map<BaseRule, Set<Match>> newMapping = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
+		// calculate matches
+		Set<CombiMatch> combiMatches = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
 
+		// store combi matches
+		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
+
+		// store normal matches
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
-			aRuleNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
-			this.ruleToRuleNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
+			aMatchNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
+			this.ruleToMatchNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
 		}
 
 		return newMapping;
@@ -151,7 +183,7 @@ public class RuleStore {
 	 * the neighbor of who.
 	 */
 	public void reset() {
-		for (MatchNode r : this.ruleToRuleNode.values()) {
+		for (MatchNode r : this.ruleToMatchNode.values()) {
 			r.reset();
 		}
 	}
@@ -178,7 +210,7 @@ public class RuleStore {
 		sb.append("strict digraph {\n");
 		Map<BaseRule, String> ruleToName = new HashMap<>();
 
-		for (MatchNode r : ruleToRuleNode.values()) {
+		for (MatchNode r : ruleToMatchNode.values()) {
 
 			String currentName = ruleToName.get(r.getRule());
 			if (currentName == null) {

@@ -165,7 +165,8 @@ public class MatchTest {
 
 		BaseRule r = new ProactiveRule(obj, new HashSet<>());
 
-		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 		System.out.println("Size: " + findMatchesWithConsequent.size());
 
 		for (Match m : findMatchesWithConsequent) {
@@ -340,7 +341,8 @@ public class MatchTest {
 		});
 
 		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(
-				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)), EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)),
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED, MatchFlag.ONE_TO_ONE));
 
 		System.out.println("Size: " + findMatchesWithAntecedent.size());
 //		System.out.println(findMatchesWithConsequent);
@@ -428,7 +430,7 @@ public class MatchTest {
 			Rule r = new Rule(new HashSet<>(), obj);
 
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
-					EnumSet.noneOf(MatchFlag.class));
+					EnumSet.of(MatchFlag.ONE_TO_ONE));
 
 			System.out.println("graph pattern size " + gpSize + " gives matches size "
 					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
@@ -484,14 +486,14 @@ public class MatchTest {
 
 		var tvbs = new TripleVarBindingSet(obj, bs);
 
-		var nBs = tvbs.translate(rhs, findMatchesWithConsequent);
+		var nBs = tvbs.translate(rhs, findMatchesWithConsequent).values().iterator().next();
 
 		System.out.println(nBs);
 		assertTrue(nBs.isEmpty());
 	}
 
 	@Test
-	public void testOtherBurgTranslate() {
+	public void testOtherBugTranslate() {
 		TriplePattern t1 = new TriplePattern("?p <type> ?t");
 		TriplePattern t2 = new TriplePattern("?p <hasValInC> ?q");
 		Set<TriplePattern> obj = new HashSet<>(Arrays.asList(t1, t2));
@@ -544,12 +546,16 @@ public class MatchTest {
 
 		var match = new Match(t1, t2, map);
 
-		TripleVarBindingSet tvbs2 = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
+		Map<Match, TripleVarBindingSet> translated = tvbs1.translate(new HashSet<>(Arrays.asList(t2)),
 				new HashSet<>(Arrays.asList(match)));
 
-		System.out.println("BindingSet: " + tvbs2);
+		for (TripleVarBindingSet aBS : translated.values()) {
+			tvbs1 = tvbs1.merge(aBS);
+		}
 
-		assertTrue(tvbs2.isEmpty());
+		System.out.println("BindingSet: " + tvbs1);
+
+		assertTrue(tvbs1.isEmpty());
 	}
 
 	@Test
@@ -594,7 +600,8 @@ public class MatchTest {
 
 		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
 
-		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
+		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
 		System.out.println("Size: " + findMatchesWithAntecedent.size());
 
@@ -692,7 +699,7 @@ public class MatchTest {
 
 		System.out.println(matches);
 
-		assertEquals(matches.size(), 1);
+		assertEquals(matches.size(), 2);
 	}
 
 	@Test
@@ -708,7 +715,8 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), tp2);
 
-		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, EnumSet.noneOf(MatchFlag.class));
+		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
+				EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
 		System.out.println(matches);
 		assertEquals(1, matches.size());
@@ -732,7 +740,7 @@ public class MatchTest {
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, EnumSet.noneOf(MatchFlag.class));
 
 		System.out.println(matches);
-		assertEquals(1, matches.size());
+		assertEquals(7, matches.size());
 
 	}
 }

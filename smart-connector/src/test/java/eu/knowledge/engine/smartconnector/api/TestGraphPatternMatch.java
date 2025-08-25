@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,7 @@ import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class TestGraphPatternMatch {
@@ -176,10 +178,28 @@ public class TestGraphPatternMatch {
 		});
 
 //		assertTrue(GraphPatternMatcher.areIsomorphic(gp1, gp2));
-		Map<BaseRule, Set<Match>> isomorphism = BaseRule.getMatches(anteRule, Collections.singleton(consRule), true,
-				MatchStrategy.ENTRY_LEVEL.toConfig(true));
+		Map<BaseRule, Set<Match>> isomorphism = convertToMapping(BaseRule.getMatches(anteRule,
+				Collections.singleton(consRule), true, MatchStrategy.ENTRY_LEVEL.toConfig(true)));
 
 		return isomorphism.containsKey(consRule) ? isomorphism.get(consRule) : new HashSet<Match>();
+	}
+
+	// copied from RuleStore#convertToMapping
+	private Map<BaseRule, Set<Match>> convertToMapping(Set<CombiMatch> someMatches) {
+		var mapping = new HashMap<BaseRule, Set<Match>>();
+
+		for (CombiMatch cm : someMatches) {
+			for (Map.Entry<BaseRule, Set<Match>> entry : cm.entrySet()) {
+				// get rule match set
+				var ruleMatchSet = mapping.get(entry.getKey());
+				if (ruleMatchSet == null) {
+					ruleMatchSet = new HashSet<Match>();
+					mapping.put(entry.getKey(), ruleMatchSet);
+				}
+				ruleMatchSet.addAll(entry.getValue());
+			}
+		}
+		return mapping;
 	}
 
 }

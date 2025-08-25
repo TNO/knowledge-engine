@@ -5,11 +5,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Node;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
+import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.api.TripleVarBinding;
@@ -26,7 +30,13 @@ import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 public class BindingSetStore {
 
 	private final Set<RuleNode> neighbors;
-	private final Map<RuleNode, TripleVarBindingSet> neighborBindingSet = new HashMap<>();
+	private final Map<BaseRule, Map<Match, TripleVarBindingSet>> neighborBindingSet = new HashMap<>();
+
+	/**
+	 * This combi matches set need to be initialized <strong>after</strong> the
+	 * constructor has been called.
+	 */
+	private Set<CombiMatch> combiMatches = null;
 	private final Set<TriplePattern> graphPattern;
 
 	/**
@@ -43,19 +53,20 @@ public class BindingSetStore {
 	 * Register the given {@code aBindingSet} to this BindingSetStore as coming from
 	 * neighbor {@code aNeighbor}
 	 * 
-	 * @param aNeighbor   the neighbor who brought this bindingset.
-	 * @param aBindingSet the bindingset brought by this neighbor.
+	 * @param aNeighbor       the neighbor who brought this bindingset.
+	 * @param someBindingSets the bindingset brought by this neighbor.
 	 * @return whether adding this bindingset changed anything. I.e. this particular
 	 *         neighbor did not yet give a bindingset or this bindingset is
 	 *         different from the previous one.
 	 */
-	public boolean add(RuleNode aNeighbor, TripleVarBindingSet aBindingSet) {
-		assert aBindingSet != null;
+	public boolean add(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
+		assert someBindingSets != null;
 		assert neighbors.contains(aNeighbor);
 
-		TripleVarBindingSet previousBindingSet = this.neighborBindingSet.put(aNeighbor, aBindingSet);
+		Map<Match, TripleVarBindingSet> previousBindingSet = this.neighborBindingSet.put(aNeighbor.getRule(),
+				someBindingSets);
 
-		boolean changed = previousBindingSet == null || !previousBindingSet.equals(aBindingSet);
+		boolean changed = previousBindingSet == null || !previousBindingSet.equals(someBindingSets);
 
 		if (changed)
 			this.cache = null;
@@ -64,15 +75,73 @@ public class BindingSetStore {
 	}
 
 	public boolean haveAllNeighborsContributed() {
-		return this.neighborBindingSet.keySet().containsAll(neighbors);
+		return this.neighborBindingSet.keySet()
+				.containsAll(neighbors.stream().map(x -> x.getRule()).collect(Collectors.toSet()));
 	}
 
 	// TODO: It feels ugly to do this.
 	public boolean haveAllNeighborsContributedExcept(Set<RuleNode> nodes) {
-		var allNeighboursWithException = new HashSet<>();
-		allNeighboursWithException.addAll(neighbors);
-		allNeighboursWithException.removeAll(nodes);
+		var allNeighboursWithException = new HashSet<BaseRule>();
+		allNeighboursWithException.addAll(neighbors.stream().map(x -> x.getRule()).collect(Collectors.toSet()));
+		allNeighboursWithException.removeAll(nodes.stream().map(x -> x.getRule()).collect(Collectors.toSet()));
 		return this.neighborBindingSet.keySet().containsAll(allNeighboursWithException);
+	}
+
+	/**
+	 * Translates the given TripleVarBindingSets from neighbors to a single
+	 * TripleVarBindingSet using the given combi matches. Because the combi matches
+	 * are very specific to how they should be formed, using this information should
+	 * speed up the binding set merging process considerably.
+	 * 
+	 * @param aGraphPattern    The graph pattern of the binding set that is created.
+	 * @param someCombiMatches The CombiMatches of the node.
+	 * @param someNeighborBS   The already translated binding sets from all
+	 *                         neighbors of a node per match.
+	 * @return A TripleVarBindingSet that consists of only valid (according to the
+	 *         combimatches) bindings.
+	 */
+	private TripleVarBindingSet translateWithCombiMatches(Set<TriplePattern> aGraphPattern,
+			Set<CombiMatch> someCombiMatches, Map<BaseRule, Map<Match, TripleVarBindingSet>> someNeighborBS) {
+		var combinedTVBS = new TripleVarBindingSet(aGraphPattern);
+
+		for (CombiMatch cMatch : someCombiMatches) {
+			// keep separate binding set per combi match
+			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
+
+			for (Entry<BaseRule, Set<Match>> cEntry : cMatch.entrySet()) {
+
+				BaseRule aNeighborRule = cEntry.getKey();
+
+				Map<Match, TripleVarBindingSet> matchToBS = someNeighborBS.get(aNeighborRule);
+
+				if (matchToBS != null) {
+					for (Match cSingleMatch : cEntry.getValue()) {
+						TripleVarBindingSet tvbs = matchToBS.get(cSingleMatch);
+
+						if (tvbs != null)
+							cMatchTVBS.addAll(cMatchTVBS.combine(tvbs).getBindings());
+					}
+				}
+			}
+
+			// addAll instead of merge, because different combi matches do not need to be
+			// combined.
+			combinedTVBS.addAll(cMatchTVBS.getBindings());
+		}
+
+		return combinedTVBS;
+
+	}
+
+	/**
+	 * Sets the combi matches for this binding set store. Combi matches contain a
+	 * combination of matches with neighboring rules that together form a single
+	 * match for the rule node of which this bindingset store is parts.
+	 * 
+	 * @param someCombiMatches The combi matches for this store.
+	 */
+	public void setCombiMatches(Set<CombiMatch> someCombiMatches) {
+		this.combiMatches = someCombiMatches;
 	}
 
 	/**
@@ -83,20 +152,27 @@ public class BindingSetStore {
 		if (this.cache != null) {
 			return this.cache;
 		}
-		// TODO: Can a similar assertion be made? (Changed the class so that the
-		// result is also gettable when all neighbours except a specific one
-		// contributed)
-		// assert haveAllNeighborsContributed();
 
-		TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
-		for (TripleVarBindingSet bs : this.neighborBindingSet.values()) {
-			combinedBS = combinedBS.merge(bs);
+		// unfortunately, due to the asymmetry introduced with combi matches (i.e. combi
+		// matches are only available at the antecedent/consequent neighbours, but not
+		// at the consequent/antecedent neighbors depending on backward/forward
+		// reasoning) we use the older (slower) method when there are no combi matches.
+		if (this.combiMatches != null)
+			this.cache = this.translateWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
+		else {
+			TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
+
+			for (TripleVarBindingSet bs : this.neighborBindingSet.values().stream().map(x -> x.values())
+					.flatMap(x -> x.stream()).collect(Collectors.toSet())) {
+				combinedBS = combinedBS.merge(bs);
+			}
+
+			// NOTE: we merge the bindings with themselves here (when the bindings
+			// 'leave' the store), but it may be better to do it when they enter the
+			// store, or when they get translated/matched.
+			this.cache = combinedBS.merge(combinedBS);
 		}
 
-		// NOTE: we merge the bindings with themselves here (when the bindings
-		// 'leave' the store), but it may be better to do it when they enter the
-		// store, or when they get translated/matched.
-		this.cache = combinedBS.merge(combinedBS);
 		return this.cache;
 	}
 
@@ -116,21 +192,22 @@ public class BindingSetStore {
 	public void printDebuggingTable() {
 		StringBuilder table = new StringBuilder();
 
-		List<RuleNode> allNeighbors = new ArrayList<>(neighbors);
+		List<BaseRule> allNeighbors = new ArrayList<>(
+				neighbors.stream().map(x -> x.getRule()).collect(Collectors.toSet()));
 
 		// header row
 		int count = 0;
 		table.append("| Graph Pattern |");
 		count++;
-		for (RuleNode neighbor : allNeighbors) {
+		for (BaseRule neighbor : allNeighbors) {
 
 			if (this.neighborBindingSet.containsKey(neighbor)) {
-				for (int i = 0; i < this.neighborBindingSet.get(neighbor).getBindings().size(); i++) {
-					table.append(this.getName(neighbor.getRule()) + "-" + i).append(" | ");
+				for (int i = 0; i < combine(this.neighborBindingSet.get(neighbor)).getBindings().size(); i++) {
+					table.append(this.getName(neighbor) + "-" + i).append(" | ");
 					count++;
 				}
 			} else {
-				table.append(this.getName(neighbor.getRule())).append(" | ");
+				table.append(this.getName(neighbor)).append(" | ");
 				count++;
 			}
 		}
@@ -150,9 +227,9 @@ public class BindingSetStore {
 			table.append(" | ").append(tp.toString()).append(" | ");
 
 			// bindings
-			for (RuleNode neigh : allNeighbors) {
+			for (BaseRule neigh : allNeighbors) {
 
-				TripleVarBindingSet tvbs = this.neighborBindingSet.get(neigh);
+				TripleVarBindingSet tvbs = combine(this.neighborBindingSet.get(neigh));
 
 				if (tvbs != null) {
 					for (TripleVarBinding tvb : tvbs.getBindings()) {
@@ -201,4 +278,11 @@ public class BindingSetStore {
 		return n.isVariable() ? before + TriplePattern.trunc(n) + after : TriplePattern.trunc(n);
 	}
 
+	private TripleVarBindingSet combine(Map<Match, TripleVarBindingSet> someBindingSets) {
+		var resultBS = new TripleVarBindingSet(this.graphPattern);
+		for (TripleVarBindingSet bs : someBindingSets.values()) {
+			resultBS.addAll(bs.getBindings());
+		}
+		return resultBS;
+	}
 }

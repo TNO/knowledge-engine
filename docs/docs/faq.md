@@ -172,11 +172,11 @@ So if you have the same argument graph pattern for several interactions, be care
 
 
 ### We see a spike in memory usage whenever an ASK or POST is executed. What is happening?
-Most likely you have enabled the reasoner when you created a Smart Connector for your Knowledge Base.
+Most likely the reasoner level is causing the spike. The default reasoner level can be set through configuration option, but it can also be chosen when you create a Smart Connector for your Knowledge Base.
 When an ASK or POST is executed, the Knowledge Engine will use the reasoner to infer new data and orchestrate the data exchange (for more details see [Reasoning](./reasoning.md)).
-When you have large graph patterns and/or many bindings, the reasoner's time and memory consumption can be quite large.
-If you have no need for this reasoning capability, you can limit its resource usage by disabling the reasoner.
-When using the REST Developer API, you can disable the reasoner by setting the JSON property `reasonerEnabled` to `false` or leave the property out altogether because by default the reasoner is disabled.
+If you use a higher reasoner level and you have large graph patterns and/or many bindings, the reasoner's time and memory consumption can be quite large.
+If you have no need for these advanced reasoning capabilities, you can limit its resource usage by lowering the reasoner level.
+When using the REST Developer API, you can choose the reasoner level by setting the JSON property `reasonerLevel` to `1`.
 
 
 ### How to deal with a query-like Knowledge Base where you can specify what properties you want to be returned?

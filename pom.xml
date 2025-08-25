@@ -30,7 +30,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
-				<version>1.7.0</version>
+				<version>1.7.1</version>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
 				</configuration>
@@ -75,10 +75,10 @@
 		<jetty-version>11.0.25</jetty-version>
 		<java.version>17</java.version>
 		<jersey3-version>3.1.10</jersey3-version>
-		<jackson-version>2.19.0</jackson-version>
+		<jackson-version>2.19.1</jackson-version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<revision>1.3.2-SNAPSHOT</revision>
+		<revision>1.3.3-SNAPSHOT</revision>
 	</properties>
 
 	<dependencyManagement>
@@ -139,17 +139,17 @@
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-api</artifactId>
-				<version>5.12.2</version>
+				<version>5.13.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-engine</artifactId>
-				<version>5.12.2</version>
+				<version>5.13.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter</artifactId>
-				<version>5.12.2</version>
+				<version>5.13.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.jena</groupId>

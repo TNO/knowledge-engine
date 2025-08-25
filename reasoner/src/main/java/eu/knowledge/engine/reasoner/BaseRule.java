@@ -183,7 +183,9 @@ public class BaseRule {
 					return null;
 				}
 			});
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchConfig);
+			Set<CombiMatch> combiMatches = getMatches(this, new HashSet<>(Arrays.asList(r)), false, aMatchConfig);
+
+			Map<BaseRule, Set<Match>> matches = convertToMap(combiMatches);
 
 			if (matches.containsKey(r))
 				return matches.get(r);
@@ -194,7 +196,8 @@ public class BaseRule {
 	public Set<Match> antecedentMatches(Set<TriplePattern> aConsequent, EnumSet<MatchFlag> aMatchConfig) {
 		if (!this.antecedent.isEmpty()) {
 			Rule r = new Rule(new HashSet<>(), aConsequent);
-			Map<BaseRule, Set<Match>> matches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchConfig);
+			Set<CombiMatch> combiMatches = getMatches(this, new HashSet<>(Arrays.asList(r)), true, aMatchConfig);
+			Map<BaseRule, Set<Match>> matches = convertToMap(combiMatches);
 			if (matches.containsKey(r))
 				return matches.get(r);
 		}
@@ -376,20 +379,21 @@ public class BaseRule {
 	// new implementation of matching towards full match
 
 	/**
-	 * This method finds matches of {@code otherGraphPatterns} on
-	 * {@code aGraphPattern} that are part of a full match of {@code aGraphPattern}.
+	 * This method finds matches of {@code someCandidateRules} on
+	 * {@code aTargetRule} using the specific {@code aConfig}.
 	 * 
-	 * @param aGraphPattern      The graph pattern for which we want to find
-	 *                           matches.
-	 * @param otherGraphPatterns The other graph patterns that we want to check
-	 *                           whether and how they match to
-	 *                           {@code aGraphPattern}.
+	 * @param aTargetRule        The target rule for which we want to find matches.
+	 * @param someCandidateRules The candidate rules that we want to check whether
+	 *                           and how they match to {@code aTargetRule}.
 	 * @param antecedentOfTarget Whether to match the antecedent or consequent of
-	 *                           the target rule
-	 * @return A set of matches that all contribute to some full matche.
+	 *                           {@code aTargetRule}
+	 * @param aConfig            A collection of {@link MatchFlag}s that determine
+	 *                           how elaborate the matching process happens.
+	 * @return A set of combi matches of {@code someCandidateRules} to
+	 *         {@code aTargetRule}
 	 */
-	public static Map<BaseRule, Set<Match>> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
-			boolean antecedentOfTarget, EnumSet<MatchFlag> config) {
+	public static Set<CombiMatch> getMatches(BaseRule aTargetRule, Set<BaseRule> someCandidateRules,
+			boolean antecedentOfTarget, EnumSet<MatchFlag> aConfig) {
 
 		Set<TriplePattern> targetGP = antecedentOfTarget ? aTargetRule.getAntecedent() : aTargetRule.getConsequent();
 
@@ -407,9 +411,9 @@ public class BaseRule {
 
 		// if not every triple pattern can be matched, we stop the process if we require
 		// a full match.
-		if (targetGP.isEmpty() || (config.contains(MatchFlag.FULLY_COVERED)
+		if (targetGP.isEmpty() || (aConfig.contains(MatchFlag.FULLY_COVERED)
 				&& combiMatchesPerTriple.keySet().size() < targetGP.size()))
-			return new HashMap<>();
+			return new HashSet<>();
 
 		printCombiMatchesPerTriple(aTargetRule, combiMatchesPerTriple);
 
@@ -424,7 +428,7 @@ public class BaseRule {
 		if (triplePatternMatchesIter.hasNext()) {
 			Set<CombiMatch> value = triplePatternMatchesIter.next().getValue();
 			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
-					biggestMatches.size(), smallerMatches.size(), config);
+					biggestMatches.size(), smallerMatches.size(), aConfig);
 			biggestMatches.addAll(value);
 		}
 
@@ -450,25 +454,25 @@ public class BaseRule {
 				for (int i = 0; i < biggestMatches.size(); i++) {
 					CombiMatch aBiggestMatch = biggestMatches.get(i);
 					// compare/combine combimatches.
-					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, config);
+					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, aConfig);
 
 					if (newCombiMatch != null) {
 						// successful merge add new biggest and demote old biggest
 						toBeAddedToBiggestMatches.add(newCombiMatch);
 						candidateWasMerged = true;
 						toBeDemotedMatchIndices.add(i);
-					} else if (config.contains(MatchFlag.FULLY_COVERED))
+					} else if (aConfig.contains(MatchFlag.FULLY_COVERED))
 						toBeDemotedMatchIndices.add(i);
 				}
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 
 					// we need to sort the smaller matches on size (from big to small)
 					// to make sure the isSubCombiMatch method works correctly in this algo
 
 					// do this 'costly' merge operation in parallel
 					var newCombiMatches = smallerMatches.stream().parallel().map(aSmallerMatch -> {
-						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, config);
+						return mergeCombiMatches(candidateCombiMatch, aSmallerMatch, aConfig);
 					}).filter(Objects::nonNull).sorted(new CombiMatchSizeComparator()).collect(Collectors.toList());
 
 					// determine where to add new combi matches
@@ -490,7 +494,7 @@ public class BaseRule {
 					}
 				}
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 					if (!candidateWasMerged)
 						toBeAddedToBiggestMatches.add(candidateCombiMatch);
 					else
@@ -503,7 +507,7 @@ public class BaseRule {
 			Collections.sort(sortedList, Collections.reverseOrder());
 			for (int i : sortedList) {
 
-				if (!config.contains(MatchFlag.FULLY_COVERED)) {
+				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
 					toBeAddedToSmallerMatches.add(biggestMatches.get(i));
 				}
 				biggestMatches.remove(i);
@@ -520,13 +524,13 @@ public class BaseRule {
 
 		allMatches.addAll(biggestMatches);
 
-		if (!config.contains(MatchFlag.ONLY_BIGGEST)) {
+		if (!aConfig.contains(MatchFlag.ONLY_BIGGEST)) {
 			allMatches.addAll(smallerMatches);
 		}
 
 //		printAllMatches(allMatches);
 
-		return convertToMap(allMatches);
+		return new HashSet<CombiMatch>(allMatches);
 	}
 
 	private static void printAllMatches(List<CombiMatch> allMatches) {
@@ -597,7 +601,7 @@ public class BaseRule {
 			CombiMatch newCombiMatch = new CombiMatch(aBiggestCombiMatch);
 			Set<Match> newBiggestMatch = new HashSet<>(biggestMatch);
 
-			// we merge it with one of the avaialble matches (does that work?)
+			// we merge it with one of the available matches (does that work?)
 			for (Match m : biggestMatch) {
 				newMatch = m.merge(candidateMatch);
 				if (newMatch != null) {
@@ -635,7 +639,7 @@ public class BaseRule {
 		for (Match biggestMatch : biggestMatches) {
 			var biggestMatchMP = biggestMatch.getMatchingPatterns();
 			for (Map.Entry<TriplePattern, TriplePattern> entry : biggestMatchMP.entrySet()) {
-				if (entry.getValue().equals(candidateMatchMP.getValue())) {
+				if (!entry.getValue().equals(candidateMatchMP.getValue())) {
 					return true;
 				}
 			}
@@ -644,7 +648,7 @@ public class BaseRule {
 		return false;
 	}
 
-	private static Map<BaseRule, Set<Match>> convertToMap(List<CombiMatch> combiMatches) {
+	private static Map<BaseRule, Set<Match>> convertToMap(Set<CombiMatch> combiMatches) {
 		Map<BaseRule, Set<Match>> matchesPerRule = new HashMap<>();
 		for (CombiMatch combiMatch : combiMatches) {
 			for (Map.Entry<BaseRule, Set<Match>> ruleMatch : combiMatch.entrySet()) {
@@ -670,11 +674,15 @@ public class BaseRule {
 	 * matched to the same triple pattern. This is the case in transitivity
 	 * scenario's and we there support multiple match objects.
 	 */
-	private static class CombiMatch extends HashMap<BaseRule, Set<Match>> {
+	public static class CombiMatch extends HashMap<BaseRule, Set<Match>> {
 		private static final long serialVersionUID = 1L;
 
 		public CombiMatch() {
 			super();
+		}
+
+		public CombiMatch(Map<BaseRule, Set<Match>> someRules) {
+			super(someRules);
 		}
 
 		/**

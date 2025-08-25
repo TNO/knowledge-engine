@@ -15,7 +15,7 @@
 	<description>A user interface for managing a Knowledge Network.</description>
 
 	<properties>
-		<swagger-core-version>2.2.32</swagger-core-version>
+		<swagger-core-version>2.2.34</swagger-core-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -159,7 +159,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.6.1</version>
 				<executions>
 					<execution>
 						<id>add-source</id>
