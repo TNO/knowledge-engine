@@ -55,7 +55,7 @@ public class TestAskAnswerWithGapsEnabled {
 				try {
 					// register the AnswerKB
 					HttpTester registerAnswerKb = new HttpTester(new URL(url + "/sc"), "POST",
-							"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationProvider\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerEnabled\" : true}",
+							"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationProvider\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
 							Map.of("Content-Type", "application/json", "Accept", "*/*"));
 					registerAnswerKb.expectStatus(200);
 
@@ -103,7 +103,7 @@ public class TestAskAnswerWithGapsEnabled {
 		KBReady.await();
 		// register the AskKB
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerEnabled\" : true}",
+				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerLevel\" : 2}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 

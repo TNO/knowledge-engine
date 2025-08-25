@@ -39,7 +39,7 @@ public class TestAskWithGapsEnabled {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerEnabled\" : true}",
+				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerLevel\" : 2}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 
