@@ -93,8 +93,8 @@ public class ReasonerPlan {
 		} else {
 			// interested in both consequent and antecedent neighbors
 
-//			EnumSet<MatchFlag> modMatchConfig = EnumSet.copyOf(this.matchConfig);
-//			modMatchConfig.add(MatchFlag.SINGLE_RULE);
+			EnumSet<MatchFlag> modMatchConfig = EnumSet.copyOf(this.matchConfig);
+			modMatchConfig.add(MatchFlag.SINGLE_RULE);
 
 			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
@@ -164,14 +164,19 @@ public class ReasonerPlan {
 		for (CombiMatch cm : consequentCombiMatches) {
 			if (cm.containsKey(antRule)) {
 				newCm = new CombiMatch();
-				filteredAndInvertedCombiMatches.add(newCm);
 				Set<Match> matches = cm.get(antRule);
 				Set<Match> newMatches = new HashSet<Match>();
 				for (Match m : matches) {
-					newMatches.add(m.inverse());
+
+					if (m.getMatchingPatterns().size() > 0
+							&& m.getMatchingPatterns().size() == antRule.getAntecedent().size()) {
+						newMatches.add(m.inverse());
+					}
 				}
-				newCm.put(consRule, newMatches);
-				filteredAndInvertedCombiMatches.add(newCm);
+				if (!newMatches.isEmpty()) {
+					newCm.put(consRule, newMatches);
+					filteredAndInvertedCombiMatches.add(newCm);
+				}
 			}
 		}
 
