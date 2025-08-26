@@ -47,7 +47,7 @@ public class ReasonerPlan {
 		this.store = aStore;
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
-		createOrGetReasonerNode(this.start, null);
+		createOrGetRuleNode(this.start, null);
 	}
 
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, EnumSet<MatchFlag> aConfig) {
@@ -55,10 +55,10 @@ public class ReasonerPlan {
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
 		this.matchConfig = aConfig;
-		createOrGetReasonerNode(this.start, null);
+		createOrGetRuleNode(this.start, null);
 	}
 
-	private RuleNode createOrGetReasonerNode(BaseRule aRule, BaseRule aParent) {
+	private RuleNode createOrGetRuleNode(BaseRule aRule, BaseRule aParent) {
 
 		final RuleNode currentRuleNode;
 		if (this.ruleToRuleNode.containsKey(aRule))
@@ -75,7 +75,7 @@ public class ReasonerPlan {
 			this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof AntSide;
-					var newNode = createOrGetReasonerNode(rule, aRule);
+					var newNode = createOrGetRuleNode(rule, aRule);
 					assert newNode instanceof ConsSide;
 					((AntSide) currentRuleNode).addAntecedentNeighbour(newNode, matches);
 
@@ -99,7 +99,7 @@ public class ReasonerPlan {
 			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof ConsSide;
-					var newNode = createOrGetReasonerNode(rule, aRule);
+					var newNode = createOrGetRuleNode(rule, aRule);
 					((ConsSide) currentRuleNode).addConsequentNeighbour(newNode, matches);
 
 					Set<CombiMatch> antCombiMatches = filterAndInvertCombiMatches(rule, aRule,
@@ -140,7 +140,7 @@ public class ReasonerPlan {
 				antecedentNeighbors.forEach((rule, matches) -> {
 					if (!(rule instanceof ProactiveRule)) {
 						assert currentRuleNode instanceof AntSide;
-						var newNode = createOrGetReasonerNode(rule, aRule);
+						var newNode = createOrGetRuleNode(rule, aRule);
 						assert newNode instanceof ConsSide;
 						((AntSide) currentRuleNode).addAntecedentNeighbour(newNode, matches);
 
