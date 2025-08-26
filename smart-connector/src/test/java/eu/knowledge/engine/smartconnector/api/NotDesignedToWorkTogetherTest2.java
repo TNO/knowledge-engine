@@ -135,7 +135,7 @@ public class NotDesignedToWorkTogetherTest2 {
 		pp.getReasonerPlan().getStore().printGraphVizCode(pp.getReasonerPlan());
 		pp.execute(argument);
 
-		boolean allTouched = latch.await(3600000, TimeUnit.MILLISECONDS);
+		boolean allTouched = latch.await(3000, TimeUnit.MILLISECONDS);
 
 		assertTrue(allTouched);
 

@@ -105,7 +105,12 @@ public class ReasonerPlan {
 					Set<CombiMatch> antCombiMatches = filterAndInvertCombiMatches(rule, aRule,
 							this.store.getConsequentCombiMatches(currentRuleNode.getRule()));
 
-					((AntSide) newNode).setAntecedentCombiMatches(antCombiMatches);
+					var existing = ((AntSide) newNode).getAntecedentCombiMatches();
+
+					if (existing == null)
+						((AntSide) newNode).setAntecedentCombiMatches(antCombiMatches);
+					else
+						existing.addAll(antCombiMatches);
 
 					var inverseMatches = Match.invertAll(matches);
 					((AntSide) newNode).addAntecedentNeighbour(currentRuleNode, inverseMatches);
