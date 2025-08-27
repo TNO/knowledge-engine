@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 
-import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
+import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 public class EdcConnectorClient {
 

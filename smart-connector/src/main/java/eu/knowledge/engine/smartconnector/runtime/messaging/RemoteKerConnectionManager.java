@@ -21,7 +21,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.PropertySource;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
@@ -44,7 +43,6 @@ import jakarta.ws.rs.core.SecurityContext;
  * {@link RemoteKerConnection} for each remote runtime. In addition, it is also
  * responsible for notifying other KnowledgeEngineRuntimes of local changes.
  */
-@PropertySource("classpath:edc.properties")
 public class RemoteKerConnectionManager extends SmartConnectorManagementApiService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnectionManager.class);

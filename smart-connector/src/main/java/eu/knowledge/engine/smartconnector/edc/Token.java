@@ -1,6 +1,6 @@
 package eu.knowledge.engine.smartconnector.edc;
 
-import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
+import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 public record Token(String tokenJson, String id, String contractId, String authKey, String authCode, String endpoint) {
 

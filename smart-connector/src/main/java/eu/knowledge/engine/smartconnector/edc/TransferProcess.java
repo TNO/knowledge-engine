@@ -1,6 +1,6 @@
 package eu.knowledge.engine.smartconnector.edc;
 
-import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
+import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 public record TransferProcess(String participantId, String counterPartyParticipantId, String contractAgreementId, String responseJson, String transferProcessResponseId) {
 

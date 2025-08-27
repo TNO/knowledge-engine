@@ -1,7 +1,7 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
-import static nl.tno.tke.edc.TkeEdcJsonUtil.findByJsonPointerExpression;
+import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 import java.io.FileInputStream;
 import java.io.IOException;
