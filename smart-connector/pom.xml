@@ -207,11 +207,6 @@
 			<artifactId>smallrye-config</artifactId>
 			<version>3.13.2</version>
 		</dependency>
-		<dependency>
-			<groupId>nl.tno.tke.edc</groupId>
-			<artifactId>tke-edc-manager</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 
 	<properties>

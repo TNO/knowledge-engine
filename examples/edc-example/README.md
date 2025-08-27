@@ -51,16 +51,13 @@ This example uses 3 knowledge bases as depicted below.
 One knowledge base asks for information and the other two provide an answer to the question.
 
 ### Executing the example
-This example requires the use of the `tke-edc-manager`.
-
 Execute the following steps to run the example:
-1. In the `tke-edc-manager` project, run `./mvnw clean install`.
-2. In this project, execute a `mvn clean install`.
-3. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.2.5-SNAPSHOT`.
-4. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.2.5-SNAPSHOT`.
-5. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
-6. In the `examples/edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
-7. Wait around 10 seconds to give the EDC Connectors time to finish setting up. Then, execute `docker compose up -d` to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
+1. In this project, execute a `mvn clean install`.
+2. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.2.5-SNAPSHOT`.
+3. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.2.5-SNAPSHOT`.
+4. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
+5. In the `examples/edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
+6. Wait around 10 seconds to give the EDC Connectors time to finish setting up. Then, execute `docker compose up -d` to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
 
 You can inspect the logs with `docker compose logs -f`.
 After a moment (+-30 seconds), the logs will stabilise when the connectors have finished initiating the various data flows.
