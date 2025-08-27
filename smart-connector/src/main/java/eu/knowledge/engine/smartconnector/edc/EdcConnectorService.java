@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -21,8 +19,8 @@ import java.util.UUID;
 public class EdcConnectorService {
 
 	private final Logger log = LoggerFactory.getLogger(EdcConnectorService.class);
-	private final List<EdcConnectorProperties> configuration;
 	private final Map<String, EdcConnectorClient> connectors = new HashMap<>();
+	private final Map<String, EdcConnectorProperties> configuration = new HashMap<>();
 
 	// these are all static for every connector
 	public final static String DATA_PLANE_ID = "tke-dataplane";
@@ -31,8 +29,6 @@ public class EdcConnectorService {
 
 	@Inject
 	public EdcConnectorService(List<EdcConnectorProperties> configuration) {
-		this.configuration = configuration;
-
 		for (EdcConnectorProperties connector : configuration) {
 			addConnector(connector);
 		}
@@ -42,6 +38,7 @@ public class EdcConnectorService {
 		log.info("Adding connector for [participant id: {}] with [management url: {}]",
 				connector.participantId(), connector.managementUrl());
 		connectors.put(connector.participantId(), new EdcConnectorClient(connector.managementUrl()));
+		configuration.put(connector.participantId(), connector);
 	}
 
 	/**
@@ -52,7 +49,7 @@ public class EdcConnectorService {
 	 */
 	public HashMap<String, String> configureConnector(String participantId) {
 		log.info("configureConnector for participantId: {}", participantId);
-		EdcConnectorProperties properties = getConnectorPropertiesForParticipantId(participantId);
+		EdcConnectorProperties properties = configuration.get(participantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 
 		String existingAssetId = getAssetIdFromCatalogForAssetName(properties.participantId(),
@@ -103,7 +100,7 @@ public class EdcConnectorService {
 	public String catalogRequest(String participantId, String counterPartyParticipantId) {
 		log.info("catalogRequest for participantId: {}", participantId);
 		EdcConnectorClient connector = connectors.get(participantId);
-		EdcConnectorProperties counterPartyProperties = getConnectorPropertiesForParticipantId(
+		EdcConnectorProperties counterPartyProperties = configuration.get(
 				counterPartyParticipantId);
 
 		var counterPartyProtocolUrl = counterPartyProperties.protocolUrl();
@@ -124,9 +121,8 @@ public class EdcConnectorService {
 	public String negotiateContract(String participantId, String counterPartyParticipantId, String assetId) {
 		log.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", participantId,
 				counterPartyParticipantId, assetId);
-		EdcConnectorProperties participantProperties = getConnectorPropertiesForParticipantId(participantId);
-		EdcConnectorProperties counterPartyProperties = getConnectorPropertiesForParticipantId(
-				counterPartyParticipantId);
+		EdcConnectorProperties participantProperties = configuration.get(participantId);
+		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 
 		// note that the counterparty protocol url could also be extract from the
@@ -148,8 +144,7 @@ public class EdcConnectorService {
 		log.info(
 				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}, assetId: {}",
 				participantId, counterPartyParticipantId, contractAgreementId, assetId);
-		EdcConnectorProperties counterPartyProperties = getConnectorPropertiesForParticipantId(
-				counterPartyParticipantId);
+		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 
 		var counterPartyAddress = counterPartyProperties.protocolUrl(); // dsp protocol address of the
@@ -157,12 +152,5 @@ public class EdcConnectorService {
 		var providerId = counterPartyProperties.participantId();
 
 		return connector.transferProcess(counterPartyAddress, providerId, contractAgreementId, assetId);
-	}
-
-	private EdcConnectorProperties getConnectorPropertiesForParticipantId(String participantId) {
-		Optional<EdcConnectorProperties> first = configuration.stream()
-				.filter(it -> Objects.equals(it.participantId(), participantId)).findFirst();
-		return first.orElseThrow(() -> new IllegalArgumentException(
-				"EdcConnectorProperties not found for participantId: " + participantId));
 	}
 }

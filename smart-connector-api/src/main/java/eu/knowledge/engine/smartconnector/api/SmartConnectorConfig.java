@@ -63,6 +63,31 @@ public class SmartConnectorConfig {
 	 * Key to configure if a KER should use the EDC functionality or not.
 	 */
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
+	
+	/**
+	 * Key to configure if a KER should use the EDC functionality or not.
+	 */
+	public static final String CONF_KEY_KE_EDC_PROTOCOL_URL = "ke.edc.protocol.url";
+	
+	/**
+	 * Key to configure if a KER should use the EDC functionality or not.
+	 */
+	public static final String CONF_KEY_KE_EDC_MANAGEMENT_URL = "ke.edc.management.url";
+	
+	/**
+	 * Key to configure if a KER should use the EDC functionality or not.
+	 */
+	public static final String CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL = "ke.edc.dataplane.control.url";
+	
+	/**
+	 * Key to configure if a KER should use the EDC functionality or not.
+	 */
+	public static final String CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL = "ke.edc.dataplane.public.url";
+	
+	/**
+	 * Key to configure if a KER should use the EDC functionality or not.
+	 */
+	public static final String CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT = "ke.edc.token.validation.endpoint";
 
 	/**
 	 * Key to configure the default reasoner level (1-5) that is used in the current

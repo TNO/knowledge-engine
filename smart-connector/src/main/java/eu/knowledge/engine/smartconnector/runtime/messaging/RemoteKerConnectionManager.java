@@ -16,23 +16,26 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.PropertySource;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.SmartConnectorManagementApiService;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
+import eu.knowledge.engine.smartconnector.edc.EdcConnectorProperties;
+import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
+import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
+import eu.knowledge.engine.smartconnector.edc.Token;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import nl.tno.tke.edc.TkeEdcConnectorConfiguration;
-import nl.tno.tke.edc.TkeEdcConnectorProperties;
-import nl.tno.tke.edc.TkeEdcConnectorService;
-import nl.tno.tke.edc.TkeEdcInMemoryTokenManager;
-import nl.tno.tke.edc.Token;
 
 /**
  * The class is responsible for detecting new or removed remote
@@ -55,8 +58,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private ScheduledFuture<?> scheduledKnowledgeDirectoryQueryFuture;
 	private final MessageDispatcher messageDispatcher;
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
-	private TkeEdcConnectorService edcService = null;
-	private TkeEdcInMemoryTokenManager tokenManager = null;
+	private EdcConnectorService edcService = null;
+	private InMemoryTokenManager tokenManager = null;
 	private URI myExposedUrl;
 	private URI myEdcConnectorUrl = null;
 	private boolean useEdc;
@@ -68,10 +71,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		this.useEdc = useEdc;
 
 		if (this.useEdc) {
-			TkeEdcConnectorConfiguration config = loadConfig();
+			List<EdcConnectorProperties> config = loadConfig();
 
-			this.edcService = new TkeEdcConnectorService(config);
-			this.tokenManager = new TkeEdcInMemoryTokenManager();
+			this.edcService = new EdcConnectorService(config);
+			this.tokenManager = new InMemoryTokenManager();
 		}
 	}
 
@@ -80,40 +83,37 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	 * 
 	 * @return A configuration object with properties for the two connectors.
 	 */
-	private TkeEdcConnectorConfiguration loadConfig() {
+	private List<EdcConnectorProperties> loadConfig() {
 
-		String file = "./edc.properties";
-		LOG.info("Loading properties file: {}", file);
-		Properties properties = new Properties();
-		FileInputStream configReader;
+		Config config = ConfigProvider.getConfig();
+
+		ConfigValue protocolUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL);
+		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
+		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
+		ConfigValue dataPlanePublicUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL);
+
+		EdcConnectorProperties props = new EdcConnectorProperties(
+			this.myExposedUrl.toString(),
+			protocolUrl.getValue(),
+			managementUrl.getValue(),
+			"tke-dataplane",
+			dataPlaneControlUrl.getValue(),
+			dataPlanePublicUrl.getValue(),
+			"TNO Knowledge Engine Runtime",
+			"https://www.knowledge-engine.eu/"
+		);
+
+		LOG.info("Setting management url to: {}", managementUrl);
+
 		try {
-			configReader = new FileInputStream(file);
-			properties.load(configReader);
-			configReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		var config = new TkeEdcConnectorConfiguration();
-		TkeEdcConnectorProperties props = new TkeEdcConnectorProperties();
-		props.setParticipantId(this.myExposedUrl.toString());
-		props.setDataPlaneControlUrl(properties.getProperty("dataPlaneControlUrl"));
-		props.setDataPlanePublicUrl(properties.getProperty("dataPlanePublicUrl"));
-		props.setManagementUrl(properties.getProperty("managementUrl"));
-
-		LOG.info("Setting management url to: {}", properties.getProperty("managementUrl"));
-
-		props.setProtocolUrl(properties.getProperty("protocolUrl"));
-		try {
-			this.myEdcConnectorUrl = new URI(props.getProtocolUrl());
+			this.myEdcConnectorUrl = new URI(props.protocolUrl());
 		} catch (URISyntaxException e) {
 			LOG.error("Invalid syntax for EDC Connector URL");
 		}
 
-		List<TkeEdcConnectorProperties> connectors = List.of(props);
+		List<EdcConnectorProperties> connectors = List.of(props);
 
-		config.setConnector(connectors);
-		return config;
+		return connectors;
 	}
 
 	public void start() {
@@ -186,15 +186,17 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 				RemoteKerConnection messageSender;
 				if (useEdc) {
-					TkeEdcConnectorProperties prop = new TkeEdcConnectorProperties();
-					prop.setParticipantId(knowledgeEngineRuntime.getExposedUrl().toString());
-					prop.setProtocolUrl(knowledgeEngineRuntime.getEdcConnectorUrl().toString());
+					EdcConnectorProperties prop = new EdcConnectorProperties(
+						knowledgeEngineRuntime.getExposedUrl().toString(),
+						knowledgeEngineRuntime.getEdcConnectorUrl().toString()
+					);
 					this.edcService.addConnector(prop);
 
 					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
 							this.edcService, this.tokenManager, knowledgeEngineRuntime);
 				} else {
-					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, null, null, knowledgeEngineRuntime);
+					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, null, null,
+							knowledgeEngineRuntime);
 				}
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();

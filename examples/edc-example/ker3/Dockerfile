@@ -1,2 +1,2 @@
-FROM docker.io/library/testsc:1.2.5-SNAPSHOT
+FROM docker.io/library/testsc:1.3.2-SNAPSHOT
 COPY ./edc.properties /edc.properties

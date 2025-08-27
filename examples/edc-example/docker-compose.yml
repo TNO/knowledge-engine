@@ -3,7 +3,7 @@ services:
   # This is the knowledge directory, facilitating discovery between different
   # runtimes. It exposes its service over port 8282.
   knowledge-directory:
-    image: testkd:1.2.5-SNAPSHOT
+    image: testkd:1.3.2-SNAPSHOT
     networks:
       - tke-edc-manager_default
 
@@ -19,7 +19,12 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-1:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
-      USE_EDC: true
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PROTOCOL_URL: "http://one:19194/protocol"
+      KE_EDC_MANAGEMENT_URL: "http://one:19193/management"
+      KE_EDC_DATAPLANE_CONTROL_URL: "http://one:19192/control/transfer"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://one:19191/public"
+      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://one:19192/control/token"
     depends_on:
       - tke-edc-one
   runtime-2:
@@ -31,7 +36,12 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-2:8081
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
-      USE_EDC: true
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PROTOCOL_URL: "http://two:29194/protocol"
+      KE_EDC_MANAGEMENT_URL: "http://two:29193/management"
+      KE_EDC_DATAPLANE_CONTROL_URL: "http://two:29192/control/transfer"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://two:29191/public"
+      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://two:29192/control/token"
     depends_on:
       - tke-edc-two
   runtime-3:
@@ -42,8 +52,13 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-3:8081
       KD_URL: http://knowledge-directory:8282
-      USE_EDC: true
       JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PROTOCOL_URL: "http://three:39194/protocol"
+      KE_EDC_MANAGEMENT_URL: "http://three:39193/management"
+      KE_EDC_DATAPLANE_CONTROL_URL: "http://three:39192/control/transfer"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://three:39191/public"
+      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://three:39192/control/token"
     depends_on:
       - tke-edc-three
   tke-edc-one:

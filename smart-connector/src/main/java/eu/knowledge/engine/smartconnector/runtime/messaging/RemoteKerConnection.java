@@ -40,8 +40,8 @@ import eu.knowledge.engine.smartconnector.messaging.ReactMessage;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
-import nl.tno.tke.edc.TkeEdcConnectorService;
-import nl.tno.tke.edc.TkeEdcInMemoryTokenManager;
+import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
+import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
 
 /**
  * This class is responsible for sending messages to a single remote Knowledge
@@ -53,8 +53,8 @@ public class RemoteKerConnection {
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
 	private URI myExposedUri = null;
-	private TkeEdcConnectorService edcService;
-	private TkeEdcInMemoryTokenManager tokenManager;
+	private EdcConnectorService edcService;
+	private InMemoryTokenManager tokenManager;
 
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
 	private final URI remoteKerUri;
@@ -87,8 +87,8 @@ public class RemoteKerConnection {
 	private String authToken;
 	private String validationEndpoint;
 
-	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, TkeEdcConnectorService edcService,
-			TkeEdcInMemoryTokenManager tokenManager, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
+	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, EdcConnectorService edcService,
+			InMemoryTokenManager tokenManager, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails) {
 		this.myExposedUri = myExposedUri;
 		this.dispatcher = dispatcher;
 		this.remoteKerConnectionDetails = kerConnectionDetails;
@@ -138,7 +138,7 @@ public class RemoteKerConnection {
 				e.printStackTrace();
 			}
 
-			validationEndpoint = properties.getProperty("tokenValidationEndpoint");
+			this.validationEndpoint = properties.getProperty("tokenValidationEndpoint");
 			setupTransferProcess();
 		}
 	}
@@ -150,7 +150,7 @@ public class RemoteKerConnection {
 	 */
 	private void setupTransferProcess() {
 		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(this.myExposedUri.toString(),
-				this.remoteKerUri.toString(), TkeEdcConnectorService.ASSET_NAME);
+				this.remoteKerUri.toString(), EdcConnectorService.ASSET_NAME);
 		String contractAgreementJson = this.edcService.negotiateContract(this.myExposedUri.toString(),
 				this.remoteKerUri.toString(), assetId);
 
