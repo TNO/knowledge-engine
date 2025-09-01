@@ -143,6 +143,9 @@ components:
         lastRenew:
           type: string
           format: date-time
+        edcConnectorUrl:
+          type: string
+          format: uri
       required:
         - exposedUrl
         - protocolVersion
