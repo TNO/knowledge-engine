@@ -14,7 +14,7 @@
 
 	<properties>
 		<!-- TODO move some of these to ke-parent -->
-		<swagger-core-version>2.2.35</swagger-core-version>
+		<swagger-core-version>2.2.36</swagger-core-version>
 		<beanvalidation-version>3.1.1</beanvalidation-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
