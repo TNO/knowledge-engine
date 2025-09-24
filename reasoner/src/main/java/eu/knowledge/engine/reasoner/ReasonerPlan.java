@@ -2,7 +2,6 @@ package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -47,6 +45,9 @@ public class ReasonerPlan {
 	private EnumSet<MatchFlag> matchConfig = EnumSet.noneOf(MatchFlag.class);
 	private boolean useTaskBoard = true;
 
+	/**
+	 * @see ReasonerPlan#ReasonerPlan(RuleStore, ProactiveRule, EnumSet)
+	 */
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
 		this.store = aStore;
 		this.start = aStartRule;
@@ -54,6 +55,16 @@ public class ReasonerPlan {
 		createOrGetRuleNode(this.start);
 	}
 
+	/**
+	 * Create a new reasoner plan with the given {@link RuleStore},
+	 * {@link ProactiveRule} and {@link MatchFlag}s.
+	 * 
+	 * @param aStore     The store into which all the rules are available to use for
+	 *                   the plan.
+	 * @param aStartRule The Proactive rule (should be available in {@code aStore})
+	 *                   to start the plan with.
+	 * @param aConfig    The configuration to use for creating the plan.
+	 */
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, EnumSet<MatchFlag> aConfig) {
 		this.store = aStore;
 		this.start = aStartRule;
@@ -62,6 +73,14 @@ public class ReasonerPlan {
 		createOrGetRuleNode(this.start);
 	}
 
+	/**
+	 * Creates (or gets) a {@link RuleNode} for the given {@link BaseRule}. It
+	 * recursively creates {@link RuleNode}'s for any neighbors encountered.
+	 * 
+	 * @param aRule The {@link BaseRule} for which to create (or get) the
+	 *              {@link RuleNode}.
+	 * @return The {@link RuleNode} belonging with the given {@link BaseRule}
+	 */
 	private RuleNode createOrGetRuleNode(BaseRule aRule) {
 
 		final RuleNode currentRuleNode;
@@ -73,6 +92,8 @@ public class ReasonerPlan {
 
 		// build the reasoner node graph
 		this.ruleToRuleNode.put(aRule, currentRuleNode);
+
+		LOG.trace("Creating RuleNode for: {}", aRule);
 
 		if (isBackward()) {
 			// we are only interested in antecedent neighbors.
@@ -102,7 +123,6 @@ public class ReasonerPlan {
 
 			Map<BaseRule, Set<Match>> consequentNeighbors = this.store.getConsequentNeighbors(aRule, this.matchConfig);
 
-			LOG.info("Rule1: {} ({})", aRule, consequentNeighbors.size());
 			consequentNeighbors.forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof ConsSide;
@@ -182,6 +202,14 @@ public class ReasonerPlan {
 		return currentRuleNode;
 	}
 
+	/**
+	 * Checks if the given rule is an ancestor of the Proactive start node of this
+	 * reasoner plan. With ancestor we mean whether starting from the proactive node
+	 * we can reach the given node following arrows in the same direction.
+	 * 
+	 * @param aRule The rule to check.
+	 * @return Whether the given rule is an ancestor.
+	 */
 	private boolean isAncestorOfStartNode(BaseRule aRule) {
 		return isAncestorOfStartNode(aRule, new ArrayList<BaseRule>());
 	}
@@ -215,6 +243,18 @@ public class ReasonerPlan {
 		return isAncestor;
 	}
 
+	/**
+	 * Filters and inverts the given set of combi matches that connect the given
+	 * {@code antRule} and {@code consRule}.
+	 * 
+	 * @param antRule                The antecedent rule for which the given combi
+	 *                               matches were created.
+	 * @param consRule               The consequent rule for which the given combi
+	 *                               matches are being inversed.
+	 * @param consequentCombiMatches The combi matches to filter and invert.
+	 * @return Only those combimatches that contain antRule and contain the same
+	 *         triple patterns as the antecedent of antRule.
+	 */
 	private Set<CombiMatch> filterAndInvertCombiMatches(BaseRule antRule, BaseRule consRule,
 			Set<CombiMatch> consequentCombiMatches) {
 

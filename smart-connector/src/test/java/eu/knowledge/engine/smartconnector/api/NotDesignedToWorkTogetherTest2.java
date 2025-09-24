@@ -29,8 +29,8 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
  * make the app work with the new dimmable type of lamp although it was not
  * designed to work with those types.
  * 
- * This second versino of this unit test is meant to test specific behaviour of
- * the reasoner where a full domain rule does is not activated, but there is
+ * This second version of this unit test is meant to test specific behaviour of
+ * the reasoner where a full domain rule does is not get activated, but there is
  * still enough data to apply its consequent neighbor.
  * 
  * @author nouwtb

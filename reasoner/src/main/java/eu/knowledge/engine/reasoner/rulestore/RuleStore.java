@@ -432,11 +432,4 @@ public class RuleStore {
 		return text;
 	}
 
-	public void findAllMatches() {
-		for (Map.Entry<BaseRule, MatchNode> entry : this.ruleToMatchNode.entrySet()) {
-			this.getConsequentNeighbors(entry.getKey(), EnumSet.noneOf(MatchFlag.class));
-			this.getAntecedentNeighbors(entry.getKey(), EnumSet.noneOf(MatchFlag.class));
-		}
-	}
-
 }

@@ -341,7 +341,7 @@ public class ForwardTest {
 
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
-		store.findAllMatches();
+//		store.findAllMatches();
 
 		store.printGraphVizCode(rn);
 
