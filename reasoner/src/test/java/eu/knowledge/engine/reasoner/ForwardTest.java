@@ -74,15 +74,13 @@ public class ForwardTest {
 		// data rule
 		DataBindingSetHandler aBindingSetHandler = new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
-						"a", "b", "n"
-						// @formatter:on
+				"a", "b", "n"
+				// @formatter:on
 		}, new String[] {
 				// @formatter:off
-						"<barry>,<fenna>,\"Barry\"", 
-						"<janny>,<barry>,\"Janny\"", 
-						"<fenna>,<benno>,\"Fenna\"",
-						"<benno>,<loes>,\"Benno\"",
-						// @formatter:on
+				"<barry>,<fenna>,\"Barry\"", "<janny>,<barry>,\"Janny\"", "<fenna>,<benno>,\"Fenna\"",
+				"<benno>,<loes>,\"Benno\"",
+				// @formatter:on
 		}));
 
 		optionalRule = new Rule(new HashSet<>(),
@@ -154,10 +152,7 @@ public class ForwardTest {
 				// @formatter:on
 		}, new String[] {
 				// @formatter:off
-				"<barry>,<fenna>", 
-				"<janny>,<barry>", 
-				"<fenna>,<benno>", 
-				"<benno>,<loes>",
+				"<barry>,<fenna>", "<janny>,<barry>", "<fenna>,<benno>", "<benno>,<loes>",
 				// @formatter:on
 		}).getData());
 
@@ -207,8 +202,7 @@ public class ForwardTest {
 				// @formatter:on
 		}, new String[] {
 				// @formatter:off
-				"<fenna>,<benno>", 
-				"<benno>,<loes>",
+				"<fenna>,<benno>", "<benno>,<loes>",
 				// @formatter:on
 		}).getData());
 
@@ -250,10 +244,7 @@ public class ForwardTest {
 				// @formatter:on
 		}, new String[] {
 				// @formatter:off
-				"<barry>,<fenna>", 
-				"<janny>,<barry>", 
-				"<fenna>,<benno>", 
-				"<benno>,<loes>",
+				"<barry>,<fenna>", "<janny>,<barry>", "<fenna>,<benno>", "<benno>,<loes>",
 				// @formatter:on
 		}).getData());
 
@@ -299,10 +290,7 @@ public class ForwardTest {
 				// @formatter:on
 		}, new String[] {
 				// @formatter:off
-				"<barry>,<fenna>", 
-				"<janny>,<barry>", 
-				"<fenna>,<benno>",
-				"<benno>,<loes>",
+				"<barry>,<fenna>", "<janny>,<barry>", "<fenna>,<benno>", "<benno>,<loes>",
 				// @formatter:on
 		}).getData());
 
@@ -344,16 +332,16 @@ public class ForwardTest {
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "v"
-						// @formatter:on
+				// @formatter:on
 				}, new String[] {
 				// @formatter:off
-						"<sens1>,4", 
-						"<sens2>,5", 
-						"<sens3>,6"
-						// @formatter:on
+						"<sens1>,4", "<sens2>,5", "<sens3>,6"
+				// @formatter:on
 				}))));
 
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
+
+		store.findAllMatches();
 
 		store.printGraphVizCode(rn);
 
@@ -403,13 +391,11 @@ public class ForwardTest {
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "r"
-						// @formatter:on
+				// @formatter:on
 				}, new String[] {
 				// @formatter:off
-						"<sens1>,<room1>",
-						"<sens2>,<room2>", 
-						"<sens3>,<room3>"
-						// @formatter:on
+						"<sens1>,<room1>", "<sens2>,<room2>", "<sens3>,<room3>"
+				// @formatter:on
 				}))));
 
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
@@ -462,13 +448,11 @@ public class ForwardTest {
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "r"
-						// @formatter:on
+				// @formatter:on
 				}, new String[] {
 				// @formatter:off
-						"<sens1>,<room1>",
-						"<sens2>,<room2>", 
-						"<sens3>,<room3>"
-						// @formatter:on
+						"<sens1>,<room1>", "<sens2>,<room2>", "<sens3>,<room3>"
+				// @formatter:on
 				}))));
 
 		ProactiveRule aStartRule = new ProactiveRule(new HashSet<>(), premise);
@@ -540,13 +524,13 @@ public class ForwardTest {
 				new DataBindingSetHandler(new Table(new String[] {
 				// @formatter:off
 						"s", "a"
-						// @formatter:on
+				// @formatter:on
 				}, new String[] {
 				// @formatter:off
 						"<badkamer>,<bovenverdieping>", 
-						"<woonkamer>,<benedenverdieping>", 
+						"<woonkamer>,<benedenverdieping>",
 						"<slaapkamer>,<bovenverdieping>"
-						// @formatter:on
+				// @formatter:on
 				}))));
 
 		TriplePattern tp41 = new TriplePattern("?s <isInArea> ?b");
@@ -558,7 +542,6 @@ public class ForwardTest {
 
 		store.printGraphVizCode(rn);
 
-		LOG.info("\n{}", rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
 				// @formatter:off
@@ -574,8 +557,6 @@ public class ForwardTest {
 		while ((tb = rn.execute(bs)).hasTasks()) {
 			tb.executeScheduledTasks().get();
 		}
-
-		LOG.info("\n{}", rn);
 
 		LOG.info("BindingSet: {}", aBindingSetHandler1.getBindingSet());
 		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
