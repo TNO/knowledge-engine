@@ -177,15 +177,8 @@ public class FullRuleNode extends RuleNode implements AntSide, ConsSide {
 	@Override
 	public boolean readyForApplyRule() {
 		boolean isReady;
-		// TODO: This (the "Except" part) was needed to make transitivity work, but not
-		// sure if it is correct
-
-		if (!this.resultBindingSetInput.get().isEmpty()) {
-			Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
-			isReady = this.resultBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
-		} else {
-			isReady = false;
-		}
+		Set<RuleNode> exceptNodes = this.getAllSameLoopNeighbors();
+		isReady = this.resultBindingSetInput.haveAllNeighborsContributedExcept(exceptNodes);
 		return isReady;
 	}
 
