@@ -140,17 +140,23 @@ public class ReasonerPlan {
 			// antecedent neighbors to propagate bindings further via backward chaining
 
 			// determine whether our parent matches us partially
-			boolean ourAntecedentFullyMatchesParentConsequent = true;
+			boolean ourAntecedentFullyMatchesAllParentConsequents = false;
 
+			boolean allMatch = true;
+			int count = 0;
 			Map<BaseRule, Set<Match>> antecedentNeighbors = this.store.getAntecedentNeighbors(aRule, this.matchConfig);
 			for (BaseRule neighborRule : antecedentNeighbors.keySet()) {
 				if (this.isAncestorOfStartNode(neighborRule)) {
-					ourAntecedentFullyMatchesParentConsequent &= antecedentFullyMatchesConsequent(aRule, neighborRule,
+					allMatch &= antecedentFullyMatchesConsequent(aRule, neighborRule,
 							antecedentNeighbors.get(neighborRule));
+					count++;
 				}
 			}
 
-			if (!ourAntecedentFullyMatchesParentConsequent) {
+			if (count > 0 && allMatch)
+				ourAntecedentFullyMatchesAllParentConsequents = true;
+
+			if (!ourAntecedentFullyMatchesAllParentConsequents) {
 				antecedentNeighbors.forEach((rule, matches) -> {
 					assert currentRuleNode instanceof AntSide;
 					var newNode = createOrGetRuleNode(rule);
