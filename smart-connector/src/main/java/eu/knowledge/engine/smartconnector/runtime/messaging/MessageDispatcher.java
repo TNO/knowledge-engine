@@ -58,6 +58,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	private final URI myExposedUrl;
 	private final URI kdUrl;
 
+	private boolean useEdc = false;
 	private State state;
 	private Server httpServer;
 
@@ -84,11 +85,16 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * @param myExposedUrl
 	 * @param kdUrl
 	 */
-	public MessageDispatcher(int myPort, URI myExposedUrl, URI kdUrl) {
+	public MessageDispatcher(int myPort, URI myExposedUrl, URI kdUrl, boolean useEdc) {
 		this.myPort = myPort;
 		this.myExposedUrl = myExposedUrl;
 		this.kdUrl = kdUrl;
 		this.state = State.NEW;
+		this.useEdc = useEdc;
+	}
+
+	public MessageDispatcher(int myPort, URI myExposedUrl, URI kdUrl) {
+		this(myPort, myExposedUrl, kdUrl, false);
 	}
 
 	/**
@@ -96,7 +102,7 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 	 * external Knowledge Directory.
 	 */
 	public MessageDispatcher() {
-		this(0, null, null);
+		this(0, null, null, false);
 	}
 
 	boolean runsInDistributedMode() {
@@ -115,13 +121,15 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 		localSmartConnectorConnectionsManager.start();
 
 		if (runsInDistributedMode()) {
-			// Start Knowledge Directory Connection Manager
-			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl);
-			this.getKnowledgeDirectoryConnectionManager().start();
-
 			// Start the RemoteSmartConnnectorConnectionsManager
-			remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this);
+			remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this, this.myExposedUrl, this.useEdc);
 			getRemoteSmartConnectorConnectionsManager().start();
+
+			URI myEdcConnectorUrl = remoteSmartConnectorConnectionsManager.getEdcConnectorUrl();
+			// Start Knowledge Directory Connection Manager
+			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl, myEdcConnectorUrl);
+
+			this.getKnowledgeDirectoryConnectionManager().start();
 
 			// Start HTTP Server
 			this.startHttpServer();
@@ -340,6 +348,10 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 		} catch (IOException e) {
 			LOG.error("Could not deliver message", e);
 		}
+	}
+
+	protected boolean usesEdc() {
+		return this.useEdc;
 	}
 
 }

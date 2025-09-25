@@ -40,6 +40,7 @@ The rest of this README is structured as follows:
   - [Using the REST API](#using-the-rest-api)
   - [Using the Java API](#using-the-java-api)
 - [Performance benchmark](#performance-benchmark)
+- [Current development](#current-development)
 - [Developer information](#developer-information)
   - [Components](#components)
   - [Release steps](#release-steps)
@@ -167,7 +168,7 @@ In the [`Java API Example` module](./examples/java-api), the Java API is used to
 Another knowledge base receives those bindings through a REACT knowledge interaction an prints them to the console.
 
 # Performance benchmark
-A preliminary performence benchmark of the Knowledge Engine is available in [this repository](https://github.com/faclc4/YCSB-KE/tree/master).
+A preliminary performance benchmark of the Knowledge Engine is available in [this repository](https://github.com/faclc4/YCSB-KE/tree/master).
 
 Based on this benchmark, the minimum requirements for the Knowledge Engine are:
 - i3-3040 Intel processor at 3.4 GHz
@@ -175,6 +176,11 @@ Based on this benchmark, the minimum requirements for the Knowledge Engine are:
 - 250Gb SSD drives
 
 Of course, it highly depends on how you want to use the Knowledge Engine, because the reasoner, for example, increases these requirements.
+
+
+# Current development
+The Knowledge Engine currently still undergoes further development.
+An integration with [Eclipse Dataspace Components (EDC)](https://eclipse-edc.github.io/documentation/) is among the features in development, which is not stable in its current form and cannot be guaranteed to not crash frequently and contain bugs. It will be subject to many changes in the future. However, an example on the intended (future) use of this functionality is detailed in the [example](./examples/edc-example/README.md) with a description of the setup and instructions on parameters to set and how to execute it.
 
 
 # Developer information

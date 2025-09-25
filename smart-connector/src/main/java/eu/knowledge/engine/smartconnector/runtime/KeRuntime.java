@@ -130,7 +130,11 @@ public class KeRuntime {
 							.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
 					URI myExposedUrl = new URI(exposedUrl.getValue());
 
-					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl, new URI(kdUrl.getValue()));
+					ConfigValue useEdc = config
+							.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_USE_EDC);
+					var myUseEdc = Boolean.parseBoolean(useEdc.getValue());
+
+					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl, new URI(kdUrl.getValue()), myUseEdc);
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
