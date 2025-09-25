@@ -65,27 +65,27 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
 	
 	/**
-	 * Key to configure if a KER should use the EDC functionality or not.
+	 * Key to configure where a KER can reach the protocol API of its own control plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_PROTOCOL_URL = "ke.edc.protocol.url";
 	
 	/**
-	 * Key to configure if a KER should use the EDC functionality or not.
+	 * Key to configure where a KER can reach the management API of its own control plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_MANAGEMENT_URL = "ke.edc.management.url";
 	
 	/**
-	 * Key to configure if a KER should use the EDC functionality or not.
+	 * Key to configure where a KER can reach its data plane control API if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL = "ke.edc.dataplane.control.url";
 	
 	/**
-	 * Key to configure if a KER should use the EDC functionality or not.
+	 * Key to configure where a KER can reach its data plane public API if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL = "ke.edc.dataplane.public.url";
 	
 	/**
-	 * Key to configure if a KER should use the EDC functionality or not.
+	 * Key to configure the URL where a KER can do token validation through the control plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT = "ke.edc.token.validation.endpoint";
 

@@ -190,7 +190,9 @@ public class KnowledgeDirectoryConnection {
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
-		ker.setEdcConnectorUrl(myEdcConnectorUrl); //TODO: make optional, or can just be null?
+		if (myEdcConnectorUrl != null) {
+			ker.setEdcConnectorUrl(myEdcConnectorUrl);
+		}
 
 		try {
 			HttpRequest registerRequest = HttpRequest

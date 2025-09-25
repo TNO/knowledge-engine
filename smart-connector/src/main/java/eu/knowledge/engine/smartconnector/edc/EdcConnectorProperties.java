@@ -11,7 +11,7 @@ public record EdcConnectorProperties(String participantId, String protocolUrl, S
             "tke-dataplane", 
             "", 
             "", 
-            "http://tke.tno.nl", 
+            "https://www.knowledge-engine.eu/", 
             "TNO Knowledge Engine Runtime"
         );
     }
