@@ -57,7 +57,6 @@ import eu.knowledge.engine.smartconnector.api.RecipientSelector;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorImpl;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.core.Response;
 
@@ -236,6 +235,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		if (scModel.getReasonerLevel() != null)
 			this.sc.setReasonerLevel(scModel.getReasonerLevel());
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			this.stop();
+		}));
 	}
 
 	protected void tryProcessHandleRequestElseEnqueue(HandleRequest handleRequest) {
@@ -728,7 +731,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		var response = new ResponseMessage();
 		response.setMessageType("message");
 		response.setMessage(
-				"This long polling request is cancelled by the server because the Knowledge Base is stopping.");
+				"This long polling request is cancelled by the server because it or the Knowledge Base is stopping. Do not reinitiate this request.");
 		boolean cancelledSucceeded = this.asyncResponse.resume(Response.status(410).entity(response).build());
 
 		if (!cancelledSucceeded) {
