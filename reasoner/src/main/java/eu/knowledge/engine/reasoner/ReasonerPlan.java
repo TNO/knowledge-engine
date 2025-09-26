@@ -1,12 +1,13 @@
 package eu.knowledge.engine.reasoner;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -44,22 +45,43 @@ public class ReasonerPlan {
 	private EnumSet<MatchFlag> matchConfig = EnumSet.noneOf(MatchFlag.class);
 	private boolean useTaskBoard = true;
 
+	/**
+	 * @see ReasonerPlan#ReasonerPlan(RuleStore, ProactiveRule, EnumSet)
+	 */
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule) {
 		this.store = aStore;
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
-		createOrGetReasonerNode(this.start, null);
+		createOrGetRuleNode(this.start);
 	}
 
+	/**
+	 * Create a new reasoner plan with the given {@link RuleStore},
+	 * {@link ProactiveRule} and {@link MatchFlag}s.
+	 * 
+	 * @param aStore     The store into which all the rules are available to use for
+	 *                   the plan.
+	 * @param aStartRule The Proactive rule (should be available in {@code aStore})
+	 *                   to start the plan with.
+	 * @param aConfig    The configuration to use for creating the plan.
+	 */
 	public ReasonerPlan(RuleStore aStore, ProactiveRule aStartRule, EnumSet<MatchFlag> aConfig) {
 		this.store = aStore;
 		this.start = aStartRule;
 		this.ruleToRuleNode = new HashMap<>();
 		this.matchConfig = aConfig;
-		createOrGetReasonerNode(this.start, null);
+		createOrGetRuleNode(this.start);
 	}
 
-	private RuleNode createOrGetReasonerNode(BaseRule aRule, BaseRule aParent) {
+	/**
+	 * Creates (or gets) a {@link RuleNode} for the given {@link BaseRule}. It
+	 * recursively creates {@link RuleNode}'s for any neighbors encountered.
+	 * 
+	 * @param aRule The {@link BaseRule} for which to create (or get) the
+	 *              {@link RuleNode}.
+	 * @return The {@link RuleNode} belonging with the given {@link BaseRule}
+	 */
+	private RuleNode createOrGetRuleNode(BaseRule aRule) {
 
 		final RuleNode currentRuleNode;
 		if (this.ruleToRuleNode.containsKey(aRule))
@@ -71,19 +93,21 @@ public class ReasonerPlan {
 		// build the reasoner node graph
 		this.ruleToRuleNode.put(aRule, currentRuleNode);
 
+		LOG.trace("Creating RuleNode for: {}", aRule);
+
 		if (isBackward()) {
 			// we are only interested in antecedent neighbors.
 			this.store.getAntecedentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof AntSide;
-					var newNode = createOrGetReasonerNode(rule, aRule);
+					var newNode = createOrGetRuleNode(rule);
 					assert newNode instanceof ConsSide;
 					((AntSide) currentRuleNode).addAntecedentNeighbour(newNode, matches);
 
 					var inverseMatches = Match.invertAll(matches);
 					((ConsSide) newNode).addConsequentNeighbour(currentRuleNode, inverseMatches);
 				} else {
-					LOG.trace("Skipped proactive rule: {}", rule);
+					LOG.trace("Skipped proactive rule1: {}", rule);
 				}
 			});
 
@@ -94,58 +118,169 @@ public class ReasonerPlan {
 		} else {
 			// interested in both consequent and antecedent neighbors
 
-			this.store.getConsequentNeighbors(aRule, this.matchConfig).forEach((rule, matches) -> {
+			EnumSet<MatchFlag> modMatchConfig = EnumSet.copyOf(this.matchConfig);
+			modMatchConfig.add(MatchFlag.SINGLE_RULE);
+
+			Map<BaseRule, Set<Match>> consequentNeighbors = this.store.getConsequentNeighbors(aRule, this.matchConfig);
+
+			consequentNeighbors.forEach((rule, matches) -> {
 				if (!(rule instanceof ProactiveRule)) {
 					assert currentRuleNode instanceof ConsSide;
-					var newNode = createOrGetReasonerNode(rule, aRule);
+					var newNode = createOrGetRuleNode(rule);
 					((ConsSide) currentRuleNode).addConsequentNeighbour(newNode, matches);
+
+					Set<CombiMatch> antCombiMatches = filterAndInvertCombiMatches(rule, aRule,
+							this.store.getConsequentCombiMatches(currentRuleNode.getRule()));
+
+					var existing = ((AntSide) newNode).getAntecedentCombiMatches();
+
+					if (existing == null)
+						((AntSide) newNode).setAntecedentCombiMatches(antCombiMatches);
+					else
+						existing.addAll(antCombiMatches);
 
 					var inverseMatches = Match.invertAll(matches);
 					((AntSide) newNode).addAntecedentNeighbour(currentRuleNode, inverseMatches);
 				} else {
-					LOG.trace("Skipped proactive rule: {}", rule);
+					LOG.trace("Skipped proactive rule2: {}", rule);
 				}
 			});
 
-			// store the combi matches when there are any antecedents.
-			if (!currentRuleNode.getRule().getConsequent().isEmpty())
-				((ConsSide) currentRuleNode)
-						.setConsequentCombiMatches(this.store.getConsequentCombiMatches(currentRuleNode.getRule()));
+			// store the combi matches when there are any consequents.
+			if (!currentRuleNode.getRule().getConsequent().isEmpty()) {
+				Set<CombiMatch> existing = ((ConsSide) currentRuleNode).getConsequentCombiMatches();
+				Set<CombiMatch> consequentCombiMatches = this.store
+						.getConsequentCombiMatches(currentRuleNode.getRule());
 
+				if (existing == null) {
+					((ConsSide) currentRuleNode).setConsequentCombiMatches(consequentCombiMatches);
+				} else
+					existing.addAll(consequentCombiMatches);
+			}
 			// antecedent neighbors to propagate bindings further via backward chaining
 
 			// determine whether our parent matches us partially
-			boolean ourAntecedentFullyMatchesParentConsequent = false;
+			boolean ourAntecedentFullyMatchesAllParentConsequents = false;
 
+			boolean allMatch = true;
+			int count = 0;
 			Map<BaseRule, Set<Match>> antecedentNeighbors = this.store.getAntecedentNeighbors(aRule, this.matchConfig);
-			if (aParent != null && antecedentNeighbors.containsKey(aParent)) {
-				ourAntecedentFullyMatchesParentConsequent = antecedentFullyMatchesConsequent(aRule, aParent,
-						antecedentNeighbors.get(aParent));
+			for (BaseRule neighborRule : antecedentNeighbors.keySet()) {
+				if (this.isAncestorOfStartNode(neighborRule)) {
+					allMatch &= antecedentFullyMatchesConsequent(aRule, neighborRule,
+							antecedentNeighbors.get(neighborRule));
+					count++;
+				}
 			}
 
-			if (!ourAntecedentFullyMatchesParentConsequent) {
+			if (count > 0 && allMatch)
+				ourAntecedentFullyMatchesAllParentConsequents = true;
 
+			if (!ourAntecedentFullyMatchesAllParentConsequents) {
 				antecedentNeighbors.forEach((rule, matches) -> {
-					if (!(rule instanceof ProactiveRule)) {
-						assert currentRuleNode instanceof AntSide;
-						var newNode = createOrGetReasonerNode(rule, aRule);
-						assert newNode instanceof ConsSide;
-						((AntSide) currentRuleNode).addAntecedentNeighbour(newNode, matches);
+					assert currentRuleNode instanceof AntSide;
+					var newNode = createOrGetRuleNode(rule);
+					assert newNode instanceof ConsSide;
+					((AntSide) currentRuleNode).addAntecedentNeighbour(newNode, matches);
 
-						var inverseMatches = Match.invertAll(matches);
-						((ConsSide) newNode).addConsequentNeighbour(currentRuleNode, inverseMatches);
-					} else {
-						LOG.trace("Skipped proactive rule: {}", rule);
-					}
+					var inverseMatches = Match.invertAll(matches);
+					((ConsSide) newNode).addConsequentNeighbour(currentRuleNode, inverseMatches);
 				});
 
-				if (!currentRuleNode.getRule().getAntecedent().isEmpty())
-					((AntSide) currentRuleNode)
-							.setAntecedentCombiMatches(this.store.getAntecedentCombiMatches(currentRuleNode.getRule()));
+				if (!currentRuleNode.getRule().getAntecedent().isEmpty()) {
+					var existing = ((AntSide) currentRuleNode).getAntecedentCombiMatches();
+					Set<CombiMatch> antecedentCombiMatches = this.store
+							.getAntecedentCombiMatches(currentRuleNode.getRule());
+					if (existing == null) {
+						((AntSide) currentRuleNode).setAntecedentCombiMatches(antecedentCombiMatches);
+					} else
+						existing.addAll(antecedentCombiMatches);
+				}
 			}
 		}
 
 		return currentRuleNode;
+	}
+
+	/**
+	 * Checks if the given rule is an ancestor of the Proactive start node of this
+	 * reasoner plan. With ancestor we mean whether starting from the proactive node
+	 * we can reach the given node following arrows in the same direction.
+	 * 
+	 * @param aRule The rule to check.
+	 * @return Whether the given rule is an ancestor.
+	 */
+	private boolean isAncestorOfStartNode(BaseRule aRule) {
+		return isAncestorOfStartNode(aRule, new ArrayList<BaseRule>());
+	}
+
+	/**
+	 * Check whether the given BaseRule is an ancestor of the start node of this
+	 * reasoning plan.
+	 * 
+	 * @param aRule The rule to check whether it is an ancestor.
+	 * @return {@code true} when {@code aRule} is an ancestor, {@code false}
+	 *         otherwise.
+	 */
+	private boolean isAncestorOfStartNode(BaseRule aRule, List<BaseRule> visited) {
+
+		if (visited.contains(aRule))
+			return false;
+
+		visited.add(aRule);
+
+		boolean isAncestor = false;
+
+		if (this.getStartNode().getRule().equals(aRule)) {
+			isAncestor = true;
+		} else {
+			Map<BaseRule, Set<Match>> antecedentNeighbors = this.store.getAntecedentNeighbors(aRule);
+
+			for (BaseRule antecedentNeighbor : antecedentNeighbors.keySet()) {
+				isAncestor |= isAncestorOfStartNode(antecedentNeighbor, visited);
+			}
+		}
+		return isAncestor;
+	}
+
+	/**
+	 * Filters and inverts the given set of combi matches that connect the given
+	 * {@code antRule} and {@code consRule}.
+	 * 
+	 * @param antRule                The antecedent rule for which the given combi
+	 *                               matches were created.
+	 * @param consRule               The consequent rule for which the given combi
+	 *                               matches are being inversed.
+	 * @param consequentCombiMatches The combi matches to filter and invert.
+	 * @return Only those combimatches that contain antRule and contain the same
+	 *         triple patterns as the antecedent of antRule.
+	 */
+	private Set<CombiMatch> filterAndInvertCombiMatches(BaseRule antRule, BaseRule consRule,
+			Set<CombiMatch> consequentCombiMatches) {
+
+		Set<CombiMatch> filteredAndInvertedCombiMatches = new HashSet<CombiMatch>();
+
+		CombiMatch newCm;
+		for (CombiMatch cm : consequentCombiMatches) {
+			if (cm.containsKey(antRule)) {
+				newCm = new CombiMatch();
+				Set<Match> matches = cm.get(antRule);
+				Set<Match> newMatches = new HashSet<Match>();
+				for (Match m : matches) {
+
+					if (m.getMatchingPatterns().size() > 0
+							&& m.getMatchingPatterns().size() == antRule.getAntecedent().size()) {
+						newMatches.add(m.inverse());
+					}
+				}
+				if (!newMatches.isEmpty()) {
+					newCm.put(consRule, newMatches);
+					filteredAndInvertedCombiMatches.add(newCm);
+				}
+			}
+		}
+
+		return filteredAndInvertedCombiMatches;
 	}
 
 	/**
@@ -238,6 +373,8 @@ public class ReasonerPlan {
 					((ConsSide) current).getConsequentNeighbours().forEach((n, matches) -> {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
 								Match.invertAll(matches));
+
+						LOG.trace("EEK: {}", n);
 
 						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
