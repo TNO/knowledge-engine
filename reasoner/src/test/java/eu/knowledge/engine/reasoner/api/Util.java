@@ -12,7 +12,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.sparql.sse.SSE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public class Util {
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
 	 * triples.
 	 * 
-	 * @param graphPattern The Knowledge to populate to a model.
+	 * @param tp The Knowledge to populate to a model.
 	 * @return A model where all variables of the kIO are populated with URIs.
 	 * @throws ParseException
 	 */

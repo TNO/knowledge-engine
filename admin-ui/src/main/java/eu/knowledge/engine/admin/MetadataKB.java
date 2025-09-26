@@ -8,7 +8,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;

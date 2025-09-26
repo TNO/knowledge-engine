@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.api.Binding;

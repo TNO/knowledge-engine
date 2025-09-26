@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Set;
 
 import org.apache.jena.query.QueryParseException;
-import org.apache.jena.sparql.lang.arq.TokenMgrError;
+import org.apache.jena.sparql.lang.arq.javacc.TokenMgrError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
