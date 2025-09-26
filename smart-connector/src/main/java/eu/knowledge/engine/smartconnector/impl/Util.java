@@ -20,7 +20,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.TriplePath;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
-import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
