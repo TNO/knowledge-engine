@@ -374,8 +374,6 @@ public class ReasonerPlan {
 						var translated = toBeResultPropagated.translate(n.getRule().getAntecedent(),
 								Match.invertAll(matches));
 
-						LOG.trace("EEK: {}", n);
-
 						TripleVarBindingSet beforeBindingSet = n.getResultBindingSetInput();
 						boolean itChanged = ((AntSide) n).addResultBindingSetInput(current, translated);
 						TripleVarBindingSet afterBindingSet = n.getResultBindingSetInput();
