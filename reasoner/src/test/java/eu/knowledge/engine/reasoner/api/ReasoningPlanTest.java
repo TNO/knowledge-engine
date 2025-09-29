@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.reasoner.BaseRule;
@@ -16,9 +15,6 @@ import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.TaskBoard;
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.BindingSet;
-import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulestore.RuleStore;
 import eu.knowledge.engine.reasoner.util.DataBindingSetHandler;
 import eu.knowledge.engine.reasoner.util.Table;
@@ -74,10 +70,9 @@ public class ReasoningPlanTest {
 			store.getConsequentNeighbors(r);
 		}
 
-		store.printGraphVizCode(null);
-
 		ReasonerPlan plan = new ReasonerPlan(store, rule);
 
+		store.printGraphVizCode(plan);
 //		plan.optimize();
 
 		BindingSet aBindingSet = new BindingSet();

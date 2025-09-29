@@ -167,9 +167,11 @@ public class RuleStore {
 		Set<CombiMatch> combiMatches = BaseRule.getMatches(aRule, this.getRules(), false, aConfig);
 
 		// store combi matches
-		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
+		aMatchNode.setConsequentCombiMatches(combiMatches);
 
 		// store normal matches
+		Map<BaseRule, Set<Match>> newMapping = convertToMapping(combiMatches);
+
 		for (Map.Entry<BaseRule, Set<Match>> entry : newMapping.entrySet()) {
 			aMatchNode.setConsequentNeighbor(entry.getKey(), Match.invertAll(entry.getValue()));
 			this.ruleToMatchNode.get(entry.getKey()).setAntecedentNeighbor(aRule, entry.getValue());
@@ -203,19 +205,19 @@ public class RuleStore {
 	public String getGraphVizCode(ReasonerPlan aPlan, boolean urlOnly) {
 
 		String color = "red";
-		String width = "2";
+		String width = "1.5";
 
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("strict digraph {\n");
-		Map<BaseRule, String> ruleToName = new HashMap<>();
+		Map<BaseRule, String> ruleToId = new HashMap<>();
 
 		for (MatchNode r : ruleToMatchNode.values()) {
 
-			String currentName = ruleToName.get(r.getRule());
-			if (currentName == null) {
-				currentName = /* "rule" + ruleNumber; */ generateName(r.getRule());
-				assert !currentName.isEmpty();
+			String currentId = ruleToId.get(r.getRule());
+			if (currentId == null) {
+				currentId = Integer.toHexString(System.identityHashCode(r));
+				assert !currentId.isEmpty();
 				String replaceAll = toStringRule(r.getRule()).replaceAll("\\\"", "\\\\\"");
 
 				// check the colouring
@@ -227,28 +229,30 @@ public class RuleStore {
 					}
 				}
 
-				String shape = "shape=\"circle\"";
+				String shape = "shape=\"rect\"";
+				String doubleShape = "";
 				if (r.getRule() instanceof ProactiveRule) {
-					shape = "shape=\"doublecircle\"";
+					doubleShape = ", peripheries=2";
 				}
 
-				sb.append(currentName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
-						.append(replaceAll).append("\"").append("]").append("\n");
-				ruleToName.put(r.getRule(), currentName);
+				sb.append(q(currentId)).append("[").append(shape).append(", ").append(pen).append("tooltip=")
+						.append("\"").append(replaceAll).append("\"").append(doubleShape).append(", label=")
+						.append(generateName(r.getRule())).append("]").append("\n");
+				ruleToId.put(r.getRule(), Integer.toHexString(System.identityHashCode(r)));
 
 			}
 
 			Map<BaseRule, Set<Match>> antecedentNeighbors = r.getAntecedentNeighbors();
 			Set<BaseRule> anteNeigh = antecedentNeighbors.keySet();
-			String neighName;
+			String neighId;
 
 			for (BaseRule neighR : anteNeigh) {
-				neighName = ruleToName.get(neighR);
+				neighId = ruleToId.get(neighR);
 
-				if (neighName == null) {
-					neighName = /* "rule" + ruleNumber; */ generateName(neighR);
-					assert !neighName.isEmpty();
-					String replaceAll = toStringRule(neighR).replaceAll("\\\"", "\\\\\"");
+				if (neighId == null) {
+					neighId = Integer.toHexString(System.identityHashCode(neighR));
+					assert !neighId.isEmpty();
+					String ruleString = toStringRule(neighR).replaceAll("\\\"", "\\\\\"");
 
 					// check the colouring
 					String pen = "";
@@ -259,15 +263,17 @@ public class RuleStore {
 						}
 					}
 
-					String shape = "shape=\"circle\"";
+					String shape = "shape=\"rect\"";
+					String doubleShape = "";
 					if (neighR instanceof ProactiveRule) {
-						shape = "shape=\"doublecircle\"";
+						doubleShape = ", peripheries=2";
 					}
 
-					sb.append(neighName).append("[").append(shape).append(pen).append("tooltip=").append("\"")
-							.append(replaceAll).append("\"").append("]").append("\n");
+					sb.append(q(neighId)).append("[").append(shape).append(pen).append("tooltip=").append("\"")
+							.append(ruleString).append("\"").append(doubleShape).append(", label=")
+							.append(generateName(neighR)).append("").append("]").append("\n");
 
-					ruleToName.put(neighR, neighName);
+					ruleToId.put(neighR, neighId);
 				}
 
 				String pen = "";
@@ -280,7 +286,7 @@ public class RuleStore {
 
 				int nrOfMatches = antecedentNeighbors.get(neighR).size();
 
-				sb.append(neighName).append(BaseRule.ARROW).append(currentName).append("[label=").append(nrOfMatches)
+				sb.append(q(neighId)).append("->").append(q(currentId)).append("[label=").append(nrOfMatches)
 						.append(" ").append(pen).append("]").append("\n");
 
 			}
@@ -293,8 +299,12 @@ public class RuleStore {
 				+ (urlOnly ? "" : "\n" + sb.toString());
 	}
 
+	private String q(String aString) {
+		return "\"" + aString + "\"";
+	}
+
 	private String toStringRule(BaseRule neighR) {
-		return neighR.getAntecedent() + " -> " + neighR.getConsequent();
+		return neighR.getAntecedent() + " &rarr; " + neighR.getConsequent();
 	}
 
 	private String trimAtLength(String aString, int aLength) {
@@ -342,15 +352,17 @@ public class RuleStore {
 
 		String name = r.getName();
 		MessageDigest digest;
-		byte[] encodedhash = new byte[0];
+		String encodedhash = "unknown";
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
-			encodedhash = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+
+//			encodedhash = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+			encodedhash = Integer.toHexString(System.identityHashCode(r));
 		} catch (NoSuchAlgorithmException e) {
 			LOG.error("{}", e);
 		}
-
-		return "\"" + bytesToHex(encodedhash) + "\\n" + antecedent + "->\\n" + consequent + "\"";
+		// bytesToHex(...)
+		return "\"" + antecedent + "&rarr;\\n" + consequent + "\"";
 	}
 
 	private static String bytesToHex(byte[] hash) {

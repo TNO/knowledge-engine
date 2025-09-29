@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
-import org.apache.jena.sparql.lang.arq.ParseException;
+import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
