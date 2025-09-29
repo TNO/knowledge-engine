@@ -465,16 +465,18 @@ public class BaseRule {
 					// compare/combine combimatches.
 
 					boolean tryMerge = true;
-					// TODO: this does not seem to be going in the right direction, because this way the
-					// ordering of the triple patterns is important and we do not want that.
-					if (aConfig.contains(MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY)) {
+					// TODO: this does not seem to be going in the right direction, because this way
+					// the ordering of the triple patterns is important and we do not want that.
+					// TODO can we move this outside the current loops?
+					if (aConfig.contains(MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY)
+							&& !aBiggestMatch.containsKey(candidateCombiMatch.keySet().iterator().next())) {
 						// check if a rule already present in aBiggestMatch
 						// can match the current triple pattern
 
 						for (CombiMatch cm : candidateCombiMatches) {
 							if (!cm.equals(candidateCombiMatch)) {
 								if (aBiggestMatch.containsKey(cm.keySet().iterator().next())) {
-
+									tryMerge = false;
 								}
 							}
 						}

@@ -64,6 +64,9 @@ public class TestAskAnswer6 {
 		var kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
+
+		kb1.setReasonerLevel(2);
+
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 		kb3 = new KnowledgeBaseImpl("kb3");
@@ -103,6 +106,7 @@ public class TestAskAnswer6 {
 			long start = System.currentTimeMillis();
 			AskResult result = kb1.ask(askKI, new BindingSet()).get();
 			long delta = System.currentTimeMillis() - start;
+			result.getReasonerPlan().getStore().printGraphVizCode(result.getReasonerPlan());
 			assertTrue(delta < MAX_SECONDS,
 					"It should take " + MAX_SECONDS + "ms maximum to finish this test, but was " + delta + "ms.");
 			LOG.info("After ask.");
