@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -86,8 +87,9 @@ public class KnowledgeDirectoryConnection {
 		this.httpClient = builder.build();
 
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
-			.setDateFormat(new RFC3339DateFormat());
+				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.setSerializationInclusion(JsonInclude.Include.NON_NULL).findAndRegisterModules()
+				.setDateFormat(new RFC3339DateFormat());
 	}
 
 	public void start() {
@@ -190,9 +192,7 @@ public class KnowledgeDirectoryConnection {
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
-		if (myEdcConnectorUrl != null) {
-			ker.setEdcConnectorUrl(myEdcConnectorUrl);
-		}
+		ker.setEdcConnectorUrl(myEdcConnectorUrl);
 
 		try {
 			HttpRequest registerRequest = HttpRequest

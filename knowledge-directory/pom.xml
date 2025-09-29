@@ -161,6 +161,9 @@
 								<useTags>true</useTags>
 								<dateLibrary>java8</dateLibrary>
 								<library>jersey3</library>
+								<additionalModelTypeAnnotations>
+								@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+   								</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
 					</execution>
