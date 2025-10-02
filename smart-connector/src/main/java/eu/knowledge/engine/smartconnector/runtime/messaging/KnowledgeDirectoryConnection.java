@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -51,12 +52,14 @@ public class KnowledgeDirectoryConnection {
 	private State currentState;
 	private final URI kdUrl;
 	private final URI myExposedUrl;
+	private final URI myEdcConnectorUrl;
 	private final Object lock = new Object();
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl) {
+	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, URI myEdcConnectorUrl) {
 		this.myExposedUrl = myExposedUrl;
+		this.myEdcConnectorUrl = myEdcConnectorUrl;
 		this.currentState = State.UNREGISTERED;
 
 		var builder = HttpClient.newBuilder();
@@ -84,8 +87,9 @@ public class KnowledgeDirectoryConnection {
 		this.httpClient = builder.build();
 
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).findAndRegisterModules()
-			.setDateFormat(new RFC3339DateFormat());
+				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.setSerializationInclusion(JsonInclude.Include.NON_NULL).findAndRegisterModules()
+				.setDateFormat(new RFC3339DateFormat());
 	}
 
 	public void start() {
@@ -188,6 +192,7 @@ public class KnowledgeDirectoryConnection {
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
+		ker.setEdcConnectorUrl(myEdcConnectorUrl);
 
 		try {
 			HttpRequest registerRequest = HttpRequest
