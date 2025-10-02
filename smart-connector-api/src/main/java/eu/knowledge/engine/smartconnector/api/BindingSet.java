@@ -1,17 +1,9 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import java.util.HashSet;
-import java.util.List;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.sparql.core.TriplePath;
-import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.sparql.sse.SSE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -15,7 +15,7 @@
 	<description>A user interface for managing a Knowledge Network.</description>
 
 	<properties>
-		<swagger-core-version>2.2.34</swagger-core-version>
+		<swagger-core-version>2.2.37</swagger-core-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -126,7 +126,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>7.13.0</version>
+				<version>7.14.0</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>

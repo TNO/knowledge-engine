@@ -157,10 +157,9 @@ public class Match {
 						return null;
 					}
 				}
-				// no conflict, so we can safely put it into the mergedContext.
-				mergedContext.put(newEntry.getKey(), newEntry.getValue());
-
 			}
+			// no conflict, so we can safely put it into the mergedContext.
+			mergedContext.put(newEntry.getKey(), newEntry.getValue());
 		}
 
 		return mergedContext;

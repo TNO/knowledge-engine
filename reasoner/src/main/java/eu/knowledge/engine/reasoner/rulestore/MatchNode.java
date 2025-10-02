@@ -100,7 +100,7 @@ public class MatchNode {
 	 * @param someCombiMatches The combi matches for this node on the consequent
 	 *                         side.
 	 */
-	public void setConsequentMatches(Set<CombiMatch> someCombiMatches) {
+	public void setConsequentCombiMatches(Set<CombiMatch> someCombiMatches) {
 		this.consequentCombiMatches = someCombiMatches;
 	}
 

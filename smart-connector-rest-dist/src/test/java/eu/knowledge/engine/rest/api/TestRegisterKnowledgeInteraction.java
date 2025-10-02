@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.jena.atlas.logging.Log;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;

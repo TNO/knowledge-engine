@@ -2,6 +2,7 @@ package eu.knowledge.engine.reasoner.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import eu.knowledge.engine.reasoner.BaseRule;
+import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
 import eu.knowledge.engine.reasoner.BaseRule.MatchFlag;
 import eu.knowledge.engine.reasoner.Match;
 import eu.knowledge.engine.reasoner.ProactiveRule;
@@ -741,6 +743,97 @@ public class MatchTest {
 
 		System.out.println(matches);
 		assertEquals(7, matches.size());
+
+	}
+
+	@Test
+	public void testNewGPMatcher3() {
+
+		String gp = """
+				?operation <type> <HarvestingOperation> .
+				?operation <hasOutput> ?output .
+				?operation <isOperatedOn> ?parcel .
+				""";
+
+		Set<TriplePattern> obj1 = Util.toGP(gp);
+
+		String gp2 = """
+				?operation2 <type> <HarvestingOperation> .
+				?operation2 <hasOutput> ?output2 .
+				?operation2 <isOperatedOn> ?parcel2 .
+				""";
+
+		Set<TriplePattern> obj2 = Util.toGP(gp2);
+
+		String gp3 = """
+				?operation2 <type> <HarvestingOperation> .
+				?operation2 <hasOutput> ?output2 .
+				?operation2 <isOperatedOn> ?parcel2 .
+				""";
+
+		Set<TriplePattern> obj3 = Util.toGP(gp3);
+
+		BaseRule target = new ProactiveRule(new HashSet<>(), obj1);
+
+		BaseRule candidate1 = new Rule("candidate1", obj2, new SinkBindingSetHandler() {
+			public java.util.concurrent.CompletableFuture<Void> handle(BindingSet aBindingSet) {
+				return null;
+			};
+		});
+		BaseRule candidate2 = new Rule("candidate2", obj3, new SinkBindingSetHandler() {
+			public java.util.concurrent.CompletableFuture<Void> handle(BindingSet aBindingSet) {
+				return null;
+			};
+		});
+
+		HashSet<BaseRule> someCandidateRules = new HashSet<>(Arrays.asList(candidate1, candidate2));
+		Set<CombiMatch> combiMatches = BaseRule.getMatches(target, someCandidateRules, false,
+				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.SINGLE_RULE));
+
+		System.out.println("Size: " + combiMatches.size());
+		assertEquals(2, combiMatches.size());
+	}
+
+	@Test
+	public void testNewGPMatcher4() {
+
+		String gp = """
+				?operation <type> <HarvestingOperation> .
+				?operation <hasOutput> ?output .
+				?operation <isOperatedOn> ?parcel .
+				""";
+
+		Set<TriplePattern> obj1 = Util.toGP(gp);
+
+		String gp2 = """
+				?operation2 <type> <HarvestingOperation> .
+				?operation2 <hasOutput> ?output2 .
+				?operation2 <isOperatedOn> ?parcel2 .
+				""";
+
+		Set<TriplePattern> obj2 = Util.toGP(gp2);
+
+		BaseRule target = new ProactiveRule(new HashSet<>(), obj1);
+
+		BaseRule candidate1 = new Rule("candidate1", obj2, new SinkBindingSetHandler() {
+			public java.util.concurrent.CompletableFuture<Void> handle(BindingSet aBindingSet) {
+				return null;
+			};
+		});
+
+		HashSet<BaseRule> someCandidateRules = new HashSet<>(Arrays.asList(candidate1));
+		Set<CombiMatch> combiMatches = BaseRule.getMatches(target, someCandidateRules, false,
+				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.SINGLE_RULE));
+
+		CombiMatch cm = combiMatches.iterator().next();
+
+		Set<Match> matches = cm.get(candidate1);
+		assertNotNull(matches);
+
+		Match match = matches.iterator().next();
+		assertNotNull(match);
+
+		assertEquals(5, match.getMappings().size());
 
 	}
 }

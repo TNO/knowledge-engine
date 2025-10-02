@@ -11,7 +11,7 @@
 	</parent>
 
 	<properties>
-		<swagger-core-version>2.2.34</swagger-core-version>
+		<swagger-core-version>2.2.37</swagger-core-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -95,8 +95,8 @@
 		<!-- okhttp for example client -->
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>4.12.0</version>
+			<artifactId>okhttp-jvm</artifactId>
+			<version>5.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.knowledge.engine</groupId>
@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-model</artifactId>
-			<version>3.9.10</version>
+			<version>3.9.11</version>
 		</dependency>
 	</dependencies>
 
@@ -134,7 +134,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>7.13.0</version>
+				<version>7.14.0</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -186,4 +186,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
