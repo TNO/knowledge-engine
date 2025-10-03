@@ -2,6 +2,7 @@ package eu.knowledge.engine.smartconnector.impl;
 
 import java.net.URI;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.jena.rdf.model.Resource;
 
@@ -77,6 +78,6 @@ public interface KnowledgeBaseStore {
 	URI getMetaId(URI knowledgeBaseId, KnowledgeInteractionInfo.Type kiType, Resource purpose);
 
 	Resource getPurpose(URI knowledgeBaseId, URI knowledgeInteractionId);
-	
-	void stop();
+
+	CompletableFuture<Void> stop();
 }

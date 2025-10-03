@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
@@ -459,13 +460,17 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		this.isStopped = true;
 
 		// this will trigger notifications to other Smart Connectors.
-		this.knowledgeBaseStore.stop();
+		CompletableFuture<Void> future = this.knowledgeBaseStore.stop();
 
-		this.otherKnowledgeBaseStore.stop();
-
-		KeRuntime.localSmartConnectorRegistry().unregister(this);
-
-		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
+		try {
+			future.whenComplete((Void v, Throwable t) -> {
+				this.otherKnowledgeBaseStore.stop();
+				KeRuntime.localSmartConnectorRegistry().unregister(this);
+				this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
+			}).get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("No problems should occur when stopping a SmartConnector.", e);
+		}
 	}
 
 	private void checkStopped() {

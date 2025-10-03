@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.api.PostResult;
 import eu.knowledge.engine.smartconnector.api.ReactHandler;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.Vocab;
@@ -322,8 +324,16 @@ public class KnowledgeBaseStoreImpl implements KnowledgeBaseStore {
 	}
 
 	@Override
-	public void stop() {
+	public CompletableFuture<Void> stop() {
 		this.LOG.trace("Stopping KnowledgeBaseStoreImpl");
-		this.listeners.forEach(l -> l.smartConnectorStopping());
+
+		Set<CompletableFuture<?>> futures = new HashSet<>();
+		this.listeners.forEach(l -> {
+
+			CompletableFuture<PostResult> future = l.smartConnectorStopping();
+			futures.add(future);
+
+		});
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
 	}
 }
