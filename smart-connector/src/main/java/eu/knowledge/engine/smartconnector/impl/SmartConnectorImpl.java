@@ -454,7 +454,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
 	@Override
-	public void stop() {
+	public CompletableFuture<Void> stop() {
 		this.checkStopped();
 
 		this.isStopped = true;
@@ -462,15 +462,11 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		// this will trigger notifications to other Smart Connectors.
 		CompletableFuture<Void> future = this.knowledgeBaseStore.stop();
 
-		try {
-			future.whenComplete((Void v, Throwable t) -> {
-				this.otherKnowledgeBaseStore.stop();
-				KeRuntime.localSmartConnectorRegistry().unregister(this);
-				this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
-			}).get();
-		} catch (InterruptedException | ExecutionException e) {
-			LOG.error("No problems should occur when stopping a SmartConnector.", e);
-		}
+		return future.whenComplete((v, t) -> {
+			this.otherKnowledgeBaseStore.stop();
+			KeRuntime.localSmartConnectorRegistry().unregister(this);
+			this.myKnowledgeBase.smartConnectorStopped(this);
+		});
 	}
 
 	private void checkStopped() {

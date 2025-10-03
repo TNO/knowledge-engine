@@ -17,7 +17,7 @@ public class TestSmartConnectorStop {
 
 	private static SmartConnector sc1;
 	private static SmartConnector sc2;
-	private static AtomicBoolean stopped = new AtomicBoolean(false);
+	private static AtomicBoolean scStoppedCalled = new AtomicBoolean(false);
 
 	@Test
 	public void test() throws InterruptedException {
@@ -33,13 +33,16 @@ public class TestSmartConnectorStop {
 					return new BindingSet();
 				});
 
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 
-		sc1.stop();
+		sc1.stop().whenComplete((v, t) -> {
+			assertTrue(scStoppedCalled.get(),
+					"The returned future should always complete after smartConnectorStopped(...) is called.");
+		});
 
-		assertTrue(stopped.get());
+		Thread.sleep(500);
 
-		Thread.sleep(2000);
+		sc2.stop();
 	}
 
 	class MyKnowledgeBase implements KnowledgeBase {
@@ -68,7 +71,7 @@ public class TestSmartConnectorStop {
 		public void smartConnectorConnectionRestored(SmartConnector aSC) { LOG.info("{} restored!", this.name); }
 
 		@Override
-		public void smartConnectorStopped(SmartConnector aSC) { TestSmartConnectorStop.stopped.set(true); LOG.info("{} stopped!", this.name); }
+		public void smartConnectorStopped(SmartConnector aSC) { TestSmartConnectorStop.scStoppedCalled.set(true); LOG.info("{} stopped!", this.name); }
 		//@formatter:on
 	}
 
