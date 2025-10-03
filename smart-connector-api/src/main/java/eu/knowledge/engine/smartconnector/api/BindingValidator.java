@@ -77,7 +77,7 @@ public class BindingValidator {
 	 * @param value
 	 */
 	public void validateValidBindingValue(String value) {
-		LOG.debug("validating {}", value);
+		LOG.trace("Validating binding value: {}", value);
 		try {
 			var node = SSE.parseNode(value, new PrefixMappingMem());
 			if (!(node.isLiteral() || node.isURI())) {
@@ -94,7 +94,6 @@ public class BindingValidator {
 			LOG.debug("{} is not valid because Jena could not parse it", value);
 			throw new IllegalArgumentException(String.format("'%s' is not an unprefixed URI or literal.", value));
 		}
-		LOG.debug("{} is valid", value);
 	}
 
 	public void validateIncomingOutgoingAnswer(GraphPattern pattern, BindingSet incoming, BindingSet outgoing) {
