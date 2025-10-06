@@ -215,7 +215,7 @@
 	</dependencies>
 
 	<properties>
-		<swagger-core-version>2.2.37</swagger-core-version>
+		<swagger-core-version>2.2.38</swagger-core-version>
 		<servlet-api-version>6.1.0</servlet-api-version>
 		<version.eclipse.microprofile.config>3.1</version.eclipse.microprofile.config>
 	</properties>
