@@ -473,7 +473,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
 						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 						this.kii.getKnowledgeBaseId());
-				LOG.debug("", e);
+				LOG.trace("Detailed error information.", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 			}
@@ -565,7 +565,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
 						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 						this.kii.getKnowledgeBaseId());
-				LOG.debug("", e);
+				LOG.trace("Detailed error information.", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
 			}
@@ -633,7 +633,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
 						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 						this.kii.getKnowledgeBaseId());
-				LOG.debug("{}", e);
+				LOG.trace("Detailed error information.", e);
 				bsFuture = new CompletableFuture<Void>();
 				bsFuture.complete((Void) null);
 			}

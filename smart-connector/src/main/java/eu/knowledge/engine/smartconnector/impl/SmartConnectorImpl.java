@@ -462,6 +462,12 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		CompletableFuture<Void> future = this.knowledgeBaseStore.stop();
 
 		return future.whenComplete((v, t) -> {
+
+			if (t != null)
+				LOG.debug("An error occurred while notifying other SCs.", t);
+
+			// stop message router and cancel waiting for response to messages.
+			this.messageRouter.stop();
 			this.otherKnowledgeBaseStore.stop();
 			KeRuntime.localSmartConnectorRegistry().unregister(this);
 			this.myKnowledgeBase.smartConnectorStopped(this);
