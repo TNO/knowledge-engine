@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -585,21 +584,20 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	}
 
 	@Override
-	public void smartConnectorStopping() {
-		try {
-
-			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostRemovedKI);
-			Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
-			// Block on the future, but wait no longer than the timeout.
-			long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
-					+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
-			LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
-			this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-					.execute(this.fillMetaBindings(null)).get(timeout, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			LOG.error("An error occured while informing other KBs about our "
-					+ "termination. Proceeding to stop the smart connector regardless.", e);
-		}
+	public CompletableFuture<PostResult> smartConnectorStopping() {
+		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostRemovedKI);
+		Set<OtherKnowledgeBase> otherKnowledgeBases = this.otherKnowledgeBaseStore.getOtherKnowledgeBases();
+		// Block on the future, but wait no longer than the timeout.
+		long timeout = POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB
+				+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
+		LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
+		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
+				.execute(this.fillMetaBindings(null)).orTimeout(timeout, TimeUnit.MILLISECONDS)
+				.exceptionally((Throwable e) -> {
+					LOG.error("An error occured while informing other KBs about our "
+							+ "termination. Proceeding to stop the smart connector regardless.", e);
+					return (PostResult) null;
+				});
 	}
 
 	@Override

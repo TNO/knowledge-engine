@@ -305,7 +305,11 @@ public interface SmartConnector {
 	 * {@link SmartConnector} is unpredictable.
 	 *
 	 * Note that a stopped {@link SmartConnector} can no longer be used.
+	 * 
+	 * @return a completable future that completes <i>after</i>
+	 *         {@link KnowledgeBase#smartConnectorStopped(SmartConnector)} is
+	 *         called.
 	 */
-	void stop();
+	CompletableFuture<Void> stop();
 
 }

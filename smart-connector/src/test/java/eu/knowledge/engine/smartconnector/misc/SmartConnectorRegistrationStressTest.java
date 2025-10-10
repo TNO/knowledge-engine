@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 @Tag("Long")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -111,7 +111,8 @@ public class SmartConnectorRegistrationStressTest {
 	}
 
 	@AfterAll
-	void cleanup() {
-		this.kn.stop().join();
+	void cleanup() throws InterruptedException, ExecutionException {
+		LOG.info("Clean up: {}", SmartConnectorRegistrationStressTest.class.getSimpleName());
+		this.kn.stop().get();
 	}
 }

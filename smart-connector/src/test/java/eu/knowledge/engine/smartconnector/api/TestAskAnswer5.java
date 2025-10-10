@@ -165,8 +165,8 @@ public class TestAskAnswer5 {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestAskAnswer5.class.getSimpleName());
-		kn.stop();
+		kn.stop().get();
 	}
 }

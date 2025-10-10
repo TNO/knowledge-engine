@@ -3,9 +3,11 @@ package eu.knowledge.engine.smartconnector.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -92,29 +94,41 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		}
 		CompletableFuture<AnswerMessage> future = new CompletableFuture<>();
 
-		// wait maximally WAIT_TIMEOUT for a return message.
-		int waitInSeconds = this.getWaitTimeout();
-		if (waitInSeconds > 0) {
-			future = future.orTimeout(waitInSeconds, TimeUnit.SECONDS);
-		}
-
 		future.whenComplete((m, e) -> {
+			this.openAskMessages.remove(askMessage.getMessageId());
 			if (m == null)
 				if (e != null)
 					if (e instanceof TimeoutException)
 						LOG.error("KB '{}' did not respond within {}s to AskMessage '{}'.",
-								askMessage.getToKnowledgeBase(), this.getWaitTimeout(), askMessage.getMessageId(), e);
+								askMessage.getToKnowledgeBase(), this.getWaitTimeout(), askMessage.getMessageId());
+					else if (e instanceof CancellationException)
+						LOG.debug("Waiting for AnswerMessage to AskMessage '{}' was cancelled due to a stopping SC.",
+								askMessage.getMessageId());
 					else
 						LOG.error("A {} occurred while sending an AskMessage.", e.getClass().getSimpleName(), e);
 				else
 					LOG.error(
 							"The AnswerMessage future should complete either exceptionally or normally. Not with both AnswerMessage and Exception null.");
 
-			this.openAskMessages.remove(askMessage.getMessageId());
 		});
 
+		// wait maximally WAIT_TIMEOUT for a return message.
+		int waitInSeconds = this.getWaitTimeout();
+		if (waitInSeconds > 0) {
+			future = future.orTimeout(waitInSeconds, TimeUnit.SECONDS);
+		}
+
+		// first send and if success add to open messages
 		this.openAskMessages.put(askMessage.getMessageId(), future);
-		messageDispatcher.send(askMessage);
+
+		try {
+			messageDispatcher.send(askMessage);
+		} catch (IOException ioe) {
+			// cancel future and remove from open messages
+			this.openAskMessages.remove(askMessage.getMessageId()).cancel(true);
+			// and re throw
+			throw ioe;
+		}
 
 		LOG.debug("Sent AskMessage: {}", askMessage);
 
@@ -129,28 +143,40 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		}
 		CompletableFuture<ReactMessage> future = new CompletableFuture<>();
 
+		future.whenComplete((m, e) -> {
+			this.openPostMessages.remove(postMessage.getMessageId());
+			if (m == null)
+				if (e != null)
+					if (e instanceof TimeoutException)
+						LOG.warn("KB '{}' did not respond within {}s to PostMessage '{}'.",
+								postMessage.getToKnowledgeBase(), this.getWaitTimeout(), postMessage.getMessageId());
+					else if (e instanceof CancellationException)
+						LOG.debug("Waiting for ReactMessage to PostMessage '{}' was cancelled due to a stopping SC.",
+								postMessage.getMessageId());
+					else
+						LOG.error("A {} occurred while sending an PostMessage.", e.getClass().getSimpleName(), e);
+				else
+					LOG.error(
+							"The ReactMessage future should complete either exceptionally or normally. Not with both ReactMessage and Exception null.");
+		});
+
 		// wait maximally WAIT_TIMEOUT for a return message.
 		int waitInSeconds = this.getWaitTimeout();
 		if (waitInSeconds > 0) {
 			future = future.orTimeout(waitInSeconds, TimeUnit.SECONDS);
 		}
 
-		future.whenComplete((m, e) -> {
-			if (m == null)
-				if (e != null)
-					if (e instanceof TimeoutException)
-						LOG.error("KB '{}' did not respond within {}s to PostMessage '{}'.",
-								postMessage.getToKnowledgeBase(), this.getWaitTimeout(), postMessage.getMessageId(), e);
-					else
-						LOG.error("A {} occurred while sending an PostMessage.", e.getClass().getSimpleName(), e);
-				else
-					LOG.error(
-							"The ReactMessage future should complete either exceptionally or normally. Not with both ReactMessage and Exception null.");
-			this.openAskMessages.remove(postMessage.getMessageId());
-		});
-
+		// first send and if success add to open messages
 		this.openPostMessages.put(postMessage.getMessageId(), future);
-		messageDispatcher.send(postMessage);
+
+		try {
+			messageDispatcher.send(postMessage);
+		} catch (IOException ioe) {
+			// cancel future and remove from open messages
+			this.openPostMessages.remove(postMessage.getMessageId()).cancel(true);
+			// and re throw
+			throw ioe;
+		}
 		LOG.debug("Sent PostMessage: {}", postMessage);
 
 		return future;
@@ -301,6 +327,21 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		this.messageDispatcherEndpoint = null;
 
 		this.smartConnector.communicationInterrupted();
+	}
+
+	public void stop() {
+		int i = 0;
+
+		for (CompletableFuture<AnswerMessage> future : new HashSet<>(this.openAskMessages.values())) {
+			if (future.cancel(true))
+				i++;
+		}
+
+		for (CompletableFuture<ReactMessage> future : new HashSet<>(this.openPostMessages.values())) {
+			if (future.cancel(true))
+				i++;
+		}
+		LOG.debug("MessageRouterImpl stopped. Cancelled {} message(s).", i);
 	}
 
 }

@@ -76,8 +76,6 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	protected String description;
 	private Phaser readyPhaser;
 
-	private CompletableFuture<Void> stoppedFuture = new CompletableFuture<Void>();
-
 	/**
 	 * Using the default reasoner level from the configuration.
 	 */
@@ -175,7 +173,6 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	@Override
 	public void smartConnectorStopped(SmartConnector aSC) {
 		LOG.info(this.name + " smartconnnector stopped");
-		this.stoppedFuture.complete(null);
 	}
 
 	@Override
@@ -187,17 +184,14 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		return this.sc;
 	}
 
-	public void stop() {
-		this.sc.stop();
+	public CompletableFuture<Void> stop() {
+		CompletableFuture<Void> future = this.sc.stop();
 		// remove all KIs
 		this.unregisteredAskKIs.clear();
 		this.unregisteredAnswerKIs.clear();
 		this.currentPostKIs.clear();
 		this.currentReactKIs.clear();
-	}
-
-	public CompletableFuture<Void> getStopFuture() {
-		return this.stoppedFuture;
+		return future;
 	}
 
 	public void register(AskKnowledgeInteraction anAskKI) {

@@ -453,19 +453,25 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	 * Note that a stopped {@link SmartConnectorImpl} can no longer be used.
 	 */
 	@Override
-	public void stop() {
+	public CompletableFuture<Void> stop() {
 		this.checkStopped();
 
 		this.isStopped = true;
 
 		// this will trigger notifications to other Smart Connectors.
-		this.knowledgeBaseStore.stop();
+		CompletableFuture<Void> future = this.knowledgeBaseStore.stop();
 
-		this.otherKnowledgeBaseStore.stop();
+		return future.whenComplete((v, t) -> {
 
-		KeRuntime.localSmartConnectorRegistry().unregister(this);
+			if (t != null)
+				LOG.debug("An error occurred while notifying other SCs.", t);
 
-		this.knowledgeBaseExecutorService.execute(() -> this.myKnowledgeBase.smartConnectorStopped(this));
+			// stop message router and cancel waiting for response to messages.
+			this.messageRouter.stop();
+			this.otherKnowledgeBaseStore.stop();
+			KeRuntime.localSmartConnectorRegistry().unregister(this);
+			this.myKnowledgeBase.smartConnectorStopped(this);
+		});
 	}
 
 	private void checkStopped() {

@@ -33,6 +33,8 @@ public class TestAskAnswer3 {
 	private static KnowledgeBaseImpl kb3;
 	private static KnowledgeBaseImpl kb4;
 
+	private static KnowledgeNetwork kn;
+
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 	}
@@ -44,7 +46,7 @@ public class TestAskAnswer3 {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -142,31 +144,8 @@ public class TestAskAnswer3 {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestAskAnswer3.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
-
-		if (kb3 != null) {
-			kb3.stop();
-		} else {
-			fail("KB3 should not be null!");
-		}
-
-		if (kb4 != null) {
-			kb4.stop();
-		} else {
-			fail("KB4 should not be null!");
-		}
+		kn.stop().get();
 	}
 }

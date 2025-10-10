@@ -25,6 +25,7 @@ public class TestPostReact4 {
 	public boolean kb2Received = false;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReact4.class);
+	private static KnowledgeNetwork kn;
 
 	@Test
 	public void testPostReactTimeout() throws InterruptedException {
@@ -33,7 +34,7 @@ public class TestPostReact4 {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -95,21 +96,10 @@ public class TestPostReact4 {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		System.clearProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT);
 		LOG.info("Clean up: {}", TestPostReact4.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
+		kn.stop().get();
 	}
 
 }

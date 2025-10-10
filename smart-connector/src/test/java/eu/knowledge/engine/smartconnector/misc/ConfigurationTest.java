@@ -169,25 +169,31 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigReasonerLevelOutOfRange() {
-
 		var kb = new KnowledgeBaseImpl("kb11");
 		this.kn.addKB(kb);
 		kb.setReasonerLevel(0);
 		assertThrowsExactly(IllegalArgumentException.class, () -> kb.start());
+		LOG.info("after first");
 
 		var kbb = new KnowledgeBaseImpl("kb22");
 		this.kn.addKB(kbb);
 		kbb.setReasonerLevel(6);
 		assertThrowsExactly(IllegalArgumentException.class, () -> kbb.start());
+
+		// less elegant solution to wait for SCs to be ready. KnowledgeNetwork solution
+		// did not work due to illegal argument exception
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			LOG.info("{}", e);
+		}
+
 	}
 
 	@AfterEach
-	public void afterTest() {
-		try {
-			kn.stop().get();
-		} catch (InterruptedException | ExecutionException e) {
-			fail();
-		}
+	public void afterTest() throws InterruptedException, ExecutionException {
+		LOG.info("Clean up: {}", ConfigurationTest.class.getSimpleName());
+		kn.stop().get();
 	}
 
 	private void intializeKB1() {
@@ -211,7 +217,7 @@ public class ConfigurationTest {
 			var bs = new BindingSet();
 			var b = new Binding();
 			b.put("p", "<barry1>");
-			b.put("name", "\"Barry Nouwt\"");
+			b.put("name", "\"Barry NL\"");
 			bs.add(b);
 
 			try {

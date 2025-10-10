@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.ResponseMessage;
 import eu.knowledge.engine.rest.model.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.KnowledgeEngineException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

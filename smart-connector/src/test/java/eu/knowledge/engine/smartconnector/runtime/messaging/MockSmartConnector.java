@@ -118,9 +118,11 @@ public class MockSmartConnector implements RuntimeSmartConnector, SmartConnector
 	}
 
 	@Override
-	public void stop() {
+	public CompletableFuture<Void> stop() {
 		// TODO Auto-generated method stub
-
+		var future = new CompletableFuture<Void>();
+		future.complete((Void) null);
+		return future;
 	}
 
 	@Override

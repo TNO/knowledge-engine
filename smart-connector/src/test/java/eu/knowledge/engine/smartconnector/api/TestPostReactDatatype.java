@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 public class TestPostReactDatatype {
 	private static KnowledgeBaseImpl kb1;
@@ -26,6 +26,7 @@ public class TestPostReactDatatype {
 	public boolean kb2Received = false;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReactDatatype.class);
+	private static KnowledgeNetwork kn;
 
 	@Test
 	public void testPostReact() throws InterruptedException {
@@ -33,7 +34,7 @@ public class TestPostReactDatatype {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -90,20 +91,9 @@ public class TestPostReactDatatype {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestPostReactDatatype.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
+		kn.stop().get();
 	}
 
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -22,6 +23,7 @@ public class TestPostReactPerformance {
 	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestPostReactPerformance.class);
+	private static KnowledgeNetwork kn;
 
 	@Test
 	public void testPostReact() throws InterruptedException {
@@ -29,8 +31,7 @@ public class TestPostReactPerformance {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		// create the network
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -102,20 +103,9 @@ public class TestPostReactPerformance {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestPostReactPerformance.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
+		kn.stop().get();
 	}
 
 }

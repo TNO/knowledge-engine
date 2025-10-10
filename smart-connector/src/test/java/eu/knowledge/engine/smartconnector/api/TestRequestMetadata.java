@@ -27,6 +27,7 @@ public class TestRequestMetadata {
 	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestRequestMetadata.class);
+	private static KnowledgeNetwork kn;
 
 	@Test
 	public void testRequestMetadata() throws InterruptedException, ExecutionException, ParseException {
@@ -36,7 +37,7 @@ public class TestRequestMetadata {
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
@@ -78,14 +79,8 @@ public class TestRequestMetadata {
 	}
 
 	@AfterAll
-	public static void cleanup() {
-
-		if (kb1 != null) {
-			kb1.stop();
-		}
-
-		if (kb2 != null) {
-			kb2.stop();
-		}
+	public static void cleanup() throws InterruptedException, ExecutionException {
+		LOG.info("Clean up: {}", TestRequestMetadata.class.getSimpleName());
+		kn.stop().get();
 	}
 }

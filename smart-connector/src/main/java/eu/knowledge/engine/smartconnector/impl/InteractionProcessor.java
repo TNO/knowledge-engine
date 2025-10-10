@@ -10,7 +10,6 @@ import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
 import eu.knowledge.engine.smartconnector.api.AskResult;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
-import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeBase;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostKnowledgeInteraction;

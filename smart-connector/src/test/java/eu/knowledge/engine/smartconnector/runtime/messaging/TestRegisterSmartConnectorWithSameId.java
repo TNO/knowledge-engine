@@ -14,27 +14,29 @@ import eu.knowledge.engine.knowledgedirectory.KnowledgeDirectory;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 
 public class TestRegisterSmartConnectorWithSameId {
-  private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
-  private Phaser readyPhaser = new Phaser(1);
-  
-  @Test
+	private static final Logger LOG = LoggerFactory.getLogger(TestRegisterSmartConnectorWithSameId.class);
+	private Phaser readyPhaser = new Phaser(1);
+
+	@Test
 	public void testRegisterSmartConnectorWithSameIdInSameRuntimeThrows() throws InterruptedException {
-    var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
-    kb1.setPhaser(this.readyPhaser);
-    kb1.start();
-    
-    var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
-    kb1.setPhaser(this.readyPhaser);
+		LOG.info("Starting testRegisterSameRuntime");
+		var kb1 = new KnowledgeBaseImpl("http://example.org/kb1");
+		kb1.setPhaser(this.readyPhaser);
+		kb1.start();
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      kb1AsWell.start();
-    });
-    
-    kb1.stop();
-  }
+		var kb1AsWell = new KnowledgeBaseImpl("http://example.org/kb1");
+		kb1.setPhaser(this.readyPhaser);
 
-  @Test
+		assertThrows(IllegalArgumentException.class, () -> {
+			kb1AsWell.start();
+		});
+
+		kb1.stop();
+	}
+
+	@Test
 	void testRegisterSmartConnectorWithSameIdInDifferentRuntimeThrows() throws Exception {
+		LOG.info("Starting testRegisterDifferentRuntime");
 		assertTrue(NetUtils.portAvailable(8080));
 		KnowledgeDirectory kd = new KnowledgeDirectory(8080);
 		MessageDispatcher md1 = new MessageDispatcher(8081, new URI("http://localhost:8081"),
@@ -48,11 +50,11 @@ public class TestRegisterSmartConnectorWithSameId {
 
 		// this ID is REUSED in both smart connectors!
 		URI kb1Id = new URI("http://example.org/kb1");
-		
+
 		md1.start();
 		MockSmartConnector sc1 = new MockSmartConnector(kb1Id);
 		md1.getLocalSmartConnectorConnectionManager().smartConnectorAdded(sc1);
-		
+
 		md2.start();
 		Thread.sleep(5000);
 		MockSmartConnector sc2 = new MockSmartConnector(kb1Id);

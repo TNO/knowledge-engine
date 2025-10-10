@@ -1,7 +1,5 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -10,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -24,15 +21,15 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
+import eu.knowledge.engine.smartconnector.edc.EdcConnectorProperties;
+import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
+import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
+import eu.knowledge.engine.smartconnector.edc.Token;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.SmartConnectorManagementApiService;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.KnowledgeEngineRuntimeDetails;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
-import eu.knowledge.engine.smartconnector.edc.EdcConnectorProperties;
-import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
-import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
-import eu.knowledge.engine.smartconnector.edc.Token;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
