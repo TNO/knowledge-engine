@@ -78,7 +78,7 @@ public class KnowledgeNetwork {
 
 		// register our state check Knowledge Interaction on each Smart Connecotr
 		GraphPattern gp = new GraphPattern(this.prefixMapping,
-				// @formatter:off
+		// @formatter:off
 				"?kb rdf:type kb:KnowledgeBase .", "?kb kb:hasName ?name .", "?kb kb:hasDescription ?description .",
 				"?kb kb:hasKnowledgeInteraction ?ki .", "?ki rdf:type ?kiType .", "?ki kb:isMeta ?isMeta .",
 				"?ki kb:hasCommunicativeAct ?act .", "?act rdf:type kb:CommunicativeAct .",
@@ -151,8 +151,8 @@ public class KnowledgeNetwork {
 	public CompletableFuture<Void> stop() {
 		var kbStoppedFutures = new ArrayList<CompletableFuture<Void>>();
 		this.knowledgeBases.forEach(kb -> {
-			kb.stop();
-			kbStoppedFutures.add(kb.getStopFuture());
+			LOG.info("Stopping {}", kb.getKnowledgeBaseName());
+			kbStoppedFutures.add(kb.stop());
 		});
 		this.knowledgeBases.clear();
 		return CompletableFuture.allOf(kbStoppedFutures.toArray(new CompletableFuture<?>[kbStoppedFutures.size()]));

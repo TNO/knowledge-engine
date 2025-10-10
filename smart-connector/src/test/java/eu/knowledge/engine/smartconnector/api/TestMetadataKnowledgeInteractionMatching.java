@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -26,7 +27,7 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
  * the other.
  */
 public class TestMetadataKnowledgeInteractionMatching {
-	private static final Logger LOG = LoggerFactory.getLogger(TestDynamicSemanticComposition.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestMetadataKnowledgeInteractionMatching.class);
 
 	private static KnowledgeNetwork kn;
 	private static KnowledgeBaseImpl kb1, kb2;
@@ -87,7 +88,7 @@ public class TestMetadataKnowledgeInteractionMatching {
 	}
 
 	@Test
-	public void testRemovedKB() {
+	public void testRemovedKB() throws InterruptedException, ExecutionException {
 		ReactKnowledgeInteraction rKI = new ReactKnowledgeInteraction(
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE))),
@@ -102,21 +103,11 @@ public class TestMetadataKnowledgeInteractionMatching {
 		kb2 = new KnowledgeBaseImpl("Kb2");
 		kn.addKB(kb2);
 		kn.sync();
-
-		kb2.stop();
 	}
 
 	@AfterEach
-	public void cleanup() {
-		try {
-			kb1.stop();
-		} catch (IllegalStateException e) {
-			LOG.error("Stopping a knowledge base should succeed: {}", e.getMessage());
-		}
-		try {
-			kb2.stop();
-		} catch (IllegalStateException e) {
-			LOG.error("Stopping a knowledge base should succeed. {}", e.getMessage());
-		}
+	public void cleanup() throws InterruptedException, ExecutionException {
+		LOG.info("Clean up: {}", TestMetadataKnowledgeInteractionMatching.class.getSimpleName());
+		kn.stop().get();
 	}
 }

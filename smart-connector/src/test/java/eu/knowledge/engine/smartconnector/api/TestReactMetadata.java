@@ -2,6 +2,8 @@ package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.ExecutionException;
+
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -21,6 +23,7 @@ public class TestReactMetadata {
 	private static KnowledgeBaseImpl kb2;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestReactMetadata.class);
+	private static KnowledgeNetwork kn;
 
 	@Test
 	public void testRequestMetadata() throws InterruptedException {
@@ -30,7 +33,7 @@ public class TestReactMetadata {
 		prefixes.setNsPrefix("kb", Vocab.ONTO_URI);
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -123,14 +126,8 @@ public class TestReactMetadata {
 	}
 
 	@AfterAll
-	public static void cleanup() {
-
-		if (kb2 != null) {
-			kb2.stop();
-		}
-
-		if (kb1 != null) {
-			kb1.stop();
-		}
+	public static void cleanup() throws InterruptedException, ExecutionException {
+		LOG.info("Clean up: {}", TestReactMetadata.class.getSimpleName());
+		kn.stop().get();
 	}
 }

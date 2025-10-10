@@ -295,7 +295,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				if (aBindingSetHandler != null && aBindingSetHandler.getBindingSet() != null) {
 					resultBS = aBindingSetHandler.getBindingSet();
 				}
-				
+
 				this.finalBindingSetFuture.complete(resultBS);
 			} else {
 				continueReasoningForward(incomingBS, aBindingSetHandler);
@@ -468,9 +468,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Error '{}' occurred while sending {}",
+				LOG.warn(
+						"Error '{}' should not occur while sending an AskMessage from KB '{}' to KB '{}'. The latter might have been stopped.",
 						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
-						askMessage.getClass().getSimpleName());
+						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+						this.kii.getKnowledgeBaseId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -558,9 +560,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.warn("Error '{}' occurred while sending {}",
+				LOG.warn(
+						"Error '{}' should not occur while sending an PostMessage from KB '{}' to KB '{}'. The latter might have been stopped.",
 						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
-						postMessage.getClass().getSimpleName());
+						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+						this.kii.getKnowledgeBaseId());
 				LOG.debug("", e);
 				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
 				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
@@ -624,7 +628,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				});
 
 			} catch (IOException e) {
-				LOG.error("No errors should occur while sending an PostMessage.", e);
+				LOG.warn(
+						"Error '{}' should not occur while sending an PostMessage from KB '{}' to KB '{}'. The latter might have been stopped.",
+						e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(),
+						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
+						this.kii.getKnowledgeBaseId());
+				LOG.debug("{}", e);
 				bsFuture = new CompletableFuture<Void>();
 				bsFuture.complete((Void) null);
 			}

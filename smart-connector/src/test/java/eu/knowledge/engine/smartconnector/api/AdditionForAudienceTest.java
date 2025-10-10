@@ -3,7 +3,6 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterAll;
@@ -252,7 +251,7 @@ public class AdditionForAudienceTest {
 
 	@AfterAll
 	public static void afterAll() throws InterruptedException, ExecutionException, TimeoutException {
-		kn.stop().get(10, TimeUnit.SECONDS);
+		kn.stop().get();
 	}
 
 }

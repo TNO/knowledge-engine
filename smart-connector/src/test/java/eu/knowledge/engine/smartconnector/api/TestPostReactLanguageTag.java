@@ -22,6 +22,7 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 public class TestPostReactLanguageTag {
 	private static KnowledgeBaseImpl kb1;
 	private static KnowledgeBaseImpl kb2;
+	private static KnowledgeNetwork kn;
 
 	public boolean kb2Received = false;
 
@@ -33,7 +34,7 @@ public class TestPostReactLanguageTag {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		KnowledgeNetwork kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -90,20 +91,9 @@ public class TestPostReactLanguageTag {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestPostReactLanguageTag.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
+		kn.stop().get();
 	}
 
 }

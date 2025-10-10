@@ -43,6 +43,8 @@ public class TestComplexGraphPatternMatching {
 	private static KnowledgeBaseImpl dashboardKB;
 	private static KnowledgeBaseImpl observationsKB;
 
+	private static KnowledgeNetwork kn;
+
 	@BeforeAll
 	public static void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 	}
@@ -55,7 +57,7 @@ public class TestComplexGraphPatternMatching {
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 
 		createDevicesKB(prefixes, kn);
 		createObservationsKB(prefixes, kn);
@@ -422,26 +424,9 @@ public class TestComplexGraphPatternMatching {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestComplexGraphPatternMatching.class.getSimpleName());
-		if (devicesKB != null) {
-			devicesKB.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (dashboardKB != null) {
-
-			dashboardKB.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
-
-		if (observationsKB != null) {
-			observationsKB.stop();
-		} else {
-			fail("KB3 should not be null!");
-		}
+		kn.stop().get();
 
 	}
 }

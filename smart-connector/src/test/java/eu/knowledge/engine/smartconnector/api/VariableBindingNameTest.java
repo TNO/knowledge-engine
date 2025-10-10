@@ -26,6 +26,8 @@ class VariableBindingNameTest {
 	private static KnowledgeBaseImpl sensor;
 	private static KnowledgeBaseImpl thermostat;
 
+	private static KnowledgeNetwork kn;
+
 	@Test
 	void test() {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
@@ -34,8 +36,7 @@ class VariableBindingNameTest {
 		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		// first add the relevant knowledge bases
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		sensor = new KnowledgeBaseImpl("temperatureSensor");
 		kn.addKB(sensor);
 		thermostat = new KnowledgeBaseImpl("thermostat");
@@ -156,19 +157,8 @@ class VariableBindingNameTest {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", VariableBindingNameTest.class.getSimpleName());
-		if (sensor != null) {
-			sensor.stop();
-		} else {
-			fail("Sensor should not be null!");
-		}
-
-		if (thermostat != null) {
-
-			thermostat.stop();
-		} else {
-			fail("Thermostat should not be null!");
-		}
+		kn.stop().get();
 	}
 }

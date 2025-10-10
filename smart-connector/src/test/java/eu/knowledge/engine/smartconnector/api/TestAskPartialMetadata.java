@@ -23,6 +23,7 @@ public class TestAskPartialMetadata {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestAskPartialMetadata.class);
 
+	private static KnowledgeNetwork kn;
 	private static KnowledgeBaseImpl kb1;
 	private static KnowledgeBaseImpl kb2;
 	private static KnowledgeBaseImpl kb3;
@@ -38,7 +39,7 @@ public class TestAskPartialMetadata {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
 
-		var kn = new KnowledgeNetwork();
+		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
 		kn.addKB(kb1);
 		kb2 = new KnowledgeBaseImpl("kb2");
@@ -75,26 +76,8 @@ public class TestAskPartialMetadata {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestAskPartialMetadata.class.getSimpleName());
-		if (kb1 != null) {
-			kb1.stop();
-		} else {
-			fail("KB1 should not be null!");
-		}
-
-		if (kb2 != null) {
-
-			kb2.stop();
-		} else {
-			fail("KB2 should not be null!");
-		}
-
-		if (kb3 != null) {
-
-			kb3.stop();
-		} else {
-			fail("KB3 should not be null!");
-		}
+		kn.stop().get();
 	}
 }

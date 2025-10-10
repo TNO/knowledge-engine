@@ -158,13 +158,9 @@ public class GeneralizeIfNecessaryTest {
 	}
 
 	@AfterAll
-	public static void close() {
+	public static void close() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", GeneralizeIfNecessaryTest.class.getSimpleName());
-		try {
-			kn.stop().get();
-		} catch (InterruptedException | ExecutionException e) {
-			LOG.error("Stopping the Knowledge Network should succeed: {}", e);
-		}
+		kn.stop().get();
 	}
 
 }
