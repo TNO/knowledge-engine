@@ -724,6 +724,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			LOG.info("canceled inactivity timer for {} because its smart connector stopped.",
 					this.getKnowledgeBaseId());
 		}
+		LOG.debug("SC of KB '{}' has stopped.", this.knowledgeBaseId);
 	}
 
 	private void cancelAsyncResponse() {
@@ -743,15 +744,21 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		if (this.hasAsyncResponse())
 			this.cancelAsyncResponse();
 		this.cancelInactivityTimeout();
-		this.sc.stop();
+		try {
+			this.sc.stop().get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("An error occurred while stopping SC of KB '{}'.", this.knowledgeBaseId);
+		}
 		this.cancelAndClearAllHandleRequests();
 	}
 
 	private void cancelAndClearAllHandleRequests() {
 		List<Integer> cancelledRequests = this.toBeProcessedHandleRequests.stream()
 				.map(HandleRequest::getHandleRequestId).toList();
-		LOG.warn("KB with id " + this.knowledgeBaseId
-				+ " has stopped. The following handle requests will be cancelled: " + cancelledRequests);
+
+		if (cancelledRequests.size() > 0)
+			LOG.warn("KB with id " + this.knowledgeBaseId
+					+ " has stopped. The following handle requests will be cancelled: " + cancelledRequests);
 
 		String cancelMessage = "KB with id " + this.knowledgeBaseId + " will no longer respond, because it stopped.";
 		this.toBeProcessedHandleRequests.forEach(hr -> {
