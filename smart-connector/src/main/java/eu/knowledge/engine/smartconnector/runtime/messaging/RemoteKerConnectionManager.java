@@ -86,6 +86,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
 		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
 		ConfigValue dataPlanePublicUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL);
+		ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
 
 		EdcConnectorProperties props = new EdcConnectorProperties(
 			this.myExposedUrl.toString(),
@@ -94,6 +95,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			"tke-dataplane",
 			dataPlaneControlUrl.getValue(),
 			dataPlanePublicUrl.getValue(),
+			tokenValidationEndpoint.getValue(),
 			"TNO Knowledge Engine Runtime",
 			"https://www.knowledge-engine.eu/"
 		);

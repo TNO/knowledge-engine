@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,18 +129,9 @@ public class RemoteKerConnection {
 				.setDateFormat(new RFC3339DateFormat());
 
 		if (!(this.edcService == null || this.tokenManager == null)) {
-			String file = "./edc.properties";
-			Properties properties = new Properties();
-			FileInputStream configReader;
-			try {
-				configReader = new FileInputStream(file);
-				properties.load(configReader);
-				configReader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			this.validationEndpoint = properties.getProperty("tokenValidationEndpoint");
+			Config config = ConfigProvider.getConfig();
+			ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
+			this.validationEndpoint = tokenValidationEndpoint.getValue();
 			setupTransferProcess();
 		}
 	}
