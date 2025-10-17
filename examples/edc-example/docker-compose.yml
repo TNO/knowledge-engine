@@ -11,7 +11,7 @@ services:
   # multiple smart connectors. Note that the REST API port is a DIFFERENT port
   # number than the ones configured below. It is still the default 8280.
   runtime-1:
-    image: docker.io/library/ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
     networks:
       - tke-edc-manager_default
     environment:
@@ -28,7 +28,7 @@ services:
     depends_on:
       - tke-edc-one
   runtime-2:
-    image: docker.io/library/ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
     networks:
       - tke-edc-manager_default
     environment:
@@ -45,7 +45,7 @@ services:
     depends_on:
       - tke-edc-two
   runtime-3:
-    image: docker.io/library/ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.3-SNAPSHOT
     networks:
       - tke-edc-manager_default
     environment:
