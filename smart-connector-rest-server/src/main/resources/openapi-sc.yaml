@@ -183,6 +183,11 @@ paths:
           provide a set of knowledge gaps as part of the result. If this set is empty, the binding set of the 
           result contains the answer. If the set of knowledge gaps is not empty, this contains one or more
           knowledge gaps that need to be fixed for the knowledge interaction to produce an answer.
+
+          The body of a KI can also contain the option "includeMetaKIs" (see example 'ASK with meta KIs included'). 
+          This options is disabled by defauilt and when enabled will take meta knowledge interactions of other 
+          Smart Connector into account. This means that meta data of the knowledge network can be requested 
+          such as KB id, names, descriptions, knowledge interactions, etc. For more information see https://www.knowledge-engine.eu/ontology
         content:
           application/json; charset=UTF-8:
             schema:
@@ -224,6 +229,11 @@ paths:
                   knowledgeInteractionType: AskKnowledgeInteraction
                   graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
                   knowledgeGapsEnabled: "true"
+              ASK with meta KIs included:
+                value:
+                  knowledgeInteractionType: AskKnowledgeInteraction
+                  graphPattern: "?a <http://example.org/isRelatedTo> ?b ."
+                  includeMetaKIs: true
       responses:
         '200':
           description: If the Knowledge Interaction is successfully registered, it returns the KnowledgeInteractionId object.
@@ -669,6 +679,8 @@ components:
           type: string
           pattern: '^[a-zA-Z0-9-]*$'
         knowledgeGapsEnabled:
+          type: boolean
+        includeMetaKIs:
           type: boolean
         communicativeAct:
           $ref: '#/components/schemas/CommunicativeAct'

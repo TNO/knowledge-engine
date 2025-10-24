@@ -181,6 +181,10 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 	private boolean suspended = false;
 
+	private Thread shutdownHook = new Thread(() -> {
+		this.stop();
+	});
+
 	public RestKnowledgeBase(eu.knowledge.engine.rest.model.SmartConnector scModel, final Runnable onReady) {
 		this.knowledgeBaseId = scModel.getKnowledgeBaseId();
 		this.knowledgeBaseName = scModel.getKnowledgeBaseName();
@@ -236,9 +240,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		if (scModel.getReasonerLevel() != null)
 			this.sc.setReasonerLevel(scModel.getReasonerLevel());
 
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			this.stop();
-		}));
+		Runtime.getRuntime().addShutdownHook(this.shutdownHook);
 	}
 
 	protected void tryProcessHandleRequestElseEnqueue(HandleRequest handleRequest) {
@@ -383,7 +385,11 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			prefixMapping = new PrefixMappingZero();
 		}
 
+		// TODO both {@code knowledgeGapsEnabled} and {@code includeMetaKIs} are only
+		// used for proactive KIs, so maybe move them from the {@code
+		// KnowledgeInteractionBase} to the specific KI type classes.
 		boolean knowledgeGapsEnabled = ki.getKnowledgeGapsEnabled() == null ? false : ki.getKnowledgeGapsEnabled();
+		boolean includeMetaKIs = ki.getIncludeMetaKIs() == null ? false : ki.getIncludeMetaKIs();
 
 		String type = ki.getKnowledgeInteractionType();
 		URI kiId;
@@ -403,7 +409,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 			}
 
 			var askKI = new AskKnowledgeInteraction(ca, new GraphPattern(prefixMapping, aki.getGraphPattern()),
-					ki.getKnowledgeInteractionName(), false, false, knowledgeGapsEnabled, strategy);
+					ki.getKnowledgeInteractionName(), false, includeMetaKIs, knowledgeGapsEnabled, strategy);
 
 			kiId = this.sc.register(askKI);
 			this.knowledgeInteractions.put(kiId, askKI);
@@ -439,7 +445,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 						"At least one of argumentGraphPattern and resultGraphPattern must be given for POST knowledge interactions.");
 			}
 
-			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP, ki.getKnowledgeInteractionName());
+			var postKI = new PostKnowledgeInteraction(ca, argGP, resGP, ki.getKnowledgeInteractionName(), false,
+					includeMetaKIs, null /* default strategy */);
 			kiId = this.sc.register(postKI);
 
 			this.knowledgeInteractions.put(kiId, postKI);
@@ -746,6 +753,8 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.cancelInactivityTimeout();
 		try {
 			this.sc.stop().get();
+			Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("An error occurred while stopping SC of KB '{}'.", this.knowledgeBaseId);
 		}
