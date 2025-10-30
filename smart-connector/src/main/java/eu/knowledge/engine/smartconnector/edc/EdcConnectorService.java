@@ -76,7 +76,7 @@ public class EdcConnectorService {
 		map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl));
 		map.put("registerPolicy", connector.registerPolicy(policyId));
 		map.put("registerAsset", connector.registerAsset(assetId, tkeAssetUrl, tkeAssetName));
-		map.put("registerContractDefinition", connector.registerContractDefinition(contractId, policyId, policyId));
+		map.put("registerContractDefinition", connector.registerContractDefinition(contractId, policyId, policyId, assetId));
 		return map;
 	}
 
