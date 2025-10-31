@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.javacc.ParseException;
@@ -125,6 +126,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 			this.metadata.add(model);
+			model.close();
 			LOG.debug("Modified metadata with new KB '{}'.", kb);
 		} catch (ParseException e) {
 			LOG.error("{}", e);
@@ -155,6 +157,8 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 			this.metadata.add(model);
 
+			model.close();
+
 			LOG.debug("Modified metadata with changed KB '{}'.", kb);
 
 		} catch (ParseException e) {
@@ -167,26 +171,23 @@ public class MetadataKB extends KnowledgeBaseImpl {
 		if (!this.canReceiveUpdates())
 			return new BindingSet();
 
-		try {
-			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
-					ei.getArgumentBindings());
+		// this is also a little complex... we have to:
+		// - extract the knowledge base that this message is about
+		// - delete all old data about that knowledge base
 
-			// this is also a little complex... we have to:
-			// - extract the knowledge base that this message is about
-			// - delete all old data about that knowledge base
+		String kbUri = ei.getArgumentBindings().iterator().next().get("kb");
+		Resource kb = this.metadata.createResource(kbUri.substring(1, kbUri.length() - 1));
 
-			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
-			String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
-					this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
+		LOG.info("KB '{}'.", kb);
 
-			UpdateRequest updateRequest = UpdateFactory.create(query);
-			UpdateAction.execute(updateRequest, this.metadata);
+		String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
+				this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
 
-			LOG.debug("Modified metadata with deleted KB '{}'.", kb);
+		UpdateRequest updateRequest = UpdateFactory.create(query);
+		UpdateAction.execute(updateRequest, this.metadata);
 
-		} catch (ParseException e) {
-			LOG.error("{}", e);
-		}
+		LOG.debug("Modified metadata with deleted KB '{}'.", kb);
+
 		return new BindingSet();
 	}
 
@@ -198,6 +199,10 @@ public class MetadataKB extends KnowledgeBaseImpl {
 			// execute actual *ask* and use previously defined Knowledge Interaction.
 			this.getSC().ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
 				try {
+
+					if (this.metadata != null)
+						this.metadata.close();
+
 					// using the BindingSet#generateModel() helper method, we can combine the graph
 					// pattern and the bindings for its variables into a valid RDF Model.
 					this.metadata = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
