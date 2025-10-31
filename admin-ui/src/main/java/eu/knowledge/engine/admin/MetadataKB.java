@@ -175,7 +175,10 @@ public class MetadataKB extends KnowledgeBaseImpl {
 		// - extract the knowledge base that this message is about
 		// - delete all old data about that knowledge base
 
-		Resource kb = this.metadata.createResource(ei.getArgumentBindings().iterator().next().get("kb"));
+		String kbUri = ei.getArgumentBindings().iterator().next().get("kb");
+		Resource kb = this.metadata.createResource(kbUri.substring(1, kbUri.length() - 1));
+
+		LOG.info("KB '{}'.", kb);
 
 		String query = String.format("DELETE { %s } WHERE { %s FILTER (?kb = <%s>) } ",
 				this.metaGraphPattern.getPattern(), this.metaGraphPattern.getPattern(), kb.toString());
