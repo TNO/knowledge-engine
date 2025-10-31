@@ -527,6 +527,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 		}
 
+		model.close();
+
 		URI kbId = null;
 		try {
 			kbId = new URI(kb.getURI());
