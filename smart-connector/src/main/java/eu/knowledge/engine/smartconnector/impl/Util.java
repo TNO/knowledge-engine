@@ -10,7 +10,7 @@ import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.AccessedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
 
@@ -40,7 +40,7 @@ public class Util {
 		CacheManager cacheManager = cachingProvider.getCacheManager();
 		MutableConfiguration<String, Node> config = new MutableConfiguration<String, Node>()
 				.setTypes(String.class, Node.class).setStoreByValue(false)
-				.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.ONE_HOUR));
+				.setExpiryPolicyFactory(AccessedExpiryPolicy.factoryOf(Duration.TEN_MINUTES));
 		nodeCache = cacheManager.createCache("nodeCache", config);
 	}
 
@@ -100,7 +100,7 @@ public class Util {
 		}
 		return m;
 	}
-	
+
 	public static Set<TriplePattern> translateGraphPatternTo(GraphPattern pattern) {
 
 		TriplePattern tp;

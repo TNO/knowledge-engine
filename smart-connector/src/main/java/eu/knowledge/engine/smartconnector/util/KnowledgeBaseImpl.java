@@ -303,6 +303,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 					isUpToDate &= isKnowledgeBaseUpToDate(aKnowledgeBase, m);
 				}
 			}
+			m.close();
 
 		} catch (InterruptedException | ExecutionException | ParseException e) {
 			LOG.error("{}", e);
