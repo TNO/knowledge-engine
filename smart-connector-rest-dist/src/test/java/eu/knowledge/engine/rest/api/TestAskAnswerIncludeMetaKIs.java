@@ -34,7 +34,7 @@ public class TestAskAnswerIncludeMetaKIs {
 	}
 
 	@Test
-	public void testAskAnswerWithGaps() throws IOException, InterruptedException {
+	public void testAskAnswer() throws IOException, InterruptedException {
 
 		// In this test there will be an Ask KB with a single AskKI and
 		// an AnswerKB with a single AnswerKI that answers only part of the Ask pattern.
@@ -72,11 +72,11 @@ public class TestAskAnswerIncludeMetaKIs {
 		registerAskKb.expectStatus(200);
 
 		// register the AskKI with IncludeMetaKIs enabled
-		HttpTester registerAskKiWithIncludeMetaKIs = new HttpTester(new URL(url + "/sc/ki"), "POST",
+		HttpTester registerAskKiWithIncludeMetaKIsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askMetadataWithIncludeMetaKIs\", \"includeMetaKIs\": \"true\", \"graphPattern\": \"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .\"}",
 				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Content-Type",
 						"application/json", "Accept", "*/*"));
-		registerAskKiWithIncludeMetaKIs.expectStatus(200);
+		registerAskKiWithIncludeMetaKIsEnabled.expectStatus(200);
 
 		// register the AskKI without IncludeMetaKIs (= disabled)
 		HttpTester registerAskKiWithoutIncludeMetaKIs = new HttpTester(new URL(url + "/sc/ki"), "POST",
