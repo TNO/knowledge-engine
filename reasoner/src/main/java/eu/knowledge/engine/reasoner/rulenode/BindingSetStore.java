@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -108,11 +109,13 @@ public class BindingSetStore {
 			Set<CombiMatch> someCombiMatches, Map<BaseRule, Map<Match, TripleVarBindingSet>> someNeighborBS) {
 		var combinedTVBS = new TripleVarBindingSet(aGraphPattern);
 
-		int i = 0;
+		AtomicLong i = new AtomicLong(0);
 		int size = someCombiMatches.size();
+
+//		someCombiMatches.stream().forEach(cMatch -> {
 		for (CombiMatch cMatch : someCombiMatches) {
-			i = i + 1;
-			LOG.trace("Creating binding set for combi match: {}/{}", i, size);
+			i.incrementAndGet();
+			LOG.debug("Creating binding set for combi match: {}/{}", i.get(), size);
 
 			// keep separate binding set per combi match
 			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
@@ -128,7 +131,7 @@ public class BindingSetStore {
 						TripleVarBindingSet tvbs = matchToBS.get(cSingleMatch);
 
 						if (tvbs != null)
-							cMatchTVBS.addAll(cMatchTVBS.combine(tvbs).getBindings());
+							cMatchTVBS = cMatchTVBS.combine(tvbs);
 					}
 				}
 			}
