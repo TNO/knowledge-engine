@@ -189,6 +189,15 @@ public class TripleVarBindingSet {
 	 */
 	public TripleVarBindingSet combine(TripleVarBindingSet aBindingSet) {
 
+		Set<Var> overlappingVars = new HashSet<Var>();
+		if (this.bindings.size() > 0 && aBindingSet.getBindings().size() > 0) {
+			Set<Var> vars1 = this.bindings.iterator().next().getVars();
+			Set<Var> vars2 = aBindingSet.getBindings().iterator().next().getVars();
+			overlappingVars.addAll(vars1);
+			overlappingVars.retainAll(vars2);
+//			LOG.debug("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
+		}
+
 		LOG.trace("Merging {} bindings with our {} bindings.", aBindingSet.getBindings().size(),
 				this.getBindings().size());
 
@@ -212,7 +221,7 @@ public class TripleVarBindingSet {
 			for (var tvb1 : this.bindings) {
 				for (TripleVarBinding otherB : aBindingSet.getBindings()) {
 					// always add a merged version of the two bindings, except when they conflict.
-					if (!tvb1.isConflicting(otherB)) {
+					if (!tvb1.isConflicting2(otherB, overlappingVars)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}
