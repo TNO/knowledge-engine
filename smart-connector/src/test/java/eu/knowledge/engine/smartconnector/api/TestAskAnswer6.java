@@ -38,16 +38,20 @@ public class TestAskAnswer6 {
 
 	private PrefixMappingMem prefixes;
 
-	private String graphPattern = """
+	private String graphPattern1 = """
 			?a <https://www.tno.nl/example/b1> ?c1 .
+			?a <https://www.tno.nl/example/b3> ?c3 .
+			?a <https://www.tno.nl/example/b2> ?c2 .
+			""";
+
+	private String graphPattern2 = """
 			?a <https://www.tno.nl/example/b2> ?c2 .
 			?a <https://www.tno.nl/example/b3> ?c3 .
-			?a <https://www.tno.nl/example/b4> ?c4 .
-			?a <https://www.tno.nl/example/b5> ?c5 .
-			?a <https://www.tno.nl/example/b6> ?c6 .
-			?a <https://www.tno.nl/example/b7> ?c7 .
-			?a <https://www.tno.nl/example/b8> ?c8 .
-			?a <https://www.tno.nl/example/b9> ?c9 .
+			""";
+
+	private String graphPattern3 = """
+			?a <https://www.tno.nl/example/b2> ?c2 .
+			?a <https://www.tno.nl/example/b1> ?c1 .
 			""";
 
 	@BeforeAll
@@ -84,13 +88,13 @@ public class TestAskAnswer6 {
 //		kb9 = new KnowledgeBaseImpl("kb9");
 //		kn.addKB(kb9);
 
-		GraphPattern gp = new GraphPattern(prefixes, this.graphPattern);
+		GraphPattern gp = new GraphPattern(prefixes, this.graphPattern1);
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(askKI);
 
-		createKI(kb2);
-		createKI(kb3);
-		createKI(kb4);
+		createKI(kb2, this.graphPattern1);
+		createKI(kb3, this.graphPattern3);
+		createKI(kb4, this.graphPattern2);
 //		createKI(kb5);
 //		createKI(kb6);
 //		createKI(kb7);
@@ -120,8 +124,8 @@ public class TestAskAnswer6 {
 		assertFalse(iter.hasNext(), "there should be no bindings");
 	}
 
-	private void createKI(KnowledgeBaseImpl aKb) {
-		GraphPattern gp1 = new GraphPattern(prefixes, this.graphPattern);
+	private void createKI(KnowledgeBaseImpl aKb, String aGraphPattern) {
+		GraphPattern gp1 = new GraphPattern(prefixes, aGraphPattern);
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		aKb.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(

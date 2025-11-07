@@ -431,6 +431,8 @@ public class BaseRule {
 		List<CombiMatch> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
 		Set<Integer> toBeDemotedMatchIndices = null;
 
+		Set<BaseRule> candidateRulesInBiggestMatch = new HashSet<>();
+
 		Iterator<Map.Entry<TriplePattern, Set<CombiMatch>>> triplePatternMatchesIter = combiMatchesPerTriple.entrySet()
 				.iterator();
 
@@ -439,6 +441,10 @@ public class BaseRule {
 			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
 					biggestMatches.size(), smallerMatches.size(), aConfig);
 			biggestMatches.addAll(value);
+
+			for (CombiMatch cm : biggestMatches) {
+				candidateRulesInBiggestMatch.addAll(cm.keySet());
+			}
 		}
 
 		int cnt = 1;
@@ -468,8 +474,9 @@ public class BaseRule {
 					// TODO: this does not seem to be going in the right direction, because this way
 					// the ordering of the triple patterns is important and we do not want that.
 					// TODO can we move this outside the current loops?
+					BaseRule candidateRule = candidateCombiMatch.keySet().iterator().next();
 					if (aConfig.contains(MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY)
-							&& !aBiggestMatch.containsKey(candidateCombiMatch.keySet().iterator().next())) {
+							/*&& !aBiggestMatch.containsKey(candidateRule)*/ && candidateRulesInBiggestMatch.contains(candidateRule)) {
 						// check if a rule already present in aBiggestMatch
 						// can match the current triple pattern
 
@@ -546,6 +553,11 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
+			
+			for(CombiMatch big: toBeAddedToBiggestMatches)
+			{
+				candidateRulesInBiggestMatch.addAll(big.keySet());
+			}
 		}
 
 		toBeAddedToBiggestMatches = null;
