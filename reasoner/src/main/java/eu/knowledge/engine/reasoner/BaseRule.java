@@ -476,7 +476,7 @@ public class BaseRule {
 					// TODO can we move this outside the current loops?
 					BaseRule candidateRule = candidateCombiMatch.keySet().iterator().next();
 					if (aConfig.contains(MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY)
-							/*&& !aBiggestMatch.containsKey(candidateRule)*/ && candidateRulesInBiggestMatch.contains(candidateRule)) {
+							&& !aBiggestMatch.containsKey(candidateRule) && candidateRulesInBiggestMatch.contains(candidateRule)) {
 						// check if a rule already present in aBiggestMatch
 						// can match the current triple pattern
 

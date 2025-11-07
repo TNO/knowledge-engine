@@ -30,28 +30,46 @@ public class TestAskAnswer6 {
 	private static KnowledgeBaseImpl kb2;
 	private static KnowledgeBaseImpl kb3;
 	private static KnowledgeBaseImpl kb4;
-//	private static KnowledgeBaseImpl kb5;
-//	private static KnowledgeBaseImpl kb6;
-//	private static KnowledgeBaseImpl kb7;
-//	private static KnowledgeBaseImpl kb8;
-//	private static KnowledgeBaseImpl kb9;
+	private static KnowledgeBaseImpl kb5;
+	private static KnowledgeBaseImpl kb6;
+	private static KnowledgeBaseImpl kb7;
+	private static KnowledgeBaseImpl kb8;
+	private static KnowledgeBaseImpl kb9;
 
 	private PrefixMappingMem prefixes;
 
 	private String graphPattern1 = """
 			?a <https://www.tno.nl/example/b1> ?c1 .
-			?a <https://www.tno.nl/example/b3> ?c3 .
 			?a <https://www.tno.nl/example/b2> ?c2 .
+			?a <https://www.tno.nl/example/b3> ?c3 .
+			?a <https://www.tno.nl/example/b4> ?c4 .
+			?a <https://www.tno.nl/example/b5> ?c5 .
+			?a <https://www.tno.nl/example/b6> ?c6 .
+			?a <https://www.tno.nl/example/b7> ?c7 .
+			?a <https://www.tno.nl/example/b8> ?c8 .
+			?a <https://www.tno.nl/example/b9> ?c9 .
 			""";
 
 	private String graphPattern2 = """
 			?a <https://www.tno.nl/example/b2> ?c2 .
 			?a <https://www.tno.nl/example/b3> ?c3 .
+			?a <https://www.tno.nl/example/b4> ?c4 .
+			?a <https://www.tno.nl/example/b5> ?c5 .
+			?a <https://www.tno.nl/example/b6> ?c6 .
+			?a <https://www.tno.nl/example/b7> ?c7 .
+			?a <https://www.tno.nl/example/b8> ?c8 .
+			?a <https://www.tno.nl/example/b9> ?c9 .
 			""";
 
 	private String graphPattern3 = """
-			?a <https://www.tno.nl/example/b2> ?c2 .
 			?a <https://www.tno.nl/example/b1> ?c1 .
+			?a <https://www.tno.nl/example/b2> ?c2 .
+			?a <https://www.tno.nl/example/b3> ?c3 .
+			?a <https://www.tno.nl/example/b4> ?c4 .
+			?a <https://www.tno.nl/example/b5> ?c5 .
+			?a <https://www.tno.nl/example/b6> ?c6 .
+			?a <https://www.tno.nl/example/b7> ?c7 .
+			?a <https://www.tno.nl/example/b8> ?c8 .
 			""";
 
 	@BeforeAll
@@ -77,16 +95,16 @@ public class TestAskAnswer6 {
 		kn.addKB(kb3);
 		kb4 = new KnowledgeBaseImpl("kb4");
 		kn.addKB(kb4);
-//		kb5 = new KnowledgeBaseImpl("kb5");
-//		kn.addKB(kb5);
-//		kb6 = new KnowledgeBaseImpl("kb6");
-//		kn.addKB(kb6);
-//		kb7 = new KnowledgeBaseImpl("kb7");
-//		kn.addKB(kb7);
-//		kb8 = new KnowledgeBaseImpl("kb8");
-//		kn.addKB(kb8);
-//		kb9 = new KnowledgeBaseImpl("kb9");
-//		kn.addKB(kb9);
+		kb5 = new KnowledgeBaseImpl("kb5");
+		kn.addKB(kb5);
+		kb6 = new KnowledgeBaseImpl("kb6");
+		kn.addKB(kb6);
+		kb7 = new KnowledgeBaseImpl("kb7");
+		kn.addKB(kb7);
+		kb8 = new KnowledgeBaseImpl("kb8");
+		kn.addKB(kb8);
+		kb9 = new KnowledgeBaseImpl("kb9");
+		kn.addKB(kb9);
 
 		GraphPattern gp = new GraphPattern(prefixes, this.graphPattern1);
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp);
@@ -95,11 +113,11 @@ public class TestAskAnswer6 {
 		createKI(kb2, this.graphPattern1);
 		createKI(kb3, this.graphPattern3);
 		createKI(kb4, this.graphPattern2);
-//		createKI(kb5);
-//		createKI(kb6);
-//		createKI(kb7);
-//		createKI(kb8);
-//		createKI(kb9);
+		createKI(kb5, this.graphPattern1);
+		createKI(kb6, this.graphPattern1);
+		createKI(kb7, this.graphPattern1);
+		createKI(kb8, this.graphPattern1);
+		createKI(kb9, this.graphPattern1);
 
 		kn.sync();
 
@@ -148,11 +166,11 @@ public class TestAskAnswer6 {
 		cleanKB(kb2);
 		cleanKB(kb3);
 		cleanKB(kb4);
-//		cleanKB(kb5);
-//		cleanKB(kb6);
-//		cleanKB(kb7);
-//		cleanKB(kb8);
-//		cleanKB(kb9);
+		cleanKB(kb5);
+		cleanKB(kb6);
+		cleanKB(kb7);
+		cleanKB(kb8);
+		cleanKB(kb9);
 
 	}
 
