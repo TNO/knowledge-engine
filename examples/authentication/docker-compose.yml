@@ -9,15 +9,15 @@ services:
     depends_on:
       - knowledge-directory
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.3.2
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.4.0
   runtime-1:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.2
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
     environment:
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KD_URL: http://thisisausername:thisisapassword@nginx/kd
       KE_RUNTIME_EXPOSED_URL: http://thisisausername:thisisapassword@nginx/ker1
   runtime-2:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.3.2
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
     environment:
       KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
       KD_URL: http://thisisausername:thisisapassword@nginx/kd

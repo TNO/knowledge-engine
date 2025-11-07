@@ -53,8 +53,8 @@ One knowledge base asks for information and the other two provide an answer to t
 ### Executing the example
 Execute the following steps to run the example:
 1. In this project, execute a `mvn clean install`.
-2. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.3.3-SNAPSHOT`.
-3. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.3.3-SNAPSHOT`.
+2. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.4.0`.
+3. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.4.0`.
 4. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
 5. In the `examples/edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
 6. Wait around 10 seconds to give the EDC Connectors time to finish setting up. Then, execute `docker compose up -d` to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
