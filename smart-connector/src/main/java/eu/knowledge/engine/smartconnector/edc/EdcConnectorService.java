@@ -18,7 +18,7 @@ import java.util.UUID;
 @Named
 public class EdcConnectorService {
 
-	private final Logger log = LoggerFactory.getLogger(EdcConnectorService.class);
+	private final Logger LOG = LoggerFactory.getLogger(EdcConnectorService.class);
 	private final Map<String, EdcConnectorClient> connectors = new HashMap<>();
 	private final Map<String, EdcConnectorProperties> configuration = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class EdcConnectorService {
 	}
 
 	public void addConnector(EdcConnectorProperties connector) {
-		log.info("Adding connector for [participant id: {}] with [management url: {}]",
+		LOG.info("Adding connector for [participant id: {}] with [management url: {}]",
 				connector.participantId(), connector.managementUrl());
 		connectors.put(connector.participantId(), new EdcConnectorClient(connector.managementUrl()));
 		configuration.put(connector.participantId(), connector);
@@ -48,16 +48,16 @@ public class EdcConnectorService {
 	 * @return map with all the responses
 	 */
 	public HashMap<String, String> configureConnector(String participantId) {
-		log.info("configureConnector for participantId: {}", participantId);
+		LOG.info("configureConnector for participantId: {}", participantId);
 		EdcConnectorProperties properties = configuration.get(participantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 
-		String existingAssetId = getAssetIdFromCatalogForAssetName(properties.participantId(),
-				properties.participantId(), properties.tkeAssetName());
-		if (existingAssetId != null) {
-			log.info("Connector already configured and TKE asset present for participantId: {}", participantId);
-			throw new RuntimeException("Connector already configured and TKE asset present.");
-		}
+		// String existingAssetId = getAssetIdFromCatalogForAssetName(properties.participantId(),
+		// 		properties.participantId(), properties.tkeAssetName());
+		// if (existingAssetId != null) {
+		// 	LOG.info("Connector already configured and TKE asset present for participantId: {}", participantId);
+		// 	throw new RuntimeException("Connector already configured and TKE asset present.");
+		// }
 
 		// properties needed when creating a data plane.
 		var dataPlaneId = EdcConnectorService.DATA_PLANE_ID;
@@ -73,9 +73,12 @@ public class EdcConnectorService {
 
 		// Create the mandatory edc resources.
 		var map = new HashMap<String, String>();
-		map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl));
-		map.put("registerPolicy", connector.registerPolicy(policyId));
+		// map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl));
+		LOG.info("Registering Asset");
 		map.put("registerAsset", connector.registerAsset(assetId, tkeAssetUrl, tkeAssetName));
+		LOG.info("Registering Policy");
+		map.put("registerPolicy", connector.registerPolicy(policyId));
+		LOG.info("Registering Contract Definition");
 		map.put("registerContractDefinition", connector.registerContractDefinition(contractId, policyId, policyId, assetId));
 		return map;
 	}
@@ -98,13 +101,13 @@ public class EdcConnectorService {
 	 * @return response
 	 */
 	public String catalogRequest(String participantId, String counterPartyParticipantId) {
-		log.info("catalogRequest for participantId: {}", participantId);
+		LOG.info("catalogRequest for participantId: {}", participantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 		EdcConnectorProperties counterPartyProperties = configuration.get(
 				counterPartyParticipantId);
 
 		var counterPartyProtocolUrl = counterPartyProperties.protocolUrl();
-		return connector.catalogRequest(counterPartyProtocolUrl);
+		return connector.catalogRequest(counterPartyProtocolUrl, counterPartyParticipantId);
 	}
 
 	/**
@@ -119,7 +122,7 @@ public class EdcConnectorService {
 	 * @return response
 	 */
 	public String negotiateContract(String participantId, String counterPartyParticipantId, String assetId) {
-		log.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", participantId,
+		LOG.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", participantId,
 				counterPartyParticipantId, assetId);
 		EdcConnectorProperties participantProperties = configuration.get(participantId);
 		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
@@ -141,7 +144,7 @@ public class EdcConnectorService {
 
 	public String transferProcess(String participantId, String counterPartyParticipantId, String contractAgreementId,
 			String assetId) {
-		log.info(
+		LOG.info(
 				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}, assetId: {}",
 				participantId, counterPartyParticipantId, contractAgreementId, assetId);
 		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
