@@ -52,11 +52,14 @@ public class EdcConnectorService {
 		EdcConnectorProperties properties = configuration.get(participantId);
 		EdcConnectorClient connector = connectors.get(participantId);
 
-		// String existingAssetId = getAssetIdFromCatalogForAssetName(properties.participantId(),
-		// 		properties.participantId(), properties.tkeAssetName());
+		// String existingAssetId =
+		// getAssetIdFromCatalogForAssetName(properties.participantId(),
+		// properties.participantId(), properties.tkeAssetName());
 		// if (existingAssetId != null) {
-		// 	LOG.info("Connector already configured and TKE asset present for participantId: {}", participantId);
-		// 	throw new RuntimeException("Connector already configured and TKE asset present.");
+		// LOG.info("Connector already configured and TKE asset present for
+		// participantId: {}", participantId);
+		// throw new RuntimeException("Connector already configured and TKE asset
+		// present.");
 		// }
 
 		// properties needed when creating a data plane.
@@ -73,13 +76,15 @@ public class EdcConnectorService {
 
 		// Create the mandatory edc resources.
 		var map = new HashMap<String, String>();
-		// map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl));
+		// map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId,
+		// dataPlaneControlUrl, dataPlanePublicUrl));
 		LOG.info("Registering Asset");
 		map.put("registerAsset", connector.registerAsset(assetId, tkeAssetUrl, tkeAssetName));
 		LOG.info("Registering Policy");
 		map.put("registerPolicy", connector.registerPolicy(policyId));
 		LOG.info("Registering Contract Definition");
-		map.put("registerContractDefinition", connector.registerContractDefinition(contractId, policyId, policyId, assetId));
+		map.put("registerContractDefinition",
+				connector.registerContractDefinition(contractId, policyId, policyId, assetId));
 		return map;
 	}
 
