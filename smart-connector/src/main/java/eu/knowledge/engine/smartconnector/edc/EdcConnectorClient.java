@@ -18,7 +18,7 @@ import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerE
 
 public class EdcConnectorClient {
 
-  private final Logger log = LoggerFactory.getLogger(EdcConnectorClient.class);
+  private final Logger LOG = LoggerFactory.getLogger(EdcConnectorClient.class);
   private final String edcConnectorManagementUrl;
   private final HttpClient httpClient;
 
@@ -34,7 +34,7 @@ public class EdcConnectorClient {
    */
   public String registerDataPlane(String dataPlaneId, String dataPlaneControlUrl, String dataPlanePublicUrl) {
     var url = getManagementUrl("/v2/dataplanes");
-    log.info("registerDataPlane at: {}", url);
+    LOG.info("registerDataPlane at: {}", url);
     var payload = """
         {
           "@context": {
@@ -55,7 +55,7 @@ public class EdcConnectorClient {
         }
       """.formatted(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl);
     HttpResponse<String> response = httpPost(url, payload);
-    log.info("Register data plane response: {}", response.body());
+    LOG.info("Register data plane response: {}", response.body());
     return response.body();
   }
 
@@ -64,7 +64,7 @@ public class EdcConnectorClient {
    */
   public String registerAsset(String assetId, String tkeUrl, String tkeAssetName) {
     var url = getManagementUrl("/v3/assets");
-    log.info("registerAsset at: {}", url);
+    LOG.info("registerAsset at: {}", url);
     var payload = """
       {
         "@context": [
@@ -86,7 +86,7 @@ public class EdcConnectorClient {
       }
       """.formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
     HttpResponse<String> response = httpPost(url, payload);
-    log.info("Register asset response: {}", response.body());
+    LOG.info("Register asset response: {}", response.body());
     return response.body();
   }
 
@@ -97,8 +97,8 @@ public class EdcConnectorClient {
    */
   public String registerPolicy(String policyId) {
     var url = getManagementUrl("/v3/policydefinitions");
-    log.info("getManagementUrl at: {}", url);
-
+    LOG.info("getManagementUrl at: {}", url);
+  
     var payload = """
       {
         "@context": {
@@ -115,14 +115,15 @@ public class EdcConnectorClient {
         }
       }
       """.formatted(policyId);
+    
     HttpResponse<String> response = httpPost(url, payload);
-    log.info("Register policy response: {}", response.body());
+    LOG.info("Register policy response: {}", response.body());
     return response.body();
   }
 
   public String registerContractDefinition(String contractDefinitionId, String accessPolicyId, String contractPolicyId, String assetId) {
     var url = getManagementUrl("/v3/contractdefinitions");
-    log.info("registerContractDefinition at: {}", url);
+    LOG.info("registerContractDefinition at: {}", url);
     var payload = """
       {
         "@context": {
@@ -141,19 +142,19 @@ public class EdcConnectorClient {
       }
       """.formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
     HttpResponse<String> response = httpPost(url, payload);
-    log.info("Register contract definition response: {}", response.body());
+    LOG.info("Register contract definition response: {}", response.body());
     return response.body();
   }
 
   /**
-   * Catalog requests are sent to ones own connector.
+   * CataLOG requests are sent to ones own connector.
    *
    * @param counterPartyAddress
    * @return
    */
-  public String catalogRequest(String counterPartyAddress, String providerParticipantId) {
+  public String catalogRequest(String counterPartyAddress, String countParticipantId) {
     var url = getManagementUrl("/v3/catalog/request");
-    log.info("catalogRequest at: {}", url);
+    LOG.info("catalogRequest at: {}", url);
     var payload = """
       {
         "@context": {
@@ -163,9 +164,9 @@ public class EdcConnectorClient {
         "counterPartyId": "%s",
         "protocol": "dataspace-protocol-http"
       }
-      """.formatted(counterPartyAddress, providerParticipantId);
+      """.formatted(counterPartyAddress, countParticipantId);
     HttpResponse<String> postResponse = httpPost(url, payload);
-    log.info("Catalog request response: {}", postResponse.body());
+    LOG.info("CataLOG request response: {}", postResponse.body());
     return postResponse.body();
   }
 
@@ -186,7 +187,7 @@ public class EdcConnectorClient {
     String catalogOfferIdForAsset = findByJsonPointerExpression(catalogRequest, "/dcat:dataset/odrl:hasPolicy/@id");
 
     var url = getManagementUrl("/v2/contractnegotiations");
-    log.info("negotiateContract at: {}", url);
+    LOG.info("negotiateContract at: {}", url);
     var payload = """
       {
         "@context": {
@@ -211,14 +212,14 @@ public class EdcConnectorClient {
       """.formatted(consumerParticipantId, providerParticipantId, providerParticipantId, counterPartyAddress, catalogOfferIdForAsset, assetId);
 
     HttpResponse<String> postResponse = httpPost(url, payload);
-    log.info("Negotiate contract response: {}", postResponse.body());
+    LOG.info("Negotiate contract response: {}", postResponse.body());
     return postResponse.body();
   }
 
   public String contractAgreement(String json) {
     String contractAgreementId = findByJsonPointerExpression(json, "/@id");
     var url = getManagementUrl("/v2/contractnegotiations/" + contractAgreementId);
-    log.info("contractAgreement at: {}", url);
+    LOG.info("contractAgreement at: {}", url);
     final List<String> responses = new ArrayList<>();
 
     Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
@@ -233,7 +234,7 @@ public class EdcConnectorClient {
 
   public String transferProcess(String counterPartyAddress, String counterPartyParticipantId, String contractAgreementId, String assetId) {
     var url = getManagementUrl("/v2/transferprocesses");
-    log.info("transferProcess at: {}", url);
+    LOG.info("transferProcess at: {}", url);
     var payload = """
         {
           "@context": {
@@ -251,7 +252,7 @@ public class EdcConnectorClient {
         }
       """.formatted(counterPartyAddress, counterPartyParticipantId, contractAgreementId, assetId);
     HttpResponse<String> postResponse = httpPost(url, payload);
-    log.info("Transfer process response: {}", postResponse.body());
+    LOG.info("Transfer process response: {}", postResponse.body());
     return postResponse.body();
   }
 
@@ -267,7 +268,7 @@ public class EdcConnectorClient {
   }
 
   private HttpResponse<String> httpGet(String url, String accept) {
-    log.info("Calling: {}", url);
+    LOG.info("Calling: {}", url);
 
     HttpRequest request = HttpRequest.newBuilder()
       .uri(toURI(url))
@@ -283,7 +284,7 @@ public class EdcConnectorClient {
   }
 
   private HttpResponse<String> httpPost(String url, String contentType, String payload) {
-    log.info("Calling: {}, Payload: {}", url, payload);
+    LOG.info("Calling: {}, Payload: {}", url, payload);
 
     HttpRequest request = HttpRequest.newBuilder()
       .uri(toURI(url))
