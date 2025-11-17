@@ -63,30 +63,30 @@ public class EdcConnectorClient {
 	 * Register an assert given the provided assetId and tkeUrl.
 	 */
 	public String registerAsset(String assetId, String tkeUrl, String tkeAssetName) {
-		var url = getManagementUrl("/v3/assets");
-		LOG.info("registerAsset at: {}", url);
-		var payload = """
-				 {
+		String url = getManagementUrl("/v3/assets");
+		String payload = """
+			{
 				"@context": [
-				  "https://w3id.org/edc/connector/management/v0.0.1"
+				  	"https://w3id.org/edc/connector/management/v0.0.1"
 				],
 				"@id": "%s",
 				"properties": {
-				  "name": "%s",
-				  "contenttype": "application/json"
+				  	"name": "%s",
+				  	"contenttype": "application/json"
 				},
 				"dataAddress": {
-				  "type": "HttpData",
-				  "name": "%s",
-				  "baseUrl": "%s",
-				  "proxyMethod": "true",
-				  "proxyPath": "true",
-				  "proxyBody": "true"
+					"type": "HttpData",
+					"name": "%s",
+					"baseUrl": "%s",
+					"proxyMethod": "true",
+					"proxyPath": "true",
+					"proxyBody": "true"
 				}
-				 }
-				 """.formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
+			}
+		""".formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
+		LOG.info("Registering asset at: {}, Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Register asset response: {}", response.body());
+		LOG.info("Registering asset response: {}", response.body());
 		return response.body();
 	}
 
@@ -96,54 +96,52 @@ public class EdcConnectorClient {
 	 * @return
 	 */
 	public String registerPolicy(String policyId) {
-		var url = getManagementUrl("/v3/policydefinitions");
-		LOG.info("getManagementUrl at: {}", url);
-
-		var payload = """
-				 {
+		String url = getManagementUrl("/v3/policydefinitions");
+		String payload = """
+			{
 				"@context": {
-				  "edc": "https://w3id.org/edc/v0.0.1/ns/",
-				  "odrl": "http://www.w3.org/ns/odrl/2/"
+					"edc": "https://w3id.org/edc/v0.0.1/ns/",
+				  	"odrl": "http://www.w3.org/ns/odrl/2/"
 				},
 				"@id": "%s",
 				"policy": {
-				  "@context": "http://www.w3.org/ns/odrl.jsonld",
-				  "@type": "Set",
-				  "odrl:permission": [],
-				  "odrl:prohibition": [],
-				  "odrl:obligation": []
+					"@context": "http://www.w3.org/ns/odrl.jsonld",
+					"@type": "Set",
+					"odrl:permission": [],
+					"odrl:prohibition": [],
+					"odrl:obligation": []
 				}
-				 }
-				 """.formatted(policyId);
-
+			}
+		""".formatted(policyId);
+		LOG.info("Registering policy at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Register policy response: {}", response.body());
+		LOG.info("Registering policy response: {}", response.body());
 		return response.body();
 	}
 
 	public String registerContractDefinition(String contractDefinitionId, String accessPolicyId,
 			String contractPolicyId, String assetId) {
-		var url = getManagementUrl("/v3/contractdefinitions");
-		LOG.info("registerContractDefinition at: {}", url);
-		var payload = """
-				 {
+		String url = getManagementUrl("/v3/contractdefinitions");
+		String payload = """
+			{
 				"@context": {
-				  "edc": "https://w3id.org/edc/v0.0.1/ns/"
+					"edc": "https://w3id.org/edc/v0.0.1/ns/"
 				},
 				"@id": "%s",
 				"accessPolicyId": "%s",
 				"contractPolicyId": "%s",
 				"assetsSelector": [
-				  {
-					"operandLeft": "id",
-					"operator": "=",
-					"operandRight": "%s"
-				  }
+					{
+						"operandLeft": "id",
+						"operator": "=",
+						"operandRight": "%s"
+					}
 				]
-				 }
-				 """.formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
+			}
+		""".formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
+		LOG.info("Registering contract definition at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Register contract definition response: {}", response.body());
+		LOG.info("Registering contract definition response: {}", response.body());
 		return response.body();
 	}
 
@@ -293,8 +291,6 @@ public class EdcConnectorClient {
 	}
 
 	private HttpResponse<String> httpPost(String url, String contentType, String payload) {
-		LOG.info("Calling: {}, Payload: {}", url, payload);
-
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(toURI(url))
 				.headers("Content-Type", contentType)
