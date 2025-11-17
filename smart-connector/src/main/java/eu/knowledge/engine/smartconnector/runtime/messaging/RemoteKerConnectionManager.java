@@ -24,6 +24,7 @@ import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorProperties;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
 import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
+import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.edc.Token;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
@@ -66,19 +67,16 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		this.useEdc = useEdc;
 
 		if (this.useEdc) {
-			List<EdcConnectorProperties> config = loadConfig();
-
-			this.edcService = new EdcConnectorService(config);
+			EdcConnectorProperties properties = loadConfig();
+			this.edcService = new EdcConnectorService(properties);
 			this.tokenManager = new InMemoryTokenManager();
 		}
 	}
 
 	/**
-	 * TODO We do not want to load these manually, is there a better way?
-	 * 
 	 * @return A configuration object with properties for the two connectors.
 	 */
-	private List<EdcConnectorProperties> loadConfig() {
+	private EdcConnectorProperties loadConfig() {
 
 		Config config = ConfigProvider.getConfig();
 
@@ -96,8 +94,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			dataPlaneControlUrl.getValue(),
 			dataPlanePublicUrl.getValue(),
 			tokenValidationEndpoint.getValue(),
-			"TNO Knowledge Engine Runtime",
-			"https://www.knowledge-engine.eu/"
+			this.myExposedUrl.toString(),
+			"TNO Knowledge Engine Runtime API"
 		);
 
 		LOG.info("Setting management url to: {}", managementUrl);
@@ -108,9 +106,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			LOG.error("Invalid syntax for EDC Connector URL");
 		}
 
-		List<EdcConnectorProperties> connectors = List.of(props);
-
-		return connectors;
+		return props;
 	}
 
 	public void start() {
@@ -125,7 +121,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		// configure our EDC Connector with the TKE asset
 		if (useEdc) {
-			edcService.configureConnector(this.myExposedUrl.toString());
+			edcService.configureConnector();
 		}
 	}
 
@@ -183,11 +179,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 				RemoteKerConnection messageSender;
 				if (useEdc) {
-					EdcConnectorProperties prop = new EdcConnectorProperties(
-						knowledgeEngineRuntime.getExposedUrl().toString(),
+					ParticipantProperties participant = new ParticipantProperties(
+						knowledgeEngineRuntime.getExposedUrl().toString(), // TODO: set to participant ID instead of exposed URL
 						knowledgeEngineRuntime.getEdcConnectorUrl().toString()
 					);
-					this.edcService.addConnector(prop);
+					this.edcService.registerParticipant(null);
 
 					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
 							this.edcService, this.tokenManager, knowledgeEngineRuntime);
