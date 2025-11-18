@@ -42,9 +42,7 @@ public class EdcConnectorService {
 	}
 
 	/**
-	 * Configure the connector with the provided connector's participantId
-	 *
-	 * @param participantId connector to configure
+	 * Configure the connector.
 	 * @return map with all the responses
 	 */
 	public HashMap<String, String> configureConnector() {
@@ -96,8 +94,6 @@ public class EdcConnectorService {
 	 * what assets are provided by a connector. Asset identifiers can later be used
 	 * to negotiate contracts between parties.
 	 *
-	 * @param participantId             from which connector the request should be
-	 *                                  made
 	 * @param counterPartyParticipantId to whom the request should be make
 	 * @return response
 	 */
@@ -111,8 +107,6 @@ public class EdcConnectorService {
 	 * Negotiate a contract between two connectors for the provided asset
 	 * identifier.
 	 *
-	 * @param participantId             from which connector the request should be
-	 *                                  made
 	 * @param counterPartyParticipantId to whom the request should be make
 	 * @param assetId                   determines what asset the participant wants
 	 *                                  to use
@@ -137,16 +131,14 @@ public class EdcConnectorService {
 		return this.edcClient.contractAgreement(negotiateContract);
 	}
 
-	public String transferProcess(String counterPartyParticipantId, String contractAgreementId, String assetId) {
+	public String transferProcess(String counterPartyParticipantId, String contractAgreementId) {
 		LOG.info(
-				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}, assetId: {}",
-				this.properties.participantId(), counterPartyParticipantId, contractAgreementId, assetId);
+				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
+				this.properties.participantId(), counterPartyParticipantId, contractAgreementId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
 
 		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
-																		// counterparty/provider
-		var providerId = counterParty.participantId();
 
-		return this.edcClient.transferProcess(counterPartyAddress, providerId, contractAgreementId, assetId);
+		return this.edcClient.transferProcess(counterPartyAddress, contractAgreementId);
 	}
 }

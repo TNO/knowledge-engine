@@ -147,7 +147,7 @@ public class RemoteKerConnection {
 
 		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
 
-		String transferJson = this.edcService.transferProcess(this.remoteKerUri.toString(), this.contractAgreementId, assetId);
+		String transferJson = this.edcService.transferProcess(this.remoteKerUri.toString(), this.contractAgreementId);
 		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
 
 		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
