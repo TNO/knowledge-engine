@@ -98,8 +98,10 @@ public class EdcConnectorService {
 	 * @return response
 	 */
 	public String catalogRequest(String counterPartyParticipantId) {
-		LOG.info("Catalog request: {}", this.properties.participantId());
+		LOG.info("Catalog request: {}", counterPartyParticipantId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+		LOG.info("participant: {}", counterParty);
+		LOG.info("participant_id: {}", counterParty.participantId());
 		return this.edcClient.catalogRequest(counterParty.protocolUrl(), counterPartyParticipantId);
 	}
 

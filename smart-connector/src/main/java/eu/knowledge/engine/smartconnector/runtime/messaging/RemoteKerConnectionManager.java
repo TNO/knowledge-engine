@@ -57,6 +57,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private EdcConnectorService edcService = null;
 	private InMemoryTokenManager tokenManager = null;
 	private URI myExposedUrl;
+	private URI myParticipantId = null; 
 	private URI myEdcConnectorUrl = null;
 	private boolean useEdc;
 
@@ -80,6 +81,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		Config config = ConfigProvider.getConfig();
 
+		ConfigValue participantId = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID);
 		ConfigValue protocolUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL);
 		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
 		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
@@ -87,7 +89,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
 
 		EdcConnectorProperties props = new EdcConnectorProperties(
-			this.myExposedUrl.toString(),
+			participantId.getValue(),
 			protocolUrl.getValue(),
 			managementUrl.getValue(),
 			"tke-dataplane",
@@ -101,6 +103,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		LOG.info("Setting management url to: {}", managementUrl);
 
 		try {
+			this.myParticipantId = new URI(props.participantId());
 			this.myEdcConnectorUrl = new URI(props.protocolUrl());
 		} catch (URISyntaxException e) {
 			LOG.error("Invalid syntax for EDC Connector URL");
@@ -180,7 +183,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				RemoteKerConnection messageSender;
 				if (useEdc) {
 					ParticipantProperties participant = new ParticipantProperties(
-						knowledgeEngineRuntime.getExposedUrl().toString(), // TODO: set to participant ID instead of exposed URL
+						knowledgeEngineRuntime.getEdcParticipantId().toString(),
 						knowledgeEngineRuntime.getEdcConnectorUrl().toString()
 					);
 					this.edcService.registerParticipant(participant);
@@ -358,6 +361,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
 		}
 		return false;
+	}
+
+	URI getEdcParticipantId() {
+		return this.myParticipantId;
 	}
 
 	URI getEdcConnectorUrl() {

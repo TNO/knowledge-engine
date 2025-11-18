@@ -27,7 +27,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		kd.start();
 
 		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"),
-				new URI("http://localhost:8081"), null);
+				new URI("http://localhost:8081"), null, null);
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
@@ -59,7 +59,7 @@ public class KnowledgeDirectoryConnectionManagerTest {
 	public void testNoKd() throws Exception {
 
 		KnowledgeDirectoryConnection cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"),
-				new URI("http://localhost:8081"), null);
+				new URI("http://localhost:8081"), null, null);
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 
@@ -84,7 +84,8 @@ public class KnowledgeDirectoryConnectionManagerTest {
 		kd = new KnowledgeDirectory(8080);
 		kd.start();
 
-		cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"), new URI("http://localhost:8081"), null);
+		cm = new KnowledgeDirectoryConnection(new URI("http://localhost:8080"), new URI("http://localhost:8081"), null,
+				null);
 
 		assertEquals(KnowledgeDirectoryConnection.State.UNREGISTERED, cm.getState());
 

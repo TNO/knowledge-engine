@@ -64,6 +64,15 @@ public class SmartConnectorConfig {
 	 */
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
 
+<<<<<<< HEAD
+=======
+	/**
+	 * Key to configure the EDC participant ID for this KER, matching the participant ID 
+	 * of its control plane and identity hub.
+	 */
+	public static final String CONF_KEY_KE_EDC_PARTICIPANT_ID = "ke.edc.participant.id";
+	
+>>>>>>> 1bca4a68 (Add participant id to runtime connection details)
 	/**
 	 * Key to configure where a KER can reach the protocol API of its own control
 	 * plane if using EDC.
