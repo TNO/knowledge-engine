@@ -65,25 +65,25 @@ public class EdcConnectorClient {
 	public String registerAsset(String assetId, String tkeUrl, String tkeAssetName) {
 		String url = getManagementUrl("/v3/assets");
 		String payload = """
-			{
-				"@context": [
-				  	"https://w3id.org/edc/connector/management/v0.0.1"
-				],
-				"@id": "%s",
-				"properties": {
-				  	"name": "%s",
-				  	"contenttype": "application/json"
-				},
-				"dataAddress": {
-					"type": "HttpData",
-					"name": "%s",
-					"baseUrl": "%s",
-					"proxyMethod": "true",
-					"proxyPath": "true",
-					"proxyBody": "true"
-				}
-			}
-		""".formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
+					{
+						"@context": [
+						  	"https://w3id.org/edc/connector/management/v0.0.1"
+						],
+						"@id": "%s",
+						"properties": {
+						  	"name": "%s",
+						  	"contenttype": "application/json"
+						},
+						"dataAddress": {
+							"type": "HttpData",
+							"name": "%s",
+							"baseUrl": "%s",
+							"proxyMethod": "true",
+							"proxyPath": "true",
+							"proxyBody": "true"
+						}
+					}
+				""".formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
 		LOG.info("Registering asset at: {}, Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
 		LOG.info("Registering asset response: {}", response.body());
@@ -98,21 +98,21 @@ public class EdcConnectorClient {
 	public String registerPolicy(String policyId) {
 		String url = getManagementUrl("/v3/policydefinitions");
 		String payload = """
-			{
-				"@context": {
-					"edc": "https://w3id.org/edc/v0.0.1/ns/",
-				  	"odrl": "http://www.w3.org/ns/odrl/2/"
-				},
-				"@id": "%s",
-				"policy": {
-					"@context": "http://www.w3.org/ns/odrl.jsonld",
-					"@type": "Set",
-					"odrl:permission": [],
-					"odrl:prohibition": [],
-					"odrl:obligation": []
-				}
-			}
-		""".formatted(policyId);
+					{
+						"@context": {
+							"edc": "https://w3id.org/edc/v0.0.1/ns/",
+						  	"odrl": "http://www.w3.org/ns/odrl/2/"
+						},
+						"@id": "%s",
+						"policy": {
+							"@context": "http://www.w3.org/ns/odrl.jsonld",
+							"@type": "Set",
+							"odrl:permission": [],
+							"odrl:prohibition": [],
+							"odrl:obligation": []
+						}
+					}
+				""".formatted(policyId);
 		LOG.info("Registering policy at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
 		LOG.info("Registering policy response: {}", response.body());
@@ -123,22 +123,22 @@ public class EdcConnectorClient {
 			String contractPolicyId, String assetId) {
 		String url = getManagementUrl("/v3/contractdefinitions");
 		String payload = """
-			{
-				"@context": {
-					"edc": "https://w3id.org/edc/v0.0.1/ns/"
-				},
-				"@id": "%s",
-				"accessPolicyId": "%s",
-				"contractPolicyId": "%s",
-				"assetsSelector": [
 					{
-						"operandLeft": "id",
-						"operator": "=",
-						"operandRight": "%s"
+						"@context": {
+							"edc": "https://w3id.org/edc/v0.0.1/ns/"
+						},
+						"@id": "%s",
+						"accessPolicyId": "%s",
+						"contractPolicyId": "%s",
+						"assetsSelector": [
+							{
+								"operandLeft": "id",
+								"operator": "=",
+								"operandRight": "%s"
+							}
+						]
 					}
-				]
-			}
-		""".formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
+				""".formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
 		LOG.info("Registering contract definition at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
 		LOG.info("Registering contract definition response: {}", response.body());
@@ -146,26 +146,26 @@ public class EdcConnectorClient {
 	}
 
 	/**
-	 * CataLOG requests are sent to ones own connector.
+	 * Catalog requests are sent to ones own connector.
 	 *
 	 * @param counterPartyAddress
 	 * @return
 	 */
-	public String catalogRequest(String counterPartyAddress, String countParticipantId) {
-		var url = getManagementUrl("/v3/catalog/request");
-		LOG.info("catalogRequest at: {}", url);
-		var payload = """
-				 {
-				"@context": {
-				  "edc": "https://w3id.org/edc/v0.0.1/ns/"
-				},
-				"counterPartyAddress": "%s",
-				"counterPartyId": "%s",
-				"protocol": "dataspace-protocol-http"
-				 }
-				 """.formatted(counterPartyAddress, countParticipantId);
+	public String catalogRequest(String counterPartyAddress, String counterParticipantId) {
+		String url = getManagementUrl("/v3/catalog/request");
+		String payload = """
+					{
+						"@context": {
+						  	"edc": "https://w3id.org/edc/v0.0.1/ns/"
+						},
+						"counterPartyAddress": "%s",
+						"counterPartyId": "%s",
+						"protocol": "dataspace-protocol-http"
+					}
+				""".formatted(counterPartyAddress, counterParticipantId);
+		LOG.info("Requesting catalog at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
-		LOG.info("CataLOG request response: {}", postResponse.body());
+		LOG.info("Requesting Catalog response: {}", postResponse.body());
 		return postResponse.body();
 	}
 
@@ -186,37 +186,29 @@ public class EdcConnectorClient {
 	 *
 	 * @return
 	 */
-	public String negotiateContract(String consumerParticipantId, String providerParticipantId,
-			String counterPartyAddress, String assetId) {
-		var catalogRequest = catalogRequest(counterPartyAddress, providerParticipantId);
-		String catalogOfferIdForAsset = findByJsonPointerExpression(catalogRequest, "/dcat:dataset/odrl:hasPolicy/@id");
+	public String negotiateContract(String counterPartyId, String counterPartyAddress, String policyId,
+			String assetId) {
+		String url = getManagementUrl("/v3/contractnegotiations");
+		String payload = """
+					{
+						"@context": {
+							"edc": "https://w3id.org/edc/v0.0.1/ns/",
+							"odrl": "http://www.w3.org/ns/odrl/2/"
+						},
+						"@type": "ContractRequest",
+						"counterPartyAddress": "%s",
+						"protocol": "dataspace-protocol-http",
+						"policy": {
+							"@context": "http://www.w3.org/ns/odrl.jsonld",
+							"@id": "%s",
+							"@type": "Offer",
+							"assigner": "%s",
+							"target": "%s"
+						}
+					}
+				""".formatted(counterPartyAddress, policyId, counterPartyId, assetId);
 
-		var url = getManagementUrl("/v2/contractnegotiations");
-		LOG.info("negotiateContract at: {}", url);
-		var payload = """
-				 {
-				"@context": {
-				  "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
-				},
-				"@type": "NegotiationInitiateRequestDto",
-				"consumerId": "%s",
-				"connectorId": "%s",
-				"providerId": "%s",
-				"counterPartyAddress": "%s",
-				"protocol": "dataspace-protocol-http",
-				"policy": {
-				  "@context": "http://www.w3.org/ns/odrl.jsonld",
-				  "@id": "%s",
-				  "@type": "Set",
-				  "permission": [],
-				  "prohibition": [],
-				  "obligation": [],
-				  "target": "%s"
-				}
-				 }
-				 """.formatted(consumerParticipantId, providerParticipantId, providerParticipantId, counterPartyAddress,
-				catalogOfferIdForAsset, assetId);
-
+		LOG.info("Negotiate contract at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
 		LOG.info("Negotiate contract response: {}", postResponse.body());
 		return postResponse.body();
@@ -224,7 +216,7 @@ public class EdcConnectorClient {
 
 	public String contractAgreement(String json) {
 		String contractAgreementId = findByJsonPointerExpression(json, "/@id");
-		var url = getManagementUrl("/v2/contractnegotiations/" + contractAgreementId);
+		var url = getManagementUrl("/v3/contractnegotiations/" + contractAgreementId);
 		LOG.info("contractAgreement at: {}", url);
 		final List<String> responses = new ArrayList<>();
 
@@ -238,28 +230,25 @@ public class EdcConnectorClient {
 		return responses.get(responses.size() - 1);
 	}
 
-	public String transferProcess(String counterPartyAddress, String counterPartyParticipantId,
-			String contractAgreementId, String assetId) {
-		var url = getManagementUrl("/v2/transferprocesses");
-		LOG.info("transferProcess at: {}", url);
+	public String transferProcess(String counterPartyAddress, String contractAgreementId) {
+		var url = getManagementUrl("/v3/transferprocesses");
 		var payload = """
-				{
-				  "@context": {
+			{
+				"@context": {
 					"@vocab": "https://w3id.org/edc/v0.0.1/ns/"
-				  },
-				  "@type": "TransferRequestDto",
-				  "counterPartyAddress": "%s",
-				  "connectorId": "%s",
-				  "contractId": "%s",
-				  "assetId": "%s",
-				  "protocol": "dataspace-protocol-http",
-				  "dataDestination": {
+				},
+				"counterPartyAddress": "%s",
+				"contractId": "%s",
+				"protocol": "dataspace-protocol-http",
+				"transferType": "HttpData-PULL",
+				"dataDestination": {
 					"type": "HttpProxy"
-				  }
 				}
-				 """.formatted(counterPartyAddress, counterPartyParticipantId, contractAgreementId, assetId);
+			}
+		""".formatted(counterPartyAddress, contractAgreementId);
+		LOG.info("Start transfer process at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
-		LOG.info("Transfer process response: {}", postResponse.body());
+		LOG.info("Start transfer process response: {}", postResponse.body());
 		return postResponse.body();
 	}
 

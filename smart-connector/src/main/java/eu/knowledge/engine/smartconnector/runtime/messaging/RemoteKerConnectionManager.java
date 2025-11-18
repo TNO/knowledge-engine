@@ -183,7 +183,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 						knowledgeEngineRuntime.getExposedUrl().toString(), // TODO: set to participant ID instead of exposed URL
 						knowledgeEngineRuntime.getEdcConnectorUrl().toString()
 					);
-					this.edcService.registerParticipant(null);
+					this.edcService.registerParticipant(participant);
 
 					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
 							this.edcService, this.tokenManager, knowledgeEngineRuntime);
