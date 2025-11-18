@@ -142,16 +142,17 @@ public class RemoteKerConnection {
 	 * process and receiving the token.
 	 */
 	private void setupTransferProcess() {
-		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(this.remoteKerUri.toString());
-		String contractAgreementJson = this.edcService.negotiateContract(this.remoteKerUri.toString(), assetId);
+		String counterParticipantId = this.remoteKerConnectionDetails.getEdcParticipantId().toString();
+		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(counterParticipantId);
+		String contractAgreementJson = this.edcService.negotiateContract(counterParticipantId, assetId);
 
 		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
 
-		String transferJson = this.edcService.transferProcess(this.remoteKerUri.toString(), this.contractAgreementId);
+		String transferJson = this.edcService.transferProcess(counterParticipantId, this.contractAgreementId);
 		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
 
 		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
-				this.remoteKerUri.toString(), this.contractAgreementId, this.transferId);
+				counterParticipantId, this.contractAgreementId, this.transferId);
 	}
 
 	private int getHttpTimeout() {

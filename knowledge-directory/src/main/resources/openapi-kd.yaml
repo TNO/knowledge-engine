@@ -143,6 +143,9 @@ components:
         lastRenew:
           type: string
           format: date-time
+        edcParticipantId:
+          type: string
+          format: uri
         edcConnectorUrl:
           type: string
           format: uri
