@@ -1,5 +1,6 @@
 package eu.knowledge.engine.smartconnector.edc;
 
+import org.apache.jena.atlas.logging.Log;
 import org.awaitility.Awaitility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,6 +225,7 @@ public class EdcConnectorClient {
 			HttpResponse<String> response = httpGet(url);
 			responses.add(response.body());
 			String state = findByJsonPointerExpression(response.body(), "/state");
+			LOG.error(state);
 			return Objects.equals(state, "FINALIZED");
 		});
 
@@ -250,6 +252,29 @@ public class EdcConnectorClient {
 		HttpResponse<String> postResponse = httpPost(url, payload);
 		LOG.info("Start transfer process response: {}", postResponse.body());
 		return postResponse.body();
+	}
+
+	public String getTransferProcessStatus(String transferId) {
+		String url = getManagementUrl("/v3/transferprocesses/" + transferId);
+		final List<String> responses = new ArrayList<>();
+
+		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
+			HttpResponse<String> response = httpGet(url);
+			responses.add(response.body());
+			String state = findByJsonPointerExpression(response.body(), "/state");
+			LOG.error(state);
+			return Objects.equals(state, "STARTED");
+		});
+
+		return responses.get(responses.size() - 1);
+	}
+
+	public String getEndpointDataReference(String transferId) {
+		String url = getManagementUrl("/v3/edrs/" + transferId + "/dataaddress");
+		LOG.info("Get endpoint data reference");
+		HttpResponse<String> response = httpGet(url);
+		LOG.info(response.body());
+		return response.body();
 	}
 
 	/**

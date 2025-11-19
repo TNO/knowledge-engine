@@ -143,14 +143,19 @@ public class RemoteKerConnection {
 	 */
 	private void setupTransferProcess() {
 		String counterParticipantId = this.remoteKerConnectionDetails.getEdcParticipantId().toString();
-		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(counterParticipantId);
-		String contractAgreementJson = this.edcService.negotiateContract(counterParticipantId, assetId);
+		String catalogJson = this.edcService.catalogRequest(counterParticipantId);
+		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
+		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
+		String contractAgreementJson = this.edcService.negotiateContract(counterParticipantId, assetId, policyId);
 
 		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
 
 		String transferJson = this.edcService.transferProcess(counterParticipantId, this.contractAgreementId);
 		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
+		String statusJson = this.edcService.getTransferProcessStatus(this.transferId);
+		String edrsJson = this.edcService.getEndpointDataReference(this.transferId);
 
+		this.authToken = findByJsonPointerExpression(edrsJson, "/authorization");
 		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
 				counterParticipantId, this.contractAgreementId, this.transferId);
 	}

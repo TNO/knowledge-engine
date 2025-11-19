@@ -114,7 +114,7 @@ public class EdcConnectorService {
 	 *                                  to use
 	 * @return response
 	 */
-	public String negotiateContract(String counterPartyParticipantId, String assetId) {
+	public String negotiateContract(String counterPartyParticipantId, String assetId, String policyId) {
 		LOG.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", this.properties.participantId(),
 				counterPartyParticipantId, assetId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
@@ -129,7 +129,7 @@ public class EdcConnectorService {
 		// The consumer will negotiate a contract using its own connector, the
 		// counterPartyAddress
 		// is the party which we need to negotiate the contract with.
-		String negotiateContract = this.edcClient.negotiateContract(consumerId, providerId, counterPartyAddress, assetId);
+		String negotiateContract = this.edcClient.negotiateContract(providerId, counterPartyAddress, policyId, assetId);
 		return this.edcClient.contractAgreement(negotiateContract);
 	}
 
@@ -142,5 +142,13 @@ public class EdcConnectorService {
 		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
 
 		return this.edcClient.transferProcess(counterPartyAddress, contractAgreementId);
+	}
+
+	public String getTransferProcessStatus(String transferId) {
+		return this.edcClient.getTransferProcessStatus(transferId);
+	}
+
+	public String getEndpointDataReference(String transferId) {
+		return this.edcClient.getEndpointDataReference(transferId);
 	}
 }
