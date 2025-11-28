@@ -58,6 +58,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private InMemoryTokenManager tokenManager = null;
 	private URI myExposedUrl;
 	private URI myParticipantId = null; 
+	private URI myEdcDataPlaneUrl = null;
 	private URI myEdcConnectorUrl = null;
 	private boolean useEdc;
 
@@ -105,6 +106,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		try {
 			this.myParticipantId = new URI(props.participantId());
 			this.myEdcConnectorUrl = new URI(props.protocolUrl());
+			this.myEdcDataPlaneUrl = new URI(props.dataPlanePublicUrl());
 		} catch (URISyntaxException e) {
 			LOG.error("Invalid syntax for EDC Connector URL");
 		}
@@ -184,7 +186,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				if (useEdc) {
 					ParticipantProperties participant = new ParticipantProperties(
 						knowledgeEngineRuntime.getEdcParticipantId().toString(),
-						knowledgeEngineRuntime.getEdcConnectorUrl().toString()
+						knowledgeEngineRuntime.getEdcConnectorUrl().toString(),
+						knowledgeEngineRuntime.getEdcDataPlaneUrl().toString()
 					);
 					this.edcService.registerParticipant(participant);
 
@@ -369,5 +372,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	URI getEdcConnectorUrl() {
 		return this.myEdcConnectorUrl;
+	}
+
+	URI getEdcDataPlaneUrl() {
+		return this.myEdcDataPlaneUrl;
 	}
 }

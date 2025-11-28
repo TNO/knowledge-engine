@@ -127,8 +127,9 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 
 			URI myParticipantId = remoteSmartConnectorConnectionsManager.getEdcParticipantId();
 			URI myEdcConnectorUrl = remoteSmartConnectorConnectionsManager.getEdcConnectorUrl();
+			URI myEdcDataPlaneUrl = remoteSmartConnectorConnectionsManager.getEdcDataPlaneUrl();
 			// Start Knowledge Directory Connection Manager
-			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl, myParticipantId, myEdcConnectorUrl);
+			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl, myParticipantId, myEdcConnectorUrl, myEdcDataPlaneUrl);
 
 			this.getKnowledgeDirectoryConnectionManager().start();
 

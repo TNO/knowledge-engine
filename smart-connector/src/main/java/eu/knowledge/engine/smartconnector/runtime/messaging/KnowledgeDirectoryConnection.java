@@ -54,14 +54,16 @@ public class KnowledgeDirectoryConnection {
 	private final URI myExposedUrl;
 	private final URI myParticipantId;
 	private final URI myEdcConnectorUrl;
+	private final URI myEdcDataPlaneUrl;
 	private final Object lock = new Object();
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, URI myParticipantId, URI myEdcConnectorUrl) {
+	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, URI myParticipantId, URI myEdcConnectorUrl, URI myEdcDataPlaneUrl) {
 		this.myExposedUrl = myExposedUrl;
 		this.myParticipantId = myParticipantId;
 		this.myEdcConnectorUrl = myEdcConnectorUrl;
+		this.myEdcDataPlaneUrl = myEdcDataPlaneUrl;
 		this.currentState = State.UNREGISTERED;
 
 		var builder = HttpClient.newBuilder();
@@ -195,6 +197,7 @@ public class KnowledgeDirectoryConnection {
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
 		ker.setEdcParticipantId(myParticipantId);
+		ker.setEdcDataPlaneUrl(myEdcDataPlaneUrl);
 		ker.setEdcConnectorUrl(myEdcConnectorUrl);
 
 		try {
