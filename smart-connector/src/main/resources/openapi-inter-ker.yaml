@@ -95,25 +95,6 @@ paths:
             text/plain; charset=UTF-8:
               schema:
                 type: string
-  /token:
-    post:
-      summary: Token to use when communicating with that particular KE Runtime (for usage with Eclipse Dataspace Components (EDC))
-      tags:
-      - "smart connector management"
-      requestBody:
-        required: true
-        content:
-          application/json; charset=UTF-8:
-            schema:
-              $ref: '#/components/schemas/Token'
-      responses:
-        '200':
-          description: Successfully received token.
-        '400':
-          description: Incorrect token.
-        '500':
-          description: Error while processing token.
-
   /messaging/askmessage:
     post:
       summary: Handle an AskMessage
@@ -360,5 +341,3 @@ components:
               type: string
           required:
             - replyToMessage
-    Token:
-      type: string
