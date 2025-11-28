@@ -396,7 +396,7 @@ public class RemoteKerConnection {
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			// TODO -> Change 200 back to 202!
-			if (response.statusCode() == 200) {
+			if (response.statusCode() == 200 || response.statusCode() == 202)  {
 				this.noError();
 				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
 			} else {
@@ -496,33 +496,6 @@ public class RemoteKerConnection {
 
 	public boolean hasConfigProperty(String key) {
 		return System.getenv(key) != null;
-	}
-
-	public boolean checkAuthorizationToken(String authorizationToken) {
-		if (validationEndpoint != null) {
-			LOG.info("Contacting validation endpoint {}", validationEndpoint);
-			HttpRequest request = null;
-			try {
-				request = HttpRequest.newBuilder(new URI(validationEndpoint))
-						.headers("Content-Type", "application/json", "Authorization", authorizationToken).GET().build();
-			} catch (URISyntaxException e) {
-				LOG.warn("Invalid URI for the validationEndpoint: " + validationEndpoint);
-			}
-
-			try {
-				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				if (response.statusCode() == 200) {
-					return true;
-				} else {
-					LOG.warn("Validating failed with status code {} and message '{}'", response.statusCode(),
-							response.body());
-				}
-			} catch (IOException | InterruptedException e) {
-				LOG.error("Encountered a problem during authenticating the EDC token.", e);
-			}
-
-		}
-		return false;
 	}
 
 	public String getTransferId() {

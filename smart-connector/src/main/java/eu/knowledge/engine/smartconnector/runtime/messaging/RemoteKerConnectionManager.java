@@ -313,25 +313,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		}
 	}
 
-	@Override
-	public Response tokenPost(String body, SecurityContext securityContext) throws NotFoundException {
-
-		LOG.info("Token JSON received: {}", body);
-		// TODO Change runtimeexception from new Token to something we can use?
-		if (tokenManager != null) {
-			tokenManager.tokenReceived(new Token(body));
-			Token t = new Token(body);
-
-			for (RemoteKerConnection ker : this.remoteKerConnections.values()) {
-				if (ker.getTransferId().equals(t.id()) && ker.getContractAgreementId().equals(t.contractId())) {
-					ker.setToken(t.authCode());
-				}
-			}
-		}
-
-		return Response.status(200).build();
-	}
-
 	/**
 	 * Notify other KnowledgeEngineRuntimes that something changed locally. Called
 	 * directly by the {@link LocalSmartConnectorConnectionManager} after it made
@@ -357,13 +338,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			list.addAll(remoteKerConnection.getRemoteSmartConnectorIds());
 		}
 		return list;
-	}
-
-	public boolean isTokenValid(String authorizationToken, URI fromKnowledgeBase) {
-		if (getRemoteKerConnection(fromKnowledgeBase) != null) {
-			return getRemoteKerConnection(fromKnowledgeBase).checkAuthorizationToken(authorizationToken);
-		}
-		return false;
 	}
 
 	URI getEdcParticipantId() {
