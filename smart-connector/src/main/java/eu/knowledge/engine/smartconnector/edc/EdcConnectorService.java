@@ -2,9 +2,17 @@ package eu.knowledge.engine.smartconnector.edc;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -23,17 +31,61 @@ public class EdcConnectorService {
 	private EdcConnectorProperties properties;
 	private Map<String, ParticipantProperties> participants = new HashMap<>();
 
+	public URI myParticipantId = null;
+	public URI myEdcConnectorUrl = null;
+	public URI myEdcDataPlaneUrl = null;
+
 	// these are all static for every connector
 	public final static String DATA_PLANE_ID = "tke-dataplane";
 
 	@Inject
-	public EdcConnectorService(EdcConnectorProperties configuration) {
+	public EdcConnectorService(URI assetUrl) {
+		EdcConnectorProperties configuration = loadConfig(assetUrl);
 		LOG.info("Adding connector for [participant id: {}] with [management url: {}]",
 				configuration.participantId(), configuration.managementUrl());
 		this.edcClient = new EdcConnectorClient(configuration.managementUrl());
 		this.properties = configuration;
 		this.participants.put(configuration.participantId(),
 				new ParticipantProperties(configuration.participantId(), configuration.protocolUrl(), configuration.dataPlanePublicUrl()));
+	}
+	
+	/**
+	 * @return A configuration object with properties for the two connectors.
+	 */
+	private EdcConnectorProperties loadConfig(URI assetUrl) {
+
+		Config config = ConfigProvider.getConfig();
+
+		ConfigValue participantId = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID);
+		ConfigValue protocolUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL);
+		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
+		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
+		ConfigValue dataPlanePublicUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL);
+		ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
+
+		EdcConnectorProperties props = new EdcConnectorProperties(
+			participantId.getValue(),
+			protocolUrl.getValue(),
+			managementUrl.getValue(),
+			"tke-dataplane",
+			dataPlaneControlUrl.getValue(),
+			dataPlanePublicUrl.getValue(),
+			tokenValidationEndpoint.getValue(),
+			assetUrl.toString(),
+			"TNO Knowledge Engine Runtime API"
+		);
+
+		LOG.info("Setting management url to: {}", managementUrl);
+
+		try {
+			this.myParticipantId = new URI(props.participantId());
+			this.myEdcConnectorUrl = new URI(props.protocolUrl());
+			this.myEdcDataPlaneUrl = new URI(props.dataPlanePublicUrl());
+		} catch (URISyntaxException e) {
+			LOG.error("Invalid syntax for EDC Connector URL");
+		}
+
+		return props;
 	}
 
 	public void registerParticipant(ParticipantProperties participant) {

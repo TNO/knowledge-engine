@@ -20,12 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
-import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
-import eu.knowledge.engine.smartconnector.edc.EdcConnectorProperties;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
 import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
 import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
-import eu.knowledge.engine.smartconnector.edc.Token;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.SmartConnectorManagementApiService;
@@ -69,49 +66,12 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		this.useEdc = useEdc;
 
 		if (this.useEdc) {
-			EdcConnectorProperties properties = loadConfig();
-			this.edcService = new EdcConnectorService(properties);
+			this.edcService = new EdcConnectorService(myExposedUrl);
+			this.myParticipantId = this.edcService.myParticipantId;
+			this.myEdcConnectorUrl = this.edcService.myEdcConnectorUrl;
+			this.myEdcDataPlaneUrl = this.edcService.myEdcDataPlaneUrl;
 			this.tokenManager = new InMemoryTokenManager();
 		}
-	}
-
-	/**
-	 * @return A configuration object with properties for the two connectors.
-	 */
-	private EdcConnectorProperties loadConfig() {
-
-		Config config = ConfigProvider.getConfig();
-
-		ConfigValue participantId = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID);
-		ConfigValue protocolUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL);
-		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
-		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
-		ConfigValue dataPlanePublicUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL);
-		ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
-
-		EdcConnectorProperties props = new EdcConnectorProperties(
-			participantId.getValue(),
-			protocolUrl.getValue(),
-			managementUrl.getValue(),
-			"tke-dataplane",
-			dataPlaneControlUrl.getValue(),
-			dataPlanePublicUrl.getValue(),
-			tokenValidationEndpoint.getValue(),
-			this.myExposedUrl.toString(),
-			"TNO Knowledge Engine Runtime API"
-		);
-
-		LOG.info("Setting management url to: {}", managementUrl);
-
-		try {
-			this.myParticipantId = new URI(props.participantId());
-			this.myEdcConnectorUrl = new URI(props.protocolUrl());
-			this.myEdcDataPlaneUrl = new URI(props.dataPlanePublicUrl());
-		} catch (URISyntaxException e) {
-			LOG.error("Invalid syntax for EDC Connector URL");
-		}
-
-		return props;
 	}
 
 	public void start() {
