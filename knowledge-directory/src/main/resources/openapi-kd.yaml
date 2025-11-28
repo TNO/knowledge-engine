@@ -149,6 +149,9 @@ components:
         edcConnectorUrl:
           type: string
           format: uri
+        edcDataPlaneUrl:
+          type: string
+          format: uri
       required:
         - exposedUrl
         - protocolVersion

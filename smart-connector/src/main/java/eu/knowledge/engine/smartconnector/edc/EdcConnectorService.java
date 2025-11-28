@@ -33,7 +33,7 @@ public class EdcConnectorService {
 		this.edcClient = new EdcConnectorClient(configuration.managementUrl());
 		this.properties = configuration;
 		this.participants.put(configuration.participantId(),
-				new ParticipantProperties(configuration.participantId(), configuration.protocolUrl()));
+				new ParticipantProperties(configuration.participantId(), configuration.protocolUrl(), configuration.dataPlanePublicUrl()));
 	}
 
 	public void registerParticipant(ParticipantProperties participant) {
