@@ -67,9 +67,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		if (this.useEdc) {
 			this.edcService = new EdcConnectorService(myExposedUrl);
-			this.myParticipantId = this.edcService.myParticipantId;
-			this.myEdcConnectorUrl = this.edcService.myEdcConnectorUrl;
-			this.myEdcDataPlaneUrl = this.edcService.myEdcDataPlaneUrl;
+			this.myParticipantId = this.edcService.getParticipantId();
+			this.myEdcConnectorUrl = this.edcService.getControlPlaneProtocolUrl();
+			this.myEdcDataPlaneUrl = this.edcService.getDataPlanePublicUrl();
 			this.tokenManager = new InMemoryTokenManager();
 		}
 	}
