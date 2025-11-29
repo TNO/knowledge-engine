@@ -64,15 +64,12 @@ public class SmartConnectorConfig {
 	 */
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
 
-<<<<<<< HEAD
-=======
 	/**
 	 * Key to configure the EDC participant ID for this KER, matching the participant ID 
 	 * of its control plane and identity hub.
 	 */
 	public static final String CONF_KEY_KE_EDC_PARTICIPANT_ID = "ke.edc.participant.id";
 	
->>>>>>> 1bca4a68 (Add participant id to runtime connection details)
 	/**
 	 * Key to configure where a KER can reach the protocol API of its own control
 	 * plane if using EDC.
@@ -86,22 +83,9 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_EDC_MANAGEMENT_URL = "ke.edc.management.url";
 
 	/**
-	 * Key to configure where a KER can reach its data plane control API if using
-	 * EDC.
-	 */
-	public static final String CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL = "ke.edc.dataplane.control.url";
-
-	/**
-	 * Key to configure where a KER can reach its data plane public API if using
-	 * EDC.
+	 * Key to configure where a KER can reach its data plane public API if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL = "ke.edc.dataplane.public.url";
-
-	/**
-	 * Key to configure the URL where a KER can do token validation through the
-	 * control plane if using EDC.
-	 */
-	public static final String CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT = "ke.edc.token.validation.endpoint";
 
 	/**
 	 * Key to configure the default reasoner level (1-5) that is used in the current

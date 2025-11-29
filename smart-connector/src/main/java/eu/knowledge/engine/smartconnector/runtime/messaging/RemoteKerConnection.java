@@ -63,7 +63,6 @@ public class RemoteKerConnection {
 	private LocalDateTime logStillIgnoringAfter = null;
 
 	private TransferProcess transferProcess;
-	private String validationEndpoint;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails,
 		TransferProcess transferProcess) {

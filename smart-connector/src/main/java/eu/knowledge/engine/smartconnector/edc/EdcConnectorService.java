@@ -46,10 +46,7 @@ public class EdcConnectorService {
 	private URI protocolUrl; 
 	private URI managementUrl;
 	// Data plane: 
-	private URI dataPlaneId;
-	private URI dataPlaneControlUrl; 
-	private URI dataPlanePublicUrl; 
-	private URI tokenValidationEndpoint; 
+	private URI dataPlanePublicUrl;  
 	
 	// KER properties
 	private URI tkeAssetUrl; 
@@ -75,9 +72,7 @@ public class EdcConnectorService {
 			this.participantId = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID).getValue());
 			this.protocolUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL).getValue());
 			this.managementUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL).getValue());
-			this.dataPlaneControlUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL).getValue());
 			this.dataPlanePublicUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL).getValue());
-			this.tokenValidationEndpoint = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT).getValue());
 		} catch (URISyntaxException e) {
 			// TODO: handle this error!
 			LOG.error("Invalid URI syntax, see: ".formatted(e.getMessage()));
