@@ -25,7 +25,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-import eu.knowledge.engine.smartconnector.edc.TransferProcess;
 import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 /**
@@ -95,36 +94,18 @@ public class EdcConnectorService {
 	 * Configure the connector.
 	 * @return map with all the responses
 	 */
-	public HashMap<String, String> configureConnector() {
+	public void configureConnector() {
 		LOG.info("configuring connector of {}", this.participantId);
-		// String existingAssetId =
-		// getAssetIdFromCatalogForAssetName(participantId(),
-		// participantId());
-		// if (existingAssetId != null) {
-		// LOG.info("Connector already configured and TKE asset present for
-		// participantId: {}", participantId);
-		// throw new RuntimeException("Connector already configured and TKE asset
-		// present.");
-		// }
+		String assetId = UUID.randomUUID().toString(); 
+		String policyId = UUID.randomUUID().toString();
+		String contractId = UUID.randomUUID().toString();
 
-		// properties needed when creating an asset.
-		var assetId = UUID.randomUUID().toString(); // generate an unique assetId
-		var tkeAssetUrl = this.tkeAssetUrl;
-		var tkeAssetName = this.tkeAssetName;
-		// properties needed when creating a policy and contract definition.
-		var policyId = UUID.randomUUID().toString();
-		var contractId = UUID.randomUUID().toString();
-
-		// Create the mandatory edc resources.
-		var map = new HashMap<String, String>();
 		LOG.info("Registering KER API asset");
-		map.put("registerAsset", this.registerAsset(assetId, tkeAssetUrl.toString(), tkeAssetName));
+		this.registerAsset(assetId, this.tkeAssetUrl.toString(), this.tkeAssetName);
 		LOG.info("Registering Policy");
-		map.put("registerPolicy", this.registerPolicy(policyId));
+		this.registerPolicy(policyId);
 		LOG.info("Registering Contract Definition");
-		map.put("registerContractDefinition",
-				this.registerContractDefinition(contractId, policyId, policyId, assetId));
-		return map;
+		this.registerContractDefinition(contractId, policyId, policyId, assetId);
 	}
 
 	
