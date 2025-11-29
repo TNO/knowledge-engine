@@ -45,9 +45,6 @@ public class EdcConnectorService {
 	private URI tkeAssetUrl; 
 	private String tkeAssetName = "TNO Knowledge Engine Runtime API";
 
-	// these are all static for every connector
-	public final static String DATA_PLANE_ID = "tke-dataplane";
-
 	@Inject
 	public EdcConnectorService(URI assetUrl) {
 		loadConfig(assetUrl);
@@ -98,10 +95,6 @@ public class EdcConnectorService {
 		// present.");
 		// }
 
-		// properties needed when creating a data plane.
-		var dataPlaneId = EdcConnectorService.DATA_PLANE_ID;
-		var dataPlaneControlUrl = this.dataPlaneControlUrl;
-		var dataPlanePublicUrl = this.dataPlanePublicUrl;
 		// properties needed when creating an asset.
 		var assetId = UUID.randomUUID().toString(); // generate an unique assetId
 		var tkeAssetUrl = this.tkeAssetUrl;
@@ -112,8 +105,6 @@ public class EdcConnectorService {
 
 		// Create the mandatory edc resources.
 		var map = new HashMap<String, String>();
-		// map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId,
-		// dataPlaneControlUrl, dataPlanePublicUrl));
 		LOG.info("Registering KER API asset");
 		map.put("registerAsset", this.edcClient.registerAsset(assetId, tkeAssetUrl.toString(), tkeAssetName));
 		LOG.info("Registering Policy");
@@ -141,8 +132,6 @@ public class EdcConnectorService {
 	public String catalogRequest(String counterPartyParticipantId) {
 		LOG.info("Catalog request: {}", counterPartyParticipantId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
-		LOG.info("participant: {}", counterParty);
-		LOG.info("participant_id: {}", counterParty.participantId());
 		return this.edcClient.catalogRequest(counterParty.protocolUrl(), counterPartyParticipantId);
 	}
 
@@ -159,30 +148,15 @@ public class EdcConnectorService {
 		LOG.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", this.participantId,
 				counterPartyParticipantId, assetId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
-
-		// note that the counterparty protocol url could also be extract from the
-		// catalog request
-		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
-																		// counterparty/provider
-		var consumerId = this.participantId;
-		var providerId = counterParty.participantId();
-
-		// The consumer will negotiate a contract using its own connector, the
-		// counterPartyAddress
-		// is the party which we need to negotiate the contract with.
-		String negotiateContract = this.edcClient.negotiateContract(providerId, counterPartyAddress, policyId, assetId);
+		String negotiateContract = this.edcClient.negotiateContract(counterParty.participantId(), counterParty.protocolUrl(), policyId, assetId);
 		return this.edcClient.contractAgreement(negotiateContract);
 	}
 
 	public String transferProcess(String counterPartyParticipantId, String contractAgreementId) {
-		LOG.info(
-				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
+		LOG.info("transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
 				this.participantId, counterPartyParticipantId, contractAgreementId);
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
-
-		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
-
-		return this.edcClient.transferProcess(counterPartyAddress, contractAgreementId);
+		return this.edcClient.transferProcess(counterParty.protocolUrl(), contractAgreementId);
 	}
 
 	public URI getParticipantId() {
