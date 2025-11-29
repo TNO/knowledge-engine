@@ -1,7 +1,6 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -13,9 +12,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +19,7 @@ import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
 import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
 import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
+import eu.knowledge.engine.smartconnector.edc.TransferProcess;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.NotFoundException;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.SmartConnectorManagementApiService;
@@ -52,7 +49,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private final MessageDispatcher messageDispatcher;
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
 	private EdcConnectorService edcService = null;
-	private InMemoryTokenManager tokenManager = null;
 	private URI myExposedUrl;
 	private URI myParticipantId = null; 
 	private URI myEdcDataPlaneUrl = null;
@@ -70,7 +66,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			this.myParticipantId = this.edcService.getParticipantId();
 			this.myEdcConnectorUrl = this.edcService.getControlPlaneProtocolUrl();
 			this.myEdcDataPlaneUrl = this.edcService.getDataPlanePublicUrl();
-			this.tokenManager = new InMemoryTokenManager();
 		}
 	}
 
@@ -144,18 +139,19 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 				RemoteKerConnection messageSender;
 				if (useEdc) {
+					String counterPartyParticipantId = knowledgeEngineRuntime.getEdcParticipantId().toString();
 					ParticipantProperties participant = new ParticipantProperties(
-						knowledgeEngineRuntime.getEdcParticipantId().toString(),
+						counterPartyParticipantId,
 						knowledgeEngineRuntime.getEdcConnectorUrl().toString(),
 						knowledgeEngineRuntime.getEdcDataPlaneUrl().toString()
 					);
 					this.edcService.registerParticipant(participant);
+					TransferProcess transferProcess = this.edcService.createTransferProcess(counterPartyParticipantId);
 
 					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
-							this.edcService, this.tokenManager, knowledgeEngineRuntime);
+							knowledgeEngineRuntime, transferProcess);
 				} else {
-					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, null, null,
-							knowledgeEngineRuntime);
+					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, knowledgeEngineRuntime, null);
 				}
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();

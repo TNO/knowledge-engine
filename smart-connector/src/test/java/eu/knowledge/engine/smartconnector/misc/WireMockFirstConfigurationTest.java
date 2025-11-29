@@ -62,8 +62,8 @@ public class WireMockFirstConfigurationTest {
 
 		MessageDispatcher messageDispatcher = mock(MessageDispatcher.class);
 
-		var ker = new RemoteKerConnection(messageDispatcher, new URI(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL), null, null,
-				new KnowledgeEngineRuntimeConnectionDetails().exposedUrl(URI.create("http://10.255.255.1/")));
+		var ker = new RemoteKerConnection(messageDispatcher, new URI(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL), 
+			new KnowledgeEngineRuntimeConnectionDetails().exposedUrl(URI.create("http://10.255.255.1/")), null);
 
 		ker.start();
 		assertFalse(ker.isAvailable());
