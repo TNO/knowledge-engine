@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
-import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
 import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.edc.TransferProcess;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
