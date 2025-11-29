@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
+import eu.knowledge.engine.smartconnector.edc.TransferProcess;
 import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 /**
@@ -125,6 +126,33 @@ public class EdcConnectorService {
 				this.registerContractDefinition(contractId, policyId, policyId, assetId));
 		return map;
 	}
+
+	
+	/**
+	 * Make sure we have a valid authToken to communicate with the remote KER. This
+	 * involves fetching their catalog, negotiating a contract, starting a transfer
+	 * process and receiving the token.
+	 */
+	public TransferProcess createTransferProcess(String counterPartyParticipantId) {
+		String catalogJson = catalogRequest(counterPartyParticipantId);
+		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
+		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
+		String contractAgreementJson = negotiateContract(counterPartyParticipantId, assetId, policyId);
+
+		String contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
+
+		String transferJson = transferProcess(counterPartyParticipantId, contractAgreementId);
+		String transferId = findByJsonPointerExpression(transferJson, "/@id");
+		String _statusJson = getTransferProcessStatus(transferId);
+		String edrsJson = getEndpointDataReference(transferId);
+
+		String authToken = findByJsonPointerExpression(edrsJson, "/authorization");
+		String counterPartyDataPlaneUrl = findByJsonPointerExpression(edrsJson, "/endpoint");
+		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
+				counterPartyParticipantId, contractAgreementId, transferId);
+		return new TransferProcess(this.participantId.toString(), counterPartyParticipantId, contractAgreementId, counterPartyDataPlaneUrl, authToken);
+	}
+
 
 	/**
 	 * Negotiate a contract between two connectors for the provided asset

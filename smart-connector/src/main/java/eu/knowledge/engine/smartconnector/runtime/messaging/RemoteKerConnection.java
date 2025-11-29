@@ -1,7 +1,6 @@
 package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
-import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerExpression;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -44,6 +42,7 @@ import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.Know
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
 import eu.knowledge.engine.smartconnector.edc.InMemoryTokenManager;
+import eu.knowledge.engine.smartconnector.edc.TransferProcess;
 
 /**
  * This class is responsible for sending messages to a single remote Knowledge
@@ -88,6 +87,7 @@ public class RemoteKerConnection {
 	 */
 	private String authToken;
 	private String counterPartyDataPlaneUrl;
+	private TransferProcess transferProcess;
 	private String validationEndpoint;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, EdcConnectorService edcService,
@@ -133,33 +133,8 @@ public class RemoteKerConnection {
 			Config config = ConfigProvider.getConfig();
 			ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
 			this.validationEndpoint = tokenValidationEndpoint.getValue();
-			setupTransferProcess();
+			this.transferProcess = this.edcService.createTransferProcess(this.remoteKerConnectionDetails.getEdcParticipantId().toString());
 		}
-	}
-
-	/**
-	 * Make sure we have a valid authToken to communicate with the remote KER. This
-	 * involves fetching their catalog, negotiating a contract, starting a transfer
-	 * process and receiving the token.
-	 */
-	private void setupTransferProcess() {
-		String counterParticipantId = this.remoteKerConnectionDetails.getEdcParticipantId().toString();
-		String catalogJson = this.edcService.catalogRequest(counterParticipantId);
-		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
-		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
-		String contractAgreementJson = this.edcService.negotiateContract(counterParticipantId, assetId, policyId);
-
-		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
-
-		String transferJson = this.edcService.transferProcess(counterParticipantId, this.contractAgreementId);
-		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
-		String statusJson = this.edcService.getTransferProcessStatus(this.transferId);
-		String edrsJson = this.edcService.getEndpointDataReference(this.transferId);
-
-		this.authToken = findByJsonPointerExpression(edrsJson, "/authorization");
-		this.counterPartyDataPlaneUrl = findByJsonPointerExpression(edrsJson, "/endpoint");
-		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
-				counterParticipantId, this.contractAgreementId, this.transferId);
 	}
 
 	private int getHttpTimeout() {
@@ -195,14 +170,14 @@ public class RemoteKerConnection {
 		try {
 			URI uri;
 			if (this.edcService != null) 
-				uri = new URI(this.counterPartyDataPlaneUrl);
+				uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
 			else
 				uri = this.remoteKerUri;
 
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails"));
 					//.headers("Content-Type", "application/json");
 			if (this.edcService != null)
-				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
+				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.GET().build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -233,7 +208,7 @@ public class RemoteKerConnection {
 	}
 
 	private boolean tokenAvailable() {
-		return this.authToken != null;
+		return this.transferProcess.authToken() != null;
 	}
 
 	public boolean isAvailable() {
@@ -321,14 +296,14 @@ public class RemoteKerConnection {
 						
 				URI uri;
 				if (this.edcService != null) 
-					uri = new URI(this.counterPartyDataPlaneUrl);
+					uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
 				else
 					uri = this.remoteKerUri;
 
 				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails/" + ker_id))
 						.headers("Content-Type", "application/json");
 				if (this.edcService != null)
-					requestBuilder = requestBuilder.headers("Authorization", authToken);
+					requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
 					
 				HttpRequest request = requestBuilder.DELETE().build();
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -384,14 +359,14 @@ public class RemoteKerConnection {
 			
 			URI uri;
 			if (this.edcService != null) 
-				uri = new URI(this.counterPartyDataPlaneUrl);
+				uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
 			else
 				uri = this.remoteKerUri;
 			HttpRequest.Builder requestBuilder = HttpRequest
 					.newBuilder(new URI(uri + getPathForMessageType(message)))
 					.headers("Content-Type", "application/json");
 			if (this.edcService != null)
-				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
+				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -434,14 +409,14 @@ public class RemoteKerConnection {
 			String jsonMessage = objectMapper.writeValueAsString(details);
 			URI uri;
 			if (this.edcService != null) 
-				uri = new URI(this.counterPartyDataPlaneUrl);
+				uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
 			else
 				uri = this.remoteKerUri;
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails"))
 					.headers("Content-Type", "application/json");
 
 			if (this.edcService != null)
-				requestBuilder = requestBuilder.headers("Authorization", authToken);
+				requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -498,16 +473,8 @@ public class RemoteKerConnection {
 		return System.getenv(key) != null;
 	}
 
-	public String getTransferId() {
-		return this.transferId;
-	}
-
-	public String getContractAgreementId() {
-		return this.contractAgreementId;
-	}
-
-	public void setToken(String aToken) {
-		this.authToken = aToken;
-		this.updateRemoteKerDataFromPeer();
-	}
+	// public void setToken(String aToken) {
+	// 	this.transferProcess.authToken() = aToken;
+	// 	this.updateRemoteKerDataFromPeer();
+	// }
 }
