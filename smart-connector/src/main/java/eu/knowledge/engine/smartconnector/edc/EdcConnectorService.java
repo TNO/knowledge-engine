@@ -126,11 +126,6 @@ public class EdcConnectorService {
 		return map;
 	}
 
-	public String getAssetIdFromCatalogForAssetName(String counterPartyParticipantId) {
-		String response = catalogRequest(counterPartyParticipantId);
-		return JsonUtil.findByJsonPointerExpression(response, "/dcat:dataset/@id");
-	}
-
 	/**
 	 * Negotiate a contract between two connectors for the provided asset
 	 * identifier.
@@ -146,37 +141,6 @@ public class EdcConnectorService {
 		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
 		String negotiateContract = this.negotiateContract(counterParty.participantId(), counterParty.protocolUrl(), policyId, assetId);
 		return this.contractAgreement(negotiateContract);
-	}
-
-	/**
-	 * Each TKE needs to register a dataplane whenever it wants to expose assets.
-	 * This function registers a data plane for HttpProxy/HttpData.
-	 */
-	public String registerDataPlane(String dataPlaneId, String dataPlaneControlUrl, String dataPlanePublicUrl) {
-		var url = getManagementUrl("/v2/dataplanes");
-		LOG.info("registerDataPlane at: {}", url);
-		var payload = """
-				{
-				  "@context": {
-					"edc": "https://w3id.org/edc/v0.0.1/ns/"
-				  },
-				  "@id": "%s",
-				  "url": "%s",
-				  "allowedSourceTypes": [
-					"HttpData"
-				  ],
-				  "allowedDestTypes": [
-					"HttpProxy",
-					"HttpData"
-				  ],
-				  "properties": {
-					"https://w3id.org/edc/v0.0.1/ns/publicApiUrl": "%s"
-				  }
-				}
-				 """.formatted(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl);
-		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Register data plane response: {}", response.body());
-		return response.body();
 	}
 
 	/**
