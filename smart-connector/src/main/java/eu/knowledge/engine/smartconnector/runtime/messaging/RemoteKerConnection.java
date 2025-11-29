@@ -173,10 +173,6 @@ public class RemoteKerConnection {
 		dispatcher.notifySmartConnectorsChanged();
 	}
 
-	private boolean tokenAvailable() {
-		return this.transferProcess.authToken() != null;
-	}
-
 	public boolean isAvailable() {
 		if (tryAgainAfter != null) {
 			boolean after = LocalDateTime.now().isAfter(tryAgainAfter);
