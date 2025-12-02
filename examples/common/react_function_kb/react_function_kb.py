@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import signal
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -35,6 +36,14 @@ exec(REACT_FUNCTION_DEF)
 log = logging.getLogger(KB_NAME)
 log.setLevel(logging.INFO)
 
+"""
+Make sure that this Python program handles SIGTERM by raising a
+KeyboardInterrupt, to end the program.
+"""
+def handle_sigterm(*args):
+    raise KeyboardInterrupt()
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 def react_function_kb():
     client = TkeClient(KE_URL)
@@ -66,10 +75,12 @@ def react_function_kb():
     )
     log.info(f"REACT KI registered!")
 
-    kb.start_handle_loop()
-
-    log.info(f"unregistering...")
-    kb.unregister()
+    try:
+        kb.start_handle_loop()
+    except KeyboardInterrupt:
+        log.info("Gracefull shutdown requested...")
+    finally:
+        kb.unregister()
 
 
 if __name__ == "__main__":
