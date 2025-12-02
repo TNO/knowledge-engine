@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import json
+import signal
 
 from knowledge_mapper.tke_client import TkeClient
 from knowledge_mapper.knowledge_base import KnowledgeBaseRegistrationRequest
@@ -22,6 +23,14 @@ GRAPH_PATTERN = os.getenv("GRAPH_PATTERN")
 log = logging.getLogger(KB_NAME)
 log.setLevel(logging.INFO)
 
+"""
+Make sure that this Python program handles SIGTERM by raising a
+KeyboardInterrupt, to end the program.
+"""
+def handle_sigterm(*args):
+    raise KeyboardInterrupt()
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 def kb_1():
     client = TkeClient(KE_URL)
@@ -43,17 +52,18 @@ def kb_1():
     )
     log.info(f"ASK KI registered!")
     result = []
-    while True:
-        log.info(f"asking...")
-        result = ask.ask([{}])["bindingSet"]
-        if len(result) == 0:
-            log.info(f"asking gave no results; will sleep for 2s...")
-        else:
-            log.info(f"got answer: {result}")
-        time.sleep(2)
-
-    log.info(f"unregistering...")
-    kb.unregister()
+    try:
+	    while True:
+	        log.info(f"asking...")
+	        result = ask.ask([{}])["bindingSet"]
+	        if len(result) == 0:
+	            log.info(f"asking gave no results; will sleep for 2s...")
+	        else:
+	            log.info(f"got answer: {result}")
+	        time.sleep(2)
+    finally:
+        log.info(f"unregistering...")
+        kb.unregister()
 
 
 if __name__ == "__main__":
