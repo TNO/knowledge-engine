@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
@@ -52,19 +53,15 @@ public class KnowledgeDirectoryConnection {
 	private State currentState;
 	private final URI kdUrl;
 	private final URI myExposedUrl;
-	private final URI myParticipantId;
-	private final URI myEdcConnectorUrl;
-	private final URI myEdcDataPlaneUrl;
+	private final ParticipantProperties myEdcProperties;
 	private final Object lock = new Object();
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, URI myParticipantId, URI myEdcConnectorUrl, URI myEdcDataPlaneUrl) {
+	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, ParticipantProperties myEdcProperties) {
 		this.myExposedUrl = myExposedUrl;
-		this.myParticipantId = myParticipantId;
-		this.myEdcConnectorUrl = myEdcConnectorUrl;
-		this.myEdcDataPlaneUrl = myEdcDataPlaneUrl;
 		this.currentState = State.UNREGISTERED;
+		this.myEdcProperties = myEdcProperties;
 
 		var builder = HttpClient.newBuilder();
 
@@ -196,9 +193,9 @@ public class KnowledgeDirectoryConnection {
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
-		ker.setEdcParticipantId(myParticipantId);
-		ker.setEdcDataPlaneUrl(myEdcDataPlaneUrl);
-		ker.setEdcConnectorUrl(myEdcConnectorUrl);
+		ker.setEdcParticipantId(this.myEdcProperties.participantId());
+		ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
+		ker.setEdcDataPlaneUrl(this.myEdcProperties.dataPlanePublicUrl());
 
 		try {
 			HttpRequest registerRequest = HttpRequest
