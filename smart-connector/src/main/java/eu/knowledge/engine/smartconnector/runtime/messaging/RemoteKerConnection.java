@@ -2,7 +2,6 @@ package eu.knowledge.engine.smartconnector.runtime.messaging;
 
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
@@ -49,7 +48,6 @@ public class RemoteKerConnection {
 
 	public static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnection.class);
 
-	private URI myExposedUri = null;
 	private final KnowledgeEngineRuntimeConnectionDetails remoteKerConnectionDetails;
 	private final URI remoteKerUri;
 	private KnowledgeEngineRuntimeDetails remoteKerDetails;
@@ -64,9 +62,8 @@ public class RemoteKerConnection {
 
 	private TransferProcess transferProcess;
 
-	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails,
+	public RemoteKerConnection(MessageDispatcher dispatcher, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails,
 		TransferProcess transferProcess) {
-		this.myExposedUri = myExposedUri;
 		this.dispatcher = dispatcher;
 		this.remoteKerConnectionDetails = kerConnectionDetails;
 		this.transferProcess = transferProcess;

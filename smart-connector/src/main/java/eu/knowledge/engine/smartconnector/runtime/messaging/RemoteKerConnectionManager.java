@@ -48,12 +48,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private final MessageDispatcher messageDispatcher;
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
 	private EdcConnectorService edcService = null;
-	private URI myExposedUrl;
 	private boolean useEdc;
 
 	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher, URI myExposedUrl, boolean useEdc) {
 		this.messageDispatcher = messageDispatcher;
-		this.myExposedUrl = myExposedUrl;
 		messageReceiver = new RemoteMessageReceiver(messageDispatcher);
 		this.useEdc = useEdc;
 
@@ -141,10 +139,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 					this.edcService.registerParticipant(participant);
 					TransferProcess transferProcess = this.edcService.createTransferProcess(counterPartyParticipantId);
 
-					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl,
-							knowledgeEngineRuntime, transferProcess);
+					messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime, transferProcess);
 				} else {
-					messageSender = new RemoteKerConnection(messageDispatcher, this.myExposedUrl, knowledgeEngineRuntime, null);
+					messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime, null);
 				}
 				remoteKerConnections.put(knowledgeEngineRuntime.getId(), messageSender);
 				messageSender.start();
