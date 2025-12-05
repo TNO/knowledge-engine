@@ -404,9 +404,4 @@ public class RemoteKerConnection {
 	public boolean hasConfigProperty(String key) {
 		return System.getenv(key) != null;
 	}
-
-	// public void setToken(String aToken) {
-	// 	this.transferProcess.authToken() = aToken;
-	// 	this.updateRemoteKerDataFromPeer();
-	// }
 }

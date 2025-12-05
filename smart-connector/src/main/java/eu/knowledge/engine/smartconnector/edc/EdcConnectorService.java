@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -50,21 +49,11 @@ public class EdcConnectorService {
 	@Inject
 	public EdcConnectorService(URI assetUrl) {
 		Config config = ConfigProvider.getConfig();
-		URI configManagementUrl, configParticipantId, configProtocolUrl, configDataPlanePublicUrl;
-		try {
-			configManagementUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL).getValue());
-			configParticipantId = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID).getValue());
-			configProtocolUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL).getValue());
-			configDataPlanePublicUrl = new URI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL).getValue());
-		} catch (URISyntaxException e) {
-			// TODO: handle this error!
-			configManagementUrl = null;
-			configParticipantId = null;
-			configProtocolUrl = null;
-			configDataPlanePublicUrl = null;
-			LOG.error("Invalid URI syntax, see: ".formatted(e.getMessage()));
-		}
-		this.managementUrl = configManagementUrl;
+		
+		this.managementUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL).getValue());
+		URI configParticipantId = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID).getValue());
+		URI configProtocolUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL).getValue());
+		URI configDataPlanePublicUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL).getValue());
 		this.myProperties = new ParticipantProperties(configParticipantId, configProtocolUrl, configDataPlanePublicUrl); 
 		this.assetUrl = assetUrl;
 
@@ -101,21 +90,21 @@ public class EdcConnectorService {
 
 	
 	/**
-	 * Make sure we have a valid authToken to communicate with the remote KER. This
-	 * involves fetching their catalog, negotiating a contract, starting a transfer
-	 * process and receiving the token.
+	 * Create and start a transfer process with another participant by
+	 * requesting their catalog, setting up a contract agreement and starting
+	 * the actual transfer process.
+	 * 
+	 * @param counterPartyParticipantId	the participant ID of the counter party
+	 * 
+	 * @return the started transfer process
 	 */
 	public TransferProcess createTransferProcess(URI counterPartyParticipantId) {
-		String catalogJson = catalogRequest(counterPartyParticipantId);
+		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+		String catalogJson = catalogRequest(counterParty);
 		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
 		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
-		String contractAgreementJson = negotiateContract(counterPartyParticipantId, assetId, policyId);
-
-		String contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
-
-		String transferJson = transferProcess(counterPartyParticipantId, contractAgreementId);
-		String transferId = findByJsonPointerExpression(transferJson, "/@id");
-		String _statusJson = getTransferProcessStatus(transferId);
+		String contractAgreementId = negotiateContract(counterParty, assetId, policyId);
+		String transferId = transferProcess(counterParty, contractAgreementId);
 		String edrsJson = getEndpointDataReference(transferId);
 
 		String authToken = findByJsonPointerExpression(edrsJson, "/authorization");
@@ -130,23 +119,58 @@ public class EdcConnectorService {
 	 * Negotiate a contract between two connectors for the provided asset
 	 * identifier.
 	 *
-	 * @param counterPartyParticipantId to whom the request should be make
-	 * @param assetId                   determines what asset the participant wants
-	 *                                  to use
-	 * @return response
+	 * @param counterParty	participant to whom the request should be made
+	 * @param assetId       describes what asset the participant wants to use
+	 * @param policyId		describes the policy assigned to the counterparty's asset
+	 *  
+	 * @return contract agreement ID 
 	 */
-	public String negotiateContract(URI counterPartyParticipantId, String assetId, String policyId) {
-		LOG.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", this.myProperties.participantId(),
-				counterPartyParticipantId, assetId);
-		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
-		String negotiateContract = this.negotiateContract(counterParty.participantId(), counterParty.protocolUrl(), policyId, assetId);
-		return this.contractAgreement(negotiateContract);
+	private String negotiateContract(ParticipantProperties counterParty, String assetId, String policyId) {
+		// Send contract agreement request
+		String url = getManagementUrl("/v3/contractnegotiations");
+		String payload = """
+					{
+						"@context": {
+							"edc": "https://w3id.org/edc/v0.0.1/ns/",
+							"odrl": "http://www.w3.org/ns/odrl/2/"
+						},
+						"@type": "ContractRequest",
+						"counterPartyAddress": "%s",
+						"protocol": "dataspace-protocol-http",
+						"policy": {
+							"@context": "http://www.w3.org/ns/odrl.jsonld",
+							"@id": "%s",
+							"@type": "Offer",
+							"assigner": "%s",
+							"target": "%s"
+						}
+					}
+				""".formatted(counterParty.protocolUrl(), policyId, counterParty.participantId(), assetId);
+
+		LOG.info("Negotiate contract at: {}, Request: {}", url, payload);
+		HttpResponse<String> postResponse = httpPost(url, payload);
+
+		LOG.info("Negotiate contract response: {}", postResponse.body());
+
+		String contractAgreementId = findByJsonPointerExpression(postResponse.body(), "/@id");
+		
+		// Poll for contract agreement finalization and return 
+		String url_with_id = getManagementUrl("/v3/contractnegotiations/" + contractAgreementId);
+		LOG.info("contractAgreement at: {}", url_with_id);
+
+		final List<String> responses = new ArrayList<>();
+		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
+			HttpResponse<String> response = httpGet(url_with_id);
+			responses.add(response.body());
+			String state = findByJsonPointerExpression(response.body(), "/state");
+			LOG.error(state);
+			return Objects.equals(state, "FINALIZED");
+		});
+
+		return contractAgreementId;
 	}
 
-	/**
-	 * Register an assert given the provided assetId and tkeUrl.
-	 */
-	public String registerAsset(String assetId, URI tkeUrl, String tkeAssetName) {
+	private String registerAsset(String assetId, URI tkeUrl, String tkeAssetName) {
 		String url = getManagementUrl("/v3/assets");
 		String payload = """
 					{
@@ -174,12 +198,7 @@ public class EdcConnectorService {
 		return response.body();
 	}
 
-	/**
-	 * The policy defines permissions which can be applied to an asset.
-	 *
-	 * @return
-	 */
-	public String registerPolicy(String policyId) {
+	private String registerPolicy(String policyId) {
 		String url = getManagementUrl("/v3/policydefinitions");
 		String payload = """
 					{
@@ -203,7 +222,7 @@ public class EdcConnectorService {
 		return response.body();
 	}
 
-	public String registerContractDefinition(String contractDefinitionId, String accessPolicyId,
+	private String registerContractDefinition(String contractDefinitionId, String accessPolicyId,
 			String contractPolicyId, String assetId) {
 		String url = getManagementUrl("/v3/contractdefinitions");
 		String payload = """
@@ -238,9 +257,8 @@ public class EdcConnectorService {
 	 * @param counterPartyParticipantId to whom the request should be make
 	 * @return response
 	 */
-	public String catalogRequest(URI counterPartyParticipantId) {
-		LOG.info("Catalog request: {}", counterPartyParticipantId);
-		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+	private String catalogRequest(ParticipantProperties counterParty) {
+		LOG.info("Catalog request: {}", counterParty.participantId());
 		String url = getManagementUrl("/v3/catalog/request");
 		String payload = """
 					{
@@ -251,79 +269,17 @@ public class EdcConnectorService {
 						"counterPartyId": "%s",
 						"protocol": "dataspace-protocol-http"
 					}
-				""".formatted(counterParty.protocolUrl(), counterPartyParticipantId);
+				""".formatted(counterParty.protocolUrl(), counterParty.participantId());
 		LOG.info("Requesting catalog at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
 		LOG.info("Requesting Catalog response: {}", postResponse.body());
 		return postResponse.body();
 	}
-
-	/**
-	 * In order to request any data, a contract gets negotiated, and an agreement is
-	 * resulting has to be negotiated between providers and consumers.
-	 * <p>
-	 * The consumer now needs to initiate a contract negotiation sequence with the
-	 * provider. That sequence looks as follows:
-	 * <p>
-	 * Consumer sends a contract offer to the provider (currently, this has to be
-	 * equal to the provider's offer!)
-	 * Provider validates the received offer against its own offer
-	 * Provider either sends an agreement or a rejection, depending on the
-	 * validation result
-	 * In case of successful validation, provider and consumer store the received
-	 * agreement for later reference
-	 *
-	 * @return
-	 */
-	public String negotiateContract(URI counterPartyId, URI counterPartyAddress, String policyId,
-			String assetId) {
-		String url = getManagementUrl("/v3/contractnegotiations");
-		String payload = """
-					{
-						"@context": {
-							"edc": "https://w3id.org/edc/v0.0.1/ns/",
-							"odrl": "http://www.w3.org/ns/odrl/2/"
-						},
-						"@type": "ContractRequest",
-						"counterPartyAddress": "%s",
-						"protocol": "dataspace-protocol-http",
-						"policy": {
-							"@context": "http://www.w3.org/ns/odrl.jsonld",
-							"@id": "%s",
-							"@type": "Offer",
-							"assigner": "%s",
-							"target": "%s"
-						}
-					}
-				""".formatted(counterPartyAddress, policyId, counterPartyId, assetId);
-
-		LOG.info("Negotiate contract at: {}, Request: {}", url, payload);
-		HttpResponse<String> postResponse = httpPost(url, payload);
-		LOG.info("Negotiate contract response: {}", postResponse.body());
-		return postResponse.body();
-	}
-
-	public String contractAgreement(String json) {
-		String contractAgreementId = findByJsonPointerExpression(json, "/@id");
-		var url = getManagementUrl("/v3/contractnegotiations/" + contractAgreementId);
-		LOG.info("contractAgreement at: {}", url);
-		final List<String> responses = new ArrayList<>();
-
-		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
-			HttpResponse<String> response = httpGet(url);
-			responses.add(response.body());
-			String state = findByJsonPointerExpression(response.body(), "/state");
-			LOG.error(state);
-			return Objects.equals(state, "FINALIZED");
-		});
-
-		return responses.get(responses.size() - 1);
-	}
 	
-	public String transferProcess(URI counterPartyParticipantId, String contractAgreementId) {
+
+	private String transferProcess(ParticipantProperties counterParty, String contractAgreementId) {
 		LOG.info("transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
-				this.myProperties.participantId(), counterPartyParticipantId, contractAgreementId);
-		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+				this.myProperties.participantId(), counterParty.participantId(), contractAgreementId);
 
 		var url = getManagementUrl("/v3/transferprocesses");
 		var payload = """
@@ -343,25 +299,24 @@ public class EdcConnectorService {
 		LOG.info("Start transfer process at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
 		LOG.info("Start transfer process response: {}", postResponse.body());
-		return postResponse.body();
-	}
+		
+		String transferId = findByJsonPointerExpression(postResponse.body(), "/@id");
 
-	public String getTransferProcessStatus(String transferId) {
-		String url = getManagementUrl("/v3/transferprocesses/" + transferId);
+		String url_with_id = getManagementUrl("/v3/transferprocesses/" + transferId);
 		final List<String> responses = new ArrayList<>();
 
 		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
-			HttpResponse<String> response = httpGet(url);
+			HttpResponse<String> response = httpGet(url_with_id);
 			responses.add(response.body());
 			String state = findByJsonPointerExpression(response.body(), "/state");
 			LOG.error(state);
 			return Objects.equals(state, "STARTED");
 		});
 
-		return responses.get(responses.size() - 1);
+		return transferId;
 	}
 
-	public String getEndpointDataReference(String transferId) {
+	private String getEndpointDataReference(String transferId) {
 		String url = getManagementUrl("/v3/edrs/" + transferId + "/dataaddress");
 		LOG.info("Get endpoint data reference");
 		HttpResponse<String> response = httpGet(url);
@@ -377,15 +332,9 @@ public class EdcConnectorService {
 	}
 
 	private HttpResponse<String> httpGet(String url) {
-		return httpGet(url, "application/json");
-	}
-
-	private HttpResponse<String> httpGet(String url, String accept) {
-		LOG.info("Calling: {}", url);
-
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(toURI(url))
-				.headers("Accept", accept)
+				.headers("Accept", "application/json")
 				.GET()
 				.build();
 
@@ -393,13 +342,9 @@ public class EdcConnectorService {
 	}
 
 	private HttpResponse<String> httpPost(String url, String payload) {
-		return httpPost(url, "application/json", payload);
-	}
-
-	private HttpResponse<String> httpPost(String url, String contentType, String payload) {
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(toURI(url))
-				.headers("Content-Type", contentType)
+				.headers("Content-Type", "application/json")
 				.POST(HttpRequest.BodyPublishers.ofString(payload))
 				.build();
 
@@ -433,7 +378,6 @@ public class EdcConnectorService {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
-
 
 	public ParticipantProperties getMyProperties() {
 		return this.myProperties;
