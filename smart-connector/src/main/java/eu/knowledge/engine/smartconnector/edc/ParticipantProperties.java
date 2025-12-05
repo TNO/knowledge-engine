@@ -1,5 +1,7 @@
 package eu.knowledge.engine.smartconnector.edc;
 
-public record ParticipantProperties(String participantId, String protocolUrl, String DataPlanePublicUrl) {
+import java.net.URI;
+
+public record ParticipantProperties(URI participantId, URI protocolUrl, URI dataPlanePublicUrl) {
 
 }

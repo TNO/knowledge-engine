@@ -49,9 +49,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 	private Date knowledgeDirectoryUpdateCooldownEnds = null;
 	private EdcConnectorService edcService = null;
 	private URI myExposedUrl;
-	private URI myParticipantId = null; 
-	private URI myEdcDataPlaneUrl = null;
-	private URI myEdcConnectorUrl = null;
 	private boolean useEdc;
 
 	public RemoteKerConnectionManager(MessageDispatcher messageDispatcher, URI myExposedUrl, boolean useEdc) {
@@ -62,9 +59,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 		if (this.useEdc) {
 			this.edcService = new EdcConnectorService(myExposedUrl);
-			this.myParticipantId = this.edcService.getParticipantId();
-			this.myEdcConnectorUrl = this.edcService.getControlPlaneProtocolUrl();
-			this.myEdcDataPlaneUrl = this.edcService.getDataPlanePublicUrl();
 		}
 	}
 
@@ -138,11 +132,11 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 				RemoteKerConnection messageSender;
 				if (useEdc) {
-					String counterPartyParticipantId = knowledgeEngineRuntime.getEdcParticipantId().toString();
+					URI counterPartyParticipantId = knowledgeEngineRuntime.getEdcParticipantId();
 					ParticipantProperties participant = new ParticipantProperties(
 						counterPartyParticipantId,
-						knowledgeEngineRuntime.getEdcConnectorUrl().toString(),
-						knowledgeEngineRuntime.getEdcDataPlaneUrl().toString()
+						knowledgeEngineRuntime.getEdcConnectorUrl(),
+						knowledgeEngineRuntime.getEdcDataPlaneUrl()
 					);
 					this.edcService.registerParticipant(participant);
 					TransferProcess transferProcess = this.edcService.createTransferProcess(counterPartyParticipantId);
@@ -295,15 +289,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 		return list;
 	}
 
-	URI getEdcParticipantId() {
-		return this.myParticipantId;
-	}
-
-	URI getEdcConnectorUrl() {
-		return this.myEdcConnectorUrl;
-	}
-
-	URI getEdcDataPlaneUrl() {
-		return this.myEdcDataPlaneUrl;
+	public ParticipantProperties getMyEdcProperties() {
+		return this.edcService.getMyProperties();
 	}
 }
