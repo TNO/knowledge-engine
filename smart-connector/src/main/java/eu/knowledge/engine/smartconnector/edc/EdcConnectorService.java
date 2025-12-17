@@ -2,11 +2,18 @@ package eu.knowledge.engine.smartconnector.edc;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,71 +25,118 @@ import java.util.UUID;
 @Named
 public class EdcConnectorService {
 
-	private final Logger log = LoggerFactory.getLogger(EdcConnectorService.class);
-	private final Map<String, EdcConnectorClient> connectors = new HashMap<>();
-	private final Map<String, EdcConnectorProperties> configuration = new HashMap<>();
+	private final Logger LOG = LoggerFactory.getLogger(EdcConnectorService.class);
+
+	private EdcConnectorClient edcClient;
+	private EdcConnectorProperties properties;
+	private Map<String, ParticipantProperties> participants = new HashMap<>();
+
+	public URI myParticipantId = null;
+	public URI myEdcConnectorUrl = null;
+	public URI myEdcDataPlaneUrl = null;
 
 	// these are all static for every connector
 	public final static String DATA_PLANE_ID = "tke-dataplane";
-	public final static String ASSET_NAME = "TNO Knowledge Engine Runtime";
-	public final static String ASSET_URL = "https://www.knowledge-engine.eu/";
 
 	@Inject
-	public EdcConnectorService(List<EdcConnectorProperties> configuration) {
-		for (EdcConnectorProperties connector : configuration) {
-			addConnector(connector);
+	public EdcConnectorService(URI assetUrl) {
+		EdcConnectorProperties configuration = loadConfig(assetUrl);
+		LOG.info("Adding connector for [participant id: {}] with [management url: {}]",
+				configuration.participantId(), configuration.managementUrl());
+		this.edcClient = new EdcConnectorClient(configuration.managementUrl());
+		this.properties = configuration;
+		this.participants.put(configuration.participantId(),
+				new ParticipantProperties(configuration.participantId(), configuration.protocolUrl(), configuration.dataPlanePublicUrl()));
+	}
+	
+	/**
+	 * @return A configuration object with properties for the two connectors.
+	 */
+	private EdcConnectorProperties loadConfig(URI assetUrl) {
+
+		Config config = ConfigProvider.getConfig();
+
+		ConfigValue participantId = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID);
+		ConfigValue protocolUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL);
+		ConfigValue managementUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL);
+		ConfigValue dataPlaneControlUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL);
+		ConfigValue dataPlanePublicUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL);
+		ConfigValue tokenValidationEndpoint = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT);
+
+		EdcConnectorProperties props = new EdcConnectorProperties(
+			participantId.getValue(),
+			protocolUrl.getValue(),
+			managementUrl.getValue(),
+			"tke-dataplane",
+			dataPlaneControlUrl.getValue(),
+			dataPlanePublicUrl.getValue(),
+			tokenValidationEndpoint.getValue(),
+			assetUrl.toString(),
+			"TNO Knowledge Engine Runtime API"
+		);
+
+		LOG.info("Setting management url to: {}", managementUrl);
+
+		try {
+			this.myParticipantId = new URI(props.participantId());
+			this.myEdcConnectorUrl = new URI(props.protocolUrl());
+			this.myEdcDataPlaneUrl = new URI(props.dataPlanePublicUrl());
+		} catch (URISyntaxException e) {
+			LOG.error("Invalid syntax for EDC Connector URL");
 		}
+
+		return props;
 	}
 
-	public void addConnector(EdcConnectorProperties connector) {
-		log.info("Adding connector for [participant id: {}] with [management url: {}]",
-				connector.participantId(), connector.managementUrl());
-		connectors.put(connector.participantId(), new EdcConnectorClient(connector.managementUrl()));
-		configuration.put(connector.participantId(), connector);
+	public void registerParticipant(ParticipantProperties participant) {
+		LOG.info("Registering EDC participant with participant id {}", participant.participantId());
+		participants.put(participant.participantId(), participant);
 	}
 
 	/**
-	 * Configure the connector with the provided connector's participantId
-	 *
-	 * @param participantId connector to configure
+	 * Configure the connector.
 	 * @return map with all the responses
 	 */
-	public HashMap<String, String> configureConnector(String participantId) {
-		log.info("configureConnector for participantId: {}", participantId);
-		EdcConnectorProperties properties = configuration.get(participantId);
-		EdcConnectorClient connector = connectors.get(participantId);
-
-		String existingAssetId = getAssetIdFromCatalogForAssetName(properties.participantId(),
-				properties.participantId(), properties.tkeAssetName());
-		if (existingAssetId != null) {
-			log.info("Connector already configured and TKE asset present for participantId: {}", participantId);
-			throw new RuntimeException("Connector already configured and TKE asset present.");
-		}
+	public HashMap<String, String> configureConnector() {
+		LOG.info("configuring connector of {}", this.properties.participantId());
+		// String existingAssetId =
+		// getAssetIdFromCatalogForAssetName(properties.participantId(),
+		// properties.participantId());
+		// if (existingAssetId != null) {
+		// LOG.info("Connector already configured and TKE asset present for
+		// participantId: {}", participantId);
+		// throw new RuntimeException("Connector already configured and TKE asset
+		// present.");
+		// }
 
 		// properties needed when creating a data plane.
 		var dataPlaneId = EdcConnectorService.DATA_PLANE_ID;
-		var dataPlaneControlUrl = properties.dataPlaneControlUrl();
-		var dataPlanePublicUrl = properties.dataPlanePublicUrl();
+		var dataPlaneControlUrl = this.properties.dataPlaneControlUrl();
+		var dataPlanePublicUrl = this.properties.dataPlanePublicUrl();
 		// properties needed when creating an asset.
 		var assetId = UUID.randomUUID().toString(); // generate an unique assetId
-		var tkeAssetUrl = EdcConnectorService.ASSET_URL;
-		var tkeAssetName = EdcConnectorService.ASSET_NAME;
+		var tkeAssetUrl = this.properties.tkeAssetUrl();
+		var tkeAssetName = this.properties.tkeAssetName();
 		// properties needed when creating a policy and contract definition.
 		var policyId = UUID.randomUUID().toString();
 		var contractId = UUID.randomUUID().toString();
 
 		// Create the mandatory edc resources.
 		var map = new HashMap<String, String>();
-		map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId, dataPlaneControlUrl, dataPlanePublicUrl));
-		map.put("registerPolicy", connector.registerPolicy(policyId));
-		map.put("registerAsset", connector.registerAsset(assetId, tkeAssetUrl, tkeAssetName));
-		map.put("registerContractDefinition", connector.registerContractDefinition(contractId, policyId, policyId));
+		// map.put("registerDataPlane", connector.registerDataPlane(dataPlaneId,
+		// dataPlaneControlUrl, dataPlanePublicUrl));
+		LOG.info("Registering KER API asset");
+		map.put("registerAsset", this.edcClient.registerAsset(assetId, tkeAssetUrl, tkeAssetName));
+		LOG.info("Registering Policy");
+		map.put("registerPolicy", this.edcClient.registerPolicy(policyId));
+		LOG.info("Registering Contract Definition");
+		map.put("registerContractDefinition",
+				this.edcClient.registerContractDefinition(contractId, policyId, policyId, assetId));
 		return map;
 	}
 
-	public String getAssetIdFromCatalogForAssetName(String participantId, String counterPartyParticipantId,
-			String assetName) {
-		String response = catalogRequest(participantId, counterPartyParticipantId);
+	public String getAssetIdFromCatalogForAssetName(String counterPartyParticipantId) {
+		String response = catalogRequest(counterPartyParticipantId);
 		return JsonUtil.findByJsonPointerExpression(response, "/dcat:dataset/@id");
 	}
 
@@ -92,65 +146,61 @@ public class EdcConnectorService {
 	 * what assets are provided by a connector. Asset identifiers can later be used
 	 * to negotiate contracts between parties.
 	 *
-	 * @param participantId             from which connector the request should be
-	 *                                  made
 	 * @param counterPartyParticipantId to whom the request should be make
 	 * @return response
 	 */
-	public String catalogRequest(String participantId, String counterPartyParticipantId) {
-		log.info("catalogRequest for participantId: {}", participantId);
-		EdcConnectorClient connector = connectors.get(participantId);
-		EdcConnectorProperties counterPartyProperties = configuration.get(
-				counterPartyParticipantId);
-
-		var counterPartyProtocolUrl = counterPartyProperties.protocolUrl();
-		return connector.catalogRequest(counterPartyProtocolUrl);
+	public String catalogRequest(String counterPartyParticipantId) {
+		LOG.info("Catalog request: {}", counterPartyParticipantId);
+		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+		LOG.info("participant: {}", counterParty);
+		LOG.info("participant_id: {}", counterParty.participantId());
+		return this.edcClient.catalogRequest(counterParty.protocolUrl(), counterPartyParticipantId);
 	}
 
 	/**
 	 * Negotiate a contract between two connectors for the provided asset
 	 * identifier.
 	 *
-	 * @param participantId             from which connector the request should be
-	 *                                  made
 	 * @param counterPartyParticipantId to whom the request should be make
 	 * @param assetId                   determines what asset the participant wants
 	 *                                  to use
 	 * @return response
 	 */
-	public String negotiateContract(String participantId, String counterPartyParticipantId, String assetId) {
-		log.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", participantId,
+	public String negotiateContract(String counterPartyParticipantId, String assetId, String policyId) {
+		LOG.info("negotiateContract for participantId: {}, counterPartyParticipantId: {}, assetId: {}", this.properties.participantId(),
 				counterPartyParticipantId, assetId);
-		EdcConnectorProperties participantProperties = configuration.get(participantId);
-		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
-		EdcConnectorClient connector = connectors.get(participantId);
+		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
 
 		// note that the counterparty protocol url could also be extract from the
 		// catalog request
-		var counterPartyAddress = counterPartyProperties.protocolUrl(); // dsp protocol address of the
+		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
 																		// counterparty/provider
-		var consumerId = participantProperties.participantId();
-		var providerId = counterPartyProperties.participantId();
+		var consumerId = this.properties.participantId();
+		var providerId = counterParty.participantId();
 
 		// The consumer will negotiate a contract using its own connector, the
 		// counterPartyAddress
 		// is the party which we need to negotiate the contract with.
-		String negotiateContract = connector.negotiateContract(consumerId, providerId, counterPartyAddress, assetId);
-		return connector.contractAgreement(negotiateContract);
+		String negotiateContract = this.edcClient.negotiateContract(providerId, counterPartyAddress, policyId, assetId);
+		return this.edcClient.contractAgreement(negotiateContract);
 	}
 
-	public String transferProcess(String participantId, String counterPartyParticipantId, String contractAgreementId,
-			String assetId) {
-		log.info(
-				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}, assetId: {}",
-				participantId, counterPartyParticipantId, contractAgreementId, assetId);
-		EdcConnectorProperties counterPartyProperties = configuration.get(counterPartyParticipantId);
-		EdcConnectorClient connector = connectors.get(participantId);
+	public String transferProcess(String counterPartyParticipantId, String contractAgreementId) {
+		LOG.info(
+				"transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
+				this.properties.participantId(), counterPartyParticipantId, contractAgreementId);
+		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
 
-		var counterPartyAddress = counterPartyProperties.protocolUrl(); // dsp protocol address of the
-																		// counterparty/provider
-		var providerId = counterPartyProperties.participantId();
+		var counterPartyAddress = counterParty.protocolUrl(); // dsp protocol address of the
 
-		return connector.transferProcess(counterPartyAddress, providerId, contractAgreementId, assetId);
+		return this.edcClient.transferProcess(counterPartyAddress, contractAgreementId);
+	}
+
+	public String getTransferProcessStatus(String transferId) {
+		return this.edcClient.getTransferProcessStatus(transferId);
+	}
+
+	public String getEndpointDataReference(String transferId) {
+		return this.edcClient.getEndpointDataReference(transferId);
 	}
 }

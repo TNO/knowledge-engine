@@ -87,6 +87,7 @@ public class RemoteKerConnection {
 	 * this remote KER.
 	 */
 	private String authToken;
+	private String counterPartyDataPlaneUrl;
 	private String validationEndpoint;
 
 	public RemoteKerConnection(MessageDispatcher dispatcher, URI myExposedUri, EdcConnectorService edcService,
@@ -142,19 +143,23 @@ public class RemoteKerConnection {
 	 * process and receiving the token.
 	 */
 	private void setupTransferProcess() {
-		String assetId = this.edcService.getAssetIdFromCatalogForAssetName(this.myExposedUri.toString(),
-				this.remoteKerUri.toString(), EdcConnectorService.ASSET_NAME);
-		String contractAgreementJson = this.edcService.negotiateContract(this.myExposedUri.toString(),
-				this.remoteKerUri.toString(), assetId);
+		String counterParticipantId = this.remoteKerConnectionDetails.getEdcParticipantId().toString();
+		String catalogJson = this.edcService.catalogRequest(counterParticipantId);
+		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
+		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
+		String contractAgreementJson = this.edcService.negotiateContract(counterParticipantId, assetId, policyId);
 
 		this.contractAgreementId = findByJsonPointerExpression(contractAgreementJson, "/contractAgreementId");
 
-		String transferJson = this.edcService.transferProcess(this.myExposedUri.toString(),
-				this.remoteKerUri.toString(), this.contractAgreementId, assetId);
+		String transferJson = this.edcService.transferProcess(counterParticipantId, this.contractAgreementId);
 		this.transferId = findByJsonPointerExpression(transferJson, "/@id");
+		String statusJson = this.edcService.getTransferProcessStatus(this.transferId);
+		String edrsJson = this.edcService.getEndpointDataReference(this.transferId);
 
+		this.authToken = findByJsonPointerExpression(edrsJson, "/authorization");
+		this.counterPartyDataPlaneUrl = findByJsonPointerExpression(edrsJson, "/endpoint");
 		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
-				this.remoteKerUri.toString(), this.contractAgreementId, this.transferId);
+				counterParticipantId, this.contractAgreementId, this.transferId);
 	}
 
 	private int getHttpTimeout() {
@@ -188,8 +193,14 @@ public class RemoteKerConnection {
 			return;
 		}
 		try {
-			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
-					.headers("Content-Type", "application/json");
+			URI uri;
+			if (this.edcService != null) 
+				uri = new URI(this.counterPartyDataPlaneUrl);
+			else
+				uri = this.remoteKerUri;
+
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails"));
+					//.headers("Content-Type", "application/json");
 			if (this.edcService != null)
 				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
 			
@@ -307,7 +318,14 @@ public class RemoteKerConnection {
 			try {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
-				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
+						
+				URI uri;
+				if (this.edcService != null) 
+					uri = new URI(this.counterPartyDataPlaneUrl);
+				else
+					uri = this.remoteKerUri;
+
+				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails/" + ker_id))
 						.headers("Content-Type", "application/json");
 				if (this.edcService != null)
 					requestBuilder = requestBuilder.headers("Authorization", authToken);
@@ -363,15 +381,22 @@ public class RemoteKerConnection {
 
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
+			
+			URI uri;
+			if (this.edcService != null) 
+				uri = new URI(this.counterPartyDataPlaneUrl);
+			else
+				uri = this.remoteKerUri;
 			HttpRequest.Builder requestBuilder = HttpRequest
-					.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
+					.newBuilder(new URI(uri + getPathForMessageType(message)))
 					.headers("Content-Type", "application/json");
 			if (this.edcService != null)
 				requestBuilder = requestBuilder.setHeader("Authorization", authToken);
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-			if (response.statusCode() == 202) {
+			// TODO -> Change 200 back to 202!
+			if (response.statusCode() == 200 || response.statusCode() == 202)  {
 				this.noError();
 				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
 			} else {
@@ -407,7 +432,12 @@ public class RemoteKerConnection {
 
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(details);
-			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
+			URI uri;
+			if (this.edcService != null) 
+				uri = new URI(this.counterPartyDataPlaneUrl);
+			else
+				uri = this.remoteKerUri;
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(uri + "/runtimedetails"))
 					.headers("Content-Type", "application/json");
 
 			if (this.edcService != null)
@@ -466,33 +496,6 @@ public class RemoteKerConnection {
 
 	public boolean hasConfigProperty(String key) {
 		return System.getenv(key) != null;
-	}
-
-	public boolean checkAuthorizationToken(String authorizationToken) {
-		if (validationEndpoint != null) {
-			LOG.info("Contacting validation endpoint {}", validationEndpoint);
-			HttpRequest request = null;
-			try {
-				request = HttpRequest.newBuilder(new URI(validationEndpoint))
-						.headers("Content-Type", "application/json", "Authorization", authorizationToken).GET().build();
-			} catch (URISyntaxException e) {
-				LOG.warn("Invalid URI for the validationEndpoint: " + validationEndpoint);
-			}
-
-			try {
-				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-				if (response.statusCode() == 200) {
-					return true;
-				} else {
-					LOG.warn("Validating failed with status code {} and message '{}'", response.statusCode(),
-							response.body());
-				}
-			} catch (IOException | InterruptedException e) {
-				LOG.error("Encountered a problem during authenticating the EDC token.", e);
-			}
-
-		}
-		return false;
 	}
 
 	public String getTransferId() {
