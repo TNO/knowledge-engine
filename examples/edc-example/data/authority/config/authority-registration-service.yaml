@@ -1,0 +1,26 @@
+web.http:
+  port: 9050
+  path: "/api"
+
+  registration:
+    port: 9051
+    path: "/api/registration"
+
+edc.web.rest.cors:
+  enabled: true
+  headers: "origin,content-type,accept,authorization,x-api-key"
+
+edc.participant.id: "did:web:host-authority"
+
+edc.iam:
+  credential.revocation.mimetype: "application/json"
+  issuer.id: "did:web:host-authority"
+  did.web.use.https: false
+  sts.oauth:
+    token.url: "http://localhost:7074/api/v1/sts/token"
+    client.id: "did:web:host-authority"
+    client.secret.alias: "authority"
+    # Only used when *not* backed by a HashiCorp vault:
+    client.secret: "1yj1R5jqQr1Zy1M7wg9y8uJjHsUQQH1LOp3oF0IFxeo="
+
+edc.ih.dcp.trusted.issuers: "did:web:host-authority"

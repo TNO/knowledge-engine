@@ -1,0 +1,123 @@
+web.http:
+  port: 7090
+  path: "/api"
+  
+  # This contains both the Presentation & Storage API (Github Identity Hub API documentation),
+  # now referred to as the Credentials API. Possibly also the same as the DCP API as mentioned 
+  # in the Adopters manual.
+  credentials:
+    port: 7091
+    # This is a deviation from the Data Ecosystems EDC demo configuration, which 
+    # uses path `/api/resolution`.
+    path: "/api/credentials"
+  identity:
+    port: 7092
+    # This is a deviation from the Data Ecosystems EDC demo configuration, which 
+    # uses path `/api/management`.
+    path: "/api/identity" 
+  did:
+    port: 7093
+    path: "/"
+  sts:
+    port: 7094
+    path: "/api/v1/sts"
+  issueradmin:
+    port: 7096
+    path: "/api/issueradmin"
+  issuance:
+    port: 7097
+    path: "/api/issuance"
+  statuslist:
+    port: 7078
+    path: "/statuslist"
+  dataspaces:
+    port: 7099
+    path: "/dataspaces"
+
+edc:
+  web.rest.cors:
+    enabled: true
+    headers: "origin, content-type, accept, authorization, x-api-key"
+
+  iam.did.web.use.https: false
+
+  # Can probably be removed as the accounts STS API has been removed
+  api.accounts.key: "YaO5UMkYg2w586Cg017iy6Q7A6-EyuOt"
+
+  issuer.statuslist.signing.key.alias: "authority-signing-key"
+
+  ih:
+    # This value can be removed once the official issuance implementation fully replaces the ad-hoc one.
+    issuer.participant.id: "authority"
+    api:
+      participants:
+        # This is used as the participant context ID within the Identity Hub.
+        # It therefore is present in path of URLs to the API of this Hub
+        # instance, base64 encoded.
+        # Not the same as the participant ID (as assigned to the control plane),
+        # which is a did:web.
+        authority:
+          name: "authority"
+          did: "did:web:host-authority"
+          active: true
+          roles:  # Required but can be empty
+          password: "$2a$10$KcjjniNy/p45X3yOWcDOY.lZ7ziNpA9pngh218lVMzdRqgYl0Wf06"
+          private.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUxyQ0hnWC9RbysyVTExMWJWc3pVVW5zUkRMalJsWlcvdVo3VVkveDAxV2UKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=
+          public.key: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUNvd0JRWURLMlZ3QXlFQUlTdDk3M1ZMMHpnRE1mN1U4TFdiYnpRVS9UNzM3VDdwUnFIY3lBTFMrU1U9Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=
+          sts.secret: "1yj1R5jqQr1Zy1M7wg9y8uJjHsUQQH1LOp3oF0IFxeo="
+          api.key.override: "YXV0aG9yaXR5.c3VwZXItc2VjcmV0LWtleQo="
+          credentials: "data/authority_vc.json" # Required!
+          services:
+            credential:
+              endpoint: "http://localhost:7071/api/resolution/v1/participants/YXV0aG9yaXR5"
+              id: "CredentialService"
+              type: "CredentialService"
+            issuerservice:
+              endpoint: "http://localhost:7077/api/issuance/v1alpha/participants/YXV0aG9yaXR5"
+              id: "IssuerService"
+              type: "IssuerService"
+
+
+    issuers:
+      authority:
+        holders:
+          bob:
+            id: bob
+            did: did:web:host-bob
+          alice:
+            id: alice
+            did: did:web:host-alice
+          carol:
+            id: carol
+            did: did:web:host-carol
+        attestation.definitions:
+          "1":
+            type: membershipAttestation
+            id: att-01
+            configuration: "{}"
+        credential.definitions:
+          "1":
+            id: 6621363b-1c65-48a1-8df4-ecb11ea9ca52
+            type: MembershipCredential
+            attestations: att-01
+            format: VC1_0_JWT
+            json.schema: "{}"
+            validity: 31556926
+            mapping.definitions:
+              "1":
+                input: membershipType
+                output: credentialSubject.membershipType
+                required: true
+              "2":
+                input: since
+                output: credentialSubject.since
+                required: true
+              "3":
+                input: name
+                output: name
+                required: true
+              "4":
+                input: dataspaceName
+                output: credentialSubject.dataspaceMembership.dataspaceName
+                required: true
+

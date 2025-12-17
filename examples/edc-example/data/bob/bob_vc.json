@@ -1,0 +1,41 @@
+[
+  {
+    "participantContextId": "bob",
+    "id": "1c8fe5d5-2b29-4392-bce5-34b0c54c8686",
+    "metadata": {
+      "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+    },
+    "issuancePolicy": null,
+    "reissuancePolicy": null,
+    "verifiableCredential": {
+      "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtYm9iIiwibmJmIjoxNzYyNzkwMjM2LCJpc3MiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiZXhwIjoxNzYyNzkwMjk2LCJpYXQiOjE3NjI3OTAyMzYsInZjIjp7ImNyZWRlbnRpYWxTdWJqZWN0IjpbeyJpZCI6ImRpZDp3ZWI6aG9zdC1ib2IiLCJtZW1iZXJzaGlwVHlwZSI6ImZ1bGxNZW1iZXIiLCJ3ZWJzaXRlIjoiZXhhbXBsZS5jb20iLCJjb250YWN0IjoiYm9iLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTEtMTBUMTU6NTc6MTYuMzQyMjA5ODA4WiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6IjY1NTViMGU3LWE1YjAtNDY4Yi1iZmRkLTQxNTMxNzZhMDE2OCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTA2VDE1OjU3OjE2LjM0MjIxMjkwMFoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjIxOTBmMmE3LThjNjAtNDM1YS04YmQyLTNiZDM4NmZmYjE0ZCJ9.HuNWLA6g--9u_Sn9mnDRRbgNzXts5PtZiDhDZC5KvnBhz_E2cgxryLH_0z5BoqJ4_6R4i40jI0qsjhFvWQkJDQ",
+      "format": "VC1_0_JWT",
+      "credential": {
+        "credentialSubject": [
+          {
+            "id": "did:web:host-bob",
+            "membershipType": "fullMember",
+            "website": "example.com",
+            "contact": "bob-mail@example.com",
+            "since": "2025-01-01T00:00:00"
+          }
+        ],
+        "id": "6555b0e7-a5b0-468b-bfdd-4153176a0168",
+        "type": [
+          "VerifiableCredential",
+          "MembershipCredential"
+        ],
+        "issuer": {
+          "id": "did:web:host-authority",
+          "additionalProperties": {}
+        },
+        "issuanceDate": "2025-11-10T15:57:16.342209808Z",
+        "expirationDate": "2028-08-06T15:57:16.342212900Z",
+        "credentialStatus": [],
+        "description": null,
+        "name": null,
+        "dataModelVersion": "V_1_1"
+      }
+    }
+  }
+]

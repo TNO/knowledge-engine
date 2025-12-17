@@ -1,0 +1,41 @@
+[
+    {
+        "participantContextId": "carol",
+        "id": "9ae83563-b095-40fc-b241-7d69e9a25c3d",
+        "metadata": {
+            "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+        },
+        "issuancePolicy": null,
+        "reissuancePolicy": null,
+        "verifiableCredential": {
+            "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtY2Fyb2wiLCJuYmYiOjE3NjQ5MjQ3MTgsImlzcyI6ImRpZDp3ZWI6aG9zdC1hdXRob3JpdHkiLCJleHAiOjE3NjQ5MjQ3NzgsImlhdCI6MTc2NDkyNDcxOCwidmMiOnsiY3JlZGVudGlhbFN1YmplY3QiOlt7ImlkIjoiZGlkOndlYjpob3N0LWNhcm9sIiwibWVtYmVyc2hpcFR5cGUiOiJmdWxsTWVtYmVyIiwid2Vic2l0ZSI6ImV4YW1wbGUuY29tIiwiY29udGFjdCI6ImNhcm9sLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTItMDVUMDg6NTE6NTguNDQ3MDg0MDQ1WiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6ImNjY2VhYzcwLTUxZWItNDVhNS1iZGM1LTQ5YTJiYTUxYzI5MyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTMxVDA4OjUxOjU4LjQ0NzA4ODEwNVoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjAxNjA5MjYxLWEzMzYtNDZiYy1hY2MzLTk0MTQ3NGE0OGNmZSJ9.UiH53TRuPeHRr-xuC5dH8q_W9dhEzhhGA-9oTLsOCcaYAG4xoaHFCwv50bpNsh8FLRpQrPqkXxo8sYNzSt3ZDA",
+            "format": "VC1_0_JWT",
+            "credential": {
+                "credentialSubject": [
+                    {
+                        "id": "did:web:host-carol",
+                        "membershipType": "fullMember",
+                        "website": "example.com",
+                        "contact": "carol-mail@example.com",
+                        "since": "2025-01-01T00:00:00"
+                    }
+                ],
+                "id": "ccceac70-51eb-45a5-bdc5-49a2ba51c293",
+                "type": [
+                    "VerifiableCredential",
+                    "MembershipCredential"
+                ],
+                "issuer": {
+                    "id": "did:web:host-authority",
+                    "additionalProperties": {}
+                },
+                "issuanceDate": "2025-12-05T08:51:58.447084045Z",
+                "expirationDate": "2028-08-31T08:51:58.447088105Z",
+                "credentialStatus": [],
+                "description": null,
+                "name": null,
+                "dataModelVersion": "V_1_1"
+            }
+        }
+    }
+]

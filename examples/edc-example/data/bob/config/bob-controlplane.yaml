@@ -1,0 +1,52 @@
+# API definition
+web.http:
+  port: 9080
+  path: "/api"
+  control:
+    port: 9081
+    path: "/api/control"
+  management:
+    port: 9082
+    path: "/api/management"
+    # auth: #TODO
+  protocol:
+    port: 9083
+    path: "/api/dsp"
+  catalog:
+    port: 9084
+    path: "/api/catalog"
+    # auth: #TODO
+
+# CORS
+edc.web.rest.cors:
+  enabled: true
+  headers: "origin,content-type,accept,authorization,x-api-key"
+
+# Connector-level identifiers & callback
+edc.participant.id: "did:web:host-bob"
+edc.dsp.callback.address: "http://localhost:9083/api/dsp"
+
+# DID & identity
+edc.iam:
+  credential.revocation.mimetype: "application/json"
+  issuer.id: "did:web:host-bob"
+  did.web.use.https: false
+  sts.oauth:
+    token.url: "http://localhost:7094/api/v1/sts/token"
+    client.id: "did:web:host-bob"
+    client.secret.alias: "bob-sts-client-secret"
+    # Only used when *not* backed by a HashiCorp vault:
+    client.secret: "1yj1R5jqQr1Zy1M7wg9y8uJjHsUQQH1LOp3oF0IFxeo="
+
+# Self-description metadata - required with DE-EDC control plane image
+edc.selfdescription:
+  logo: "https://static.wikia.nocookie.net/fictionalcompanies/images/c/c2/ACME_Corporation.png"
+  name: "Bob"
+  description: "Demo agent Bob"
+
+# Registration & trusted issuers
+edc.ih.dcp.trusted.issuers: "did:web:host-authority"
+edc.registration.service:
+  url: "http://localhost:9051/api/registration"
+  autoregister: true
+  id: "did:web:host-authority"
