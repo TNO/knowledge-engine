@@ -1,0 +1,20 @@
+web.http:
+  port: 8090
+  path: "/api"
+
+  control:
+    port: 8091
+    path: "/api/control"
+
+  public:
+    port: 8094
+    path: "/api/v1/public"
+
+edc:
+  dpf.selector.url: "http://localhost:9081/api/control/v1/dataplanes"
+
+  component.id: "f45cacf3-f81b-4c1f-9b93-6f8603fb44c6"
+
+  transfer.proxy.token:
+    signer.privatekey.alias: "private-key"
+    verifier.publickey.alias: "public-key"

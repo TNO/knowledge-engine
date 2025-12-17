@@ -1,0 +1,41 @@
+  [
+    {
+      "participantContextId": "alice",
+      "id": "03d712fe-410e-41d0-8355-7febea29c172",
+      "metadata": {
+        "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+      },
+      "issuancePolicy": null,
+      "reissuancePolicy": null,
+      "verifiableCredential": {
+        "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtYWxpY2UiLCJuYmYiOjE3NjI3OTA0OTIsImlzcyI6ImRpZDp3ZWI6aG9zdC1hdXRob3JpdHkiLCJleHAiOjE3NjI3OTA1NTIsImlhdCI6MTc2Mjc5MDQ5MiwidmMiOnsiY3JlZGVudGlhbFN1YmplY3QiOlt7ImlkIjoiZGlkOndlYjpob3N0LWFsaWNlIiwibWVtYmVyc2hpcFR5cGUiOiJmdWxsTWVtYmVyIiwid2Vic2l0ZSI6ImV4YW1wbGUuY29tIiwiY29udGFjdCI6ImFsaWNlLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTEtMTBUMTY6MDE6MzIuNTYyMjE1MDYxWiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6ImFmYzYyMTc5LTkzOGYtNDJmYy04MTRmLWEzOTI3MDZmM2E4NyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTA2VDE2OjAxOjMyLjU2MjIxNTgxOFoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjFmODVjYjdkLTAzNWQtNDI2YS04N2E4LTViNjFmNmQ5ZjVmYSJ9.8gqcaTg1CnmnjIFLE4V42tJrHjSE4CA0sAgzVJdRxOhk3eOGAmJeRzTdP4prgnCWuV9_PJpwy5ViAsSwInP1Ag",
+        "format": "VC1_0_JWT",
+        "credential": {
+          "credentialSubject": [
+            {
+              "id": "did:web:host-alice",
+              "membershipType": "fullMember",
+              "website": "example.com",
+              "contact": "alice-mail@example.com",
+              "since": "2025-01-01T00:00:00"
+            }
+          ],
+          "id": "afc62179-938f-42fc-814f-a392706f3a87",
+          "type": [
+            "VerifiableCredential",
+            "MembershipCredential"
+          ],
+          "issuer": {
+            "id": "did:web:host-authority",
+            "additionalProperties": {}
+          },
+          "issuanceDate": "2025-11-10T16:01:32.562215061Z",
+          "expirationDate": "2028-08-06T16:01:32.562215818Z",
+          "credentialStatus": [],
+          "description": null,
+          "name": null,
+          "dataModelVersion": "V_1_1"
+        }
+      }
+    }
+  ]
