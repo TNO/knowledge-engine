@@ -9,9 +9,7 @@ import java.util.Set;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
-import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.AccessedExpiryPolicy;
-import javax.cache.expiry.Duration;
+import javax.cache.configuration.Configuration;
 import javax.cache.spi.CachingProvider;
 
 import org.apache.jena.graph.Node;
@@ -24,6 +22,10 @@ import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.jsr107.Eh107Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +40,12 @@ public class Util {
 	static {
 		CachingProvider cachingProvider = Caching.getCachingProvider();
 		CacheManager cacheManager = cachingProvider.getCacheManager();
-		MutableConfiguration<String, Node> config = new MutableConfiguration<String, Node>()
-				.setTypes(String.class, Node.class).setStoreByValue(false)
-				.setExpiryPolicyFactory(AccessedExpiryPolicy.factoryOf(Duration.TEN_MINUTES));
+
+		CacheConfigurationBuilder<String, Node> ehConfig = CacheConfigurationBuilder
+				.newCacheConfigurationBuilder(String.class, Node.class, ResourcePoolsBuilder.heap(500_000))
+				.withExpiry(ExpiryPolicyBuilder.timeToIdleExpiration(java.time.Duration.ofMinutes(10)));
+
+		Configuration<String, Node> config = Eh107Configuration.fromEhcacheCacheConfiguration(ehConfig);
 		nodeCache = cacheManager.createCache("nodeCache", config);
 	}
 
