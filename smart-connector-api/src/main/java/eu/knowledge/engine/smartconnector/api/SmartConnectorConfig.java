@@ -63,29 +63,34 @@ public class SmartConnectorConfig {
 	 * Key to configure if a KER should use the EDC functionality or not.
 	 */
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
-	
+
 	/**
-	 * Key to configure where a KER can reach the protocol API of its own control plane if using EDC.
+	 * Key to configure where a KER can reach the protocol API of its own control
+	 * plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_PROTOCOL_URL = "ke.edc.protocol.url";
-	
+
 	/**
-	 * Key to configure where a KER can reach the management API of its own control plane if using EDC.
+	 * Key to configure where a KER can reach the management API of its own control
+	 * plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_MANAGEMENT_URL = "ke.edc.management.url";
-	
+
 	/**
-	 * Key to configure where a KER can reach its data plane control API if using EDC.
+	 * Key to configure where a KER can reach its data plane control API if using
+	 * EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_CONTROL_URL = "ke.edc.dataplane.control.url";
-	
+
 	/**
-	 * Key to configure where a KER can reach its data plane public API if using EDC.
+	 * Key to configure where a KER can reach its data plane public API if using
+	 * EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL = "ke.edc.dataplane.public.url";
-	
+
 	/**
-	 * Key to configure the URL where a KER can do token validation through the control plane if using EDC.
+	 * Key to configure the URL where a KER can do token validation through the
+	 * control plane if using EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_TOKEN_VALIDATION_ENDPOINT = "ke.edc.token.validation.endpoint";
 
@@ -119,6 +124,26 @@ public class SmartConnectorConfig {
 	 * Jena Rules specification</a>.
 	 */
 	public static final String CONF_KEY_KE_DOMAIN_KNOWLEDGE_PATH = "ke.domain.knowledge.path";
+
+	/**
+	 * Configure the maximum number of entries in the node cache that is being used
+	 * to speed up converting from graph patterns and bindingsets to RDF. See:
+	 * {@code eu.knowledge.engine.smartconnector.impl.Util.nodeCache}
+	 * 
+	 */
+	public static final String CONF_KEY_KE_CACHE_NODE_SIZE = "ke.cache.node.size";
+
+	/**
+	 * Configure the number of minutes of being idle (not accessed) after which a
+	 * cache entry can be evicted from cache.
+	 */
+	public static final String CONF_KEY_KE_CACHE_NODE_EXPIRYMINUTES = "ke.cache.node.expiryminutes";
+
+	/**
+	 * The main thread pool of the Knowledge Engine Runtime that is used to, among
+	 * other things, deliver messages.
+	 */
+	public static final String CONF_KEY_KE_THREADPOOL_SIZE = "ke.threadpool.size";
 
 	/**
 	 * Convert the configuration reasoner levels to matching strategies used in the

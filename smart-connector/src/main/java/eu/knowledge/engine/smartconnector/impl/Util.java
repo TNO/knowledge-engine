@@ -22,6 +22,8 @@ import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
@@ -33,6 +35,7 @@ import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.smartconnector.api.Binding;
 import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
@@ -41,9 +44,15 @@ public class Util {
 		CachingProvider cachingProvider = Caching.getCachingProvider();
 		CacheManager cacheManager = cachingProvider.getCacheManager();
 
+		long cacheSize = Long.parseLong(
+				ConfigProvider.getConfig().getConfigValue(SmartConnectorConfig.CONF_KEY_KE_CACHE_NODE_SIZE).getValue());
+
+		long timeInMinutes = Long.parseLong(ConfigProvider.getConfig()
+				.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_CACHE_NODE_EXPIRYMINUTES).getValue());
+
 		CacheConfigurationBuilder<String, Node> ehConfig = CacheConfigurationBuilder
-				.newCacheConfigurationBuilder(String.class, Node.class, ResourcePoolsBuilder.heap(500_000))
-				.withExpiry(ExpiryPolicyBuilder.timeToIdleExpiration(java.time.Duration.ofMinutes(10)));
+				.newCacheConfigurationBuilder(String.class, Node.class, ResourcePoolsBuilder.heap(cacheSize))
+				.withExpiry(ExpiryPolicyBuilder.timeToIdleExpiration(java.time.Duration.ofMinutes(timeInMinutes)));
 
 		Configuration<String, Node> config = Eh107Configuration.fromEhcacheCacheConfiguration(ehConfig);
 		nodeCache = cacheManager.createCache("nodeCache", config);

@@ -82,7 +82,9 @@ public class KeRuntime {
 
 		// we want to make sure that this threadpool does not keep the JVM alive. So we
 		// set the daemon to true.
-		executorService = Executors.newScheduledThreadPool(12, new ThreadFactory() {
+		int nrOfThreads = Integer.parseInt(
+				ConfigProvider.getConfig().getConfigValue(SmartConnectorConfig.CONF_KEY_KE_THREADPOOL_SIZE).getValue());
+		executorService = Executors.newScheduledThreadPool(nrOfThreads, new ThreadFactory() {
 			@Override
 			public Thread newThread(Runnable r) {
 				Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -130,11 +132,11 @@ public class KeRuntime {
 							.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
 					URI myExposedUrl = new URI(exposedUrl.getValue());
 
-					ConfigValue useEdc = config
-							.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_USE_EDC);
+					ConfigValue useEdc = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_USE_EDC);
 					var myUseEdc = Boolean.parseBoolean(useEdc.getValue());
 
-					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl, new URI(kdUrl.getValue()), myUseEdc);
+					messageDispatcher = new MessageDispatcher(myPort, myExposedUrl, new URI(kdUrl.getValue()),
+							myUseEdc);
 				}
 			} catch (NumberFormatException | URISyntaxException e) {
 				LOG.error("Could not parse configuration properties, cannot start Knowledge Engine", e);
