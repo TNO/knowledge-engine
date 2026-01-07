@@ -193,9 +193,11 @@ public class KnowledgeDirectoryConnection {
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
 		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
-		ker.setEdcParticipantId(this.myEdcProperties.participantId());
-		ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
-		ker.setEdcDataPlaneUrl(this.myEdcProperties.dataPlanePublicUrl());
+		if (this.myEdcProperties != null) {
+			ker.setEdcParticipantId(this.myEdcProperties.participantId());
+			ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
+			ker.setEdcDataPlaneUrl(this.myEdcProperties.dataPlanePublicUrl());
+		}
 
 		try {
 			HttpRequest registerRequest = HttpRequest
