@@ -1,7 +1,8 @@
 # TKE-EDC Example
-This example uses EDC-IDS Connectors for communication between two Knowledge Engine Runtimes (KERs).
-All messages that are sent contain an authentication code.
-If a message is received, the authentication code is validated unless it is a meta Knowledge Interaction.
+This example focuses on the Eclipse Dataspace Components (EDC) integration of the Knowledge Engine.
+If you just want to learn about the functioning of the Knowledge Engine and do not know about EDC, this example is not the right place to start. \
+In this text we assume basic knowledge about EDC (The [adopters manual](https://eclipse-edc.github.io/documentation/for-adopters/) is a good place to start) and International  Data Spaces (IDS, see [here](https://internationaldataspaces.org/)). \
+If you are already familiar with the Knowledge Engine you can skip the next part.
 
 ## Introduction to the Knowledge Engine
 The Knowledge Engine is a system for seamlessly connecting data sources.
@@ -27,20 +28,18 @@ After they have been registered, they can be executed.
 
 For more information on the Knowledge Engine, check out the [documentation](https://docs.knowledge-engine.eu/).
 
-## About the Integration with EDC-IDS
+## About the Integration with EDC
 The current integration between the Knowledge Engine and EDC-IDS focuses on the authentication of messages.
 All messages that are sent contain an authentication code.
-This authentication code is validated whenever the message is received.
-This way we can be sure that the message was sent by the correct party, thus it establishes trust within the network.
+The TKE-EDC integration is aimed at providing and validating these authentication codes.
+The used components of EDC implement the Data Space Protocol (DSP) and the Decentralized Claims Protocol (DCP), an overlay of DSP.
+These protocols are used to establish security and trust within the network based on the decentralized identity model (see [here](https://eclipse-edc.github.io/documentation/for-adopters/identity-hub/)).
 
-We currently use the standard EDC-IDS Connector without any modifications.
-We use the Connector to establish and check the identity of all parties in the network.
-The communication between KERs is still direct, meaning that messages that are sent do not go through the Connector.
+! IMPORTANT ! The EDC integration is currently still under development. Expect bugs, frequent changes and updates.
+ 
+We currently use the Control Plane, Data Plane and Identity Hub components of EDC, which are all heavily customizable.
+The TKE-EDC integration is made specifically for the extended EDC components developed within TNO, that are also publicly available, see the Docker Compose file in this folder.
 
-The authentication tokens are valid for a limited amount of time.
-You can set the duration of validity of authentication tokens in the EDC Connector properties file (`edc.transfer.proxy.token.validity.seconds`).
-While tokens can expire in the current implementation, there is not yet a mechanism to renew them.
-That's why we currently advise you to set it to a high number.
 
 
 ## Running the TKE-EDC example
@@ -48,43 +47,28 @@ This example uses 3 knowledge bases as depicted below.
 
 ![Picture with 3 knowledge bases. Each knowledge base uses a Smart Connector to communicate with the other knowledge bases.](./illustration-example-situation.png)
 
-One knowledge base asks for information and the other two provide an answer to the question.
+One knowledge base (Alice) asks for information and the other two (Bob , Carol) provide an answer to the question.
 
 ### Executing the example
-Execute the following steps to run the example:
-1. In this project, execute a `mvn clean install`.
-2. In the `knowledge-directory` directory in this project, execute `docker build . -t testkd:1.4.0`.
-3. In the `smart-connector-rest-dist` directory in this project, execute `docker build . -t testsc:1.4.0`.
-4. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
-5. In the `examples/edc-example` directory in this project, execute `docker compose up -d tke-edc-one tke-edc-two tke-edc-three`. This starts three EDC-IDS Connectors.
-6. Wait around 10 seconds to give the EDC Connectors time to finish setting up. Then, execute `docker compose up -d` to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
+Example can be executed using Docker, follow these steps:
+1. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
+2. Several containers are dependent on the initialization of others, but there is currently no method implement to start these in the correct order. In the `examples/edc-example` directory in this project, execute
 
-You can inspect the logs with `docker compose logs -f`.
+```
+docker compose up -d bob-identity-hub bob-control-plane alice-identity-hub alice-control-plane authority-identity-hub registration-service nginx-proxy knowledge-directory alice-http-data-plane bob-http-data-plane carol-identity-hub carol-control-plane carol-http-data-plane
+```
+
+This starts three EDC-IDS Connectors.
+3. Wait around 20 seconds to give the EDC Connectors time to finish setting up. Then, execute 
+
+```
+docker compose up alice-ker bob-ker alice-kb bob-kb carol-ker carol-kb knowledge-directory -d
+```
+
+to start three KERs, three linked Knowledge Bases and a Knowledge Directory.
+
+You can inspect the logs of the containers using `docker compose logs -f {component-name}`.
 After a moment (+-30 seconds), the logs will stabilise when the connectors have finished initiating the various data flows.
 You can then see that one KER (`runtime-1`) asks for information, a second KER (`runtime-2`) answers with `http://example.org/Math, http://example.org/Science` and the third (`runtime-3`) answers with `http://example.org/Magazines, http://example.org/Books`.
 
 To stop the example, execute `docker compose down`.
-
-## Adding another participant to the network
-For each additional KER with an EDC-IDS Connector, we need the following files in the `examples/edc-example` directory:
-- `connector/configuration/ker-configuration.properties` contains settings for the EDC-IDS Connector
-- `connector/configuration/ker-vault.properties` contains a public key
-
-The `docker-compose.yml` in `examples/edc-example/` should also be modified to include:
-- An additional KER (currently named `runtime-1`, `runtime-2`, ...)
-  - The `image` setting refers to the image build in the execution steps of this document.
-  - The `depends_on` setting refers to the Docker component for the EDC-IDS Connector
-  - The `KE_RUNTIME_EXPOSED_URL` is a unique URL for the new KER.
-  - The EDC related environment variables are:
-    - `KE_RUNTIME_USE_EDC` -> Turn EDC functionality on or off.
-    - `KE_EDC_PROTOCOL_URL` -> URL of the protocal API of the associated EDC-IDS connector.
-    - `KE_EDC_MANAGEMENT_URL` -> URL of the management API of the associated EDC-IDS connector.
-    - `KE_EDC_DATAPLANE_CONTROL_URL` -> URL of the dataplane control API of the associated EDC-IDS connector.
-    - `KE_EDC_DATAPLANE_PUBLIC_URL` -> URL of the dataplane public API of the associated EDC-IDS connector.
-    - `KE_EDC_TOKEN_VALIDATION_ENDPOINT` -> URL of the token validation endpoint of the associated EDC-IDS connector.
-- An additional EDC-IDS Connector (currently named `tke-edc-one`, `tke-edc-two`, ...)
-  - Requires 4 ports to be forwarded
-  - The `command` used to start this connector refers to the previously mentioned configuration files and thus the names of those files should be modified if you copy the command from another EDC-IDS Connector.
-  - The `hostname` is used in the properties files to refer to this entity
-- An additional knowledge base (`kb1`, `kb2`, ...)
-  - The `KE_URL` refers to the `KE_RUNTIME_EXPOSED_URL` of the KER Docker component (`runtime-1`, `runtime-2`, ...)
