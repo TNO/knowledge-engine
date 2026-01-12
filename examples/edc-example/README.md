@@ -35,11 +35,12 @@ The TKE-EDC integration is aimed at providing and validating these authenticatio
 The used components of EDC implement the Data Space Protocol (DSP) and the Decentralized Claims Protocol (DCP), an overlay of DSP.
 These protocols are used to establish security and trust within the network based on the decentralized identity model (see [here](https://eclipse-edc.github.io/documentation/for-adopters/identity-hub/)).
 
-! IMPORTANT ! The EDC integration is currently still under development. Expect bugs, frequent changes and updates.
+! IMPORTANT ! The EDC integration is currently still under development. Expect bugs, frequent changes and updates. This implementation is certainly not suitable for production environments.
  
 We currently use the Control Plane, Data Plane and Identity Hub components of EDC, which are all heavily customizable.
 The TKE-EDC integration is made specifically for the extended EDC components developed within TNO, that are also publicly available, see the Docker Compose file in this folder.
-
+We assume pregenerated Verifiable Credentials that are loaded into Identity Hub at start-up.
+Currently we cannot give a definitive easiest way to generate these yourself, but will be future work.
 
 
 ## Running the TKE-EDC example
@@ -47,15 +48,24 @@ This example uses 3 knowledge bases as depicted below.
 
 ![Picture with 3 knowledge bases. Each knowledge base uses a Smart Connector to communicate with the other knowledge bases.](./illustration-example-situation.png)
 
-One knowledge base (Alice) asks for information and the other two (Bob , Carol) provide an answer to the question.
+One knowledge base (Alice) asks for information and the other two (Bob , Carol) provide an answer to the question. \
+Explore the Docker Compose file in this folder to learn more about the setup. \
+Extra care has been taken to simulate locally a setup that reflects a distributed setup across multiple machines. See the notes on networking in the Compose file.
+The setup requires adding the following to your `/etc/hosts` file:
+```
+127.0.0.1       host-authority
+127.0.0.1       host-alice
+127.0.0.1       host-bob
+127.0.0.1       host-carol
+```
 
 ### Executing the example
 Example can be executed using Docker, follow these steps:
 1. In the `examples/edc-example` directory in this project, execute `docker compose build`. 
-2. Several containers are dependent on the initialization of others, but there is currently no method implement to start these in the correct order. In the `examples/edc-example` directory in this project, execute
+2. Several containers are dependent on the initialization of others, but there is currently no method implemented to start these in the correct order. In the `examples/edc-example` directory in this project, execute
 
 ```
-docker compose up -d bob-identity-hub bob-control-plane alice-identity-hub alice-control-plane authority-identity-hub registration-service nginx-proxy knowledge-directory alice-http-data-plane bob-http-data-plane carol-identity-hub carol-control-plane carol-http-data-plane
+docker compose up -d bob-identity-hub bob-control-plane alice-identity-hub alice-control-plane authority-identity-hub registration-service nginx-proxy alice-http-data-plane bob-http-data-plane carol-identity-hub carol-control-plane carol-http-data-plane
 ```
 
 This starts three EDC-IDS Connectors.

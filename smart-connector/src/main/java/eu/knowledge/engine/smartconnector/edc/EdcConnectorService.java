@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.edc;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.apache.jena.atlas.logging.Log;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -281,8 +282,8 @@ public class EdcConnectorService {
 		LOG.info("transferProcess for participantId: {}, counterPartyParticipantId: {}, contractAgreementId: {}",
 				this.myProperties.participantId(), counterParty.participantId(), contractAgreementId);
 
-		var url = getManagementUrl("/v3/transferprocesses");
-		var payload = """
+		String url = getManagementUrl("/v3/transferprocesses");
+		String payload = """
 			{
 				"@context": {
 					"@vocab": "https://w3id.org/edc/v0.0.1/ns/"
@@ -342,6 +343,7 @@ public class EdcConnectorService {
 	}
 
 	private HttpResponse<String> httpPost(String url, String payload) {
+		LOG.info("Url: %s, payload: %s".formatted(url, payload));
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(toURI(url))
 				.headers("Content-Type", "application/json")
