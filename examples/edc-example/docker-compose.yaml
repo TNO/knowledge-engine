@@ -59,7 +59,7 @@ services:
 
   authority-identity-hub:
     container_name: authority-identity-hub
-    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
     networks:
       - network-authority
     ports:
@@ -85,7 +85,7 @@ services:
 
   registration-service:
     container_name: registration-service
-    image: docker.nexus.dataspac.es/edc/edc-registration-service:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-registration-service:0.5.0
     networks:
       - network-authority
     ports:
@@ -144,7 +144,7 @@ services:
     
   alice-control-plane:
     container_name: alice-control-plane
-    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
     networks:
       - network-alice
     ports:
@@ -168,7 +168,7 @@ services:
 
   alice-http-data-plane:
     container_name: alice-http-data-plane
-    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
     networks:
       - network-alice
     ports:
@@ -189,7 +189,7 @@ services:
       - ./data/alice:/data:rw
 
   alice-identity-hub:
-    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
     container_name: alice-identity-hub
     networks:
       - network-alice
@@ -265,7 +265,7 @@ services:
   
   bob-control-plane:
     container_name: bob-control-plane
-    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
     networks:
       - network-bob
     ports:
@@ -289,7 +289,7 @@ services:
 
   bob-http-data-plane:
     container_name: bob-http-data-plane
-    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
     networks:
       - network-bob
     ports:
@@ -310,7 +310,7 @@ services:
       - ./data/bob:/data:rw
 
   bob-identity-hub:
-    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
     container_name: bob-identity-hub
     networks:
       - network-bob
@@ -386,7 +386,7 @@ services:
   
   carol-control-plane:
     container_name: carol-control-plane
-    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
     networks:
       - network-carol
     ports:
@@ -410,7 +410,7 @@ services:
 
   carol-http-data-plane:
     container_name: carol-http-data-plane
-    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
     networks:
       - network-carol
     ports:
@@ -431,7 +431,7 @@ services:
       - ./data/carol:/data:rw
 
   carol-identity-hub:
-    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0-SNAPSHOT
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
     container_name: carol-identity-hub
     networks:
       - network-carol
