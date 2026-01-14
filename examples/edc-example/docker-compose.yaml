@@ -138,9 +138,7 @@ services:
       KE_EDC_PARTICIPANT_ID: "did:web:host-alice"
       KE_EDC_PROTOCOL_URL: "http://host-alice:9183/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://alice-control-plane:9082/api/management"
-      KE_EDC_DATAPLANE_CONTROL_URL: "http://alice-http-data-plane:8091/api/control/transfer"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-alice:8194/api/v1/public"
-      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://alice-http-data-plane:8091/api/control/token"
     depends_on:         # Necessary?
       - alice-control-plane
     
@@ -261,9 +259,7 @@ services:
       KE_EDC_PARTICIPANT_ID: "did:web:host-bob"
       KE_EDC_PROTOCOL_URL: "http://host-bob:9283/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://bob-control-plane:9082/api/management"
-      KE_EDC_DATAPLANE_CONTROL_URL: "http://bob-http-data-plane:8091/api/control/transfer"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-bob:8294/api/v1/public"
-      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://bob-http-data-plane:8091/api/control/token"
     depends_on:         # Necessary?
       - bob-control-plane
   
@@ -384,9 +380,7 @@ services:
       KE_EDC_PARTICIPANT_ID: "did:web:host-carol"
       KE_EDC_PROTOCOL_URL: "http://host-carol:9383/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://carol-control-plane:9082/api/management"
-      KE_EDC_DATAPLANE_CONTROL_URL: "http://carol-http-data-plane:8091/api/control/transfer"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-carol:8394/api/v1/public"
-      KE_EDC_TOKEN_VALIDATION_ENDPOINT: "http://carol-http-data-plane:8091/api/control/token"
     depends_on:         # Necessary?
       - carol-control-plane
   
