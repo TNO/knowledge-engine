@@ -10,13 +10,6 @@
 # - Knowledge Engine runtimes, Data Planes and directory are assigned ports starting 
 #   with 8.
 # - Control Planes are assigned ports starting with 9.
-# 
-# - It is required for the setup to add to your /etc/hosts file:
-# 127.0.0.1   host-authority
-# 127.0.0.1   host-alice
-# 127.0.0.1   host-bob
-# 127.0.0.1   host-carol
-# 
 
 
 networks:

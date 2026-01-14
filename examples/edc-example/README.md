@@ -51,13 +51,6 @@ This example uses 3 knowledge bases as depicted below.
 One knowledge base (Alice) asks for information and the other two (Bob , Carol) provide an answer to the question. \
 Explore the Docker Compose file in this folder to learn more about the setup. \
 Extra care has been taken to simulate locally a setup that reflects a distributed setup across multiple machines. See the notes on networking in the Compose file.
-The setup requires adding the following to your `/etc/hosts` file:
-```
-127.0.0.1       host-authority
-127.0.0.1       host-alice
-127.0.0.1       host-bob
-127.0.0.1       host-carol
-```
 
 ### Executing the example
 Example can be executed using Docker, follow these steps:
