@@ -105,6 +105,7 @@ public class EdcConnectorService {
 		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
 		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
 		String contractAgreementId = negotiateContract(counterParty, assetId, policyId);
+
 		String transferId = transferProcess(counterParty, contractAgreementId);
 		String edrsJson = getEndpointDataReference(transferId);
 
@@ -153,10 +154,10 @@ public class EdcConnectorService {
 
 		LOG.info("Negotiate contract response: {}", postResponse.body());
 
-		String contractAgreementId = findByJsonPointerExpression(postResponse.body(), "/@id");
+		String contractRequestId = findByJsonPointerExpression(postResponse.body(), "/@id");
 		
 		// Poll for contract agreement finalization and return 
-		String url_with_id = getManagementUrl("/v3/contractnegotiations/" + contractAgreementId);
+		String url_with_id = getManagementUrl("/v3/contractnegotiations/" + contractRequestId);
 		LOG.info("contractAgreement at: {}", url_with_id);
 
 		final List<String> responses = new ArrayList<>();
@@ -167,8 +168,8 @@ public class EdcConnectorService {
 			LOG.error(state);
 			return Objects.equals(state, "FINALIZED");
 		});
-
-		return contractAgreementId;
+		
+		return findByJsonPointerExpression(responses.get(responses.size()-1), "/contractAgreementId");
 	}
 
 	private String registerAsset(String assetId, URI tkeUrl, String tkeAssetName) {
