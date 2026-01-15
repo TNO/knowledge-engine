@@ -1,7 +1,7 @@
 # TKE-EDC Example
 This example focuses on the Eclipse Dataspace Components (EDC) integration of the Knowledge Engine.
 If you just want to learn about the functioning of the Knowledge Engine and do not know about EDC, this example is not the right place to start. \
-In this text we assume basic knowledge about EDC (The [adopters manual](https://eclipse-edc.github.io/documentation/for-adopters/) is a good place to start) and International  Data Spaces (IDS, see [here](https://internationaldataspaces.org/)). \
+In this text we assume basic knowledge about EDC (The [adopters manual](https://eclipse-edc.github.io/documentation/for-adopters/) is a good place to start) and International  Data Spaces (IDS, see [here](https://internationaldataspaces.org/)). If any terms below are not familiar then please refer to these sources. \
 If you are already familiar with the Knowledge Engine you can skip the next part.
 
 ## Introduction to the Knowledge Engine
@@ -49,6 +49,8 @@ This example uses 3 knowledge bases as depicted below.
 ![Picture with 3 knowledge bases. Each knowledge base uses a Smart Connector to communicate with the other knowledge bases.](./illustration-example-situation.png)
 
 One knowledge base (Alice) asks for information and the other two (Bob , Carol) provide an answer to the question. \
+The network also contains an authority and registration service, where each participant registers at start up. 
+The authority is the issuer of all membership credentials, and exists in the network for its DID document to be searchable.
 Explore the Docker Compose file in this folder to learn more about the setup. \
 Extra care has been taken to simulate locally a setup that reflects a distributed setup across multiple machines. See the notes on networking in the Compose file.
 
@@ -75,3 +77,12 @@ After a moment (+-30 seconds), the logs will stabilise when the connectors have 
 You can then see that one KER (`runtime-1`) asks for information, a second KER (`runtime-2`) answers with `http://example.org/Math, http://example.org/Science` and the third (`runtime-3`) answers with `http://example.org/Magazines, http://example.org/Books`.
 
 To stop the example, execute `docker compose down`.
+
+### Configuration
+The following configuration settings are required to use the EDC integration, for example by setting as environment variables in the KER container:
+- `KE_RUNTIME_USE_EDC`: Boolean value for use of EDC integration.
+- `KE_EDC_PARTICIPANT_ID`: Participant ID of the corresponding control plane and identity hub of this KER.
+- `KE_EDC_PROTOCOL_URL`: DPS protocol API of the corresponding control plane of this KER, as defined in the control plane configuration.
+- `KE_EDC_MANAGEMENT_URL`: Management API of the corresponding control plane of this KER, as defined in the control plane configuration.
+- `KE_EDC_DATAPLANE_PUBLIC_URL`: Public API of the corresponding data plane of the KER, as defined in the data plane configuration.
+Many more configuration is possible for each EDC service, but we advise to follow the configuration as per this example. See the configuration files for more notes.
