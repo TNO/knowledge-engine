@@ -76,7 +76,6 @@ public class EdcConnectorService {
 	 * @return map with all the responses
 	 */
 	public void configureConnector() {
-		LOG.info("configuring connector of {}", this.myProperties.participantId());
 		String assetId = UUID.randomUUID().toString(); 
 		String policyId = UUID.randomUUID().toString();
 		String contractId = UUID.randomUUID().toString();
@@ -149,17 +148,15 @@ public class EdcConnectorService {
 					}
 				""".formatted(counterParty.protocolUrl(), policyId, counterParty.participantId(), assetId);
 
-		LOG.info("Negotiate contract at: {}, Request: {}", url, payload);
+		LOG.debug("Negotiate contract at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
 
-		LOG.info("Negotiate contract response: {}", postResponse.body());
+		LOG.debug("Negotiate contract response: {}", postResponse.body());
 
 		String contractRequestId = findByJsonPointerExpression(postResponse.body(), "/@id");
 		
 		// Poll for contract agreement finalization and return 
 		String url_with_id = getManagementUrl("/v3/contractnegotiations/" + contractRequestId);
-		LOG.info("contractAgreement at: {}", url_with_id);
-
 		final List<String> responses = new ArrayList<>();
 		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(10)).until(() -> {
 			HttpResponse<String> response = httpGet(url_with_id);
@@ -194,9 +191,9 @@ public class EdcConnectorService {
 						}
 					}
 				""".formatted(assetId, tkeAssetName, tkeAssetName, tkeUrl);
-		LOG.info("Registering asset at: {}, Request: {}", url, payload);
+		LOG.debug("Registering asset at: {}, Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Registering asset response: {}", response.body());
+		LOG.debug("Registering asset response: {}", response.body());
 		return response.body();
 	}
 
@@ -218,9 +215,9 @@ public class EdcConnectorService {
 						}
 					}
 				""".formatted(policyId);
-		LOG.info("Registering policy at: {} Request: {}", url, payload);
+		LOG.debug("Registering policy at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Registering policy response: {}", response.body());
+		LOG.debug("Registering policy response: {}", response.body());
 		return response.body();
 	}
 
@@ -244,9 +241,9 @@ public class EdcConnectorService {
 						]
 					}
 				""".formatted(contractDefinitionId, accessPolicyId, contractPolicyId, assetId);
-		LOG.info("Registering contract definition at: {} Request: {}", url, payload);
+		LOG.debug("Registering contract definition at: {} Request: {}", url, payload);
 		HttpResponse<String> response = httpPost(url, payload);
-		LOG.info("Registering contract definition response: {}", response.body());
+		LOG.debug("Registering contract definition response: {}", response.body());
 		return response.body();
 	}
 
@@ -260,7 +257,6 @@ public class EdcConnectorService {
 	 * @return response
 	 */
 	private String catalogRequest(ParticipantProperties counterParty) {
-		LOG.info("Catalog request: {}", counterParty.participantId());
 		String url = getManagementUrl("/v3/catalog/request");
 		String payload = """
 					{
@@ -272,9 +268,9 @@ public class EdcConnectorService {
 						"protocol": "dataspace-protocol-http"
 					}
 				""".formatted(counterParty.protocolUrl(), counterParty.participantId());
-		LOG.info("Requesting catalog at: {}, Request: {}", url, payload);
+		LOG.debug("Requesting catalog at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
-		LOG.info("Requesting Catalog response: {}", postResponse.body());
+		LOG.debug("Requesting Catalog response: {}", postResponse.body());
 		return postResponse.body();
 	}
 	
@@ -298,9 +294,9 @@ public class EdcConnectorService {
 				}
 			}
 		""".formatted(counterParty.protocolUrl(), contractAgreementId);
-		LOG.info("Start transfer process at: {}, Request: {}", url, payload);
+		LOG.debug("Start transfer process at: {}, Request: {}", url, payload);
 		HttpResponse<String> postResponse = httpPost(url, payload);
-		LOG.info("Start transfer process response: {}", postResponse.body());
+		LOG.debug("Start transfer process response: {}", postResponse.body());
 		
 		String transferId = findByJsonPointerExpression(postResponse.body(), "/@id");
 
@@ -320,9 +316,8 @@ public class EdcConnectorService {
 
 	private String getEndpointDataReference(String transferId) {
 		String url = getManagementUrl("/v3/edrs/" + transferId + "/dataaddress");
-		LOG.info("Get endpoint data reference");
+		LOG.debug("Get endpoint data reference");
 		HttpResponse<String> response = httpGet(url);
-		LOG.info(response.body());
 		return response.body();
 	}
 
@@ -344,7 +339,6 @@ public class EdcConnectorService {
 	}
 
 	private HttpResponse<String> httpPost(String url, String payload) {
-		LOG.info("Url: %s, payload: %s".formatted(url, payload));
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(toURI(url))
 				.headers("Content-Type", "application/json")
