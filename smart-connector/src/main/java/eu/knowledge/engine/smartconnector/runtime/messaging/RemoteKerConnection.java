@@ -308,7 +308,7 @@ public class RemoteKerConnection {
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-			// TODO -> Change 200 back to 202!
+			// NOTE: 200 when using EDC, 202 otherwise
 			if (response.statusCode() == 200 || response.statusCode() == 202)  {
 				this.noError();
 				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
