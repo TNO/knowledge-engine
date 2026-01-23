@@ -503,26 +503,42 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 			throw new IllegalStateException("The KB should be started before registering KIs.");
 
 		for (var ki : this.registeredAskKIs) {
-			this.getSC().register(ki);
-			this.currentAskKIs.add(ki);
+			try {
+				this.getSC().register(ki);
+				this.currentAskKIs.add(ki);
+			} catch (IllegalArgumentException iae) {
+				LOG.error("Registering KI {} should succeed.", ki, iae);
+			}
 		}
 		this.registeredAskKIs.clear();
 
 		for (var entry : this.registeredAnswerKIs.entrySet()) {
-			this.getSC().register(entry.getKey(), entry.getValue());
-			this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
+			try {
+				this.getSC().register(entry.getKey(), entry.getValue());
+				this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
+			} catch (IllegalArgumentException iae) {
+				LOG.error("Registering KI {} should succeed.", entry.getKey(), iae);
+			}
 		}
 		this.registeredAnswerKIs.clear();
 
 		for (var ki : this.registeredPostKIs) {
-			this.getSC().register(ki);
-			this.currentPostKIs.add(ki);
+			try {
+				this.getSC().register(ki);
+				this.currentPostKIs.add(ki);
+			} catch (IllegalArgumentException iae) {
+				LOG.error("Registering KI {} should succeed.", ki, iae);
+			}
 		}
 		this.registeredPostKIs.clear();
 
 		for (var entry : this.registeredReactKIs.entrySet()) {
-			this.getSC().register(entry.getKey(), entry.getValue());
-			this.currentReactKIs.put(entry.getKey(), entry.getValue());
+			try {
+				this.getSC().register(entry.getKey(), entry.getValue());
+				this.currentReactKIs.put(entry.getKey(), entry.getValue());
+			} catch (IllegalArgumentException iae) {
+				LOG.error("Registering KI {} should succeed.", entry.getKey(), iae);
+			}
 		}
 		this.registeredReactKIs.clear();
 
