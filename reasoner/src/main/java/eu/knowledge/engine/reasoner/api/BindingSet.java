@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+
 public class BindingSet extends HashSet<Binding> {
 	private static final long serialVersionUID = 8263643495419009027L;
 
@@ -15,6 +18,14 @@ public class BindingSet extends HashSet<Binding> {
 	public BindingSet(Collection<Binding> bindings) {
 		super();
 		this.addAll(bindings);
+	}
+
+	public BindingSet(ResultSet rs) {
+		QuerySolution qs = null;
+		while (rs.hasNext()) {
+			qs = rs.next();
+			this.add(new Binding(qs));
+		}
 	}
 
 	public BindingSet(Binding... bindings) {

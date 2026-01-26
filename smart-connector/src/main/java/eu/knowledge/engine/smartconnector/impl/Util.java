@@ -4,61 +4,30 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import javax.cache.Cache;
-import javax.cache.CacheManager;
-import javax.cache.Caching;
-import javax.cache.configuration.Configuration;
-import javax.cache.spi.CachingProvider;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.TriplePath;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.lang.arq.javacc.ParseException;
-import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.serializer.SerializationContext;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 import org.apache.jena.sparql.util.FmtUtils;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.ExpiryPolicyBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.jsr107.Eh107Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
-import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 
 public class Util {
 	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
-
-	static {
-		CachingProvider cachingProvider = Caching.getCachingProvider();
-		CacheManager cacheManager = cachingProvider.getCacheManager();
-
-		long cacheSize = Long.parseLong(
-				ConfigProvider.getConfig().getConfigValue(SmartConnectorConfig.CONF_KEY_KE_CACHE_NODE_SIZE).getValue());
-
-		long timeInMinutes = Long.parseLong(ConfigProvider.getConfig()
-				.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_CACHE_NODE_EXPIRYMINUTES).getValue());
-
-		CacheConfigurationBuilder<String, Node> ehConfig = CacheConfigurationBuilder
-				.newCacheConfigurationBuilder(String.class, Node.class, ResourcePoolsBuilder.heap(cacheSize))
-				.withExpiry(ExpiryPolicyBuilder.timeToIdleExpiration(java.time.Duration.ofMinutes(timeInMinutes)));
-
-		Configuration<String, Node> config = Eh107Configuration.fromEhcacheCacheConfiguration(ehConfig);
-		nodeCache = cacheManager.createCache("nodeCache", config);
-	}
-
-	private static Cache<String, Node> nodeCache;
 
 	/**
 	 * Convert a KnowledgeIO and a Set of bindings into a RDF model with actual
@@ -90,20 +59,10 @@ public class Util {
 					Node n = oldNodes[i];
 					Node newN = n;
 					if (n.isVariable()) {
-
-						String repr;
-						if (b.containsKey(n.getName())) {
-							repr = b.get(n.getName());
-
-							LOG.trace("Parsing: {}", repr);
-
-							if ((newN = nodeCache.get(repr)) == null) {
-								newN = SSE.parseNode(repr);
-								nodeCache.put(repr, newN);
-							}
-
+						if (b.containsKey(n)) {
+							newN = b.get(n);
 						} else {
-							LOG.error("The variable {} in the Knowledge should be bound.", n.getName());
+							LOG.error("The variable '{}' in the Knowledge should be bound.", n.getName());
 						}
 					}
 					newNodes[i] = newN;
@@ -151,6 +110,54 @@ public class Util {
 			}
 		});
 		outgoing.removeAll(toBeRemoved);
+	}
+
+	/**
+	 * Translate bindingset from the internal KE/reasoner bindingsets to the API
+	 * bindingset.
+	 * 
+	 * @param bs a reasoner bindingset
+	 * @return a ke bindingset
+	 */
+	public static eu.knowledge.engine.smartconnector.api.BindingSet translateToApiBindingSet(BindingSet bs) {
+		eu.knowledge.engine.smartconnector.api.BindingSet newBS = new eu.knowledge.engine.smartconnector.api.BindingSet();
+		eu.knowledge.engine.smartconnector.api.Binding newB;
+
+		SerializationContext context = new SerializationContext();
+		context.setUsePlainLiterals(false);
+
+		for (Binding b : bs) {
+			newB = new eu.knowledge.engine.smartconnector.api.Binding();
+			for (Map.Entry<Var, Node> entry : b.entrySet()) {
+				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
+			}
+			newBS.add(newB);
+		}
+		return newBS;
+	}
+
+	/**
+	 * Translate bindingset from the API bindingset to the internal KE/reasoner
+	 * bindingset.
+	 * 
+	 * @param someBindings a ke bindingset
+	 * @return a reasoner bindingset
+	 */
+	public static BindingSet translateFromApiBindingSet(
+			eu.knowledge.engine.smartconnector.api.BindingSet someBindings) {
+
+		BindingSet newBindingSet = new BindingSet();
+		Binding newBinding;
+		for (eu.knowledge.engine.smartconnector.api.Binding b : someBindings) {
+
+			newBinding = new Binding();
+			for (String var : b.getVariables()) {
+				newBinding.put(var, b.get(var));
+			}
+			newBindingSet.add(newBinding);
+		}
+
+		return newBindingSet;
 	}
 
 }

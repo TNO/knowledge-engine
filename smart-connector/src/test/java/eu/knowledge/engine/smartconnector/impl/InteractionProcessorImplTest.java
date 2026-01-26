@@ -233,7 +233,7 @@ public class InteractionProcessorImplTest {
 				try {
 					msg = new AnswerMessage(askMessage.getToKnowledgeBase(), askMessage.getToKnowledgeInteraction(),
 							InteractionProcessorImplTest.this.knowledgeBaseId1, new URI("https://www.tno.nl/ki1"),
-							askMessage.getMessageId(), bindings);
+							askMessage.getMessageId(), Util.translateFromApiBindingSet(bindings));
 					future.complete(msg);
 				} catch (URISyntaxException e) {
 					fail("No exception should occur.", e);

@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.PostResult;

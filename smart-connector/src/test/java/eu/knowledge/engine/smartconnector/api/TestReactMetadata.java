@@ -67,7 +67,7 @@ public class TestReactMetadata {
 				var argument = aReactExchangeInfo.getArgumentBindings();
 				Model m;
 				try {
-					m = Util.generateModel(anRKI.getArgument(), argument);
+					m = Util.generateModel(anRKI.getArgument(), Util.translateFromApiBindingSet(argument));
 					m.setNsPrefixes(prefixes);
 					var kbIter = m.listStatements(null, RDF.type, m.getResource(m.expandPrefix("kb:KnowledgeBase")));
 

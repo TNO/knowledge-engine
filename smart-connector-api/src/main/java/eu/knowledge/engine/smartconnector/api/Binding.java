@@ -74,18 +74,6 @@ public class Binding {
 		return this.map.get(aVariableName);
 	}
 
-	public boolean isSubBindingOf(Binding other) {
-		if (!other.getVariables().containsAll(this.getVariables())) {
-			return false;
-		}
-
-		return other.map.entrySet().stream().allMatch(b -> {
-			var variable = b.getKey();
-			var value = b.getValue();
-			return !this.containsKey(variable) || value.equals(this.get(variable));
-		});
-	}
-
 	public Binding keepOnly(Set<String> variables) {
 		var b = new Binding();
 		for (var a : variables) {

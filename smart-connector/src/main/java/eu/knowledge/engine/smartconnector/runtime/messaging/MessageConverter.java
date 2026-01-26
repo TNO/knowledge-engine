@@ -9,8 +9,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
+import org.apache.jena.sparql.util.FmtUtils;
+
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.ErrorMessage;
@@ -53,7 +58,8 @@ public class MessageConverter {
 		return new AnswerMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), UUID.fromString(msg.getReplyToAskMessage()),
-				fromJson(msg.getBindingSet()), msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
+				fromJson(msg.getBindingSet()), msg.getFailedMessage()); // TODO: Remove failedMessage when using
+																		// ErrorMessage
 	}
 
 	public static eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.AnswerMessage toJson(
@@ -99,7 +105,8 @@ public class MessageConverter {
 		return new ReactMessage(UUID.fromString(msg.getMessageId()), new URI(msg.getFromKnowledgeBase()),
 				new URI(msg.getFromKnowledgeInteraction()), new URI(msg.getToKnowledgeBase()),
 				new URI(msg.getToKnowledgeInteraction()), UUID.fromString(msg.getReplyToPostMessage()),
-				fromJson(msg.getResult()), msg.getFailedMessage()); // TODO: Remove failedMessage when using ErrorMessage
+				fromJson(msg.getResult()), msg.getFailedMessage()); // TODO: Remove failedMessage when using
+																	// ErrorMessage
 	}
 
 	public static eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.model.ReactMessage toJson(
@@ -169,10 +176,11 @@ public class MessageConverter {
 
 	private static List<Map<String, String>> toJson(BindingSet bindingSet) {
 		var result = new ArrayList<Map<String, String>>();
+		PrefixMapping prefixMap = new PrefixMappingZero();
 		for (Binding binding : bindingSet) {
 			HashMap<String, String> map = new HashMap<String, String>();
-			for (String key : binding.getVariables()) {
-				map.put(key, binding.get(key));
+			for (Var key : binding.keySet()) {
+				map.put(key.getName(), FmtUtils.stringForNode(binding.get(key), prefixMap));
 			}
 			result.add(map);
 		}

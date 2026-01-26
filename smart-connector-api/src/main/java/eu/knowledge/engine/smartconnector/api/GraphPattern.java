@@ -10,6 +10,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.lang.arq.javacc.ParseException;
 import org.apache.jena.sparql.syntax.Element;
@@ -105,7 +106,7 @@ public class GraphPattern {
 	 * @return A list of all the variable names (excluding the '?') occurring in
 	 *         this {@link GraphPattern}.
 	 */
-	public Set<String> getVariables() {
+	public Set<Var> getVariables() {
 		var triples = this.getGraphPattern().getPattern().getList();
 		return triples.stream()
 				// Redirect the subjects, predicates and objects to a single stream of nodes.
@@ -113,7 +114,7 @@ public class GraphPattern {
 				// Map the nodes to variable names if they're variables, and otherwise `null`.
 				.map(n -> {
 					if (n instanceof Node_Variable) {
-						return ((Node_Variable) n).getName();
+						return (Var.alloc(n.getName()));
 					} else {
 						return null;
 					}

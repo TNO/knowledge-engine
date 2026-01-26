@@ -66,7 +66,7 @@ public class TestRequestMetadata {
 
 		LOG.info("Bindings: {}", result.getBindings());
 
-		Model m = Util.generateModel(aKI.getPattern(), result.getBindings());
+		Model m = Util.generateModel(aKI.getPattern(), Util.translateFromApiBindingSet(result.getBindings()));
 
 		List<Resource> i = m
 				.listSubjectsWithProperty(RDF.type,

@@ -342,7 +342,9 @@ public class TestComplexGraphPatternMatching {
 			binding.put("propH", "<propH>");
 			bindingSet.add(binding);
 
-			Util.removeRedundantBindingsAnswer(anAnswerExchangeInfo.getIncomingBindings(), bindingSet);
+			Util.removeRedundantBindingsAnswer(
+					Util.translateFromApiBindingSet(anAnswerExchangeInfo.getIncomingBindings()),
+					Util.translateFromApiBindingSet(bindingSet));
 
 			return bindingSet;
 		});
@@ -374,7 +376,9 @@ public class TestComplexGraphPatternMatching {
 			binding.put("y", "<http://building>");
 			bindingSet.add(binding);
 
-			Util.removeRedundantBindingsAnswer(anAnswerExchangeInfo.getIncomingBindings(), bindingSet);
+			Util.removeRedundantBindingsAnswer(
+					Util.translateFromApiBindingSet(anAnswerExchangeInfo.getIncomingBindings()),
+					Util.translateFromApiBindingSet(bindingSet));
 
 			return bindingSet;
 		});
@@ -418,7 +422,9 @@ public class TestComplexGraphPatternMatching {
 			binding.put("val", "\"69.0\"^^<http://www.w3.org/2001/XMLSchema#float>");
 			binding.put("prop", "<https://qudt.org/2.1/vocab/unit/DEG_F>");
 			bindingSet.add(binding);
-			Util.removeRedundantBindingsAnswer(anAnswerExchangeInfo.getIncomingBindings(), bindingSet);
+			Util.removeRedundantBindingsAnswer(
+					Util.translateFromApiBindingSet(anAnswerExchangeInfo.getIncomingBindings()),
+					Util.translateFromApiBindingSet(bindingSet));
 			return bindingSet;
 		});
 	}
