@@ -38,7 +38,7 @@ public class TripleNode {
 				sb.append(" ");
 			}
 			var truncatedNode = TriplePattern.trunc(n);
-			if (this.node.equals(n)) {
+			if (this.node.sameValueAs(n)) {
 				sb.append("|").append(truncatedNode).append("|");
 			} else {
 				sb.append(truncatedNode);

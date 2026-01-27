@@ -112,14 +112,14 @@ public class DynamicSemanticConfigurationTest {
 
 							Node id;
 							if (incomingB.containsKey("id")
-									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target1>"))) {
+									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.tno.nl/target1>"))) {
 
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Russia\"");
 								resultBinding.put("lang", "\"Russian\"");
 							} else if (incomingB.containsKey("id")
-									&& incomingB.get("id").equals(SSE.parseNode("<https://www.tno.nl/target0>"))) {
+									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.tno.nl/target0>"))) {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Holland\"");

@@ -91,7 +91,7 @@ public class Binding extends HashMap<Var, Node> {
 		return other.entrySet().stream().allMatch(b -> {
 			Var variable = b.getKey();
 			Node value = b.getValue();
-			return !this.containsKey(variable) || value.equals(this.get(variable));
+			return !this.containsKey(variable) || value.sameValueAs(this.get(variable));
 		});
 	}
 

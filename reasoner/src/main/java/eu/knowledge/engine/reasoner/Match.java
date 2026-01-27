@@ -147,13 +147,13 @@ public class Match {
 		for (Map.Entry<TripleNode, TripleNode> newEntry : newContext.entrySet()) {
 			Node node;
 			if ((node = getOtherNode(existingContext, newEntry.getKey().node)) != null) {
-				if (!node.equals(newEntry.getValue().node)) {
+				if (!node.sameValueAs(newEntry.getValue().node)) {
 					return null;
 				}
 			} else {
 
 				for (TripleNode tn : existingContextValues) {
-					if (tn.node.equals(newEntry.getValue().node)) {
+					if (tn.node.sameValueAs(newEntry.getValue().node)) {
 						return null;
 					}
 				}
@@ -167,7 +167,7 @@ public class Match {
 
 	public Node getOtherNode(Map<TripleNode, TripleNode> aContext, Node aNode) {
 		for (Map.Entry<TripleNode, TripleNode> entry : aContext.entrySet()) {
-			if (entry.getKey().node.equals(aNode)) {
+			if (entry.getKey().node.sameValueAs(aNode)) {
 				return entry.getValue().node;
 			}
 		}

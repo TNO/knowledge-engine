@@ -118,7 +118,7 @@ public class TripleVarBinding {
 			assert e.getKey().node.isVariable();
 			l = tvb.getVarValue((Var) e.getKey().node);
 
-			if (l != null && !e.getValue().equals(l)) {
+			if (l != null && !e.getValue().sameValueAs(l)) {
 				return true;
 			}
 		}
@@ -159,7 +159,7 @@ public class TripleVarBinding {
 		assert aVar instanceof Var;
 
 		for (TripleNode tNode : this.tripleVarMapping.keySet()) {
-			if (tNode.node.equals(aVar)) {
+			if (tNode.node.sameValueAs(aVar)) {
 				return true;
 			}
 		}

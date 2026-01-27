@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
@@ -49,21 +50,22 @@ class TestBindingSetConversions {
 
 		String varStringVersion = "a";
 		Var varNodeVersion = Var.alloc(varStringVersion);
-		Node literalNodeVersion = NodeFactory.createLiteral("true", XSDDatatype.XSDstring);
-		var literalStringVersion = "\"true\"^^<http://www.w3.org/2001/XMLSchema#string>";
+		Node literalNodeVersion = NodeFactory.createLiteral("bla", XSDDatatype.XSDstring);
+		var literalStringVersion = "\"bla\"^^<http://www.w3.org/2001/XMLSchema#string>";
+		var literalSimpleStringVersion = "\"bla\"";
 
 		BindingSet bs = new BindingSet();
 		Binding b = new Binding();
 		b.put(varStringVersion, literalStringVersion);
 		bs.add(b);
 		eu.knowledge.engine.reasoner.api.BindingSet reasonerBS = Util.translateFromApiBindingSet(bs);
-		assertEquals(literalNodeVersion, reasonerBS.iterator().next().get(varStringVersion));
+		assertTrue(literalNodeVersion.sameValueAs(reasonerBS.iterator().next().get(varStringVersion)));
 
 		eu.knowledge.engine.reasoner.api.BindingSet bsR = new eu.knowledge.engine.reasoner.api.BindingSet();
 		eu.knowledge.engine.reasoner.api.Binding bR = new eu.knowledge.engine.reasoner.api.Binding();
 		bR.put(varNodeVersion, (Node) literalNodeVersion);
 		bsR.add(bR);
 		BindingSet otherBS = Util.translateToApiBindingSet(bsR);
-		assertEquals(literalStringVersion, otherBS.iterator().next().get(varStringVersion));
+		assertEquals(literalSimpleStringVersion, otherBS.iterator().next().get(varStringVersion));
 	}
 }

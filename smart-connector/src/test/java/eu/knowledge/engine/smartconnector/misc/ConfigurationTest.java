@@ -50,6 +50,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigValidateTrue() {
+		LOG.info("Test: testConfigValidateTrue");
 		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "true");
 		BindingSet bs = new BindingSet();
 
@@ -79,6 +80,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigValidateFalse() {
+		LOG.info("Test: testConfigValidateFalse");
 		System.setProperty(SmartConnectorConfig.CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS, "false");
 
 		BindingSet bs = new BindingSet();
@@ -108,6 +110,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigWaitForKnowledgeBaseNegative() {
+		LOG.info("Test: testConfigWaitForKnowledgeBaseNegative");
 		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "1");
 		waitTimeout = 2000;
 
@@ -140,6 +143,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigWaitForKnowledgeBasePositive() {
+		LOG.info("Test: testConfigWaitForKnowledgeBasePositive");
 		System.setProperty(SmartConnectorConfig.CONF_KEY_KE_KB_WAIT_TIMEOUT, "2");
 		waitTimeout = 0;
 		BindingSet bs = new BindingSet();
@@ -169,6 +173,7 @@ public class ConfigurationTest {
 
 	@Test
 	public void testConfigReasonerLevelOutOfRange() {
+		LOG.info("Test: testConfigReasonerLevelOutOfRange");
 		var kb = new KnowledgeBaseImpl("kb11");
 		this.kn.addKB(kb);
 		kb.setReasonerLevel(0);

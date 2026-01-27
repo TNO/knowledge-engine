@@ -66,6 +66,8 @@ class TestAskAnswerDatatype {
 		LOG.info("AskResult: {}", askResult);
 
 		assert askResult.getBindings().size() > 0 : "There should be bindings returned.";
+		
+		kn.stop().get();
 
 	}
 
