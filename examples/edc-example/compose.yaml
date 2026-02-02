@@ -139,8 +139,6 @@ services:
       KE_EDC_PROTOCOL_URL: "http://host-alice:9183/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://alice-control-plane:9082/api/management"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-alice:8194/api/v1/public"
-    depends_on:         # Necessary?
-      - alice-control-plane
     
   alice-control-plane:
     container_name: alice-control-plane
@@ -260,8 +258,6 @@ services:
       KE_EDC_PROTOCOL_URL: "http://host-bob:9283/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://bob-control-plane:9082/api/management"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-bob:8294/api/v1/public"
-    depends_on:         # Necessary?
-      - bob-control-plane
   
   bob-control-plane:
     container_name: bob-control-plane
@@ -381,8 +377,6 @@ services:
       KE_EDC_PROTOCOL_URL: "http://host-carol:9383/api/dsp"
       KE_EDC_MANAGEMENT_URL: "http://carol-control-plane:9082/api/management"
       KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-carol:8394/api/v1/public"
-    depends_on:         # Necessary?
-      - carol-control-plane
   
   carol-control-plane:
     container_name: carol-control-plane
