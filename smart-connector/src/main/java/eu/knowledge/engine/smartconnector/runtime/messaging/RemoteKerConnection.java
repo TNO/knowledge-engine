@@ -62,6 +62,10 @@ public class RemoteKerConnection {
 
 	private TransferProcess transferProcess;
 
+	/**
+	 * 
+	 * @param transferProcess The EDC transfer process this connection belongs to. Set to null for non-EDC connections.
+	 */
 	public RemoteKerConnection(MessageDispatcher dispatcher, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails,
 		TransferProcess transferProcess) {
 		this.dispatcher = dispatcher;
@@ -70,7 +74,7 @@ public class RemoteKerConnection {
 
 		var builder = HttpClient.newBuilder();
 
-		if (this.transferProcess != null) {
+		if (this.isEdcConnection()) {
 			URI uri = null;
 			try {
 				uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
@@ -138,7 +142,7 @@ public class RemoteKerConnection {
 		try {
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"));
 					//.headers("Content-Type", "application/json");
-			if (this.transferProcess != null)
+			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.GET().build();
@@ -250,7 +254,7 @@ public class RemoteKerConnection {
 				
 				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
 						.headers("Content-Type", "application/json");
-				if (this.transferProcess != null)
+				if (this.isEdcConnection())
 					requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
 					
 				HttpRequest request = requestBuilder.DELETE().build();
@@ -303,7 +307,7 @@ public class RemoteKerConnection {
 			HttpRequest.Builder requestBuilder = HttpRequest
 					.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
 					.headers("Content-Type", "application/json");
-			if (this.transferProcess != null)
+			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
@@ -344,7 +348,7 @@ public class RemoteKerConnection {
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"))
 					.headers("Content-Type", "application/json");
 
-			if (this.transferProcess != null)
+			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
 			
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
@@ -400,5 +404,9 @@ public class RemoteKerConnection {
 
 	public boolean hasConfigProperty(String key) {
 		return System.getenv(key) != null;
+	}
+
+	private boolean isEdcConnection() {
+		return this.transferProcess != null;
 	}
 }
