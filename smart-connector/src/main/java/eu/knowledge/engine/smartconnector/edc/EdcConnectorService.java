@@ -1,9 +1,5 @@
 package eu.knowledge.engine.smartconnector.edc;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
-import org.apache.jena.atlas.logging.Log;
 import org.awaitility.Awaitility;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -32,7 +28,6 @@ import static eu.knowledge.engine.smartconnector.edc.JsonUtil.findByJsonPointerE
  * interactions between the specified EDC connectors in the
  * TkeEdcConnectorConfiguration.
  */
-@Named
 public class EdcConnectorService {
 
 	private final Logger LOG = LoggerFactory.getLogger(EdcConnectorService.class);
@@ -47,7 +42,6 @@ public class EdcConnectorService {
 	private URI assetUrl; 
 	private String assetName = "TNO Knowledge Engine Runtime API";
 
-	@Inject
 	public EdcConnectorService(URI assetUrl) {
 		Config config = ConfigProvider.getConfig();
 		
