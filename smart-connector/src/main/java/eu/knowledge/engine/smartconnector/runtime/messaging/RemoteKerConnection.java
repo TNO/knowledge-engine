@@ -251,8 +251,7 @@ public class RemoteKerConnection {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
 				
-				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id))
-						.headers("Content-Type", "application/json");
+				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id));
 				if (this.isEdcConnection())
 					requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
 					
