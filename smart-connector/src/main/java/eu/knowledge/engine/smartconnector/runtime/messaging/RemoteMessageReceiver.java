@@ -34,18 +34,11 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	private Response handleMessage(String authorizationToken, KnowledgeMessage message) {
+		LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
+				message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
 		try {
-			LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
-					message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
-			//TODO: Hacky way to determine meta-ness of KI is not great, replace by more robust solution
-			//NOTE: If and else clause are both the same -> remove or change?
-			if (message.getToKnowledgeInteraction().toURL().toString().contains("meta")) {
-				messageDispatcher.deliverToLocalSmartConnector(message);
-				return Response.status(202).build();
-			} else {
-				messageDispatcher.deliverToLocalSmartConnector(message);
-				return Response.status(202).build();
-			}
+			messageDispatcher.deliverToLocalSmartConnector(message);
+			return Response.status(202).build();
 		} catch (IOException e) {
 			// Was not able to deliver message to the SmartConnector
 			return createErrorResponse(e);
