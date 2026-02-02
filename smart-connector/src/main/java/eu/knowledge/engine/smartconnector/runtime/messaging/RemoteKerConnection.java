@@ -141,7 +141,6 @@ public class RemoteKerConnection {
 	private void updateRemoteKerDataFromPeer() {
 		try {
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"));
-					//.headers("Content-Type", "application/json");
 			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
 			
