@@ -14,9 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -33,8 +31,6 @@ public class EdcConnectorService {
 	private final Logger LOG = LoggerFactory.getLogger(EdcConnectorService.class);
 
 	private final HttpClient httpClient;
-	private Map<URI, ParticipantProperties> participants = new HashMap<>();
-
 	private final URI managementUrl; 
 	private final ParticipantProperties myProperties;
 	
@@ -56,13 +52,6 @@ public class EdcConnectorService {
 				this.myProperties.participantId(), this.managementUrl);
 		var executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		this.httpClient = HttpClient.newBuilder().executor(executorService).build();
-		this.participants.put(this.myProperties.participantId(),
-				new ParticipantProperties(this.myProperties.participantId(), this.myProperties.protocolUrl(), this.myProperties.dataPlanePublicUrl()));
-	}
-
-	public void registerParticipant(ParticipantProperties participant) {
-		LOG.info("Registering EDC participant with participant id {}", participant.participantId());
-		participants.put(participant.participantId(), participant);
 	}
 
 	/**
@@ -92,8 +81,7 @@ public class EdcConnectorService {
 	 * 
 	 * @return the started transfer process
 	 */
-	public TransferProcess createTransferProcess(URI counterPartyParticipantId) {
-		ParticipantProperties counterParty = participants.get(counterPartyParticipantId);
+	public TransferProcess createTransferProcess(ParticipantProperties counterParty) {
 		String catalogJson = catalogRequest(counterParty);
 		String assetId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/@id");
 		String policyId = findByJsonPointerExpression(catalogJson, "/dcat:dataset/odrl:hasPolicy/@id");
@@ -105,8 +93,8 @@ public class EdcConnectorService {
 		String authToken = findByJsonPointerExpression(edrsJson, "/authorization");
 		String counterPartyDataPlaneUrl = findByJsonPointerExpression(edrsJson, "/endpoint");
 		LOG.info("EDC Data Transfer with Remote KER {} started with Contract Agreement Id: {} and Transfer Id: {}",
-				counterPartyParticipantId, contractAgreementId, transferId);
-		return new TransferProcess(this.myProperties.participantId(), counterPartyParticipantId, contractAgreementId, counterPartyDataPlaneUrl, authToken);
+				counterParty.participantId(), contractAgreementId, transferId);
+		return new TransferProcess(this.myProperties.participantId(), counterParty.participantId(), contractAgreementId, counterPartyDataPlaneUrl, authToken);
 	}
 
 
