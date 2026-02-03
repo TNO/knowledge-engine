@@ -131,9 +131,9 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 				RemoteKerConnection messageSender;
 				if (useEdc) {
 					ParticipantProperties participant = new ParticipantProperties(
-						knowledgeEngineRuntime.getEdcParticipantId(),
+						knowledgeEngineRuntime.getId(),
 						knowledgeEngineRuntime.getEdcConnectorUrl(),
-						knowledgeEngineRuntime.getEdcDataPlaneUrl()
+						knowledgeEngineRuntime.getExposedUrl()
 					);
 					TransferProcess transferProcess = this.edcService.createTransferProcess(participant);
 

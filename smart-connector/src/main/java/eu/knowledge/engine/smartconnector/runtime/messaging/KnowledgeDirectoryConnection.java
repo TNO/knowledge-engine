@@ -191,12 +191,14 @@ public class KnowledgeDirectoryConnection {
 			throw new IllegalStateException("Can only register when NEW or INTERRUPTED");
 		}
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
-		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
 		if (this.myEdcProperties != null) {
-			ker.setEdcParticipantId(this.myEdcProperties.participantId());
+			ker.setId(this.myEdcProperties.participantId().toString());
 			ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
-			ker.setEdcDataPlaneUrl(this.myEdcProperties.dataPlanePublicUrl());
+			ker.setExposedUrl(this.myEdcProperties.dataPlanePublicUrl());
+		}
+		else {		
+			ker.setExposedUrl(myExposedUrl);
 		}
 
 		try {

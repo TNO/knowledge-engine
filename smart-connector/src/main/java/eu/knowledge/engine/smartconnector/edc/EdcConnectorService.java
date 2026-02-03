@@ -42,7 +42,7 @@ public class EdcConnectorService {
 		Config config = ConfigProvider.getConfig();
 		
 		this.managementUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_MANAGEMENT_URL).getValue());
-		URI configParticipantId = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID).getValue());
+		String configParticipantId = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PARTICIPANT_ID).getValue();
 		URI configProtocolUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_PROTOCOL_URL).getValue());
 		URI configDataPlanePublicUrl = toURI(config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL).getValue());
 		this.myProperties = new ParticipantProperties(configParticipantId, configProtocolUrl, configDataPlanePublicUrl); 

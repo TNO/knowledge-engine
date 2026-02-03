@@ -74,16 +74,7 @@ public class RemoteKerConnection {
 
 		var builder = HttpClient.newBuilder();
 
-		if (this.isEdcConnection()) {
-			URI uri = null;
-			try {
-				uri = new URI(this.transferProcess.counterPartyDataPlaneUrl());
-			} catch (URISyntaxException e) {
-				LOG.error("ERROR: %s".formatted(e));
-			}
-			this.remoteKerUri = uri;
-		}
-		else if (kerConnectionDetails.getExposedUrl().getUserInfo() != null) {
+		if (kerConnectionDetails.getExposedUrl().getUserInfo() != null) {
 			this.remoteKerUri = stripUserInfoFromURI(kerConnectionDetails.getExposedUrl());
 			String[] userInfo = kerConnectionDetails.getExposedUrl().getUserInfo().split(":");
 			if (userInfo.length == 2) {
