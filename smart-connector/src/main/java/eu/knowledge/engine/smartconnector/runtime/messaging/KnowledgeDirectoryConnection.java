@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
@@ -52,15 +53,15 @@ public class KnowledgeDirectoryConnection {
 	private State currentState;
 	private final URI kdUrl;
 	private final URI myExposedUrl;
-	private final URI myEdcConnectorUrl;
+	private final ParticipantProperties myEdcProperties;
 	private final Object lock = new Object();
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, URI myEdcConnectorUrl) {
+	public KnowledgeDirectoryConnection(URI kdUrl, URI myExposedUrl, ParticipantProperties myEdcProperties) {
 		this.myExposedUrl = myExposedUrl;
-		this.myEdcConnectorUrl = myEdcConnectorUrl;
 		this.currentState = State.UNREGISTERED;
+		this.myEdcProperties = myEdcProperties;
 
 		var builder = HttpClient.newBuilder();
 
@@ -190,9 +191,15 @@ public class KnowledgeDirectoryConnection {
 			throw new IllegalStateException("Can only register when NEW or INTERRUPTED");
 		}
 		KnowledgeEngineRuntimeConnectionDetails ker = new KnowledgeEngineRuntimeConnectionDetails();
-		ker.setExposedUrl(myExposedUrl);
 		ker.setProtocolVersion(PROTOCOL_VERSION);
-		ker.setEdcConnectorUrl(myEdcConnectorUrl);
+		if (this.myEdcProperties != null) {
+			ker.setId(this.myEdcProperties.participantId().toString());
+			ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
+			ker.setExposedUrl(this.myEdcProperties.dataPlanePublicUrl());
+		}
+		else {		
+			ker.setExposedUrl(myExposedUrl);
+		}
 
 		try {
 			HttpRequest registerRequest = HttpRequest

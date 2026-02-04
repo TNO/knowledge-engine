@@ -1,0 +1,164 @@
+[
+  {
+    "participantContextId": "authority",
+    "id": "ecc9c1f9-f2ce-46bb-9f68-e45c75e510d4",
+    "metadata": {
+      "published": true,
+      "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+    },
+    "issuancePolicy": null,
+    "reissuancePolicy": null,
+    "verifiableCredential": {
+      "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtYm9iIiwibmJmIjoxNzYyNzkwMjM2LCJpc3MiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiZXhwIjoxNzYyNzkwMjk2LCJpYXQiOjE3NjI3OTAyMzYsInZjIjp7ImNyZWRlbnRpYWxTdWJqZWN0IjpbeyJpZCI6ImRpZDp3ZWI6aG9zdC1ib2IiLCJtZW1iZXJzaGlwVHlwZSI6ImZ1bGxNZW1iZXIiLCJ3ZWJzaXRlIjoiZXhhbXBsZS5jb20iLCJjb250YWN0IjoiYm9iLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTEtMTBUMTU6NTc6MTYuMzQyMjA5ODA4WiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6IjY1NTViMGU3LWE1YjAtNDY4Yi1iZmRkLTQxNTMxNzZhMDE2OCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTA2VDE1OjU3OjE2LjM0MjIxMjkwMFoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjIxOTBmMmE3LThjNjAtNDM1YS04YmQyLTNiZDM4NmZmYjE0ZCJ9.HuNWLA6g--9u_Sn9mnDRRbgNzXts5PtZiDhDZC5KvnBhz_E2cgxryLH_0z5BoqJ4_6R4i40jI0qsjhFvWQkJDQ",
+      "format": "VC1_0_JWT",
+      "credential": {
+        "credentialSubject": [
+          {
+            "id": "did:web:host-bob",
+            "membershipType": "fullMember",
+            "website": "example.com",
+            "contact": "bob-mail@example.com",
+            "since": "2025-01-01T00:00:00"
+          }
+        ],
+        "id": "6555b0e7-a5b0-468b-bfdd-4153176a0168",
+        "type": [
+          "VerifiableCredential",
+          "MembershipCredential"
+        ],
+        "issuer": {
+          "id": "did:web:host-authority",
+          "additionalProperties": {}
+        },
+        "issuanceDate": "2025-11-10T15:57:16.342209808Z",
+        "expirationDate": "2028-08-06T15:57:16.342212900Z",
+        "credentialStatus": [],
+        "description": null,
+        "name": null,
+        "dataModelVersion": "V_1_1"
+      }
+    }
+  },
+  {
+    "participantContextId": "authority",
+    "id": "9ae83563-b095-40fc-b241-7d69e9a25c3d",
+    "metadata": {
+      "published": true,
+      "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+    },
+    "issuancePolicy": null,
+    "reissuancePolicy": null,
+    "verifiableCredential": {
+      "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtY2Fyb2wiLCJuYmYiOjE3NjQ5MjQ3MTgsImlzcyI6ImRpZDp3ZWI6aG9zdC1hdXRob3JpdHkiLCJleHAiOjE3NjQ5MjQ3NzgsImlhdCI6MTc2NDkyNDcxOCwidmMiOnsiY3JlZGVudGlhbFN1YmplY3QiOlt7ImlkIjoiZGlkOndlYjpob3N0LWNhcm9sIiwibWVtYmVyc2hpcFR5cGUiOiJmdWxsTWVtYmVyIiwid2Vic2l0ZSI6ImV4YW1wbGUuY29tIiwiY29udGFjdCI6ImNhcm9sLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTItMDVUMDg6NTE6NTguNDQ3MDg0MDQ1WiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6ImNjY2VhYzcwLTUxZWItNDVhNS1iZGM1LTQ5YTJiYTUxYzI5MyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTMxVDA4OjUxOjU4LjQ0NzA4ODEwNVoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjAxNjA5MjYxLWEzMzYtNDZiYy1hY2MzLTk0MTQ3NGE0OGNmZSJ9.UiH53TRuPeHRr-xuC5dH8q_W9dhEzhhGA-9oTLsOCcaYAG4xoaHFCwv50bpNsh8FLRpQrPqkXxo8sYNzSt3ZDA",
+      "format": "VC1_0_JWT",
+      "credential": {
+        "credentialSubject": [
+          {
+            "id": "did:web:host-carol",
+            "membershipType": "fullMember",
+            "website": "example.com",
+            "contact": "carol-mail@example.com",
+            "since": "2025-01-01T00:00:00"
+          }
+        ],
+        "id": "ccceac70-51eb-45a5-bdc5-49a2ba51c293",
+        "type": [
+          "VerifiableCredential",
+          "MembershipCredential"
+        ],
+        "issuer": {
+          "id": "did:web:host-authority",
+          "additionalProperties": {}
+        },
+        "issuanceDate": "2025-12-05T08:51:58.447084045Z",
+        "expirationDate": "2028-08-31T08:51:58.447088105Z",
+        "credentialStatus": [],
+        "description": null,
+        "name": null,
+        "dataModelVersion": "V_1_1"
+      }
+    }
+  },
+  {
+    "participantContextId": "authority",
+    "id": "fea87c30-05ed-4304-a19e-b614f010c466",
+    "metadata": {
+      "publicUrl": "http://authority:7078/statuslist/436db3f8-d7ea-4664-83b3-b27ac711da85",
+      "published": true,
+      "isActive": true,
+      "currentIndex": 2,
+      "bitstringSize": 16384
+    },
+    "issuancePolicy": null,
+    "reissuancePolicy": null,
+    "verifiableCredential": {
+      "rawVc": "eyJraWQiOiJkaWQ6d2ViOmF1dGhvcml0eSNhdXRob3JpdHkta2V5IiwiYWxnIjoiRWQyNTUxOSJ9.eyJzdWIiOiI1YjJlZTI2Ny0xNzFhLTQ1YzEtODI5ZS1lM2MwOTNiY2UwYzUiLCJuYmYiOjE3NTAwNzUyMDQsImlzcyI6ImRpZDp3ZWI6YXV0aG9yaXR5IiwiZXhwIjoxNzgxNjExMjA0LCJpYXQiOjE3NTAwNzUyMDQsInZjIjp7Imlzc3VhbmNlRGF0ZSI6IjIwMjUtMDYtMTZUMTI6MDA6MDQuNjc4NTIxNzgxWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7InN0YXR1c1B1cnBvc2UiOiJyZXZvY2F0aW9uIiwidHlwZSI6IkJpdHN0cmluZ1N0YXR1c0xpc3QiLCJlbmNvZGVkTGlzdCI6InVINHNJQUFBQUFBQUFfMk5nR0FXallCU01nbEV3Q2tiQlNBTUFucnJvOFFBSUFBQSJ9LCJpZCI6IjQzNmRiM2Y4LWQ3ZWEtNDY2NC04M2IzLWIyN2FjNzExZGE4NSIsInR5cGUiOlsiQml0c3RyaW5nU3RhdHVzTGlzdCJdLCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOiJkaWQ6d2ViOmF1dGhvcml0eSIsImV4cGlyYXRpb25EYXRlIjoiMjAyNi0wNi0xNlQxMjowMDowNC42Nzg1MjE3ODFaIn19.uSnViCWw0U-hOvG9c0NJMEqlOiUwlTA_zX6uWdM6fVxCnb13cXZsbg4_FzM8YEu2tMuH9yl0FF-ON6ehDBM9AA",
+      "format": "VC1_0_JWT",
+      "credential": {
+        "credentialSubject": [
+          {
+            "statusPurpose": "revocation",
+            "type": "BitstringStatusList",
+            "encodedList": "uH4sIAAAAAAAA_2NgGAWjYBSMglEwCkbBSAMAnrro8QAIAAA",
+            "id": "5b2ee267-171a-45c1-829e-e3c093bce0c5"
+          }
+        ],
+        "id": "436db3f8-d7ea-4664-83b3-b27ac711da85",
+        "type": [
+          "BitstringStatusList"
+        ],
+        "issuer": {
+          "id": "did:web:host-authority",
+          "additionalProperties": {}
+        },
+        "issuanceDate": "2025-06-16T12:00:04.678521781Z",
+        "expirationDate": "2026-06-16T12:00:04.678521781Z",
+        "credentialStatus": [],
+        "description": null,
+        "name": null,
+        "dataModelVersion": "V_1_1",
+        "credentialSchema": []
+      }
+    }
+  },
+  {
+    "participantContextId": "authority",
+    "id": "dd35f14d-ed3d-48bc-a4f0-684370b70183",
+    "metadata": {
+      "published": true,
+      "credentialObjectId": "6621363b-1c65-48a1-8df4-ecb11ea9ca52"
+    },
+    "issuancePolicy": null,
+    "reissuancePolicy": null,
+    "verifiableCredential": {
+      "rawVc": "eyJraWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5I2F1dGhvcml0eS1rZXkiLCJhbGciOiJFZDI1NTE5In0.eyJzdWIiOiJkaWQ6d2ViOmhvc3QtYWxpY2UiLCJuYmYiOjE3NjI3OTA0OTIsImlzcyI6ImRpZDp3ZWI6aG9zdC1hdXRob3JpdHkiLCJleHAiOjE3NjI3OTA1NTIsImlhdCI6MTc2Mjc5MDQ5MiwidmMiOnsiY3JlZGVudGlhbFN1YmplY3QiOlt7ImlkIjoiZGlkOndlYjpob3N0LWFsaWNlIiwibWVtYmVyc2hpcFR5cGUiOiJmdWxsTWVtYmVyIiwid2Vic2l0ZSI6ImV4YW1wbGUuY29tIiwiY29udGFjdCI6ImFsaWNlLW1haWxAZXhhbXBsZS5jb20iLCJzaW5jZSI6IjIwMjUtMDEtMDFUMDA6MDA6MDAifV0sImlzc3VhbmNlRGF0ZSI6IjIwMjUtMTEtMTBUMTY6MDE6MzIuNTYyMjE1MDYxWiIsIm5hbWUiOm51bGwsImRlc2NyaXB0aW9uIjpudWxsLCJpZCI6ImFmYzYyMTc5LTkzOGYtNDJmYy04MTRmLWEzOTI3MDZmM2E4NyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJNZW1iZXJzaGlwQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczovL3czaWQub3JnL3RyYWN0dXN4LXRydXN0L3YwLjgiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpc3N1ZXIiOnsiaWQiOiJkaWQ6d2ViOmhvc3QtYXV0aG9yaXR5IiwiYWRkaXRpb25hbFByb3BlcnRpZXMiOnt9fSwiZGF0YU1vZGVsVmVyc2lvbiI6IlZfMV8xIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI4LTA4LTA2VDE2OjAxOjMyLjU2MjIxNTgxOFoiLCJjcmVkZW50aWFsU3RhdHVzIjpbXX0sImp0aSI6IjFmODVjYjdkLTAzNWQtNDI2YS04N2E4LTViNjFmNmQ5ZjVmYSJ9.8gqcaTg1CnmnjIFLE4V42tJrHjSE4CA0sAgzVJdRxOhk3eOGAmJeRzTdP4prgnCWuV9_PJpwy5ViAsSwInP1Ag",
+      "format": "VC1_0_JWT",
+      "credential": {
+        "credentialSubject": [
+          {
+            "id": "did:web:host-alice",
+            "membershipType": "fullMember",
+            "website": "example.com",
+            "contact": "alice-mail@example.com",
+            "since": "2025-01-01T00:00:00"
+          }
+        ],
+        "id": "afc62179-938f-42fc-814f-a392706f3a87",
+        "type": [
+          "VerifiableCredential",
+          "MembershipCredential"
+        ],
+        "issuer": {
+          "id": "did:web:host-authority",
+          "additionalProperties": {}
+        },
+        "issuanceDate": "2025-11-10T16:01:32.562215061Z",
+        "expirationDate": "2028-08-06T16:01:32.562215818Z",
+        "credentialStatus": [],
+        "description": null,
+        "name": null,
+        "dataModelVersion": "V_1_1"
+      }
+    }
+  }
+]

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
 import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.KnowledgeDirectoryProxy;
@@ -125,10 +126,12 @@ public class MessageDispatcher implements KnowledgeDirectoryProxy {
 			remoteSmartConnectorConnectionsManager = new RemoteKerConnectionManager(this, this.myExposedUrl, this.useEdc);
 			getRemoteSmartConnectorConnectionsManager().start();
 
-			URI myEdcConnectorUrl = remoteSmartConnectorConnectionsManager.getEdcConnectorUrl();
 			// Start Knowledge Directory Connection Manager
-			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl, myEdcConnectorUrl);
-
+			ParticipantProperties edcProperties = null;
+			if (this.useEdc)
+				edcProperties = remoteSmartConnectorConnectionsManager.getMyEdcProperties();
+			
+			this.knowledgeDirectoryConnectionManager = new KnowledgeDirectoryConnection(kdUrl, myExposedUrl, edcProperties);
 			this.getKnowledgeDirectoryConnectionManager().start();
 
 			// Start HTTP Server

@@ -55,18 +55,23 @@ public class KerApiImpl extends KerApiService {
 			return Response.status(400).entity("Data was not valid").build();
 		}
 
-		// use the exposed URL (stripped from userinfo, if any) as the runtime's ID.
-		var uriWithCredentials = knowledgeEngineRuntime.getExposedUrl();
-		URI uriWithoutCredentials;
-		try {
-			uriWithoutCredentials = new URI(uriWithCredentials.getScheme(), null, uriWithCredentials.getHost(),
-					uriWithCredentials.getPort(), uriWithCredentials.getPath(), uriWithCredentials.getQuery(),
-					uriWithCredentials.getFragment());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException("Encountered invalid URI syntax while stripping userinfo from URI.");
-		}
-		String id = uriWithoutCredentials.toString();
-		LOG.info("issued new id: {}", id);
+		if (knowledgeEngineRuntime.getId() == null) {
+			// use the exposed URL (stripped from userinfo, if any) as the runtime's ID.
+			var uriWithCredentials = knowledgeEngineRuntime.getExposedUrl();
+			URI uriWithoutCredentials;
+			try {
+				uriWithoutCredentials = new URI(uriWithCredentials.getScheme(), null, uriWithCredentials.getHost(),
+						uriWithCredentials.getPort(), uriWithCredentials.getPath(), uriWithCredentials.getQuery(),
+						uriWithCredentials.getFragment());
+			} catch (URISyntaxException e) {
+				throw new RuntimeException("Encountered invalid URI syntax while stripping userinfo from URI.");
+			}
+			String id = uriWithoutCredentials.toString();
+			LOG.info("issued new id: {}", id);
+			knowledgeEngineRuntime.setId(id);
+		} 
+		String id = knowledgeEngineRuntime.getId();
+		
 		// Does it already exist?
 		if (kers.containsKey(id)) {
 			return Response.status(409).entity(id).build();
@@ -75,7 +80,6 @@ public class KerApiImpl extends KerApiService {
 		// TODO probably check if it can be reached by the Knowledge Directory itself
 
 		// Apparently everything was ok
-		knowledgeEngineRuntime.setId(id);
 		knowledgeEngineRuntime.setLastRenew(OffsetDateTime.now());
 		kers.put(id, knowledgeEngineRuntime);
 

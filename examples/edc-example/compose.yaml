@@ -1,0 +1,453 @@
+# Notes on networking between containers:
+# - All containers belonging to one participant in the TKE network (KE runtime or Data  
+#   Plane, KB, Control Plane, Identity Hub) are assigned to a separate Compose network, 
+#   simulating as if these are on different premises.
+# - Ports that are exposed to localhost by containers, are those that would be
+#   exposed to the internet in real applications. Those that should not be exposed
+#   to the internet are not exposed here either, but they are of course still
+#   accesible by containers in the same Compose network.
+# - Identity Hub containers are assigned ports starting with 7.
+# - Knowledge Engine runtimes, Data Planes and directory are assigned ports starting 
+#   with 8.
+# - Control Planes are assigned ports starting with 9.
+
+
+networks:
+  # Add a network per participant as if they are on different premises.
+  network-alice:
+    name: network-alice
+    external: false
+  network-bob:
+    name: network-bob
+    external: false
+  network-carol:
+    name: network-carol
+    external: false
+  network-authority:
+    name: network-authority
+    external: false
+
+
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./data/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - network-alice
+      - network-bob
+      - network-carol
+      - network-authority
+
+  # region:    -- Knowledge Directory & Authority
+  
+  knowledge-directory:
+    container_name: knowledge-directory
+    image: knowledge-directory:1.4.1-SNAPSHOT
+    networks:
+      - network-authority
+    ports:
+      - "8282:8282"
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+
+  authority-identity-hub:
+    container_name: authority-identity-hub
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
+    networks:
+      - network-authority
+    ports:
+      - "7091:7091" # Credential API / Presentation + Storage API / DCP API?
+      - "7094:7094" # Token API
+      - "7097:7097" # Issuance API
+      - "7078:7078" # Statuslist API, at 7078 is required due to pregenerated VC's?
+      - "7099:7099" # Dataspaces API
+      - "7096:7096" # Issuer Admin API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_HOSTNAME: authority-identity-hub
+      EDC_IH_API_PARTICIPANTS_AUTHORITY_SERVICES_CREDENTIAL_ENDPOINT: "http://host.docker.internal:7091/api/credentials/v1/participants/YXV0aG9yaXR5"
+      EDC_IH_API_PARTICIPANTS_AUTHORITY_SERVICES_ISSUERSERVICE_ENDPOINT: "http://host.docker.internal:7097/api/issuance/v1alpha/participants/YXV0aG9yaXR5"
+      EDC_IH_API_PARTICIPANTS_AUTHORITY_PASSWORD: "$$2a$$10$$KcjjniNy/p45X3yOWcDOY.lZ7ziNpA9pngh218lVMzdRqgYl0Wf06" # Escape $ here for docker compose
+      EDC_FS_YAML_CONFIG: "/data/config/authority-identityhub.yaml"
+    volumes:
+      - ./data/authority:/data:rw
+
+  registration-service:
+    container_name: registration-service
+    image: docker.nexus.dataspac.es/edc/edc-registration-service:0.5.0
+    networks:
+      - network-authority
+    ports:
+      - "9050:9050" # General
+      - "9051:9051" # Registration API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IAM_STS_OAUTH_TOKEN_URL: "http://host.docker.internal:7094/api/v1/sts/token"
+      EDC_FS_YAML_CONFIG: "/data/config/authority-registration-service.yaml"
+    volumes:
+      - ./data/authority:/data:rw
+
+  # endregion: -- Knowledge Directory & Authority
+  
+  # region:    -- (Asking) Participant Alice
+  
+  alice-kb:
+    container_name: alice-kb
+    build: ../common/asking_kb
+    networks:
+      - network-alice
+    environment:
+      KE_URL: http://alice-ker:8280/rest
+      KB_ID: http://example.org/kb1
+      PREFIXES: '{ "ex": "http://example.org/" }'
+      GRAPH_PATTERN: ?a ex:relatedTo ?b .
+
+  alice-ker:
+    container_name: alice-ker
+    image: smart-connector:1.4.1-SNAPSHOT
+    networks:
+      - network-alice
+    ports:
+      - "8081:8081"
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      KE_RUNTIME_PORT: 8081 # The port that the KE uses to listen for inter-KE-runtime communication.
+      KE_RUNTIME_EXPOSED_URL: http://host-alice:8081 # The URL where the runtime is available for inter-runtime communication from the outside.
+      KD_URL: http://host-authority:8282
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PARTICIPANT_ID: "did:web:host-alice"
+      KE_EDC_PROTOCOL_URL: "http://host-alice:9183/api/dsp"
+      KE_EDC_MANAGEMENT_URL: "http://alice-control-plane:9082/api/management"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-alice:8194/api/v1/public"
+    
+  alice-control-plane:
+    container_name: alice-control-plane
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
+    networks:
+      - network-alice
+    ports:
+      # Control planes expose their DSP protocol API and Catalog API to the internet.
+      #  - The Catalog API serves catalog requests by other parties.
+      #  - The DSP protocol API is used by other control planes for contract agreements and transfer processes.
+      - "9183:9083" # DSP protocol API
+      - "9184:9084" # Catalog API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IAM_STS_OAUTH_TOKEN_URL: "http://alice-identity-hub:7094/api/v1/sts/token"
+      EDC_DSP_CALLBACK_ADDRESS: "http://host-alice:9183/api/dsp"
+      EDC_REGISTRATION_SERVICE_URL: "http://host-authority:9051/api/registration"
+      EDC_FS_YAML_CONFIG: "/data/config/alice-controlplane.yaml"
+    volumes:
+      - ./data/alice:/data:rw
+
+  alice-http-data-plane:
+    container_name: alice-http-data-plane
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
+    networks:
+      - network-alice
+    ports:
+      - "8194:8194" # Public API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      WEB_HTTP_PUBLIC_PORT: 8194
+      EDC_DPF_SELECTOR_URL: "http://alice-control-plane:9081/api/control/v1/dataplanes"
+      EDC_CONTROL_ENDPOINT: "http://alice-http-data-plane:8091/api/control"
+      # set hostname, which is to create callback addresses.
+      EDC_HOSTNAME: "host-alice" 
+      EDC_FS_YAML_CONFIG: "/data/config/alice-dataplane.yaml"
+    volumes:
+      - ./data/alice:/data:rw
+
+  alice-identity-hub:
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
+    container_name: alice-identity-hub
+    networks:
+      - network-alice
+    ports:
+      - "7191:7091" # Credential API / Presentation + Storage API / DCP API?
+      - "7197:7097" # Issuance API
+      - "7196:7096" # Issuer Admin API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IH_API_PARTICIPANTS_ALICE_SERVICES_CREDENTIAL_ENDPOINT: "http://host-alice:7191/api/credentials/v1/participants/YWxpY2U="
+      EDC_IH_API_PARTICIPANTS_ALICE_SERVICES_DSP_ENDPOINT: "http://host-alice:9183/api/dsp"
+      EDC_IH_API_PARTICIPANTS_ALICE_SERVICES_ISSUERSERVICE_ENDPOINT: "http://host-alice:7197/api/issuance/v1alpha/participants/YWxpY2U="
+      EDC_IH_API_PARTICIPANTS_ALICE_PASSWORD: "$$2a$$10$$KcjjniNy/p45X3yOWcDOY.lZ7ziNpA9pngh218lVMzdRqgYl0Wf06"
+      EDC_HOSTNAME: alice
+      EDC_FS_YAML_CONFIG: "/data/config/alice-identityhub.yaml"
+    volumes:
+      - ./data/alice:/data:rw
+
+  # endregion: -- (Asking) Participant Alice
+  
+  # region:    -- (Answering) participant Bob
+
+  bob-kb:
+    container_name: bob-kb
+    build: ../common/answering_kb
+    networks:
+      - network-bob
+    environment:
+      KE_URL: http://bob-ker:8280/rest
+      KB_ID: http://example.org/kb2
+      PREFIXES: |
+        {
+          "ex": "http://example.org/"
+        }
+      GRAPH_PATTERN: |
+        ?a ex:relatedTo ?b .
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Math>",
+            "b": "<http://example.org/Science>"
+          }
+        ]
+
+  bob-ker:
+    container_name: bob-ker
+    image: smart-connector:1.4.1-SNAPSHOT
+    networks:
+      - network-bob
+    ports:
+      - "8082:8082"
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      KE_RUNTIME_PORT: 8082 # The port that the KE uses to listen for inter-KE-runtime communication.
+      KE_RUNTIME_EXPOSED_URL: http://host-bob:8082 # The URL where the runtime is available for inter-runtime communication from the outside.
+      KD_URL: http://host-authority:8282
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PARTICIPANT_ID: "did:web:host-bob"
+      KE_EDC_PROTOCOL_URL: "http://host-bob:9283/api/dsp"
+      KE_EDC_MANAGEMENT_URL: "http://bob-control-plane:9082/api/management"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-bob:8294/api/v1/public"
+  
+  bob-control-plane:
+    container_name: bob-control-plane
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
+    networks:
+      - network-bob
+    ports:
+      # Control planes expose their DSP protocol API and Catalog API to the internet.
+      #  - The Catalog API serves catalog requests by other parties.
+      #  - The DSP protocol API is used by other control planes for contract agreements and transfer processes.
+      - "9283:9083" # DSP protocol API
+      - "9284:9084" # Catalog API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IAM_STS_OAUTH_TOKEN_URL: "http://bob-identity-hub:7094/api/v1/sts/token"
+      EDC_DSP_CALLBACK_ADDRESS: "http://host-bob:9283/api/dsp"
+      EDC_REGISTRATION_SERVICE_URL: "http://host-authority:9051/api/registration"
+      EDC_FS_YAML_CONFIG: "/data/config/bob-controlplane.yaml"
+    volumes:
+      - ./data/bob:/data:rw
+
+  bob-http-data-plane:
+    container_name: bob-http-data-plane
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
+    networks:
+      - network-bob
+    ports:
+      - "8294:8294" # Public API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      WEB_HTTP_PUBLIC_PORT: 8294
+      EDC_DPF_SELECTOR_URL: "http://bob-control-plane:9081/api/control/v1/dataplanes"
+      EDC_CONTROL_ENDPOINT: "http://bob-http-data-plane:8091/api/control"
+      # set hostname, which is to create callback addresses.
+      EDC_HOSTNAME: "host-bob"
+      EDC_FS_YAML_CONFIG: "/data/config/bob-dataplane.yaml"
+    volumes:
+      - ./data/bob:/data:rw
+
+  bob-identity-hub:
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
+    container_name: bob-identity-hub
+    networks:
+      - network-bob
+    ports:
+      - "7291:7091" # Credential API / Presentation + Storage API / DCP API?
+      - "7297:7097" # Issuance API
+      - "7296:7096" # Issuer Admin API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IH_API_PARTICIPANTS_BOB_SERVICES_CREDENTIAL_ENDPOINT: "http://host-bob:7291/api/credentials/v1/participants/Ym9i"
+      EDC_IH_API_PARTICIPANTS_BOB_SERVICES_DSP_ENDPOINT: "http://host-bob:9283/api/dsp"
+      EDC_IH_API_PARTICIPANTS_BOB_SERVICES_ISSUERSERVICE_ENDPOINT: "http://host-bob:7297/api/issuance/v1alpha/participants/Ym9i"
+      EDC_IH_API_PARTICIPANTS_BOB_PASSWORD: "$$2a$$10$$KcjjniNy/p45X3yOWcDOY.lZ7ziNpA9pngh218lVMzdRqgYl0Wf06"
+      EDC_HOSTNAME: bob
+      EDC_FS_YAML_CONFIG: "/data/config/bob-identityhub.yaml"
+    volumes:
+      - ./data/bob:/data:rw
+
+  # endregion: -- (Answering) Participant Bob
+
+  # region:    -- (Answering) Participant Carol
+
+  carol-kb:
+    container_name: carol-kb
+    build: ../common/answering_kb
+    networks:
+      - network-carol
+    environment:
+      KE_URL: http://carol-ker:8280/rest
+      KB_ID: http://example.org/kb3
+      PREFIXES: |
+        {
+          "ex": "http://example.org/"
+        }
+      GRAPH_PATTERN: |
+        ?a ex:relatedTo ?b .
+      KB_DATA: |
+        [
+          {
+            "a": "<http://example.org/Magazines>",
+            "b": "<http://example.org/Books>"
+          }
+        ]
+
+  carol-ker:
+    container_name: carol-ker
+    image: smart-connector:1.4.1-SNAPSHOT
+    networks:
+      - network-carol
+    ports:
+      - "8083:8083"
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      KE_RUNTIME_PORT: 8083 # The port that the KE uses to listen for inter-KE-runtime communication.
+      KE_RUNTIME_EXPOSED_URL: http://host-carol:8083 # The URL where the runtime is available for inter-runtime communication from the outside.
+      KD_URL: http://host-authority:8282
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+      KE_RUNTIME_USE_EDC: true
+      KE_EDC_PARTICIPANT_ID: "did:web:host-carol"
+      KE_EDC_PROTOCOL_URL: "http://host-carol:9383/api/dsp"
+      KE_EDC_MANAGEMENT_URL: "http://carol-control-plane:9082/api/management"
+      KE_EDC_DATAPLANE_PUBLIC_URL: "http://host-carol:8394/api/v1/public"
+  
+  carol-control-plane:
+    container_name: carol-control-plane
+    image: docker.nexus.dataspac.es/edc/edc-control-plane:0.5.0
+    networks:
+      - network-carol
+    ports:
+      # Control planes expose their DSP protocol API and Catalog API to the internet.
+      #  - The Catalog API serves catalog requests by other parties.
+      #  - The DSP protocol API is used by other control planes for contract agreements and transfer processes.
+      - "9383:9083" # DSP protocol API
+      - "9384:9084" # Catalog API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IAM_STS_OAUTH_TOKEN_URL: "http://carol-identity-hub:7094/api/v1/sts/token"
+      EDC_DSP_CALLBACK_ADDRESS: "http://host-carol:9383/api/dsp"
+      EDC_REGISTRATION_SERVICE_URL: "http://host-authority:9051/api/registration"
+      EDC_FS_YAML_CONFIG: "/data/config/carol-controlplane.yaml"
+    volumes:
+      - ./data/carol:/data:rw
+
+  carol-http-data-plane:
+    container_name: carol-http-data-plane
+    image: docker.nexus.dataspac.es/edc/edc-http-data-plane:0.5.0
+    networks:
+      - network-carol
+    ports:
+      - "8394:8394" # Public API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      WEB_HTTP_PUBLIC_PORT: 8394
+      EDC_DPF_SELECTOR_URL: "http://carol-control-plane:9081/api/control/v1/dataplanes"
+      EDC_CONTROL_ENDPOINT: "http://carol-http-data-plane:8091/api/control"
+      # set hostname, which is to create callback addresses.
+      EDC_HOSTNAME: "host-carol"
+      EDC_FS_YAML_CONFIG: "/data/config/carol-dataplane.yaml"
+    volumes:
+      - ./data/carol:/data:rw
+
+  carol-identity-hub:
+    image: docker.nexus.dataspac.es/edc/edc-identity-hub:0.5.0
+    container_name: carol-identity-hub
+    networks:
+      - network-carol
+    ports:
+      - "7391:7091" # Credential API / Presentation + Storage API / DCP API?
+      - "7397:7097" # Issuance API
+      - "7396:7096" # Issuer Admin API
+    extra_hosts:
+      - "host-alice:host-gateway"
+      - "host-bob:host-gateway"
+      - "host-carol:host-gateway"
+      - "host-authority:host-gateway"
+    environment:
+      EDC_IH_API_PARTICIPANTS_CAROL_SERVICES_CREDENTIAL_ENDPOINT: "http://host-carol:7391/api/credentials/v1/participants/Y2Fyb2w=" # REQUIRES CHANGING OF URL TO PARTICIPANT CONTEXT NAME
+      EDC_IH_API_PARTICIPANTS_CAROL_SERVICES_DSP_ENDPOINT: "http://host-carol:9383/api/dsp"
+      EDC_IH_API_PARTICIPANTS_CAROL_SERVICES_ISSUERSERVICE_ENDPOINT: "http://host-carol:7397/api/issuance/v1alpha/participants/Y2Fyb2w="
+      EDC_IH_API_PARTICIPANTS_CAROL_PASSWORD: "$$2a$$10$$KcjjniNy/p45X3yOWcDOY.lZ7ziNpA9pngh218lVMzdRqgYl0Wf06"
+      EDC_HOSTNAME: carol
+      EDC_FS_YAML_CONFIG: "/data/config/carol-identityhub.yaml"
+    volumes:
+      - ./data/carol:/data:rw
+
+  # endregion: -- (Answering) Participant Carol
+
+
