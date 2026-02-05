@@ -70,7 +70,7 @@ public class TriplePattern {
 			substitutionMap.put(new TripleNode(this, this.getSubject(), 0),
 					new TripleNode(other, other.getSubject(), 0));
 		} else {
-			if (!this.getSubject().equals(other.getSubject())) {
+			if (!this.getSubject().sameValueAs(other.getSubject())) {
 				return null;
 			}
 		}
@@ -79,7 +79,7 @@ public class TriplePattern {
 			substitutionMap.put(new TripleNode(this, this.getPredicate(), 1),
 					new TripleNode(other, other.getPredicate(), 1));
 		} else {
-			if (!this.getPredicate().equals(other.getPredicate())) {
+			if (!this.getPredicate().sameValueAs(other.getPredicate())) {
 				return null;
 			}
 		}
@@ -87,7 +87,7 @@ public class TriplePattern {
 		if (this.getObject() instanceof Var || other.getObject() instanceof Var) {
 			substitutionMap.put(new TripleNode(this, this.getObject(), 2), new TripleNode(other, other.getObject(), 2));
 		} else {
-			if (!this.getObject().equals(other.getObject())) {
+			if (!this.getObject().sameValueAs(other.getObject())) {
 				return null;
 			}
 		}
@@ -162,21 +162,21 @@ public class TriplePattern {
 			if (other.object != null) {
 				return false;
 			}
-		} else if (!object.equals(other.object)) {
+		} else if (!object.sameValueAs(other.object)) {
 			return false;
 		}
 		if (predicate == null) {
 			if (other.predicate != null) {
 				return false;
 			}
-		} else if (!predicate.equals(other.predicate)) {
+		} else if (!predicate.sameValueAs(other.predicate)) {
 			return false;
 		}
 		if (subject == null) {
 			if (other.subject != null) {
 				return false;
 			}
-		} else if (!subject.equals(other.subject)) {
+		} else if (!subject.sameValueAs(other.subject)) {
 			return false;
 		}
 		return true;

@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
 import org.apache.jena.sparql.lang.arq.javacc.ParseException;
@@ -122,7 +121,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 		try {
 			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
-					ei.getArgumentBindings());
+					eu.knowledge.engine.smartconnector.impl.Util.translateFromApiBindingSet(ei.getArgumentBindings()));
 
 			Resource kb = model.listSubjectsWithProperty(RDF.type, Vocab.KNOWLEDGE_BASE).next();
 			this.metadata.add(model);
@@ -141,7 +140,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 		try {
 			Model model = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
-					ei.getArgumentBindings());
+					eu.knowledge.engine.smartconnector.impl.Util.translateFromApiBindingSet(ei.getArgumentBindings()));
 
 			// this is a little more complex... we have to:
 			// - extract the knowledge base that this message is about
@@ -206,7 +205,8 @@ public class MetadataKB extends KnowledgeBaseImpl {
 					// using the BindingSet#generateModel() helper method, we can combine the graph
 					// pattern and the bindings for its variables into a valid RDF Model.
 					this.metadata = eu.knowledge.engine.smartconnector.impl.Util.generateModel(this.aKI.getPattern(),
-							askResult.getBindings());
+							eu.knowledge.engine.smartconnector.impl.Util
+									.translateFromApiBindingSet(askResult.getBindings()));
 					this.metadata.setNsPrefixes(this.prefixes);
 
 				} catch (ParseException e) {

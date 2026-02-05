@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -30,22 +31,25 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
+import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.syntax.ElementData;
 import org.apache.jena.sparql.syntax.ElementGroup;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.smartconnector.api.AnswerExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskPlan;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
@@ -169,7 +173,8 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			m.add(okb.getRDF());
 		}
 
-		String queryString = createQuery(aSelector.getPattern(), aSelector.getBindingSet());
+		String queryString = createQuery(aSelector.getPattern(),
+				Util.translateFromApiBindingSet(aSelector.getBindingSet()));
 		LOG.debug("Query: {}", queryString);
 		Query q = QueryFactory.create(queryString);
 		QueryExecution qe = QueryExecutionFactory.create(q, m);
@@ -195,11 +200,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// then query to retrieve the selected KBs.
 		String queryString = "SELECT * WHERE { " + gp.getPattern() + " } VALUES (?kb) { ";
 
+		PrefixMapping prefixMapping = new PrefixMappingZero();
 		if (!bs.isEmpty()) {
+			var kbVar = Var.alloc("kb");
 			for (Binding b : bs) {
-				assert (b.containsKey("kb"));
-				String kbId = b.get("kb");
-				queryString += "(" + kbId + ")";
+				assert (b.containsKey(kbVar));
+				Node kbId = b.get(kbVar);
+				queryString += "(" + FmtUtils.stringForNode(kbId, prefixMapping) + ")";
 			}
 		} else {
 			queryString += "(UNDEF)";
@@ -230,7 +237,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		AnswerKnowledgeInteraction answerKnowledgeInteraction;
 		answerKnowledgeInteraction = (AnswerKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
-		CompletableFuture<BindingSet> future;
+		CompletableFuture<eu.knowledge.engine.smartconnector.api.BindingSet> future;
 
 		var handler = this.myKnowledgeBaseStore.getAnswerHandler(answerKnowledgeInteractionId);
 		// TODO This should happen in the single thread for the knowledge base
@@ -241,23 +248,25 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 		}
 
-		var aei = new AnswerExchangeInfo(anAskMsg.getBindings(), anAskMsg.getFromKnowledgeBase(),
-				anAskMsg.getFromKnowledgeInteraction());
+		var aei = new AnswerExchangeInfo(Util.translateToApiBindingSet(anAskMsg.getBindings()),
+				anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction());
 
 		future = handler.answerAsync(answerKnowledgeInteraction, aei);
 
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
 				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+				BindingSet translatedB = Util.translateFromApiBindingSet(b);
+
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
-					validator.validateCompleteBindings(answerKnowledgeInteraction.getPattern(), b);
+					validator.validateCompleteBindings(answerKnowledgeInteraction.getPattern(), translatedB);
 					validator.validateIncomingOutgoingAnswer(answerKnowledgeInteraction.getPattern(),
-							anAskMsg.getBindings(), b);
+							anAskMsg.getBindings(), translatedB);
 				}
 				return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 						anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(),
-						anAskMsg.getMessageId(), b);
+						anAskMsg.getMessageId(), translatedB);
 			} else {
 				String errorMessage;
 				if (e == null)
@@ -341,11 +350,11 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		ReactKnowledgeInteraction reactKnowledgeInteraction;
 		reactKnowledgeInteraction = (ReactKnowledgeInteraction) knowledgeInteractionById.getKnowledgeInteraction();
 
-		CompletableFuture<BindingSet> future;
+		CompletableFuture<eu.knowledge.engine.smartconnector.api.BindingSet> future;
 		var handler = this.myKnowledgeBaseStore.getReactHandler(reactKnowledgeInteractionId);
 
-		var rei = new ReactExchangeInfo(aPostMsg.getArgument(), aPostMsg.getFromKnowledgeBase(),
-				aPostMsg.getFromKnowledgeInteraction());
+		var rei = new ReactExchangeInfo(Util.translateToApiBindingSet(aPostMsg.getArgument()),
+				aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction());
 
 		// TODO This should happen in the single thread for the knowledge base
 		if (reactKnowledgeInteraction.isMeta()) {
@@ -359,15 +368,17 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
 				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+				BindingSet translatedB = Util.translateFromApiBindingSet(b);
+
 				if (this.shouldValidateInputOutputBindings()) {
 					var validator = new BindingValidator();
-					validator.validateCompleteBindings(reactKnowledgeInteraction.getResult(), b);
+					validator.validateCompleteBindings(reactKnowledgeInteraction.getResult(), translatedB);
 					validator.validateIncomingOutgoingReact(reactKnowledgeInteraction.getArgument(),
-							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), b);
+							reactKnowledgeInteraction.getResult(), aPostMsg.getArgument(), translatedB);
 				}
 				return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 						aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(),
-						aPostMsg.getMessageId(), b);
+						aPostMsg.getMessageId(), translatedB);
 			} else {
 				String errorMessage;
 				if (e == null)

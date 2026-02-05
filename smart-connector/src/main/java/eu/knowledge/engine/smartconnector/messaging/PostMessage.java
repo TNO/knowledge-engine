@@ -3,7 +3,7 @@ package eu.knowledge.engine.smartconnector.messaging;
 import java.net.URI;
 import java.util.UUID;
 
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 
 public class PostMessage extends KnowledgeMessage {
 

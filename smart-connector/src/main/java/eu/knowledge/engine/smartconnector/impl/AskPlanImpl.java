@@ -20,7 +20,7 @@ public class AskPlanImpl implements AskPlan {
 		if (bindingSet == null) {
 			throw new IllegalArgumentException("the binding set should be non-null");
 		}
-		return this.processor.executeAskInteraction(bindingSet);
+		return this.processor.executeAskInteraction(Util.translateFromApiBindingSet(bindingSet));
 	}
 
 	@Override

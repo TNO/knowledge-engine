@@ -1,9 +1,12 @@
 package eu.knowledge.engine.reasoner.api;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
@@ -15,6 +18,14 @@ public class Binding extends HashMap<Var, Node> {
 
 	public Binding() {
 		super();
+	}
+
+	public Binding(QuerySolution qs) {
+		Iterator<String> vars = qs.varNames();
+		while (vars.hasNext()) {
+			String var = vars.next();
+			super.put(Var.alloc(var), qs.get(var).asNode());
+		}
 	}
 
 	public Binding(Var variable, Node lit) {
@@ -70,6 +81,26 @@ public class Binding extends HashMap<Var, Node> {
 			this.put(entry.getKey(), entry.getValue());
 		}
 
+	}
+
+	public boolean isSubBindingOf(Binding other) {
+		if (!other.keySet().containsAll(this.keySet())) {
+			return false;
+		}
+
+		return other.entrySet().stream().allMatch(b -> {
+			Var variable = b.getKey();
+			Node value = b.getValue();
+			return !this.containsKey(variable) || value.sameValueAs(this.get(variable));
+		});
+	}
+
+	public Binding keepOnly(Set<Var> variables) {
+		var b = new Binding();
+		for (var a : variables) {
+			b.put(a, this.get(a));
+		}
+		return b;
 	}
 
 }

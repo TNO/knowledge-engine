@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 
 import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.CommunicativeAct;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeEngineRuntimeException;
@@ -90,9 +90,12 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 		this.metaAnswerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true,
 				true, MatchStrategy.ENTRY_LEVEL);
-		this.knowledgeBaseStore.register(this.metaAnswerKI,
-				(anAKI, anAnswerExchangeInfo) -> this.fillMetaBindings(anAnswerExchangeInfo.getIncomingBindings()),
-				true);
+		this.knowledgeBaseStore
+				.register(
+						this.metaAnswerKI, (anAKI,
+								anAnswerExchangeInfo) -> Util.translateToApiBindingSet(this.fillMetaBindings(
+										Util.translateFromApiBindingSet(anAnswerExchangeInfo.getIncomingBindings()))),
+						true);
 
 		this.metaAskKI = new AskKnowledgeInteraction(new CommunicativeAct(), this.metaGraphPattern, null, true, true,
 				false, MatchStrategy.ENTRY_LEVEL);
@@ -130,10 +133,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				throw new KnowledgeEngineRuntimeException(
 						"Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
-			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(),
+			var newKb = this.constructOtherKnowledgeBaseFromBindingSet(
+					Util.translateFromApiBindingSet(aReactExchangeInfo.getArgumentBindings()),
 					aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.addKnowledgeBase(newKb);
-			return new BindingSet();
+			return Util.translateToApiBindingSet(new BindingSet());
 		}, true);
 
 		this.metaReactChangedKI = new ReactKnowledgeInteraction(
@@ -150,10 +154,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				throw new KnowledgeEngineRuntimeException(
 						"Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
-			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(),
+			var changedKb = this.constructOtherKnowledgeBaseFromBindingSet(
+					Util.translateFromApiBindingSet(aReactExchangeInfo.getArgumentBindings()),
 					aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.updateKnowledgeBase(changedKb);
-			return new BindingSet();
+			return Util.translateToApiBindingSet(new BindingSet());
 		}, true);
 
 		this.metaReactRemovedKI = new ReactKnowledgeInteraction(
@@ -170,10 +175,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				throw new KnowledgeEngineRuntimeException(
 						"Received meta bindings from non-meta (or incorrect meta) KI.");
 			}
-			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(aReactExchangeInfo.getArgumentBindings(),
+			var removedKb = this.constructOtherKnowledgeBaseFromBindingSet(
+					Util.translateFromApiBindingSet(aReactExchangeInfo.getArgumentBindings()),
 					aReactExchangeInfo.getPostingKnowledgeBaseId());
 			this.otherKnowledgeBaseStore.removeKnowledgeBase(removedKb);
-			return new BindingSet();
+			return Util.translateToApiBindingSet(new BindingSet());
 		}, true);
 	}
 
@@ -548,7 +554,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 	public CompletableFuture<PostResult> postNewKnowledgeBase() {
 		var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostNewKI);
 		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-				.execute(this.fillMetaBindings(null)).handle((r, e) -> {
+				.execute(Util.translateToApiBindingSet(this.fillMetaBindings(null))).handle((r, e) -> {
 
 					if (r == null) {
 						LOG.error("An exception has occured while posting new Knowledge Base ", e);
@@ -565,7 +571,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
 				this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-						.execute(this.fillMetaBindings(null)).get();
+						.execute(Util.translateToApiBindingSet(this.fillMetaBindings(null))).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occur while notifying others of a registered knowledge interaction.");
 			}
@@ -578,7 +584,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			var kiInfo = this.knowledgeBaseStore.getKnowledgeInteractionByObject(this.metaPostChangedKI);
 			try {
 				this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-						.execute(this.fillMetaBindings(null)).get();
+						.execute(Util.translateToApiBindingSet(this.fillMetaBindings(null))).get();
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error("No error should occur while notifying others of an unregistered knowledge interaction.");
 			}
@@ -594,8 +600,8 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				+ otherKnowledgeBases.size() * POST_REMOVED_TIMEOUT_MILLIS_PER_OTHERKB;
 		LOG.debug("Waiting for max {}ms for other KBs to ack my termination message.", timeout);
 		return this.interactionProcessor.planPostFromKnowledgeBase(kiInfo, new RecipientSelector())
-				.execute(this.fillMetaBindings(null)).orTimeout(timeout, TimeUnit.MILLISECONDS)
-				.exceptionally((Throwable e) -> {
+				.execute(Util.translateToApiBindingSet(this.fillMetaBindings(null)))
+				.orTimeout(timeout, TimeUnit.MILLISECONDS).exceptionally((Throwable e) -> {
 					LOG.error("An error occured while informing other KBs about our "
 							+ "termination. Proceeding to stop the smart connector regardless.", e);
 					return (PostResult) null;

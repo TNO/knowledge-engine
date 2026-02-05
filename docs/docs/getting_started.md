@@ -107,6 +107,10 @@ Two important things should be noted:
    (This last restriction does not apply to the bindings given with ASK requests; they can be partial of even empty.)
 2. The values of the bindings MUST be valid IRIs (https://www.w3.org/TR/turtle/#sec-iri) (for now without prefixes, so full IRIs) or valid literals (https://www.w3.org/TR/turtle/#literals).
 
+:::tip
+Both `literal`s and `typed-literal`s are supported as values. Literals without an explicit type are interpreted as being of type `xsd:string`. This means that literal `"Bla"` is equal to literal `"Bla"^^<http://www.w3.org/2001/XMLSchema#string>`.
+:::
+
 ### Binding Sets
 
 A result of a knowledge interaction can have more than 1 match. These matches are collected in a `BindingSet`, which is simply a set of bindings.

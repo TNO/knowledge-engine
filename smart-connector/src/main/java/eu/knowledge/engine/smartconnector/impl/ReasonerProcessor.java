@@ -38,8 +38,8 @@ import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
@@ -91,7 +91,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 * The future returned to the caller of this class which keeps track of when all
 	 * the futures of outstanding messages are completed.
 	 */
-	private CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> finalBindingSetFuture;
+	private CompletableFuture<BindingSet> finalBindingSetFuture;
 
 	public ReasonerProcessor(Set<KnowledgeInteractionInfo> knowledgeInteractions, MessageRouter messageRouter,
 			Set<Rule> someDomainKnowledge) {
@@ -167,7 +167,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(true));
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
-			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+			this.finalBindingSetFuture.complete(new BindingSet());
 		}
 	}
 
@@ -190,21 +190,21 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	@Override
 	public CompletableFuture<AskResult> executeAskInteraction(BindingSet someBindings) {
 
-		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
+		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
-		continueReasoningBackward(translateBindingSetTo(someBindings));
+		continueReasoningBackward(someBindings);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			if (myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
 				this.knowledgeGaps = bs.isEmpty() ? getKnowledgeGaps(this.reasonerPlan.getStartNode())
 						: new HashSet<KnowledgeGap>();
 			}
-			return new AskResult(translateBindingSetFrom(bs), this.askExchangeInfos, this.reasonerPlan,
+			return new AskResult(Util.translateToApiBindingSet(bs), this.askExchangeInfos, this.reasonerPlan,
 					this.knowledgeGaps);
 		});
 	}
 
-	private void continueReasoningBackward(eu.knowledge.engine.reasoner.api.BindingSet incomingBS) {
+	private void continueReasoningBackward(BindingSet incomingBS) {
 
 		boolean isComplete;
 		TaskBoard taskboard;
@@ -215,7 +215,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard.executeScheduledTasks().thenAccept(Void -> {
 			LOG.debug("All ask tasks finished.");
 			if (isComplete) {
-				eu.knowledge.engine.reasoner.api.BindingSet bs = this.reasonerPlan.getResults();
+				BindingSet bs = this.reasonerPlan.getResults();
 				this.finalBindingSetFuture.complete(bs);
 			} else
 				continueReasoningBackward(incomingBS);
@@ -261,26 +261,24 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		} else {
 			LOG.warn("Type should be Post, not {}", this.myKnowledgeInteraction.getType());
-			this.finalBindingSetFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+			this.finalBindingSetFuture.complete(new BindingSet());
 		}
 	}
 
 	@Override
 	public CompletableFuture<PostResult> executePostInteraction(BindingSet someBindings) {
 
-		this.finalBindingSetFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-		eu.knowledge.engine.reasoner.api.BindingSet translatedBindingSet = translateBindingSetTo(someBindings);
+		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
 
-		continueReasoningForward(translatedBindingSet, this.captureResultBindingSetHandler);
+		continueReasoningForward(someBindings, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
-			return new PostResult(translateBindingSetFrom(bs), this.postExchangeInfos, this.reasonerPlan);
+			return new PostResult(Util.translateToApiBindingSet(bs), this.postExchangeInfos, this.reasonerPlan);
 		});
 	}
 
-	private void continueReasoningForward(eu.knowledge.engine.reasoner.api.BindingSet incomingBS,
-			CaptureBindingSetHandler aBindingSetHandler) {
+	private void continueReasoningForward(BindingSet incomingBS, CaptureBindingSetHandler aBindingSetHandler) {
 
 		String msg = "Executing (scheduled) tasks for the reasoner should not result in errors.";
 		boolean isComplete;
@@ -291,7 +289,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard.executeScheduledTasks().thenAccept(Void -> {
 			LOG.debug("All post tasks finished.");
 			if (isComplete) {
-				eu.knowledge.engine.reasoner.api.BindingSet resultBS = new eu.knowledge.engine.reasoner.api.BindingSet();
+				BindingSet resultBS = new BindingSet();
 				if (aBindingSetHandler != null && aBindingSetHandler.getBindingSet() != null) {
 					resultBS = aBindingSetHandler.getBindingSet();
 				}
@@ -308,57 +306,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	}
 
-	/**
-	 * Translate bindingset from the reasoner bindingsets to the ke bindingsets.
-	 * 
-	 * @param bs a reasoner bindingset
-	 * @return a ke bindingset
-	 */
-	protected BindingSet translateBindingSetFrom(eu.knowledge.engine.reasoner.api.BindingSet bs) {
-		BindingSet newBS = new BindingSet();
-		Binding newB;
-
-		SerializationContext context = new SerializationContext();
-		context.setUsePlainLiterals(false);
-
-		for (eu.knowledge.engine.reasoner.api.Binding b : bs) {
-			newB = new Binding();
-			for (Map.Entry<Var, Node> entry : b.entrySet()) {
-				newB.put(entry.getKey().getName(), FmtUtils.stringForNode(entry.getValue(), context));
-			}
-			newBS.add(newB);
-		}
-		return newBS;
-	}
-
-	/**
-	 * Translate bindingset from the ke bindingset to the reasoner bindingset.
-	 * 
-	 * @param someBindings a ke bindingset
-	 * @return a reasoner bindingset
-	 */
-	protected eu.knowledge.engine.reasoner.api.BindingSet translateBindingSetTo(BindingSet someBindings) {
-
-		eu.knowledge.engine.reasoner.api.BindingSet newBindingSet = new eu.knowledge.engine.reasoner.api.BindingSet();
-		eu.knowledge.engine.reasoner.api.Binding newBinding;
-		for (Binding b : someBindings) {
-
-			newBinding = new eu.knowledge.engine.reasoner.api.Binding();
-			for (String var : b.getVariables()) {
-				newBinding.put(var, b.get(var));
-			}
-			newBindingSet.add(newBinding);
-		}
-
-		return newBindingSet;
-	}
-
 	public static class CaptureBindingSetHandler implements SinkBindingSetHandler {
 
-		private eu.knowledge.engine.reasoner.api.BindingSet bs;
+		private BindingSet bs;
 
 		@Override
-		public CompletableFuture<Void> handle(eu.knowledge.engine.reasoner.api.BindingSet bs) {
+		public CompletableFuture<Void> handle(BindingSet bs) {
 
 			this.bs = bs;
 			var future = new CompletableFuture<Void>();
@@ -376,13 +329,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			return future;
 		}
 
-		public eu.knowledge.engine.reasoner.api.BindingSet getBindingSet() {
+		public BindingSet getBindingSet() {
 			return bs;
 		}
 
 	}
 
-	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedBindings, AnswerMessage aMessage,
+	private AskExchangeInfo convertMessageToExchangeInfo(BindingSet someBindings, AnswerMessage aMessage,
 			Instant aPreviousSend) {
 		Status status = Status.SUCCEEDED;
 		String failedMessage = aMessage.getFailedMessage();
@@ -392,12 +345,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		return new AskExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedBindings, aPreviousSend, Instant.now(), status,
-				failedMessage);
+				aMessage.getFromKnowledgeInteraction(), Util.translateToApiBindingSet(someBindings), aPreviousSend,
+				Instant.now(), status, failedMessage);
 	}
 
-	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someConvertedArgumentBindings,
-			BindingSet someConvertedResultBindings, ReactMessage aMessage, Instant aPreviousSend) {
+	private PostExchangeInfo convertMessageToExchangeInfo(BindingSet someArgumentBindings,
+			BindingSet someResultBindings, ReactMessage aMessage, Instant aPreviousSend) {
 		Status status = Status.SUCCEEDED;
 		String failedMessage = aMessage.getFailedMessage();
 
@@ -406,8 +359,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		return new PostExchangeInfo(Initiator.KNOWLEDGEBASE, aMessage.getFromKnowledgeBase(),
-				aMessage.getFromKnowledgeInteraction(), someConvertedArgumentBindings, someConvertedResultBindings,
-				aPreviousSend, Instant.now(), status, failedMessage);
+				aMessage.getFromKnowledgeInteraction(), Util.translateToApiBindingSet(someArgumentBindings),
+				Util.translateToApiBindingSet(someResultBindings), aPreviousSend, Instant.now(), status, failedMessage);
 	}
 
 	/**
@@ -429,14 +382,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		@Override
-		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
-				eu.knowledge.engine.reasoner.api.BindingSet bs) {
-			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
-			BindingSet newBS = translateBindingSetFrom(bs);
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
+			CompletableFuture<BindingSet> bsFuture;
 
 			AskMessage askMessage = new AskMessage(ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 					ReasonerProcessor.this.myKnowledgeInteraction.getId(), this.kii.getKnowledgeBaseId(),
-					this.kii.getId(), newBS);
+					this.kii.getId(), bs);
 
 			try {
 				CompletableFuture<AnswerMessage> sendAskMessage = ReasonerProcessor.this.messageRouter
@@ -464,7 +415,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					ReasonerProcessor.this.askExchangeInfos
 							.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage, aPreviousSend));
 
-					return translateBindingSetTo(resultBindingSet);
+					return resultBindingSet;
 				});
 
 			} catch (IOException e) {
@@ -474,8 +425,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 						this.kii.getKnowledgeBaseId());
 				LOG.trace("Detailed error information.", e);
-				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+				bsFuture = new CompletableFuture<BindingSet>();
+				bsFuture.complete(new BindingSet());
 			}
 			return bsFuture;
 		}
@@ -522,17 +473,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		@Override
-		public CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> handle(
-				eu.knowledge.engine.reasoner.api.BindingSet bs) {
+		public CompletableFuture<BindingSet> handle(BindingSet bs) {
 
-			CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet> bsFuture;
-
-			BindingSet newBS = translateBindingSetFrom(bs);
+			CompletableFuture<BindingSet> bsFuture;
 
 			PostMessage postMessage = new PostMessage(
 					ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
-					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(),
-					newBS);
+					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(), bs);
 
 			try {
 				CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
@@ -553,10 +500,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					assert reactMessage != null;
 					BindingSet resultBindingSet = reactMessage.getResult();
 
-					ReasonerProcessor.this.postExchangeInfos.add(
-							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
+					ReasonerProcessor.this.postExchangeInfos
+							.add(convertMessageToExchangeInfo(bs, resultBindingSet, reactMessage, aPreviousSend));
 
-					return translateBindingSetTo(resultBindingSet);
+					return resultBindingSet;
 				});
 
 			} catch (IOException e) {
@@ -566,8 +513,8 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 						ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
 						this.kii.getKnowledgeBaseId());
 				LOG.trace("Detailed error information.", e);
-				bsFuture = new CompletableFuture<eu.knowledge.engine.reasoner.api.BindingSet>();
-				bsFuture.complete(new eu.knowledge.engine.reasoner.api.BindingSet());
+				bsFuture = new CompletableFuture<BindingSet>();
+				bsFuture.complete(new BindingSet());
 			}
 			return bsFuture;
 		}
@@ -593,16 +540,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		}
 
 		@Override
-		public CompletableFuture<Void> handle(eu.knowledge.engine.reasoner.api.BindingSet bs) {
+		public CompletableFuture<Void> handle(BindingSet bs) {
 
 			CompletableFuture<Void> bsFuture;
 
-			BindingSet newBS = translateBindingSetFrom(bs);
-
 			PostMessage postMessage = new PostMessage(
 					ReasonerProcessor.this.myKnowledgeInteraction.getKnowledgeBaseId(),
-					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(),
-					newBS);
+					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(), bs);
 
 			try {
 				CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
@@ -622,7 +566,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}).thenApply((reactMessage) -> {
 					assert reactMessage != null;
 					ReasonerProcessor.this.postExchangeInfos.add(
-							convertMessageToExchangeInfo(newBS, reactMessage.getResult(), reactMessage, aPreviousSend));
+							convertMessageToExchangeInfo(bs, reactMessage.getResult(), reactMessage, aPreviousSend));
 
 					return (Void) null;
 				});

@@ -119,20 +119,6 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_DOMAIN_KNOWLEDGE_PATH = "ke.domain.knowledge.path";
 
 	/**
-	 * Configure the maximum number of entries in the node cache that is being used
-	 * to speed up converting from graph patterns and bindingsets to RDF. See:
-	 * {@code eu.knowledge.engine.smartconnector.impl.Util.nodeCache}
-	 * 
-	 */
-	public static final String CONF_KEY_KE_CACHE_NODE_SIZE = "ke.cache.node.size";
-
-	/**
-	 * Configure the number of minutes of being idle (not accessed) after which a
-	 * cache entry can be evicted from cache.
-	 */
-	public static final String CONF_KEY_KE_CACHE_NODE_EXPIRYMINUTES = "ke.cache.node.expiryminutes";
-
-	/**
 	 * The main thread pool of the Knowledge Engine Runtime that is used to, among
 	 * other things, deliver messages.
 	 */

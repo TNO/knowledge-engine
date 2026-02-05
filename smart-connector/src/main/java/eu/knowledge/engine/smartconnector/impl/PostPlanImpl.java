@@ -25,7 +25,7 @@ public class PostPlanImpl implements PostPlan {
 		if (someArguments == null) {
 			throw new IllegalArgumentException("the binding set should be non-null");
 		}
-		return this.processor.executePostInteraction(someArguments).handle((r, e) -> {
+		return this.processor.executePostInteraction(Util.translateFromApiBindingSet(someArguments)).handle((r, e) -> {
 
 			if (r == null) {
 				LOG.error("An exception has occured while executing Post Plan", e);

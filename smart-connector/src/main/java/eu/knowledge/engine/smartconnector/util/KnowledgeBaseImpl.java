@@ -292,7 +292,8 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 			LOG.trace("before ask metadata");
 			AskResult result = this.getSC().ask(askKnowledgeInteraction, new BindingSet()).get();
 			LOG.trace("after ask metadata");
-			Model m = Util.generateModel(askKnowledgeInteraction.getPattern(), result.getBindings());
+			Model m = Util.generateModel(askKnowledgeInteraction.getPattern(),
+					Util.translateFromApiBindingSet(result.getBindings()));
 
 //			System.out.println("----------" + this.getKnowledgeBaseName() + "-------------");
 //			m.write(System.out, "turtle");

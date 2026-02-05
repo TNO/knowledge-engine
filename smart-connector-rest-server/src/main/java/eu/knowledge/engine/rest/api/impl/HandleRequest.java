@@ -14,6 +14,7 @@ import eu.knowledge.engine.smartconnector.api.BindingValidator;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
 import eu.knowledge.engine.smartconnector.api.KnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.ReactKnowledgeInteraction;
+import eu.knowledge.engine.smartconnector.impl.Util;
 
 public class HandleRequest {
 	private static final Logger LOG = LoggerFactory.getLogger(HandleRequest.class);
@@ -27,7 +28,8 @@ public class HandleRequest {
 	private KnowledgeInteractionType knowledgeInteractionType;
 
 	public HandleRequest(int aHandleRequestId, KnowledgeInteraction aKI, KnowledgeInteractionType type,
-			List<Map<String, String>> aBindingSet, URI aRequestingKnowledgeBaseId, CompletableFuture<BindingSet> future) {
+			List<Map<String, String>> aBindingSet, URI aRequestingKnowledgeBaseId,
+			CompletableFuture<BindingSet> future) {
 		this.future = future;
 		this.handleRequestId = aHandleRequestId;
 		this.knowledgeInteractionType = type;
@@ -87,7 +89,7 @@ public class HandleRequest {
 					this.knowledgeInteractionType));
 		}
 		var validator = new BindingValidator();
-		validator.validateCompleteBindings(graphPattern, bindings);
+		validator.validateCompleteBindings(graphPattern, Util.translateFromApiBindingSet(bindings));
 	}
 
 	@Override

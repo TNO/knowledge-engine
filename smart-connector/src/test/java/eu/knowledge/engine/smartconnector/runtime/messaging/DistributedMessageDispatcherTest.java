@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import eu.knowledge.engine.knowledgedirectory.KnowledgeDirectory;
-import eu.knowledge.engine.smartconnector.api.Binding;
-import eu.knowledge.engine.smartconnector.api.BindingSet;
+import eu.knowledge.engine.reasoner.api.Binding;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.messaging.AnswerMessage;
 import eu.knowledge.engine.smartconnector.messaging.AskMessage;
 import eu.knowledge.engine.smartconnector.messaging.KnowledgeMessage;
@@ -44,8 +44,8 @@ public class DistributedMessageDispatcherTest {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "b");
-			binding.put("c", "d");
+			binding.put("a", "<b>");
+			binding.put("c", "<d>");
 			bindingSet.add(binding);
 
 			// -- Ask message -->
@@ -102,8 +102,8 @@ public class DistributedMessageDispatcherTest {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "b");
-			binding.put("c", "d");
+			binding.put("a", "<b>");
+			binding.put("c", "<d>");
 			bindingSet.add(binding);
 
 			// -- Ask message -->
