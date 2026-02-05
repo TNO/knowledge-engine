@@ -46,7 +46,7 @@ services:
   
   knowledge-directory:
     container_name: knowledge-directory
-    image: knowledge-directory:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.4.1-SNAPSHOT
     networks:
       - network-authority
     ports:
@@ -119,7 +119,7 @@ services:
 
   alice-ker:
     container_name: alice-ker
-    image: smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     networks:
       - network-alice
     ports:
@@ -238,7 +238,7 @@ services:
 
   bob-ker:
     container_name: bob-ker
-    image: smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     networks:
       - network-bob
     ports:
@@ -357,7 +357,7 @@ services:
 
   carol-ker:
     container_name: carol-ker
-    image: smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     networks:
       - network-carol
     ports:
