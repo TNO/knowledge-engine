@@ -44,8 +44,8 @@ public class DistributedMessageDispatcherTest {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "b");
-			binding.put("c", "d");
+			binding.put("a", "<b>");
+			binding.put("c", "<d>");
 			bindingSet.add(binding);
 
 			// -- Ask message -->
@@ -102,8 +102,8 @@ public class DistributedMessageDispatcherTest {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "b");
-			binding.put("c", "d");
+			binding.put("a", "<b>");
+			binding.put("c", "<d>");
 			bindingSet.add(binding);
 
 			// -- Ask message -->
