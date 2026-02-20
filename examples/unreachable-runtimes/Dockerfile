@@ -1,4 +1,4 @@
-FROM ghcr.io/tno/knowledge-engine/smart-connector:1.3.0
+FROM ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
 
 USER root
 
