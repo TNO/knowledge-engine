@@ -105,7 +105,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 			// to receive the initial state, we do a single Ask (after sleeping for a
 			// specific amount of time)
 			try {
-				Thread.sleep(ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_ADMIN_UI_DELAY,
+				Thread.sleep(ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_METADATA_DELAY,
 						Integer.class));
 			} catch (InterruptedException e) {
 				LOG.error("Initial metadata KB delay should not fail.", e);
