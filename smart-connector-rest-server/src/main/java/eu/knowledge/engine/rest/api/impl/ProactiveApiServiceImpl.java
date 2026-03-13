@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import eu.knowledge.engine.rest.api.NotFoundException;
 import eu.knowledge.engine.rest.model.AskExchangeInfo;
 import eu.knowledge.engine.rest.model.AskResult;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
@@ -151,14 +150,16 @@ public class ProactiveApiServiceImpl {
 
 				LOG.debug("Bindings in result is {}", askResult.getBindings());
 				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
-				
-				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings())).exchangeInfo(infos);
-				// distinguish between knowledge gaps enabled or not to produce an AskResult or an AskResultWithGaps
+
+				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
+						.exchangeInfo(infos);
+				// distinguish between knowledge gaps enabled or not to produce an AskResult or
+				// an AskResultWithGaps
 				if (ki.getKnowledgeGapsEnabled()) {
 					LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
-					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));					
+					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));
 				}
-				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());					
+				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
 			});
 
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
@@ -173,6 +174,13 @@ public class ProactiveApiServiceImpl {
 			response.setMessageType("error");
 			response.setMessage(e.getMessage());
 			asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+		} catch (IllegalStateException e) {
+			// triggered when, for example, the SC was stopped before the KI is activated.
+			LOG.trace("{}", e);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(e.getMessage());
+			asyncResponse.resume(Response.status(Status.GONE).entity(response).build());
 		}
 	}
 
@@ -221,8 +229,7 @@ public class ProactiveApiServiceImpl {
 			@Parameter(description = "The Knowledge Base Id for which to execute the ask.", required = true) @HeaderParam("Knowledge-Base-Id") String knowledgeBaseId,
 			@Parameter(description = "The Post Knowledge Interaction Id to execute.", required = true) @HeaderParam("Knowledge-Interaction-Id") String knowledgeInteractionId,
 			@Parameter(description = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
-			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext)
-			throws NotFoundException {
+			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
 		LOG.debug("scPostPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
@@ -334,6 +341,13 @@ public class ProactiveApiServiceImpl {
 				response.setMessageType("error");
 				response.setMessage(e.getMessage());
 				asyncResponse.resume(Response.status(Status.BAD_REQUEST).entity(response).build());
+			} catch (IllegalStateException e) {
+				// triggered when, for example, the SC has stopped before the KI is activated.
+				LOG.trace("{}", e);
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage(e.getMessage());
+				asyncResponse.resume(Response.status(Status.GONE).entity(response).build());
 			}
 		}
 	}
