@@ -115,7 +115,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public URI register(AskKnowledgeInteraction anAskKI) {
 		this.checkStopped();
 		URI kiId = this.knowledgeBaseStore.register(anAskKI, false);
-		LOG.info("Registered Ask KI <{}>.", kiId);
+		LOG.trace("Registered Ask KI <{}>.", anAskKI);
 		return kiId;
 	}
 
@@ -157,7 +157,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public URI register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler anAnswerHandler) {
 		this.checkStopped();
 		URI kiId = this.knowledgeBaseStore.register(anAnswerKI, anAnswerHandler, false);
-		LOG.info("Registered Answer KI <{}>.", kiId);
+		LOG.trace("Registered Answer KI <{}>.", anAnswerKI);
 		return kiId;
 	}
 
@@ -194,7 +194,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public URI register(PostKnowledgeInteraction aPostKI) {
 		this.checkStopped();
 		URI kiId = this.knowledgeBaseStore.register(aPostKI, false);
-		LOG.info("Registered Post KI <{}>.", kiId);
+		LOG.trace("Registered Post KI <{}>.", aPostKI);
 		return kiId;
 	}
 
@@ -235,7 +235,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	public URI register(ReactKnowledgeInteraction aReactKI, ReactHandler aReactHandler) {
 		this.checkStopped();
 		URI kiId = this.knowledgeBaseStore.register(aReactKI, aReactHandler, false);
-		LOG.info("Registered React KI <{}>.", kiId);
+		LOG.trace("Registered React KI <{}>.", aReactKI);
 		return kiId;
 	}
 
@@ -481,19 +481,20 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 	}
 
 	void communicationReady() {
-		Instant beforePopulate = Instant.now();
-		LOG.info("Getting comms ready took {} ms", Duration.between(this.started, beforePopulate).toMillis());
+		Instant beforeComms = Instant.now();
+		LOG.trace("Getting comms ready took {} ms", Duration.between(this.started, beforeComms).toMillis());
 		Instant beforeConstructorFinished = Instant.now();
 		this.constructorFinished.handle((r3, e3) -> {
-			LOG.info("Constructor finished took {} ms",
+			LOG.trace("Constructor finished took {} ms",
 					Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 			// Populate the initial knowledge base store.
+			Instant beforePopulate = Instant.now();
 			this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
 				LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
 				Instant beforeAnnounce = Instant.now();
 				// Then tell the other knowledge bases about our existence.
 				this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
-					LOG.info("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
+					LOG.debug("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
 
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is

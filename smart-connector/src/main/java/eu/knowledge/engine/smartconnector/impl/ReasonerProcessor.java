@@ -13,10 +13,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.serializer.SerializationContext;
-import org.apache.jena.sparql.util.FmtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -30,6 +26,7 @@ import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.TransformBindingSetHandler;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TripleNode;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
 import eu.knowledge.engine.reasoner.rulenode.RuleNode;
@@ -38,8 +35,6 @@ import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
-import eu.knowledge.engine.reasoner.api.Binding;
-import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
@@ -118,7 +113,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				Rule aRule = new Rule(ruleName, new HashSet<>(Util.translateGraphPatternTo(gp)),
 						new AnswerBindingSetHandler(kii));
 				store.addRule(aRule);
-				LOG.debug("Adding ANSWER to store: {}", aRule);
+				LOG.trace("Adding ANSWER to store: {}", aRule);
 			} else if (kii.getType().equals(Type.REACT)) {
 				ReactKnowledgeInteraction rki = (ReactKnowledgeInteraction) ki;
 				GraphPattern argGp = rki.getArgument();
@@ -134,13 +129,10 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					aRule = new Rule(ruleName, Util.translateGraphPatternTo(argGp), resPattern,
 							new ReactBindingSetHandler(kii));
 				}
-
 				store.addRule(aRule);
-				LOG.debug("Adding REACT to store: {}", aRule);
+				LOG.trace("Adding REACT to store: {}", aRule);
 			}
-
 		}
-
 	}
 
 	@Override
@@ -163,7 +155,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			else
 				aStrategy = aki.getMatchStrategy();
 
-			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			LOG.trace("Creating reasoner plan with strategy: {}", aStrategy);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(true));
 		} else {
 			LOG.warn("Type should be Ask, not {}", this.myKnowledgeInteraction.getType());
@@ -199,6 +191,20 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				this.knowledgeGaps = bs.isEmpty() ? getKnowledgeGaps(this.reasonerPlan.getStartNode())
 						: new HashSet<KnowledgeGap>();
 			}
+
+			// extract succeeded nr of exchange infos and nr of failed exchange infos
+			int nrOfSucceededKIs = 0, nrOfFailedKIs = 0;
+			for (AskExchangeInfo aei : this.askExchangeInfos) {
+				if (aei.getStatus().equals(Status.SUCCEEDED)) {
+					nrOfSucceededKIs++;
+				} else if (aei.getStatus().equals(Status.FAILED)) {
+					nrOfFailedKIs++;
+				}
+			}
+
+			LOG.info("Finished ask for KI <{}> with {} result bindings involving {} KIs (of which {} failed)",
+					this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs, nrOfFailedKIs);
+
 			return new AskResult(Util.translateToApiBindingSet(bs), this.askExchangeInfos, this.reasonerPlan,
 					this.knowledgeGaps);
 		});
@@ -211,9 +217,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		final String msg = "Executing (scheduled) tasks for the reasoner should not result in problems.";
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
-		LOG.debug("ask:\n{}", this.reasonerPlan);
+		LOG.trace("Ask: {}", this.reasonerPlan);
 		taskboard.executeScheduledTasks().thenAccept(Void -> {
-			LOG.debug("All ask tasks finished.");
+			LOG.trace("All ask tasks finished.");
 			if (isComplete) {
 				BindingSet bs = this.reasonerPlan.getResults();
 				this.finalBindingSetFuture.complete(bs);
@@ -256,7 +262,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			else
 				aStrategy = pki.getMatchStrategy();
 
-			LOG.debug("Creating reasoner plan with strategy: {}", aStrategy);
+			LOG.trace("Creating reasoner plan with strategy: {}", aStrategy);
 			this.reasonerPlan = new ReasonerPlan(this.store, aRule, aStrategy.toConfig(false));
 
 		} else {
@@ -274,6 +280,25 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		continueReasoningForward(someBindings, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
+
+			// extract succeeded nr of exchange infos and nr of failed exchange infos
+			int nrOfSucceededKIs = 0, nrOfFailedKIs = 0;
+			for (PostExchangeInfo aei : this.postExchangeInfos) {
+				if (aei.getStatus().equals(Status.SUCCEEDED)) {
+					nrOfSucceededKIs++;
+				} else if (aei.getStatus().equals(Status.FAILED)) {
+					nrOfFailedKIs++;
+				}
+			}
+
+			String logMessage = "Finished post for KI <{}> with {} result bindings involving {} KIs (of which {} failed)";
+			if (this.myKnowledgeInteraction.isMeta())
+				LOG.trace(logMessage, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
+						nrOfFailedKIs);
+			else
+				LOG.info(logMessage, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
+						nrOfFailedKIs);
+
 			return new PostResult(Util.translateToApiBindingSet(bs), this.postExchangeInfos, this.reasonerPlan);
 		});
 	}
@@ -285,9 +310,9 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		TaskBoard taskboard;
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
-		LOG.debug("post:\n{}", this.reasonerPlan);
+		LOG.trace("Post: {}", this.reasonerPlan);
 		taskboard.executeScheduledTasks().thenAccept(Void -> {
-			LOG.debug("All post tasks finished.");
+			LOG.trace("All post tasks finished.");
 			if (isComplete) {
 				BindingSet resultBS = new BindingSet();
 				if (aBindingSetHandler != null && aBindingSetHandler.getBindingSet() != null) {
@@ -390,6 +415,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					this.kii.getId(), bs);
 
 			try {
+				String logMessage = "Contacting KI <{}> while executing <{}>";
+				if (!ReasonerProcessor.this.myKnowledgeInteraction.isMeta())
+					LOG.debug(logMessage, askMessage.getToKnowledgeInteraction(),
+							askMessage.getFromKnowledgeInteraction());
+				else
+					LOG.trace(logMessage, askMessage.getToKnowledgeInteraction(),
+							askMessage.getFromKnowledgeInteraction());
+
 				CompletableFuture<AnswerMessage> sendAskMessage = ReasonerProcessor.this.messageRouter
 						.sendAskMessage(askMessage);
 				Instant aPreviousSend = Instant.now();
@@ -403,13 +436,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 											askMessage.getMessageId().toString() });
 
 					LOG.warn(failedMessage);
-					LOG.debug("", t);
+					LOG.trace("", t);
 					return ReasonerProcessor.this
 							.<AskMessage, AnswerMessage>createFailedResponseMessageFromRequestMessage(askMessage,
 									failedMessage);
 				}).thenApply((answerMessage) -> {
 					assert answerMessage != null;
-					LOG.debug("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
+					LOG.trace("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = answerMessage.getBindings();
 
 					ReasonerProcessor.this.askExchangeInfos
@@ -482,6 +515,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(), bs);
 
 			try {
+				String logMessage = "Contacting KI <{}> while executing <{}>";
+				if (!ReasonerProcessor.this.myKnowledgeInteraction.isMeta())
+					LOG.debug(logMessage, postMessage.getToKnowledgeInteraction(),
+							postMessage.getFromKnowledgeInteraction());
+				else
+					LOG.trace(logMessage, postMessage.getToKnowledgeInteraction(),
+							postMessage.getFromKnowledgeInteraction());
 				CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
@@ -492,7 +532,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
 											postMessage.getMessageId().toString() });
 					LOG.warn(failedMessage);
-					LOG.debug("", t);
+					LOG.trace("", t);
 					return ReasonerProcessor.this
 							.<PostMessage, ReactMessage>createFailedResponseMessageFromRequestMessage(postMessage,
 									failedMessage);
@@ -549,6 +589,14 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					ReasonerProcessor.this.myKnowledgeInteraction.getId(), kii.getKnowledgeBaseId(), kii.getId(), bs);
 
 			try {
+				String logMessage = "Contacting KI <{}> while executing <{}>";
+				if (!ReasonerProcessor.this.myKnowledgeInteraction.isMeta())
+					LOG.debug(logMessage, postMessage.getToKnowledgeInteraction(),
+							postMessage.getFromKnowledgeInteraction());
+				else
+					LOG.trace(logMessage, postMessage.getToKnowledgeInteraction(),
+							postMessage.getFromKnowledgeInteraction());
+
 				CompletableFuture<ReactMessage> sendPostMessage = ReasonerProcessor.this.messageRouter
 						.sendPostMessage(postMessage);
 				Instant aPreviousSend = Instant.now();
@@ -559,7 +607,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 											t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName(),
 											postMessage.getMessageId().toString() });
 					LOG.warn(failedMessage);
-					LOG.debug("", t);
+					LOG.trace("", t);
 					return ReasonerProcessor.this
 							.<PostMessage, ReactMessage>createFailedResponseMessageFromRequestMessage(postMessage,
 									failedMessage);
@@ -619,17 +667,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		for (Entry<TriplePattern, Set<RuleNode>> entry : nodeCoverage.entrySet()) {
 
-			LOG.debug("Entry key is {}", entry.getKey());
-			LOG.debug("Entry value is {}", entry.getValue());
+			LOG.trace("Entry key is {}", entry.getKey());
+			LOG.trace("Entry value is {}", entry.getValue());
 
 			collectedOrGaps = new HashSet<>();
 			boolean foundNeighborWithoutGap = false;
 			for (RuleNode neighbor : entry.getValue()) {
-				LOG.debug("Neighbor is {}", neighbor);
+				LOG.trace("Neighbor is {}", neighbor);
 
 				if (!neighbor.getRule().getAntecedent().isEmpty()) {
 					// make sure neighbor has no knowledge gaps
-					LOG.debug("Neighbor has antecedents, so check if the neighbor has gaps");
+					LOG.trace("Neighbor has antecedents, so check if the neighbor has gaps");
 
 					// knowledge engine specific code. We ignore meta knowledge interactions when
 					// looking for knowledge gaps, because they are very generic and make finding
@@ -640,16 +688,16 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
 						// found neighbor without knowledge gaps for the current triple, so current
 						// triple is covered.
-						LOG.debug("Neighbor has no gaps");
+						LOG.trace("Neighbor has no gaps");
 						foundNeighborWithoutGap = true;
 						break;
 					}
-					LOG.debug("Neighbor has someGaps {}", someGaps);
+					LOG.trace("Neighbor has someGaps {}", someGaps);
 					collectedOrGaps.addAll(someGaps);
 				} else
 					foundNeighborWithoutGap = true;
 			}
-			LOG.debug("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
+			LOG.trace("Found a neighbor without gaps is {}", foundNeighborWithoutGap);
 
 			if (foundNeighborWithoutGap)
 				continue;
@@ -661,11 +709,11 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				kg.add(entry.getKey());
 				collectedOrGaps.add(kg);
 			}
-			LOG.debug("CollectedOrGaps is {}", collectedOrGaps);
+			LOG.trace("CollectedOrGaps is {}", collectedOrGaps);
 
 			existingOrGaps = mergeGaps(existingOrGaps, collectedOrGaps);
 		}
-		LOG.debug("Found existingOrGaps {}", existingOrGaps);
+		LOG.trace("Found existingOrGaps {}", existingOrGaps);
 		return existingOrGaps;
 	}
 

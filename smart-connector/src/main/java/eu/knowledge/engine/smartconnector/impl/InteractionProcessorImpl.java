@@ -175,7 +175,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		String queryString = createQuery(aSelector.getPattern(),
 				Util.translateFromApiBindingSet(aSelector.getBindingSet()));
-		LOG.debug("Query: {}", queryString);
+		LOG.trace("Query: {}", queryString);
 		Query q = QueryFactory.create(queryString);
 		QueryExecution qe = QueryExecutionFactory.create(q, m);
 		ResultSet rs = qe.execSelect();
@@ -227,7 +227,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			AnswerMessage m = new AnswerMessage(anAskMsg.getToKnowledgeBase(), anAskMsg.getToKnowledgeInteraction(),
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					"Received AskMessage wth unknown ToKnowledgeInteractionId");
-			LOG.debug("Received AskMessage with unknown ToKnowledgeInteractionId: "
+			LOG.trace("Received AskMessage with unknown ToKnowledgeInteractionId: "
 					+ anAskMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<AnswerMessage> f = new CompletableFuture<>();
 			f.complete(m);
@@ -243,7 +243,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		// TODO This should happen in the single thread for the knowledge base
 
 		if (answerKnowledgeInteraction.isMeta()) {
-			LOG.debug("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
+			LOG.trace("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 		} else {
 			LOG.info("Contacting my KB to answer KI <{}>", answerKnowledgeInteractionId);
 		}
@@ -255,7 +255,13 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
-				LOG.debug("Received ANSWER from KB for KI <{}>: {}", answerKnowledgeInteractionId, b);
+
+				String logStatement = "Received {} binding(s) as answer from KB for KI <{}>";
+				if (!answerKnowledgeInteraction.isMeta())
+					LOG.debug(logStatement, b.size(), answerKnowledgeInteractionId);
+				else
+					LOG.trace(logStatement, b.size(), answerKnowledgeInteractionId);
+
 				BindingSet translatedB = Util.translateFromApiBindingSet(b);
 
 				if (this.shouldValidateInputOutputBindings()) {
@@ -280,7 +286,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			}
 		}).exceptionally((e) -> {
 			LOG.error("An error occurred while answering a msg: ", e);
-			LOG.debug("The error occured while answering this message: {}", anAskMsg);
+			LOG.trace("The error occured while answering this message: {}", anAskMsg);
 			return new AnswerMessage(anAskMsg.getToKnowledgeBase(), answerKnowledgeInteractionId,
 					anAskMsg.getFromKnowledgeBase(), anAskMsg.getFromKnowledgeInteraction(), anAskMsg.getMessageId(),
 					e.getMessage());
@@ -340,7 +346,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			ReactMessage m = new ReactMessage(aPostMsg.getToKnowledgeBase(), aPostMsg.getToKnowledgeInteraction(),
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					"Received PostMessage with unknown ToKnowledgeInteractionId");
-			LOG.debug("Received PostMessage with unknown ToKnowledgeInteractionId: "
+			LOG.trace("Received PostMessage with unknown ToKnowledgeInteractionId: "
 					+ aPostMsg.getToKnowledgeInteraction().toString());
 			CompletableFuture<ReactMessage> f = new CompletableFuture<>();
 			f.complete(m);
@@ -358,7 +364,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		// TODO This should happen in the single thread for the knowledge base
 		if (reactKnowledgeInteraction.isMeta()) {
-			LOG.debug("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
+			LOG.trace("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
 		} else {
 			LOG.info("Contacting my KB to react to KI <{}>", reactKnowledgeInteractionId);
 		}
@@ -367,7 +373,12 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
-				LOG.debug("Received REACT from KB for KI <{}>: {}", reactKnowledgeInteraction, b);
+				String logStatement = "Received {} binding(s) as react from KB for KI <{}>";
+				if (!reactKnowledgeInteraction.isMeta())
+					LOG.debug(logStatement, b.size(), reactKnowledgeInteractionId);
+				else
+					LOG.trace(logStatement, b.size(), reactKnowledgeInteractionId);
+
 				BindingSet translatedB = Util.translateFromApiBindingSet(b);
 
 				if (this.shouldValidateInputOutputBindings()) {
@@ -393,7 +404,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 			}
 		}).exceptionally((e) -> {
 			LOG.error("An error occurred while reacting to a message:", e);
-			LOG.debug("The error occured while reacting to this message: {}", aPostMsg);
+			LOG.trace("The error occured while reacting to this message: {}", aPostMsg);
 			return new ReactMessage(aPostMsg.getToKnowledgeBase(), reactKnowledgeInteractionId,
 					aPostMsg.getFromKnowledgeBase(), aPostMsg.getFromKnowledgeInteraction(), aPostMsg.getMessageId(),
 					e.getMessage());
@@ -539,7 +550,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 	private void readAdditionalDomainKnowledge(String pathString) {
 		Path p = FileSystems.getDefault().getPath(pathString);
 
-		LOG.debug("Reading additional domain knowledge from path: " + p.toAbsolutePath());
+		LOG.trace("Reading additional domain knowledge from path: " + p.toAbsolutePath());
 
 		try (BufferedReader r = Files.newBufferedReader(p.toAbsolutePath(), StandardCharsets.UTF_8)) {
 
