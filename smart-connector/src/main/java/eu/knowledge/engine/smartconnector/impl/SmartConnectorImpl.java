@@ -490,11 +490,13 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 			// Populate the initial knowledge base store.
 			Instant beforePopulate = Instant.now();
 			this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
-				LOG.info("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
+				LOG.debug("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
 				Instant beforeAnnounce = Instant.now();
 				// Then tell the other knowledge bases about our existence.
 				this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
-					LOG.debug("Announcing took {} ms", Duration.between(beforeAnnounce, Instant.now()).toMillis());
+					LOG.info("SC communication ready took {} ms. Default reasoner level: {}",
+							Duration.between(this.started, Instant.now()).toMillis(),
+							this.interactionProcessor.getReasonerLevel());
 
 					// When that is done, and all peers have acknowledged our existence, we
 					// can proceed to inform the knowledge base that this smart connector is
