@@ -256,7 +256,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
 
-				String logStatement = "Received {} binding(s) as answer from KB for KI <{}>";
+				String logStatement = "Received {} binding(s) as answer from my KB for KI <{}>";
 				if (!answerKnowledgeInteraction.isMeta())
 					LOG.debug(logStatement, b.size(), answerKnowledgeInteractionId);
 				else
@@ -373,7 +373,7 @@ public class InteractionProcessorImpl implements InteractionProcessor {
 
 		return future.handle((b, e) -> {
 			if (b != null && e == null) {
-				String logStatement = "Received {} binding(s) as react from KB for KI <{}>";
+				String logStatement = "Received {} binding(s) as react from my KB for KI <{}>";
 				if (!reactKnowledgeInteraction.isMeta())
 					LOG.debug(logStatement, b.size(), reactKnowledgeInteractionId);
 				else

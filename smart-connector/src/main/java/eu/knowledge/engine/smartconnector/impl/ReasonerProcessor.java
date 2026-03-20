@@ -202,8 +202,13 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 			}
 
-			LOG.info("Finished ask for KI <{}> with {} result bindings involving {} KIs (of which {} failed)",
-					this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs, nrOfFailedKIs);
+			String logStatement = "Finished ask for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed)";
+			if (this.myKnowledgeInteraction.isMeta())
+				LOG.trace(logStatement, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
+						nrOfFailedKIs);
+			else
+				LOG.info(logStatement, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
+						nrOfFailedKIs);
 
 			return new AskResult(Util.translateToApiBindingSet(bs), this.askExchangeInfos, this.reasonerPlan,
 					this.knowledgeGaps);
@@ -291,7 +296,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				}
 			}
 
-			String logMessage = "Finished post for KI <{}> with {} result bindings involving {} KIs (of which {} failed)";
+			String logMessage = "Finished post for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed)";
 			if (this.myKnowledgeInteraction.isMeta())
 				LOG.trace(logMessage, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
 						nrOfFailedKIs);
