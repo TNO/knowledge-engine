@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -193,22 +194,22 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			}
 
 			// extract succeeded nr of exchange infos and nr of failed exchange infos
-			int nrOfSucceededKIs = 0, nrOfFailedKIs = 0;
+			List<String> succeededKIs = new ArrayList<String>(), failedKIs = new ArrayList<String>();
 			for (AskExchangeInfo aei : this.askExchangeInfos) {
 				if (aei.getStatus().equals(Status.SUCCEEDED)) {
-					nrOfSucceededKIs++;
+					succeededKIs.add(aei.getKnowledgeInteractionId().toString());
 				} else if (aei.getStatus().equals(Status.FAILED)) {
-					nrOfFailedKIs++;
+					failedKIs.add(aei.getKnowledgeInteractionId().toString());
 				}
 			}
 
-			String logStatement = "Finished ask for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed)";
+			String logStatement = "Finished ask for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed: {})";
 			if (this.myKnowledgeInteraction.isMeta())
-				LOG.trace(logStatement, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
-						nrOfFailedKIs);
+				LOG.trace(logStatement, this.myKnowledgeInteraction.getId(), bs.size(),
+						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 			else
-				LOG.info(logStatement, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
-						nrOfFailedKIs);
+				LOG.info(logStatement, this.myKnowledgeInteraction.getId(), bs.size(),
+						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 
 			return new AskResult(Util.translateToApiBindingSet(bs), this.askExchangeInfos, this.reasonerPlan,
 					this.knowledgeGaps);
@@ -287,22 +288,22 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 
 			// extract succeeded nr of exchange infos and nr of failed exchange infos
-			int nrOfSucceededKIs = 0, nrOfFailedKIs = 0;
+			List<String> succeededKIs = new ArrayList<>(), failedKIs = new ArrayList<>();
 			for (PostExchangeInfo aei : this.postExchangeInfos) {
 				if (aei.getStatus().equals(Status.SUCCEEDED)) {
-					nrOfSucceededKIs++;
+					succeededKIs.add(aei.getKnowledgeInteractionId().toString());
 				} else if (aei.getStatus().equals(Status.FAILED)) {
-					nrOfFailedKIs++;
+					failedKIs.add(aei.getKnowledgeInteractionId().toString());
 				}
 			}
 
-			String logMessage = "Finished post for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed)";
+			String logMessage = "Finished post for KI <{}> with {} result bindings involving {} KI(s) (of which {} failed: {})";
 			if (this.myKnowledgeInteraction.isMeta())
-				LOG.trace(logMessage, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
-						nrOfFailedKIs);
+				LOG.trace(logMessage, this.myKnowledgeInteraction.getId(), bs.size(),
+						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 			else
-				LOG.info(logMessage, this.myKnowledgeInteraction.getId(), bs.size(), nrOfSucceededKIs + nrOfFailedKIs,
-						nrOfFailedKIs);
+				LOG.info(logMessage, this.myKnowledgeInteraction.getId(), bs.size(),
+						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 
 			return new PostResult(Util.translateToApiBindingSet(bs), this.postExchangeInfos, this.reasonerPlan);
 		});
