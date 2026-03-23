@@ -118,7 +118,7 @@ public class KnowledgeNetwork {
 				allUpToDate &= kbUpToDate;
 				upToDate.put(kb, kbUpToDate);
 				if (kbUpToDate) {
-					LOG.debug("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
+					LOG.trace("Knowledge Base {} is up to date.", kb.getKnowledgeBaseName());
 				}
 			}
 			try {
@@ -128,7 +128,7 @@ public class KnowledgeNetwork {
 				LOG.error("An error occured while waiting for up-to-date.", e);
 			}
 		}
-		LOG.info("Everyone is up to date after {} rounds!", count);
+		LOG.trace("Everyone is up to date after {} rounds!", count);
 	}
 
 	private String getUpToDateInfo(Map<KnowledgeBaseImpl, Boolean> upToDate) {

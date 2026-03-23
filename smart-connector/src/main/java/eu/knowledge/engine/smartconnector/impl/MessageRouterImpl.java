@@ -102,7 +102,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 						LOG.error("KB '{}' did not respond within {}s to AskMessage '{}'.",
 								askMessage.getToKnowledgeBase(), this.getWaitTimeout(), askMessage.getMessageId());
 					else if (e instanceof CancellationException)
-						LOG.debug("Waiting for AnswerMessage to AskMessage '{}' was cancelled due to a stopping SC.",
+						LOG.trace("Waiting for AnswerMessage to AskMessage '{}' was cancelled due to a stopping SC.",
 								askMessage.getMessageId());
 					else
 						LOG.error("A {} occurred while sending an AskMessage.", e.getClass().getSimpleName(), e);
@@ -130,7 +130,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			throw ioe;
 		}
 
-		LOG.debug("Sent AskMessage: {}", askMessage);
+		LOG.trace("Sent AskMessage: {}", askMessage);
 
 		return future;
 	}
@@ -151,7 +151,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 						LOG.warn("KB '{}' did not respond within {}s to PostMessage '{}'.",
 								postMessage.getToKnowledgeBase(), this.getWaitTimeout(), postMessage.getMessageId());
 					else if (e instanceof CancellationException)
-						LOG.debug("Waiting for ReactMessage to PostMessage '{}' was cancelled due to a stopping SC.",
+						LOG.trace("Waiting for ReactMessage to PostMessage '{}' was cancelled due to a stopping SC.",
 								postMessage.getMessageId());
 					else
 						LOG.error("A {} occurred while sending an PostMessage.", e.getClass().getSimpleName(), e);
@@ -177,7 +177,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			// and re throw
 			throw ioe;
 		}
-		LOG.debug("Sent PostMessage: {}", postMessage);
+		LOG.trace("Sent PostMessage: {}", postMessage);
 
 		return future;
 	}
@@ -201,7 +201,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					messageDispatcher.send(reply);
 				} catch (Throwable e) {
 					this.LOG.warn("Could not send reply to message " + message.getMessageId() + ": " + e.getMessage());
-					this.LOG.debug("", e);
+					this.LOG.trace("", e);
 				}
 			}).handle((r, e) -> {
 
@@ -258,7 +258,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 					+ ", but I don't remember sending a message with that ID. It might have taken more than {}s to respond.",
 					this.getWaitTimeout());
 		} else {
-			LOG.debug("Received AnswerMessage: {}", answerMessage);
+			LOG.trace("Received AnswerMessage: {}", answerMessage);
 			future.complete(answerMessage);
 		}
 	}
@@ -277,7 +277,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 		} else {
 			assert reactMessage != null;
 			assert future != null;
-			LOG.debug("Received ReactMessage: {}", reactMessage);
+			LOG.trace("Received ReactMessage: {}", reactMessage);
 			future.complete(reactMessage);
 		}
 	}
@@ -341,7 +341,7 @@ public class MessageRouterImpl implements MessageRouter, SmartConnectorEndpoint 
 			if (future.cancel(true))
 				i++;
 		}
-		LOG.debug("MessageRouterImpl stopped. Cancelled {} message(s).", i);
+		LOG.trace("MessageRouterImpl stopped. Cancelled {} message(s).", i);
 	}
 
 }
