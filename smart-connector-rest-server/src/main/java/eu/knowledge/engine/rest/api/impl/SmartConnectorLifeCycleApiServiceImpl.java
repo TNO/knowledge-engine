@@ -7,10 +7,9 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.jena.irix.IRIException;
-import org.apache.jena.irix.IRIProvider;
-import org.apache.jena.irix.IRIProviderJenaIRI;
 import org.apache.jena.reasoner.rulesys.Rule.ParserException;
+import org.apache.jena.rfc3986.IRIParseException;
+import org.apache.jena.rfc3986.RFC3986;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +44,6 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 	private static final Logger LOG = LoggerFactory.getLogger(SmartConnectorLifeCycleApiServiceImpl.class);
 
 	private RestKnowledgeBaseManager manager = RestKnowledgeBaseManager.newInstance();
-
-	private final IRIProvider iriProvider = new IRIProviderJenaIRI();
 
 	@GET
 	@Produces({ "application/json; charset=UTF-8" })
@@ -122,10 +119,11 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 		try {
 			// Additional check to verify that it is a valid IRI according to Jena.
 			// (java.net.URI is not strict enough.)
-			iriProvider.check(smartConnector.getKnowledgeBaseId());
+
+			RFC3986.checkSyntax(smartConnector.getKnowledgeBaseId());
 
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
-		} catch (URISyntaxException | IRIException e) {
+		} catch (URISyntaxException | IRIParseException e) {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge base ID must be a valid IRI.");

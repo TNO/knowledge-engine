@@ -12,7 +12,7 @@ public class JenaTest {
 	public void testFloatsAndDecimals() {
 		Node_Literal node1 = (Node_Literal) SSE.parseNode("\"12\"^^xsd:float");
 		Node_Literal node2 = (Node_Literal) SSE.parseNode("\"12\"^^xsd:decimal");
-		assertFalse(node1.matches(node2));
+		assertFalse(node1.sameValueAs(node2));
 		assertNotEquals(node1, node2);
 	}
 }
