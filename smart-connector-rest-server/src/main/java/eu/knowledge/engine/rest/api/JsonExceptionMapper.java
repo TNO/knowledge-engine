@@ -1,11 +1,12 @@
 package eu.knowledge.engine.rest.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import eu.knowledge.engine.rest.model.ResponseMessage;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Since apparently Jersey gives a status 500 response when it encounters
@@ -16,10 +17,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class JsonExceptionMapper implements ExceptionMapper<JsonProcessingException> {
 	@Override
 	public Response toResponse(JsonProcessingException exception) {
-		return Response
-			.status(Response.Status.BAD_REQUEST)
-			.entity(exception.getOriginalMessage())
-			.type(MediaType.TEXT_PLAIN)
-			.build();
+
+		var response = new ResponseMessage();
+		response.setMessageType("error");
+		response.setMessage(exception.getClass().getSimpleName() + ": " + exception.getOriginalMessage());
+
+		return Response.status(Response.Status.BAD_REQUEST).entity(response).type(MediaType.APPLICATION_JSON).build();
 	}
 }
