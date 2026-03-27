@@ -122,6 +122,11 @@
 				<artifactId>jersey-container-servlet</artifactId>
 				<version>${jersey3-version}</version>
 			</dependency>
+			<dependency>
+			    <groupId>org.glassfish.jersey.ext</groupId>
+			    <artifactId>jersey-bean-validation</artifactId>
+			    <version>${jersey3-version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.fasterxml.jackson.datatype</groupId>
