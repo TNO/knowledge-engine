@@ -47,18 +47,6 @@ public class KeRuntime {
 
 		Config config = ConfigProvider.getConfig();
 		ConfigValue exposedUrl = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
-		ConfigValue hostname = config.getConfigValue(SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);
-
-		// Using MicroProfile Config's source ordinal to determine if default
-		// configuration got overridden?
-		if (exposedUrl.getSourceOrdinal() > 100 && hostname.getSourceOrdinal() > 100) {
-			LOG.error("KE runtime must be configured with {} or {}, not both.",
-					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL,
-					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_HOSTNAME);
-			LOG.info("Using {} allows the use of a reverse proxy for TLS connections, which is recommended.",
-					SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL);
-			System.exit(1);
-		}
 
 		// execute some validation on the EXPOSED URL, because it can have severe
 		// consequences
