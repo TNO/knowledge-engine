@@ -17,16 +17,6 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_VALIDATE_OUTGOING_BINDINGS_WRT_INCOMING_BINDINGS = "sc.validate.outgoing.bindings.wrt.incoming.bindings";
 
 	/**
-	 * Key to configure the hostname of the machine this Knowledge Engine Runtime
-	 * (KER) runs on.
-	 * 
-	 * @deprecated Replaced by
-	 *             {@link SmartConnectorConfig#CONF_KEY_KE_RUNTIME_EXPOSED_URL}
-	 */
-	@Deprecated
-	public static final String CONF_KEY_KE_RUNTIME_HOSTNAME = "ke.runtime.hostname";
-
-	/**
 	 * Key to configure the URL of the Knowledge Directory where this KER can find
 	 * other KERs in the network. Note that overriding this configuration property
 	 * will run this KER in distributed mode.
@@ -65,11 +55,11 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_RUNTIME_USE_EDC = "ke.runtime.use.edc";
 
 	/**
-	 * Key to configure the EDC participant ID for this KER, matching the participant ID 
-	 * of its control plane and identity hub.
+	 * Key to configure the EDC participant ID for this KER, matching the
+	 * participant ID of its control plane and identity hub.
 	 */
 	public static final String CONF_KEY_KE_EDC_PARTICIPANT_ID = "ke.edc.participant.id";
-	
+
 	/**
 	 * Key to configure where a KER can reach the protocol API of its own control
 	 * plane if using EDC.
@@ -83,7 +73,8 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KE_EDC_MANAGEMENT_URL = "ke.edc.management.url";
 
 	/**
-	 * Key to configure where a KER can reach its data plane public API if using EDC.
+	 * Key to configure where a KER can reach its data plane public API if using
+	 * EDC.
 	 */
 	public static final String CONF_KEY_KE_EDC_DATAPLANE_PUBLIC_URL = "ke.edc.dataplane.public.url";
 
