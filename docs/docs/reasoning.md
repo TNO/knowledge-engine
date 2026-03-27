@@ -214,7 +214,7 @@ If you set the domain knowledge via the Java or REST API multiple times, it'll o
 :::
 
 :::tip
-There are multiple reasoner levels (1-5) and utilizing domain knowledge requires at least reasoner level 2. See [SmartConnectorConfig](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java#L62-L79) class for more info.
+There are multiple reasoner levels (1-5) and utilizing domain knowledge requires at least reasoner level 2. See [SmartConnectorConfig](https://github.com/TNO/knowledge-engine/blob/master/smart-connector-api/src/main/java/eu/knowledge/engine/smartconnector/api/SmartConnectorConfig.java#L90-L106) class for more info.
 :::
 
 <Tabs groupId="tke-usage">
