@@ -23,7 +23,8 @@ class TestBindingSetConversions {
 
 		String varStringVersion = "a";
 		Var varNodeVersion = Var.alloc(varStringVersion);
-		Node literalNodeVersion = NodeFactory.createLiteral("true", XSDDatatype.XSDboolean);
+
+		Node literalNodeVersion = NodeFactory.createLiteral("true", null, XSDDatatype.XSDboolean);
 		var literalStringVersion = "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
 
 		BindingSet bs = new BindingSet();
@@ -50,7 +51,7 @@ class TestBindingSetConversions {
 
 		String varStringVersion = "a";
 		Var varNodeVersion = Var.alloc(varStringVersion);
-		Node literalNodeVersion = NodeFactory.createLiteral("bla", XSDDatatype.XSDstring);
+		Node literalNodeVersion = NodeFactory.createLiteral("bla", null, XSDDatatype.XSDstring);
 		var literalStringVersion = "\"bla\"^^<http://www.w3.org/2001/XMLSchema#string>";
 		var literalSimpleStringVersion = "\"bla\"";
 

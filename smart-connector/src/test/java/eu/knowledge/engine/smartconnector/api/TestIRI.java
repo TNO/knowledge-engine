@@ -3,8 +3,8 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.jena.iri.IRI;
-import org.apache.jena.iri.IRIFactory;
+import org.apache.jena.rfc3986.IRI;
+import org.apache.jena.rfc3986.RFC3986;
 import org.junit.jupiter.api.Test;
 
 class TestIRI {
@@ -55,10 +55,9 @@ class TestIRI {
 	}
 
 	public boolean isValid(String iri) {
-		IRIFactory factory = IRIFactory.iriImplementation();
 
 		try {
-			IRI i = factory.construct(iri);
+			IRI i = RFC3986.create(iri);
 			if (i.isAbsolute()) {
 				return true;
 			} else {
