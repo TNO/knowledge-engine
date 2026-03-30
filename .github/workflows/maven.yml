@@ -21,7 +21,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: maven:3.8.7-eclipse-temurin-17-alpine
+    container: maven:3.9.14-eclipse-temurin-25
 
     steps:
     - uses: actions/checkout@v4
