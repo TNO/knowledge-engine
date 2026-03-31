@@ -16,7 +16,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     container:
-      image: maven:3.9.9-eclipse-temurin-17-focal
+      image: maven:3.9.14-eclipse-temurin-25
       options: --user 1001
 
     steps:
