@@ -461,7 +461,7 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		// this will trigger notifications to other Smart Connectors.
 		CompletableFuture<Void> future = this.knowledgeBaseStore.stop();
 
-		return future.whenComplete((v, t) -> {
+		return future.whenComplete((_, t) -> {
 
 			if (t != null)
 				LOG.debug("An error occurred while notifying other SCs.", t);
@@ -484,16 +484,15 @@ public class SmartConnectorImpl implements RuntimeSmartConnector, LoggerProvider
 		Instant beforeComms = Instant.now();
 		LOG.trace("Getting comms ready took {} ms", Duration.between(this.started, beforeComms).toMillis());
 		Instant beforeConstructorFinished = Instant.now();
-		this.constructorFinished.handle((r3, e3) -> {
+		this.constructorFinished.handle((_, _) -> {
 			LOG.trace("Constructor finished took {} ms",
 					Duration.between(beforeConstructorFinished, Instant.now()).toMillis());
 			// Populate the initial knowledge base store.
 			Instant beforePopulate = Instant.now();
-			this.otherKnowledgeBaseStore.populate().handle((r, e) -> {
+			this.otherKnowledgeBaseStore.populate().handle((_, _) -> {
 				LOG.debug("Populating took {} ms", Duration.between(beforePopulate, Instant.now()).toMillis());
-				Instant beforeAnnounce = Instant.now();
 				// Then tell the other knowledge bases about our existence.
-				this.metaKnowledgeBase.postNewKnowledgeBase().handle((r2, e2) -> {
+				this.metaKnowledgeBase.postNewKnowledgeBase().handle((_, _) -> {
 					LOG.info("SC communication ready took {} ms. Default reasoner level: {}",
 							Duration.between(this.started, Instant.now()).toMillis(),
 							this.interactionProcessor.getReasonerLevel());

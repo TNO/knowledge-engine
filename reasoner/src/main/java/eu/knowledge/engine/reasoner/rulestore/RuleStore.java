@@ -6,7 +6,6 @@ package eu.knowledge.engine.reasoner.rulestore;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -349,32 +348,7 @@ public class RuleStore {
 		}
 
 		String consequent = trimAtLength(sb.toString(), MAX_STR_LENGTH);
-
-		String name = r.getName();
-		MessageDigest digest;
-		String encodedhash = "unknown";
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-
-//			encodedhash = digest.digest(name.getBytes(StandardCharsets.UTF_8));
-			encodedhash = Integer.toHexString(System.identityHashCode(r));
-		} catch (NoSuchAlgorithmException e) {
-			LOG.error("{}", e);
-		}
-		// bytesToHex(...)
 		return "\"" + antecedent + "&rarr;\\n" + consequent + "\"";
-	}
-
-	private static String bytesToHex(byte[] hash) {
-		StringBuilder hexString = new StringBuilder(2 * hash.length);
-		for (int i = 0; i < hash.length; i++) {
-			String hex = Integer.toHexString(0xff & hash[i]);
-			if (hex.length() == 1) {
-				hexString.append('0');
-			}
-			hexString.append(hex);
-		}
-		return hexString.toString();
 	}
 
 	private String generateName(TriplePattern tp) {

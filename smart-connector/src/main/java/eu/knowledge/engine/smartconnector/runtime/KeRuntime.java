@@ -3,7 +3,6 @@ package eu.knowledge.engine.smartconnector.runtime;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -59,9 +58,8 @@ public class KeRuntime {
 				System.exit(1);
 			}
 			try {
-				new URL(url);
-
-			} catch (MalformedURLException e) {
+				new URI(url).toURL();
+			} catch (URISyntaxException | MalformedURLException e) {
 				LOG.error("The '{}' environment variable with value '{}' contains a malformed URL '{}'.",
 						SmartConnectorConfig.CONF_KEY_KE_RUNTIME_EXPOSED_URL, url, e.getMessage());
 				System.exit(1);

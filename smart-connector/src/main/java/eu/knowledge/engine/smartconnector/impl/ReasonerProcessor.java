@@ -224,7 +224,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
 		LOG.trace("Ask: {}", this.reasonerPlan);
-		taskboard.executeScheduledTasks().thenAccept(Void -> {
+		taskboard.executeScheduledTasks().thenAccept(_ -> {
 			LOG.trace("All ask tasks finished.");
 			if (isComplete) {
 				BindingSet bs = this.reasonerPlan.getResults();
@@ -317,7 +317,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
 		LOG.trace("Post: {}", this.reasonerPlan);
-		taskboard.executeScheduledTasks().thenAccept(Void -> {
+		taskboard.executeScheduledTasks().thenAccept(_ -> {
 			LOG.trace("All post tasks finished.");
 			if (isComplete) {
 				BindingSet resultBS = new BindingSet();

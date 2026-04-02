@@ -1,15 +1,12 @@
 package eu.knowledge.engine.rest.api.impl;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.jena.irix.IRIs;
 import org.apache.jena.reasoner.rulesys.Rule.ParserException;
-import org.apache.jena.rfc3986.IRIParseException;
-import org.apache.jena.rfc3986.RFC3986;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,28 +102,17 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return;
 		}
 
-		try {
-			new URL(smartConnector.getKnowledgeBaseId()).toURI();
-		} catch (MalformedURLException | URISyntaxException e) {
-			var response = new ResponseMessage();
-			response.setMessageType("error");
-			response.setMessage("Knowledge base ID must be a valid URI.");
-			asyncResponse.resume(Response.status(400).entity(response).build());
-			return;
-		}
-
 		URI kbId;
 		try {
-			// Additional check to verify that it is a valid IRI according to Jena.
-			// (java.net.URI is not strict enough.)
-
-			RFC3986.checkSyntax(smartConnector.getKnowledgeBaseId());
-
 			kbId = new URI(smartConnector.getKnowledgeBaseId());
-		} catch (URISyntaxException | IRIParseException e) {
+
+			// additional check using Apache Jena API, because URI spec is not strict enough
+			if (!IRIs.check(smartConnector.getKnowledgeBaseId()))
+				throw new URISyntaxException(smartConnector.getKnowledgeBaseId(), "Not a valid RDF IRI");
+		} catch (URISyntaxException e) {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
-			response.setMessage("Knowledge base ID must be a valid IRI.");
+			response.setMessage("Knowledge base ID must be a valid RDF IRI. " + e.getMessage());
 			asyncResponse.resume(Response.status(400).entity(response).build());
 			return;
 		}
@@ -187,9 +173,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return;
 		}
 
-		try {
-			new URI(knowledgeBaseId);
-		} catch (URISyntaxException e) {
+		if (!IRIs.check(knowledgeBaseId)) {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge base not found, because its ID must be a valid URI.");
@@ -242,9 +226,7 @@ public class SmartConnectorLifeCycleApiServiceImpl {
 			return Response.status(Status.BAD_REQUEST).entity(response).build();
 		}
 
-		try {
-			new URI(knowledgeBaseId);
-		} catch (URISyntaxException e) {
+		if (!IRIs.check(knowledgeBaseId)) {
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage("Knowledge base not found, because its knowledge base ID must be a valid URI.");

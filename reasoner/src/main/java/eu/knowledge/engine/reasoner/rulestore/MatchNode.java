@@ -1,7 +1,6 @@
 package eu.knowledge.engine.reasoner.rulestore;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 

@@ -1,7 +1,5 @@
 package eu.knowledge.engine.reasoner.rulenode;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import eu.knowledge.engine.reasoner.BaseRule;
