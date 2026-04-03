@@ -1,7 +1,5 @@
 package eu.knowledge.engine.rest.api;
 
-import java.net.InetSocketAddress;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;

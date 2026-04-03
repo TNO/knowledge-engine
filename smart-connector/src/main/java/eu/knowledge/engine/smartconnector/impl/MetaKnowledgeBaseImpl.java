@@ -92,7 +92,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				true, MatchStrategy.ENTRY_LEVEL);
 		this.knowledgeBaseStore
 				.register(
-						this.metaAnswerKI, (anAKI,
+						this.metaAnswerKI, (_,
 								anAnswerExchangeInfo) -> Util.translateToApiBindingSet(this.fillMetaBindings(
 										Util.translateFromApiBindingSet(anAnswerExchangeInfo.getIncomingBindings()))),
 						true);
@@ -123,7 +123,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.NEW_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
-		this.knowledgeBaseStore.register(this.metaReactNewKI, (aRKI, aReactExchangeInfo) -> {
+		this.knowledgeBaseStore.register(this.metaReactNewKI, (_, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
 					KnowledgeInteractionInfo.Type.POST, Vocab.NEW_KNOWLEDGE_PURPOSE);
@@ -144,7 +144,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.CHANGED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
-		this.knowledgeBaseStore.register(this.metaReactChangedKI, (aRKI, aReactExchangeInfo) -> {
+		this.knowledgeBaseStore.register(this.metaReactChangedKI, (_, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
 					KnowledgeInteractionInfo.Type.POST, Vocab.CHANGED_KNOWLEDGE_PURPOSE);
@@ -165,7 +165,7 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 				new CommunicativeAct(new HashSet<>(Arrays.asList(Vocab.REMOVED_KNOWLEDGE_PURPOSE)),
 						new HashSet<>(Arrays.asList(Vocab.INFORM_PURPOSE))),
 				this.metaGraphPattern, null, null, true, true, MatchStrategy.ENTRY_LEVEL);
-		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (aRKI, aReactExchangeInfo) -> {
+		this.knowledgeBaseStore.register(this.metaReactRemovedKI, (_, aReactExchangeInfo) -> {
 			var postingKi = aReactExchangeInfo.getPostingKnowledgeInteractionId();
 			var itShouldBeThis = this.knowledgeBaseStore.getMetaId(aReactExchangeInfo.getPostingKnowledgeBaseId(),
 					KnowledgeInteractionInfo.Type.POST, Vocab.REMOVED_KNOWLEDGE_PURPOSE);

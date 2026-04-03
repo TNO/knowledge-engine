@@ -773,7 +773,7 @@ public class RestKnowledgeBase implements KnowledgeBase {
 		this.toBeProcessedHandleRequests.forEach(hr -> {
 			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
-		this.beingProcessedHandleRequests.forEach((id, hr) -> {
+		this.beingProcessedHandleRequests.forEach((_, hr) -> {
 			hr.getFuture().completeExceptionally(new CancellationException(cancelMessage));
 		});
 

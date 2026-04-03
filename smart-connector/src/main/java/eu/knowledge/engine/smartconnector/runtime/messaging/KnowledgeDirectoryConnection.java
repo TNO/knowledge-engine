@@ -30,6 +30,7 @@ import eu.knowledge.engine.smartconnector.runtime.KeRuntime;
 import eu.knowledge.engine.smartconnector.runtime.messaging.inter_ker.api.RFC3339DateFormat;
 import eu.knowledge.engine.smartconnector.runtime.messaging.kd.model.KnowledgeEngineRuntimeConnectionDetails;
 import static eu.knowledge.engine.smartconnector.runtime.messaging.Utils.stripUserInfoFromURI;
+
 /**
  * The {@link KnowledgeDirectoryConnection} is responsible for providing access
  * to the Knowledge Directory, maintaining the connection and the renewing the
@@ -79,7 +80,8 @@ public class KnowledgeDirectoryConnection {
 					}
 				});
 			} else {
-				throw new IllegalArgumentException("Found user information in KD URL, but it does not have two parts. Make sure you don't use a colon inside the parts.");
+				throw new IllegalArgumentException(
+						"Found user information in KD URL, but it does not have two parts. Make sure you don't use a colon inside the parts.");
 			}
 		} else {
 			this.kdUrl = kdUrl;
@@ -89,7 +91,7 @@ public class KnowledgeDirectoryConnection {
 
 		this.objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-				.setSerializationInclusion(JsonInclude.Include.NON_NULL).findAndRegisterModules()
+				.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL).findAndRegisterModules()
 				.setDateFormat(new RFC3339DateFormat());
 	}
 
@@ -99,7 +101,7 @@ public class KnowledgeDirectoryConnection {
 			throw new IllegalStateException(
 					"Can only start KnowledgeDirectoryConnectionManager when the state is UNREGISTERED");
 		}
-		
+
 		LOG.info("Starting connection with Knowledge Directory at " + kdUrl);
 		// Schedule automatic register/renew
 		scheduledFuture = KeRuntime.executorService().scheduleAtFixedRate(() -> {
@@ -196,14 +198,12 @@ public class KnowledgeDirectoryConnection {
 			ker.setId(this.myEdcProperties.participantId().toString());
 			ker.setEdcConnectorUrl(this.myEdcProperties.protocolUrl());
 			ker.setExposedUrl(this.myEdcProperties.dataPlanePublicUrl());
-		}
-		else {		
+		} else {
 			ker.setExposedUrl(myExposedUrl);
 		}
 
 		try {
-			HttpRequest registerRequest = HttpRequest
-					.newBuilder(new URI(kdUrl + "/ker/"))
+			HttpRequest registerRequest = HttpRequest.newBuilder(new URI(kdUrl + "/ker/"))
 					.header("Content-Type", "application/json")
 					.POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(ker))).build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
@@ -216,14 +216,12 @@ public class KnowledgeDirectoryConnection {
 			} else if (statusCode == 400) {
 				// Registration was not successful
 				this.currentState = State.INTERRUPTED;
-				LOG.warn("Could not register at Knowledge Directory " + kdUrl + ", response was: "
-						+ response.body());
+				LOG.warn("Could not register at Knowledge Directory " + kdUrl + ", response was: " + response.body());
 			} else if (statusCode == 409) {
 				// Was already registered
 				myId = response.body();
 				this.currentState = State.REGISTERED;
-				LOG.debug("Tried to register at Knowledge Directory " + kdUrl
-						+ ", but was already registered");
+				LOG.debug("Tried to register at Knowledge Directory " + kdUrl + ", but was already registered");
 				tryRenewLease();
 			} else {
 				LOG.error("Unexpected status code while trying to register at Knowledge Directory: {}", statusCode);
@@ -247,8 +245,7 @@ public class KnowledgeDirectoryConnection {
 		}
 
 		try {
-			HttpRequest registerRequest = HttpRequest
-					.newBuilder(new URI(kdUrl + "/ker/" + urlEncode(myId)))
+			HttpRequest registerRequest = HttpRequest.newBuilder(new URI(kdUrl + "/ker/" + urlEncode(myId)))
 					.header("Content-Type", "application/json").DELETE().build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
@@ -259,8 +256,7 @@ public class KnowledgeDirectoryConnection {
 			} else if (statusCode == 404) {
 				// Not found, so we're not registered anymore, also fine
 				this.currentState = State.STOPPED;
-				LOG.info("Could not unregister at Knowledge Directory " + kdUrl + ", response was: "
-						+ response.body());
+				LOG.info("Could not unregister at Knowledge Directory " + kdUrl + ", response was: " + response.body());
 			} else {
 				LOG.warn("Unknown status code {} while unregistering the KER", statusCode);
 			}
@@ -278,8 +274,7 @@ public class KnowledgeDirectoryConnection {
 		}
 		LOG.debug("Attempting a renew of the lease at Knowledge Directory " + kdUrl);
 		try {
-			HttpRequest registerRequest = HttpRequest
-					.newBuilder(new URI(kdUrl + "/ker/" + urlEncode(myId) + "/renew"))
+			HttpRequest registerRequest = HttpRequest.newBuilder(new URI(kdUrl + "/ker/" + urlEncode(myId) + "/renew"))
 					.header("Content-Type", "application/json").POST(BodyPublishers.noBody()).build();
 			HttpResponse<String> response = httpClient.send(registerRequest, BodyHandlers.ofString());
 			int statusCode = response.statusCode();
@@ -290,8 +285,8 @@ public class KnowledgeDirectoryConnection {
 			} else if (statusCode == 404) {
 				// Doesn't recognize this KER
 				this.currentState = State.INTERRUPTED;
-				LOG.info("Could not renew lease at Knowledge Directory " + kdUrl
-						+ ", response was: " + response.body());
+				LOG.info(
+						"Could not renew lease at Knowledge Directory " + kdUrl + ", response was: " + response.body());
 			} else {
 				LOG.warn("Unknown status code {} while calling the renewing the lease on the Knowledge Direcotry",
 						statusCode);
