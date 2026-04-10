@@ -189,15 +189,6 @@ public class TripleVarBindingSet {
 	 */
 	public TripleVarBindingSet combine(TripleVarBindingSet aBindingSet) {
 
-		Set<Var> overlappingVars = new HashSet<Var>();
-		if (this.bindings.size() > 0 && aBindingSet.getBindings().size() > 0) {
-			Set<Var> vars1 = this.bindings.iterator().next().getVars();
-			Set<Var> vars2 = aBindingSet.getBindings().iterator().next().getVars();
-			overlappingVars.addAll(vars1);
-			overlappingVars.retainAll(vars2);
-//			LOG.debug("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
-		}
-
 		LOG.trace("Merging {} bindings with our {} bindings.", aBindingSet.getBindings().size(),
 				this.getBindings().size());
 
@@ -211,14 +202,23 @@ public class TripleVarBindingSet {
 		if (this.bindings.isEmpty()) {
 			gbs.addAll(aBindingSet.getBindings());
 		} else {
+
+			Set<Var> overlappingVars = new HashSet<Var>();
+			if (this.bindings.size() > 0 && aBindingSet.getBindings().size() > 0) {
+				Set<Var> vars1 = this.bindings.iterator().next().getVars();
+				Set<Var> vars2 = aBindingSet.getBindings().iterator().next().getVars();
+				overlappingVars.addAll(vars1);
+				overlappingVars.retainAll(vars2);
+				LOG.trace("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
+			}
+
 			// Cartesian product is the base case
 			AtomicLong progress = new AtomicLong(0);
 
 			final int milestoneSize = PROGRESS_MILESTONE_SIZE;
 			AtomicLong nextMilestone = new AtomicLong(milestoneSize);
 
-//			this.bindings.stream().forEach(tvb1 -> {
-			for (var tvb1 : this.bindings) {
+			this.bindings.stream().parallel().forEach(tvb1 -> {
 				for (TripleVarBinding otherB : aBindingSet.getBindings()) {
 					// always add a merged version of the two bindings, except when they conflict.
 					if (!tvb1.isConflicting2(otherB, overlappingVars)) {
@@ -231,7 +231,7 @@ public class TripleVarBindingSet {
 					LOG.trace("{}/{} BindingSet merge tasks done!", current * otherBindingSetSize, totalCount);
 					nextMilestone.set(current + milestoneSize);
 				}
-			}
+			});
 		}
 
 		if (totalCount > LARGE_BS_SIZE)

@@ -137,7 +137,7 @@ public class TripleVarBinding {
 
 			val = this.getVarValue(e);
 
-			if (!val.equals(l)) {
+			if (!val.sameValueAs(l)) {
 				return true;
 			}
 		}

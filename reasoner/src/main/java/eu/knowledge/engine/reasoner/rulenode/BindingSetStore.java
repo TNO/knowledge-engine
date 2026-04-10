@@ -93,7 +93,7 @@ public class BindingSetStore {
 	}
 
 	/**
-	 * Translates the given TripleVarBindingSets from neighbors to a single
+	 * Combine the given TripleVarBindingSets from neighbors to a single
 	 * TripleVarBindingSet using the given combi matches. Because the combi matches
 	 * are very specific to how they should be formed, using this information should
 	 * speed up the binding set merging process considerably.
@@ -105,17 +105,16 @@ public class BindingSetStore {
 	 * @return A TripleVarBindingSet that consists of only valid (according to the
 	 *         combimatches) bindings.
 	 */
-	private TripleVarBindingSet translateWithCombiMatches(Set<TriplePattern> aGraphPattern,
+	private TripleVarBindingSet combineWithCombiMatches(Set<TriplePattern> aGraphPattern,
 			Set<CombiMatch> someCombiMatches, Map<BaseRule, Map<Match, TripleVarBindingSet>> someNeighborBS) {
 		var combinedTVBS = new TripleVarBindingSet(aGraphPattern);
 
 		AtomicLong i = new AtomicLong(0);
 		int size = someCombiMatches.size();
 
-//		someCombiMatches.stream().forEach(cMatch -> {
-		for (CombiMatch cMatch : someCombiMatches) {
+		someCombiMatches.stream().forEach(cMatch -> {
 			i.incrementAndGet();
-			LOG.debug("Creating binding set for combi match: {}/{}", i.get(), size);
+			LOG.trace("Creating binding set for combi match: {}/{}", i.get(), size);
 
 			// keep separate binding set per combi match
 			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
@@ -139,7 +138,7 @@ public class BindingSetStore {
 			// addAll instead of merge, because different combi matches do not need to be
 			// combined.
 			combinedTVBS.addAll(cMatchTVBS.getBindings());
-		}
+		});
 
 		return combinedTVBS;
 
@@ -170,7 +169,7 @@ public class BindingSetStore {
 		// at the consequent/antecedent neighbors depending on backward/forward
 		// reasoning) we use the older (slower) method when there are no combi matches.
 		if (this.combiMatches != null)
-			this.cache = this.translateWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
+			this.cache = this.combineWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
 		else {
 			LOG.trace("Ignoring combi matches for binding set construction.");
 			TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
