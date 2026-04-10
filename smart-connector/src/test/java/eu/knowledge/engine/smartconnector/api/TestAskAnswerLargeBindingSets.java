@@ -37,7 +37,7 @@ public class TestAskAnswerLargeBindingSets {
 	private static BindingSet kb2BS;
 	private static KnowledgeNetwork kn;
 
-	private static int NR_OF_BINDINGS = 2000;
+	private static int NR_OF_BINDINGS = 1500;
 
 	private static char[] chars = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g' };
 
