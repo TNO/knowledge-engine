@@ -23,6 +23,7 @@ public class TripleVarBindingSet {
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
+	private Set<Var> varsCache;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TripleVarBindingSet.class);
 
@@ -176,6 +177,15 @@ public class TripleVarBindingSet {
 		return gbs;
 	}
 
+	public Set<Var> getVariables() {
+		if (this.varsCache == null) {
+			this.varsCache = new HashSet<Var>();
+			for (TriplePattern tp : this.graphPattern)
+				this.varsCache.addAll(tp.getVariables());
+		}
+		return this.varsCache;
+	}
+
 	/**
 	 * Special merge that only combines the current bindings with the given
 	 * bindings. It only adds bindings that are a combination of two input bindings
@@ -205,8 +215,8 @@ public class TripleVarBindingSet {
 
 			Set<Var> overlappingVars = new HashSet<Var>();
 			if (this.bindings.size() > 0 && aBindingSet.getBindings().size() > 0) {
-				Set<Var> vars1 = this.bindings.iterator().next().getVars();
-				Set<Var> vars2 = aBindingSet.getBindings().iterator().next().getVars();
+				Set<Var> vars1 = this.getVariables();
+				Set<Var> vars2 = aBindingSet.getVariables();
 				overlappingVars.addAll(vars1);
 				overlappingVars.retainAll(vars2);
 				LOG.trace("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
