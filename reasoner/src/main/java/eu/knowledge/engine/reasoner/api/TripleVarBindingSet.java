@@ -23,18 +23,24 @@ public class TripleVarBindingSet {
 	private Set<TriplePattern> graphPattern;
 	private Set<TripleVarBinding> bindings;
 	private Set<TripleNode> tripleVarsCache;
+	private Set<Var> varsCache;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TripleVarBindingSet.class);
 
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern) {
 
+		this(aGraphPattern, 16);
+	}
+
+	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern, int initialCapacity) {
+
 		this.graphPattern = aGraphPattern;
-		bindings = ConcurrentHashMap.newKeySet();
+		bindings = ConcurrentHashMap.newKeySet(initialCapacity);
 	}
 
 	public TripleVarBindingSet(Set<TriplePattern> aGraphPattern, BindingSet aBindingSet) {
 
-		this(aGraphPattern);
+		this(aGraphPattern, aBindingSet.size());
 
 		for (Binding b : aBindingSet) {
 			this.add(new TripleVarBinding(this.graphPattern, b));
@@ -171,6 +177,15 @@ public class TripleVarBindingSet {
 		return gbs;
 	}
 
+	public Set<Var> getVariables() {
+		if (this.varsCache == null) {
+			this.varsCache = new HashSet<Var>();
+			for (TriplePattern tp : this.graphPattern)
+				this.varsCache.addAll(tp.getVariables());
+		}
+		return this.varsCache;
+	}
+
 	/**
 	 * Special merge that only combines the current bindings with the given
 	 * bindings. It only adds bindings that are a combination of two input bindings
@@ -187,17 +202,26 @@ public class TripleVarBindingSet {
 		LOG.trace("Merging {} bindings with our {} bindings.", aBindingSet.getBindings().size(),
 				this.getBindings().size());
 
-		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern);
-
 		final int otherBindingSetSize = aBindingSet.getBindings().size();
 		final long totalCount = (long) otherBindingSetSize * (long) this.getBindings().size();
 		if (totalCount > LARGE_BS_SIZE)
 			LOG.warn("Merging 2 large BindingSets ({} * {} = {}). This can take some time.",
 					aBindingSet.getBindings().size(), this.getBindings().size(), totalCount);
+		TripleVarBindingSet gbs = new TripleVarBindingSet(this.graphPattern, (int) totalCount);
 
 		if (this.bindings.isEmpty()) {
 			gbs.addAll(aBindingSet.getBindings());
 		} else {
+
+			Set<Var> overlappingVars = new HashSet<Var>();
+			if (this.bindings.size() > 0 && aBindingSet.getBindings().size() > 0) {
+				Set<Var> vars1 = this.getVariables();
+				Set<Var> vars2 = aBindingSet.getVariables();
+				overlappingVars.addAll(vars1);
+				overlappingVars.retainAll(vars2);
+				LOG.trace("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
+			}
+
 			// Cartesian product is the base case
 			AtomicLong progress = new AtomicLong(0);
 
@@ -207,7 +231,7 @@ public class TripleVarBindingSet {
 			this.bindings.stream().parallel().forEach(tvb1 -> {
 				for (TripleVarBinding otherB : aBindingSet.getBindings()) {
 					// always add a merged version of the two bindings, except when they conflict.
-					if (!tvb1.isConflicting(otherB)) {
+					if (!tvb1.isConflicting2(otherB, overlappingVars)) {
 						gbs.add(tvb1.merge(otherB));
 					}
 				}
@@ -221,7 +245,7 @@ public class TripleVarBindingSet {
 		}
 
 		if (totalCount > LARGE_BS_SIZE)
-			LOG.debug("Merging large BindingSets done!");
+			LOG.trace("Merging large BindingSets done!");
 
 		return gbs;
 	}
