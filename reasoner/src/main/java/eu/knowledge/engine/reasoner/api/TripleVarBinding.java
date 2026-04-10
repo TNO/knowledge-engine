@@ -145,25 +145,6 @@ public class TripleVarBinding {
 	}
 
 	/**
-	 * True if two Bindings have a different value for at least one variable. Note
-	 * that it looks not at variable instances.
-	 */
-	public boolean isConflicting2(TripleVarBinding tvb, Set<Var> overlappingVars) {
-
-		Node l, val;
-		for (Var e : overlappingVars) {
-			l = tvb.getVarValue(e);
-
-			val = this.getVarValue(e);
-
-			if (!val.equals(l)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * We assume all occurrences of a var have the same literal, we just return the
 	 * first one found.
 	 * 
