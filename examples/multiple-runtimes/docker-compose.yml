@@ -38,6 +38,12 @@ services:
         }
       GRAPH_PATTERN: |
         ?a ex:relatedTo ?b .
+      DOMAIN_KNOWLEDGE: |
+        @prefix ex: <http://example.org/> .
+        
+        #domain rules
+        (?a ex:bRelatedTo ?b) -> (?a ex:relatedTo ?b) .
+        (?a ex:aRelatedTo ?b) -> (?a ex:relatedTo ?b) .
   kb2:
     build: ../common/answering_kb
     environment:
@@ -48,7 +54,7 @@ services:
           "ex": "http://example.org/"
         }
       GRAPH_PATTERN: |
-        ?a ex:relatedTo ?b .
+        ?a ex:aRelatedTo ?b .
       KB_DATA: |
         [
           {
@@ -70,7 +76,7 @@ services:
           "ex": "http://example.org/"
         }
       GRAPH_PATTERN: |
-        ?a ex:relatedTo ?b .
+        ?a ex:bRelatedTo ?b .
       KB_DATA: |
         [
           {

@@ -3,6 +3,7 @@ import logging
 import time
 import json
 import signal
+import requests
 
 from knowledge_mapper.utils import match_bindings
 from knowledge_mapper.tke_client import TkeClient
@@ -22,6 +23,7 @@ else:
     PREFIXES = None
 ARGUMENT_GRAPH_PATTERN = os.getenv("ARGUMENT_GRAPH_PATTERN")
 RESULT_GRAPH_PATTERN = os.getenv("RESULT_GRAPH_PATTERN")
+DOMAIN_KNOWLEDGE= os.getenv("DOMAIN_KNOWLEDGE")
 
 log = logging.getLogger(KB_NAME)
 log.setLevel(logging.INFO)
@@ -35,6 +37,11 @@ def handle_sigterm(*args):
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
+def register_domain_knowledge(domain_knowledge):
+    resp = requests.post(url = KE_URL + "/sc/knowledge", headers = {"Knowledge-Base-Id":KB_ID}, data = DOMAIN_KNOWLEDGE);
+    if resp.status_code != 200:
+        log.error(f"Our domain knowledge register should return 200 and not {resp.status_code} with message: " + resp.text);
+
 def kb_1():
     client = TkeClient(KE_URL)
     client.connect()
@@ -46,6 +53,15 @@ def kb_1():
             description=f"{KB_NAME}",
         )
     )
+    
+    # register domain knowledge
+    if DOMAIN_KNOWLEDGE is not None:
+        register_domain_knowledge(DOMAIN_KNOWLEDGE)
+        log.info("Domain knowledge registered!")
+    else:
+        log.debug(f"No domain knowledge found!")
+    
+    
     log.info(f"KB registered!")
     log.info(f"registering POST KI...")
     post: PostKnowledgeInteraction = kb.register_knowledge_interaction(
