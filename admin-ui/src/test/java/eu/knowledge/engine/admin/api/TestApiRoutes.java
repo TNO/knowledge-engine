@@ -159,8 +159,13 @@ public class TestApiRoutes {
 
 			assertNotNull(list);
 			assertEquals(2, list.size());
-			assertEquals(0, list.get(0).getKnowledgeInteractions().get(0).getConnections().size());
-			assertEquals(1, list.get(1).getKnowledgeInteractions().get(0).getConnections().size());
+
+			for (eu.knowledge.engine.admin.model.SmartConnector sc : list)
+				if (sc.getKnowledgeBaseId().equals("https://www.example.org/kb1"))
+					assertEquals(0, sc.getKnowledgeInteractions().get(0).getConnections().size());
+				else if (sc.getKnowledgeBaseId().equals("https://www.example.org/kb2"))
+					assertEquals(1, sc.getKnowledgeInteractions().get(0).getConnections().size());
+
 			assertEquals(200, response.statusCode());
 
 		} catch (IOException | InterruptedException | URISyntaxException e) {
