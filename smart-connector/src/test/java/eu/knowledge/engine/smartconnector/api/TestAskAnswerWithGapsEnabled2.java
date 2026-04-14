@@ -44,7 +44,7 @@ public class TestAskAnswerWithGapsEnabled2 {
 
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 	}
 
@@ -77,8 +77,8 @@ public class TestAskAnswerWithGapsEnabled2 {
 					TriplePattern triple = gapiter.next();
 					String tpString = FmtUtils.stringForTriple(triple.asTriple(), new PrefixMappingZero());
 					LOG.info("Gap is " + tpString);
-					assertEquals("?a <https://www.tno.nl/example/isFatherOf> ?c", tpString,
-							"Gap should be ?a <https://www.tno.nl/example/isFatherOf> ?c");
+					assertEquals("?a <https://www.example.org/example/isFatherOf> ?c", tpString,
+							"Gap should be ?a <https://www.example.org/example/isFatherOf> ?c");
 				}
 			}
 			BindingSet bindings = result.getBindings();
@@ -134,8 +134,8 @@ public class TestAskAnswerWithGapsEnabled2 {
 			// add 1 dummy binding to the answer
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
-			binding1.put("a", "<https://www.tno.nl/example/Barry>");
-			binding1.put("b", "<https://www.tno.nl/example/Jack>");
+			binding1.put("a", "<https://www.example.org/example/Barry>");
+			binding1.put("b", "<https://www.example.org/example/Jack>");
 			bindingSet.add(binding1);
 
 			return bindingSet;

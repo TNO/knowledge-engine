@@ -15,7 +15,7 @@ public class TestRegisterKnowledgeInteraction {
 
 			@Override
 			public URI getKnowledgeBaseId() {
-				return URI.create("http://www.tno.nl/kb1");
+				return URI.create("http://www.example.org/kb1");
 			}
 
 			@Override

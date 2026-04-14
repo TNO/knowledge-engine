@@ -38,7 +38,7 @@ public class TestAskAnswer4 {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -46,7 +46,7 @@ public class TestAskAnswer4 {
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c .");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c .");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -56,14 +56,14 @@ public class TestAskAnswer4 {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
+			binding.put("a", "<https://www.example.org/example/a>");
 			binding.put("c", "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
@@ -93,7 +93,7 @@ public class TestAskAnswer4 {
 		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
 				"The variable names should follow the graph pattern of the current KB.");
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.example.org/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 	}

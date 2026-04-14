@@ -52,7 +52,7 @@ public class TestAskAnswerIncludeMetaKIs {
 				try {
 					// register the AnswerKB
 					HttpTester registerOtherKb = new HttpTester(new URL(url + "/sc"), "POST",
-							"{\"knowledgeBaseId\": \"https://www.tno.nl/example/otherKB\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
+							"{\"knowledgeBaseId\": \"https://www.example.org/example/otherKB\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
 							Map.of("Content-Type", "application/json", "Accept", "*/*"));
 					registerOtherKb.expectStatus(200);
 					KBReady.countDown();
@@ -67,28 +67,28 @@ public class TestAskAnswerIncludeMetaKIs {
 
 		// register the AnswerKB
 		HttpTester registerAskKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/metadataAsker\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
+				"{\"knowledgeBaseId\": \"https://www.example.org/example/metadataAsker\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerAskKb.expectStatus(200);
 
 		// register the AskKI with IncludeMetaKIs enabled
 		HttpTester registerAskKiWithIncludeMetaKIsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askMetadataWithIncludeMetaKIs\", \"includeMetaKIs\": \"true\", \"graphPattern\": \"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .\"}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Content-Type",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		registerAskKiWithIncludeMetaKIsEnabled.expectStatus(200);
 
 		// register the AskKI without IncludeMetaKIs (= disabled)
 		HttpTester registerAskKiWithoutIncludeMetaKIs = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askMetadataWithoutIncludeMetaKIs\", \"graphPattern\": \"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .\"}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Content-Type",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		registerAskKiWithoutIncludeMetaKIs.expectStatus(200);
 
 		// register the AskKI with IncludeMetaKIs disabled
 		HttpTester registerAskKiWithIncludeMetaKIsDisabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askMetadataWithIncludeMetaKIsDisabled\", \"includeMetaKIs\": \"false\", \"graphPattern\": \"?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> .\"}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Content-Type",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		registerAskKiWithIncludeMetaKIsDisabled.expectStatus(200);
 
@@ -96,8 +96,8 @@ public class TestAskAnswerIncludeMetaKIs {
 
 		HttpTester askAskKiWithIncludeMetaKIs = new HttpTester(new URL(url + "/sc/ask"), "POST",
 				"{\"recipientSelector\": {\"knowledgeBases\": []}, \"bindingSet\": []}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Knowledge-Interaction-Id",
-						"https://www.tno.nl/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIs",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
+						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIs",
 						"Content-Type", "application/json", "Accept", "*/*"));
 		System.out.println("Result is:" + askAskKiWithIncludeMetaKIs.getBody());
 
@@ -108,8 +108,8 @@ public class TestAskAnswerIncludeMetaKIs {
 
 		HttpTester askAskKiWithoutIncludeMetaKIs = new HttpTester(new URL(url + "/sc/ask"), "POST",
 				"{\"recipientSelector\": {\"knowledgeBases\": []}, \"bindingSet\": []}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Knowledge-Interaction-Id",
-						"https://www.tno.nl/example/metadataAsker/interaction/askMetadataWithoutIncludeMetaKIs",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
+						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithoutIncludeMetaKIs",
 						"Content-Type", "application/json", "Accept", "*/*"));
 		System.out.println("Result is:" + askAskKiWithoutIncludeMetaKIs.getBody());
 		jsonReader = Json.createReader(new StringReader(askAskKiWithoutIncludeMetaKIs.getBody()));
@@ -119,8 +119,8 @@ public class TestAskAnswerIncludeMetaKIs {
 
 		HttpTester askAskKiWithIncludeMetaKIsDisabled = new HttpTester(new URL(url + "/sc/ask"), "POST",
 				"{\"recipientSelector\": {\"knowledgeBases\": []}, \"bindingSet\": []}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/metadataAsker", "Knowledge-Interaction-Id",
-						"https://www.tno.nl/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIsDisabled",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
+						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIsDisabled",
 						"Content-Type", "application/json", "Accept", "*/*"));
 		System.out.println("Result is:" + askAskKiWithIncludeMetaKIsDisabled.getBody());
 		jsonReader = Json.createReader(new StringReader(askAskKiWithIncludeMetaKIsDisabled.getBody()));

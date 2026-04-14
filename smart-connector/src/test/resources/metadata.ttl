@@ -1,265 +1,265 @@
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act/sat>
         a       <https://w3id.org/knowledge-engine/RemovedKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/gp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/answer/gp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/req>
+<https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/ask/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/ask/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/ask/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/answer/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act/req>
         a       <https://w3id.org/knowledge-engine/NewKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/new/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act/req>
         a       <https://w3id.org/knowledge-engine/RemovedKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/sat>
+<https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1>
+<https://www.example.org/kb1>
         a       <https://w3id.org/knowledge-engine/KnowledgeBase> ;
         <https://w3id.org/knowledge-engine/hasDescription>
                 "description of kb1" ;
         <https://w3id.org/knowledge-engine/hasKnowledgeInteraction>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/answer> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/ask> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new> , <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed> ;
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22> , <https://www.example.org/kb1/meta/knowledgeinteractions/answer> , <https://www.example.org/kb1/meta/knowledgeinteractions/ask> , <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed> , <https://www.example.org/kb1/meta/knowledgeinteractions/react/new> , <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed> , <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed> , <https://www.example.org/kb1/meta/knowledgeinteractions/post/new> , <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed> ;
         <https://w3id.org/knowledge-engine/hasName>
                 "kb1" .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/answer/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/new>
         a       <https://w3id.org/knowledge-engine/ReactKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/new/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/new/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/removed>
         a       <https://w3id.org/knowledge-engine/ReactKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/ask/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/removed>
         a       <https://w3id.org/knowledge-engine/PostKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/gp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/ask/gp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act/sat>
         a       <https://w3id.org/knowledge-engine/ChangedKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/ask>
+<https://www.example.org/kb1/meta/knowledgeinteractions/ask>
         a       <https://w3id.org/knowledge-engine/AskKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/ask/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/gp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/ask/gp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp>
+<https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/core/Measurement> . ?obs <https://saref.etsi.org/core/hasTemp> ?temp . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act/sat>
         a       <https://w3id.org/knowledge-engine/NewKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/answer/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/answer/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/answer/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/removed/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/removed/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/new/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/answer>
+<https://www.example.org/kb1/meta/knowledgeinteractions/answer>
         a       <https://w3id.org/knowledge-engine/AnswerKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/answer/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/answer/gp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/answer/gp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/ask/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/ask/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22>
+<https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22>
         a       <https://w3id.org/knowledge-engine/PostKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp> ;
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act> ;
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp> ;
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 false .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act/req>
         a       <https://w3id.org/knowledge-engine/ChangedKnowledgePurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/new>
         a       <https://w3id.org/knowledge-engine/PostKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/new/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/new/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/new/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/new/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act/req>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act/req>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/changed>
         a       <https://w3id.org/knowledge-engine/ReactKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/changed>
         a       <https://w3id.org/knowledge-engine/PostKnowledgeInteraction> ;
         <https://w3id.org/knowledge-engine/hasArgumentGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/argumentgp> ;
         <https://w3id.org/knowledge-engine/hasCommunicativeAct>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/act> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/act> ;
         <https://w3id.org/knowledge-engine/hasGraphPattern>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/post/changed/argumentgp> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/post/changed/argumentgp> ;
         <https://w3id.org/knowledge-engine/isMeta>
                 true .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/post/removed/argumentgp>
+<https://www.example.org/kb1/meta/knowledgeinteractions/post/removed/argumentgp>
         a       <https://w3id.org/knowledge-engine/GraphPattern> ;
         <https://w3id.org/knowledge-engine/hasPattern>
                 "?kb <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/KnowledgeBase> . ?kb <https://w3id.org/knowledge-engine/hasName> ?name . ?kb <https://w3id.org/knowledge-engine/hasDescription> ?description . ?kb <https://w3id.org/knowledge-engine/hasKnowledgeInteraction> ?ki . ?ki <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?kiType . ?ki <https://w3id.org/knowledge-engine/isMeta> ?isMeta . ?ki <https://w3id.org/knowledge-engine/hasCommunicativeAct> ?act . ?act <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/knowledge-engine/CommunicativeAct> . ?act <https://w3id.org/knowledge-engine/hasRequirement> ?req . ?act <https://w3id.org/knowledge-engine/hasSatisfaction> ?sat . ?req <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?reqType . ?sat <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?satType . ?ki <https://w3id.org/knowledge-engine/hasGraphPattern> ?gp . ?gp <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?patternType . ?gp <https://w3id.org/knowledge-engine/hasPattern> ?pattern . " .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act/req> ;
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/meta/knowledgeinteractions/react/new/act/sat> .
+                <https://www.example.org/kb1/meta/knowledgeinteractions/react/new/act/sat> .
 
-<https://www.tno.nl/kb1/meta/knowledgeinteractions/react/changed/act/sat>
+<https://www.example.org/kb1/meta/knowledgeinteractions/react/changed/act/sat>
         a       <https://w3id.org/knowledge-engine/InformPurpose> .
 
-<https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act>
+<https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act>
         a       <https://w3id.org/knowledge-engine/CommunicativeAct> ;
         <https://w3id.org/knowledge-engine/hasRequirement>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/req> ;
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/req> ;
         <https://w3id.org/knowledge-engine/hasSatisfaction>
-                <https://www.tno.nl/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/sat> .
+                <https://www.example.org/kb1/interaction/938fd244-be23-4ade-b917-472a72e32b22/act/sat> .

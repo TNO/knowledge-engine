@@ -50,7 +50,7 @@ public class SmartConnectorRegistrationStressTest {
 
 		var future = new CompletableFuture<Void>();
 
-		var testKBUri = new URI("https://www.tno.nl/TEST-KB");
+		var testKBUri = new URI("https://www.example.org/TEST-KB");
 
 		var kb = new KnowledgeBase() {
 			@Override

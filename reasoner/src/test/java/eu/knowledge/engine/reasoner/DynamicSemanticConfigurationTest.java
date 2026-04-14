@@ -49,8 +49,8 @@ public class DynamicSemanticConfigurationTest {
 							//@formatter:on
 					}, new String[] {
 				//@formatter:off
-							"<https://www.tno.nl/target0>,\"Eek\"",
-							"<https://www.tno.nl/target1>,\"Bla\"",
+							"<https://www.example.org/target0>,\"Eek\"",
+							"<https://www.example.org/target1>,\"Bla\"",
 							//@formatter:on
 					});
 
@@ -93,7 +93,7 @@ public class DynamicSemanticConfigurationTest {
 
 		ruleStore.addRule(new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <Target>"),
-						new TriplePattern("?id <hasCountry> \"Russia\""))),
+						new TriplePattern("?id <hasCountry> \"Prussia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id <type> <HighValueTarget>")))));
 
 		ruleStore.addRule(new Rule(
@@ -112,14 +112,14 @@ public class DynamicSemanticConfigurationTest {
 
 							Node id;
 							if (incomingB.containsKey("id")
-									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.tno.nl/target1>"))) {
+									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.example.org/target1>"))) {
 
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
-								resultBinding.put("c", "\"Russia\"");
-								resultBinding.put("lang", "\"Russian\"");
+								resultBinding.put("c", "\"Prussia\"");
+								resultBinding.put("lang", "\"Prussian\"");
 							} else if (incomingB.containsKey("id")
-									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.tno.nl/target0>"))) {
+									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.example.org/target0>"))) {
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
 								resultBinding.put("c", "\"Holland\"");

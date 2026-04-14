@@ -63,18 +63,18 @@ public class InteractionProcessorImplTest {
 		this.messageRouter = new TestMessageRouter();
 		this.interactionProcessor.setMessageRouter(this.messageRouter);
 
-		this.knowledgeBaseId1 = new URI("https://www.tno.nl/interconnect/kb1");
-		this.graphPattern1 = "?s1 <https://www.tno.nl/example/predicate1> ?o1 .";
+		this.knowledgeBaseId1 = new URI("https://www.example.org/interconnect/kb1");
+		this.graphPattern1 = "?s1 <https://www.example.org/example/predicate1> ?o1 .";
 
-		this.knowledgeBaseId2 = new URI("https://www.tno.nl/interconnect/kb2");
-		this.graphPattern2 = "?s2 <https://www.tno.nl/example/predicate1> ?o2 .";
-		this.subject2 = "<http://www.tno.nl/subject2>";
-		this.object2 = "<https://www.tno.nl/object2>";
+		this.knowledgeBaseId2 = new URI("https://www.example.org/interconnect/kb2");
+		this.graphPattern2 = "?s2 <https://www.example.org/example/predicate1> ?o2 .";
+		this.subject2 = "<http://www.example.org/subject2>";
+		this.object2 = "<https://www.example.org/object2>";
 
-		this.knowledgeBaseId3 = new URI("https://www.tno.nl/interconnect/kb3");
-		this.graphPattern3 = "?s3 <https://www.tno.nl/example/predicate1> ?o3 .";
-		this.subject3 = "<http://www.tno.nl/subject3>";
-		this.object3 = "<https://www.tno.nl/object3>";
+		this.knowledgeBaseId3 = new URI("https://www.example.org/interconnect/kb3");
+		this.graphPattern3 = "?s3 <https://www.example.org/example/predicate1> ?o3 .";
+		this.subject3 = "<http://www.example.org/subject3>";
+		this.object3 = "<https://www.example.org/object3>";
 
 	}
 
@@ -85,8 +85,8 @@ public class InteractionProcessorImplTest {
 				new GraphPattern(this.graphPattern1));
 
 		CompletableFuture<AskResult> future = this.interactionProcessor
-				.planAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.tno.nl/"),
-						new URI("http://www.tno.nl/"), askInteraction, null, null), new RecipientSelector())
+				.planAskFromKnowledgeBase(new MyKnowledgeInteractionInfo(new URI("http://www.example.org/"),
+						new URI("http://www.example.org/"), askInteraction, null, null), new RecipientSelector())
 				.execute(new BindingSet());
 
 		BindingSet bindings = future.get().getBindings();
@@ -125,7 +125,7 @@ public class InteractionProcessorImplTest {
 						new CommunicativeAct(), new GraphPattern(InteractionProcessorImplTest.this.graphPattern2));
 
 				KnowledgeInteractionInfo knowledgeInteractionInfo;
-				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/2"),
+				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.example.org/2"),
 						InteractionProcessorImplTest.this.knowledgeBaseId2, answerKnowledgeInteraction);
 
 				someKIs2.add(knowledgeInteractionInfo);
@@ -138,7 +138,7 @@ public class InteractionProcessorImplTest {
 				answerKnowledgeInteraction = new AnswerKnowledgeInteraction(new CommunicativeAct(),
 						new GraphPattern(InteractionProcessorImplTest.this.graphPattern3));
 
-				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.tno.nl/3"),
+				knowledgeInteractionInfo = new KnowledgeInteractionInfo(new URI("https://www.example.org/3"),
 						InteractionProcessorImplTest.this.knowledgeBaseId3, answerKnowledgeInteraction);
 
 				someKIs3.add(knowledgeInteractionInfo);
@@ -232,7 +232,7 @@ public class InteractionProcessorImplTest {
 				AnswerMessage msg;
 				try {
 					msg = new AnswerMessage(askMessage.getToKnowledgeBase(), askMessage.getToKnowledgeInteraction(),
-							InteractionProcessorImplTest.this.knowledgeBaseId1, new URI("https://www.tno.nl/ki1"),
+							InteractionProcessorImplTest.this.knowledgeBaseId1, new URI("https://www.example.org/ki1"),
 							askMessage.getMessageId(), Util.translateFromApiBindingSet(bindings));
 					future.complete(msg);
 				} catch (URISyntaxException e) {

@@ -45,7 +45,7 @@ public class TestAskRecipientSelector {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -57,7 +57,7 @@ public class TestAskRecipientSelector {
 		kb4 = new KnowledgeBaseImpl("kb4");
 		kn.addKB(kb4);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -67,14 +67,14 @@ public class TestAskRecipientSelector {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp3 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
+		GraphPattern gp3 = new GraphPattern(prefixes, "?d <https://www.example.org/example/b> ?e.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 		kb3.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -84,14 +84,14 @@ public class TestAskRecipientSelector {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("d", "<https://www.tno.nl/example/d>");
-			binding.put("e", "<https://www.tno.nl/example/e>");
+			binding.put("d", "<https://www.example.org/example/d>");
+			binding.put("e", "<https://www.example.org/example/e>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g.");
+		GraphPattern gp4 = new GraphPattern(prefixes, "?f <https://www.example.org/example/b> ?g.");
 		AnswerKnowledgeInteraction aKI4 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp4);
 		kb4.register(aKI4, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -101,14 +101,14 @@ public class TestAskRecipientSelector {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("f", "<https://www.tno.nl/example/f>");
-			binding.put("g", "<https://www.tno.nl/example/g>");
+			binding.put("f", "<https://www.example.org/example/f>");
+			binding.put("g", "<https://www.example.org/example/g>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
@@ -140,8 +140,8 @@ public class TestAskRecipientSelector {
 			assertTrue(bind.containsKey("x"));
 			assertTrue(bind.containsKey("y"));
 
-			assertEquals(bind.get("x"), "<https://www.tno.nl/example/a>");
-			assertEquals(bind.get("y"), "<https://www.tno.nl/example/c>");
+			assertEquals(bind.get("x"), "<https://www.example.org/example/a>");
+			assertEquals(bind.get("y"), "<https://www.example.org/example/c>");
 			LOG.info("Binding: {}", bind);
 
 			// Recipient Selector is multiple KBs (kb1 & kb3).
@@ -158,14 +158,14 @@ public class TestAskRecipientSelector {
 			assertEquals(2, bindings.size());
 
 			assertTrue(bindings.stream()
-					.allMatch(b -> (b.get("x").equals("<https://www.tno.nl/example/a>")
-							|| b.get("x").equals("<https://www.tno.nl/example/d>"))
-							&& (b.get("y").equals("<https://www.tno.nl/example/c>")
-									|| b.get("y").equals("<https://www.tno.nl/example/e>"))));
-			assertTrue(bindings.stream().anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/a>")
-					&& b.get("y").equals("<https://www.tno.nl/example/c>")));
-			assertTrue(bindings.stream().anyMatch(b -> b.get("x").equals("<https://www.tno.nl/example/d>")
-					&& b.get("y").equals("<https://www.tno.nl/example/e>")));
+					.allMatch(b -> (b.get("x").equals("<https://www.example.org/example/a>")
+							|| b.get("x").equals("<https://www.example.org/example/d>"))
+							&& (b.get("y").equals("<https://www.example.org/example/c>")
+									|| b.get("y").equals("<https://www.example.org/example/e>"))));
+			assertTrue(bindings.stream().anyMatch(b -> b.get("x").equals("<https://www.example.org/example/a>")
+					&& b.get("y").equals("<https://www.example.org/example/c>")));
+			assertTrue(bindings.stream().anyMatch(b -> b.get("x").equals("<https://www.example.org/example/d>")
+					&& b.get("y").equals("<https://www.example.org/example/e>")));
 
 			// Recipient Selector asks all Knowledge Bases (kb1, kb3, kb4).
 

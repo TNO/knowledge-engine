@@ -28,7 +28,7 @@ class TestAskAnswerDatatype {
 		kn.addKB(kb2);
 
 		PrefixMapping pm = new PrefixMappingMem();
-		pm.setNsPrefix("ex", "https://www.example.com/");
+		pm.setNsPrefix("ex", "https://www.example.org/");
 
 		GraphPattern gp = new GraphPattern(pm,
 				"?input ex:hasValue ?value . ?input ex:hasTestValue ?testValue . ?input ex:hasReverseResult ?reverseResult .");
@@ -47,7 +47,7 @@ class TestAskAnswerDatatype {
 			Binding b1 = new Binding();
 			b1.put("value", "\"My string value\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			b1.put("testValue", "\"7\"^^<http://www.w3.org/2001/XMLSchema#int>");
-			b1.put("input", "<https://www.example.com/inputx>");
+			b1.put("input", "<https://www.example.org/inputx>");
 			b1.put("reverseResult", "\"eulav gnirts yM\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bs.add(b1);
 			return bs;

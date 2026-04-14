@@ -29,7 +29,7 @@ public class TestPostReactPerformance {
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -38,11 +38,11 @@ public class TestPostReactPerformance {
 		kn.addKB(kb2);
 
 		// register capabilities
-		GraphPattern kb1GP = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern kb1GP = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		PostKnowledgeInteraction postKI = new PostKnowledgeInteraction(new CommunicativeAct(), kb1GP, null);
 		kb1.register(postKI);
 
-		GraphPattern kb2GP = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
+		GraphPattern kb2GP = new GraphPattern(prefixes, "?d <https://www.example.org/example/b> ?e.");
 		ReactKnowledgeInteraction reactKI = new ReactKnowledgeInteraction(new CommunicativeAct(), kb2GP, null);
 		long bindingCount = 100;
 		long count = 1000;
@@ -69,8 +69,8 @@ public class TestPostReactPerformance {
 		Binding b;
 		for (int i = 0; i < bindingCount; i++) {
 			b = new Binding();
-			b.put("a", "<https://www.tno.nl/example/a" + i + ">");
-			b.put("c", "<https://www.tno.nl/example/c" + i + ">");
+			b.put("a", "<https://www.example.org/example/a" + i + ">");
+			b.put("c", "<https://www.example.org/example/c" + i + ">");
 			bs.add(b);
 		}
 

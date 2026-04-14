@@ -50,19 +50,19 @@ public class TestAskAnswerWithGapsEnabled {
 		var answeringSc = new AsyncTester(new Runnable() {
 			@Override
 			public void run() {
-				String answerKBId = "https://www.tno.nl/example/relationProvider";
+				String answerKBId = "https://www.example.org/example/relationProvider";
 				String answerKIId = answerKBId + "/interaction/answerRelations";
 				try {
 					// register the AnswerKB
 					HttpTester registerAnswerKb = new HttpTester(new URL(url + "/sc"), "POST",
-							"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationProvider\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
+							"{\"knowledgeBaseId\": \"https://www.example.org/example/relationProvider\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
 							Map.of("Content-Type", "application/json", "Accept", "*/*"));
 					registerAnswerKb.expectStatus(200);
 
 					// register the AnswerKI
 					HttpTester registerAnswerKi = new HttpTester(new URL(url + "/sc/ki"), "POST",
 							"{\"knowledgeInteractionType\": \"AnswerKnowledgeInteraction\", \"knowledgeInteractionName\": \"answerRelations\", \"graphPattern\": \"?a <http://example.org/isRelatedTo> ?b .\"}",
-							Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationProvider", "Content-Type",
+							Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationProvider", "Content-Type",
 									"application/json", "Accept", "*/*"));
 					registerAnswerKi.expectStatus(200);
 
@@ -80,7 +80,7 @@ public class TestAskAnswerWithGapsEnabled {
 					int handleRequestId = jo.getInt("handleRequestId");
 					builder.add("handleRequestId", handleRequestId);
 					JsonReader jr = Json.createReader(new StringReader(
-							"[{\"a\": \"<https://www.tno.nl/example/Barry>\",\"b\": \"<https://www.tno.nl/example/Jack>\"}]"));
+							"[{\"a\": \"<https://www.example.org/example/Barry>\",\"b\": \"<https://www.example.org/example/Jack>\"}]"));
 					JsonArray bs = jr.readArray();
 					builder.add("bindingSet", bs);
 					JsonObject jo2 = builder.build();
@@ -103,7 +103,7 @@ public class TestAskAnswerWithGapsEnabled {
 		KBReady.await();
 		// register the AskKB
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"https://www.tno.nl/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerLevel\" : 2}",
+				"{\"knowledgeBaseId\": \"https://www.example.org/example/relationAsker\", \"knowledgeBaseName\": \"RelationAsker\", \"knowledgeBaseDescription\": \"A KB that asks for relations between people\", \"reasonerLevel\" : 2}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 
@@ -111,15 +111,15 @@ public class TestAskAnswerWithGapsEnabled {
 		// register the AskKI
 		HttpTester registerKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"askRelations\", \"graphPattern\": \"?a <http://example.org/isRelatedTo> ?b . ?a <http://example.org/isFatherOf> ?c .\", \"knowledgeGapsEnabled\": true}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Content-Type",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationAsker", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		registerKiWithoutGapsEnabled.expectStatus(200);
 
 		// fire the ask KI
 		HttpTester askKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ask"), "POST",
 				"{\"recipientSelector\": {\"knowledgeBases\": []}, \"bindingSet\": []}",
-				Map.of("Knowledge-Base-Id", "https://www.tno.nl/example/relationAsker", "Knowledge-Interaction-Id",
-						"https://www.tno.nl/example/relationAsker/interaction/askRelations", "Content-Type",
+				Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationAsker", "Knowledge-Interaction-Id",
+						"https://www.example.org/example/relationAsker/interaction/askRelations", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
 		System.out.println("Result is:" + result);

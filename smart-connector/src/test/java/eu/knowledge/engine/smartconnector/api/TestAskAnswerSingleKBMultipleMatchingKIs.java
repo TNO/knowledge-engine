@@ -40,7 +40,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -48,7 +48,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
-		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -58,14 +58,14 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		gp = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
+		gp = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
 		AnswerKnowledgeInteraction aKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp);
 		kb1.register(aKI2, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -75,14 +75,14 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("x", "<https://www.tno.nl/example/x>");
-			binding.put("y", "<https://www.tno.nl/example/y>");
+			binding.put("x", "<https://www.example.org/example/x>");
+			binding.put("y", "<https://www.example.org/example/y>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?p <https://www.tno.nl/example/b> ?q.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?p <https://www.example.org/example/b> ?q.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 

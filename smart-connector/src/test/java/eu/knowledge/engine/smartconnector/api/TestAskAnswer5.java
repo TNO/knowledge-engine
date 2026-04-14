@@ -39,7 +39,7 @@ public class TestAskAnswer5 {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		this.kn = new KnowledgeNetwork();
 		KnowledgeBaseImpl kb1 = new KnowledgeBaseImpl("kb1");
@@ -63,13 +63,13 @@ public class TestAskAnswer5 {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("p", "<https://www.tno.nl/example/sensor1>");
-			binding.put("q", "<https://www.tno.nl/example/value1>");
+			binding.put("p", "<https://www.example.org/example/sensor1>");
+			binding.put("q", "<https://www.example.org/example/value1>");
 			bindingSet.add(binding);
 
 			binding = new Binding();
-			binding.put("p", "<https://www.tno.nl/example/sensor2>");
-			binding.put("q", "<https://www.tno.nl/example/value2>");
+			binding.put("p", "<https://www.example.org/example/sensor2>");
+			binding.put("q", "<https://www.example.org/example/value2>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -87,8 +87,8 @@ public class TestAskAnswer5 {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("x", "<https://www.tno.nl/example/sensor1>");
-			binding.put("y", "<https://www.tno.nl/example/room1>");
+			binding.put("x", "<https://www.example.org/example/sensor1>");
+			binding.put("y", "<https://www.example.org/example/room1>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -106,12 +106,12 @@ public class TestAskAnswer5 {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("f", "<https://www.tno.nl/example/sensor1>");
-			binding.put("g", "<https://www.tno.nl/example/manu1>");
+			binding.put("f", "<https://www.example.org/example/sensor1>");
+			binding.put("g", "<https://www.example.org/example/manu1>");
 			bindingSet.add(binding);
 			binding = new Binding();
-			binding.put("f", "<https://www.tno.nl/example/sensor3>");
-			binding.put("g", "<https://www.tno.nl/example/manu3>");
+			binding.put("f", "<https://www.example.org/example/sensor3>");
+			binding.put("g", "<https://www.example.org/example/manu3>");
 			bindingSet.add(binding);
 
 			return bindingSet;

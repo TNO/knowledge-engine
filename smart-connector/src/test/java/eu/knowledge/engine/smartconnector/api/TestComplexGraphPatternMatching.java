@@ -54,7 +54,7 @@ public class TestComplexGraphPatternMatching {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 		prefixes.setNsPrefix("saref", "https://saref.etsi.org/core/");
 
 		kn = new KnowledgeNetwork();
@@ -320,7 +320,7 @@ public class TestComplexGraphPatternMatching {
 			bindingSet.add(binding);
 
 			binding = new Binding();
-			binding.put("type", "<https://www.tno.nl/example/OpenCloseSensor>");
+			binding.put("type", "<https://www.example.org/example/OpenCloseSensor>");
 			binding.put("d", "<openclose1>");
 			binding.put("l", "\"Open Close Sensor 1\"");
 			binding.put("c", "\"The open close sensor of the front door.\"");

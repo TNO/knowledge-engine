@@ -30,7 +30,7 @@ public class SingleLargeVsMultipleSmallGraphPatternTest {
 
 	private KnowledgeNetwork kn1 = new KnowledgeNetwork();
 	private KnowledgeNetwork kn2 = new KnowledgeNetwork();
-	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "https://www.tno.nl/example/");
+	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "https://www.example.org/example/");
 
 	private static int NR_OF_BINDINGS = 20;
 

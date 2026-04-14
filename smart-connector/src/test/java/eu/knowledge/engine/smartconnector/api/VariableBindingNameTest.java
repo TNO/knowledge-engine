@@ -34,7 +34,7 @@ class VariableBindingNameTest {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
 		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		sensor = new KnowledgeBaseImpl("temperatureSensor");
@@ -81,9 +81,9 @@ class VariableBindingNameTest {
 					assertEquals("\"21.5\"^^<http://www.w3.org/2001/XMLSchema#decimal>", temp);
 
 					Binding binding = new Binding();
-					binding.put("s2", "<https://www.tno.nl/example/subject>");
-					binding.put("p2", "<https://www.tno.nl/example/predicate>");
-					binding.put("o2", "<https://www.tno.nl/example/object>");
+					binding.put("s2", "<https://www.example.org/example/subject>");
+					binding.put("p2", "<https://www.example.org/example/predicate>");
+					binding.put("o2", "<https://www.example.org/example/object>");
 
 					bs.add(binding);
 				}
@@ -97,9 +97,9 @@ class VariableBindingNameTest {
 
 		BindingSet bs = new BindingSet();
 		Binding b = new Binding();
-		b.put("id1", "<https://www.tno.nl/example/room1>");
+		b.put("id1", "<https://www.example.org/example/room1>");
 		b.put("room1", "\"room1\"");
-		b.put("obs1", "<https://www.tno.nl/example/obs1>");
+		b.put("obs1", "<https://www.example.org/example/obs1>");
 		String temp = Double.toString(21.5);
 		b.put("temp1", temp);
 		bs.add(b);
@@ -146,9 +146,9 @@ class VariableBindingNameTest {
 			assertFalse(b2.containsKey("p1"));
 			assertFalse(b2.containsKey("o1"));
 
-			assertEquals("<https://www.tno.nl/example/subject>", b2.get("s2"));
-			assertEquals("<https://www.tno.nl/example/predicate>", b2.get("p2"));
-			assertEquals("<https://www.tno.nl/example/object>", b2.get("o2"));
+			assertEquals("<https://www.example.org/example/subject>", b2.get("s2"));
+			assertEquals("<https://www.example.org/example/predicate>", b2.get("p2"));
+			assertEquals("<https://www.example.org/example/object>", b2.get("o2"));
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("{}", e);
 			fail();

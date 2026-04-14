@@ -57,7 +57,7 @@ public class TestScLifeCycle {
 		URL url = new URI("http://localhost:" + PORT + "/rest/sc").toURL();
 
 		HttpTester httpTest = new HttpTester(url, "POST",
-				"{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
+				"{\"knowledgeBaseId\": \"http://example.org/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		httpTest.expectStatus(200);
 	}

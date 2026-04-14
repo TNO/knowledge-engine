@@ -59,7 +59,7 @@ public class TestAddingDeletingManySmartConnectors {
 		@Override
 		public URI getKnowledgeBaseId() {
 			try {
-				return new URI("http://www.tno.nl/" + name);
+				return new URI("http://www.example.org/" + name);
 			} catch (URISyntaxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

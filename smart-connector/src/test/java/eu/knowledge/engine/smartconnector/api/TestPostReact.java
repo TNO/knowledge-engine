@@ -31,7 +31,7 @@ public class TestPostReact {
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -39,11 +39,11 @@ public class TestPostReact {
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		PostKnowledgeInteraction pKI = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
 		kb1.register(pKI);
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?d <https://www.example.org/example/b> ?e.");
 		ReactKnowledgeInteraction rKI = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(rKI, ((anRKI, aReactExchangeInfo) -> {
 			LOG.trace("KB2 reacting...");
@@ -53,8 +53,8 @@ public class TestPostReact {
 			assertTrue(iter.hasNext(), "There should be at least a single binding.");
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
-			assertEquals("<https://www.tno.nl/example/c>", b.get("e"), "Binding of 'e' is incorrect.");
+			assertEquals("<https://www.example.org/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
+			assertEquals("<https://www.example.org/example/c>", b.get("e"), "Binding of 'e' is incorrect.");
 
 			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
@@ -67,8 +67,8 @@ public class TestPostReact {
 
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("a", "<https://www.tno.nl/example/a>");
-		binding.put("c", "<https://www.tno.nl/example/c>");
+		binding.put("a", "<https://www.example.org/example/a>");
+		binding.put("c", "<https://www.example.org/example/c>");
 		bindingSet.add(binding);
 
 		try {

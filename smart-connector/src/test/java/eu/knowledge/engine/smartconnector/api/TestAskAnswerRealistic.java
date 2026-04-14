@@ -66,8 +66,8 @@ public class TestAskAnswerRealistic {
 
 		var antecedent = new HashSet<TriplePattern>();
 		var consequent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProvider> ?b"));
-		consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#energyProviderSYNONYM> ?b"));
+		antecedent.add(new TriplePattern("?a <http://ontology.example.org/building#energyProvider> ?b"));
+		consequent.add(new TriplePattern("?a <http://ontology.example.org/building#energyProviderSYNONYM> ?b"));
 		rules.add(new Rule(antecedent, consequent));
 
 		antecedent = new HashSet<TriplePattern>();
@@ -80,8 +80,8 @@ public class TestAskAnswerRealistic {
 
 		antecedent = new HashSet<TriplePattern>();
 		consequent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#communityID> ?d"));
-		consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#communityIDSYNONYM> ?d"));
+		antecedent.add(new TriplePattern("?a <http://ontology.example.org/building#communityID> ?d"));
+		consequent.add(new TriplePattern("?a <http://ontology.example.org/building#communityIDSYNONYM> ?d"));
 		rules.add(new Rule(antecedent, consequent));
 
 		antecedent = new HashSet<TriplePattern>();
@@ -104,8 +104,8 @@ public class TestAskAnswerRealistic {
 
 		antecedent = new HashSet<TriplePattern>();
 		consequent = new HashSet<TriplePattern>();
-		antecedent.add(new TriplePattern("?a <http://ontology.tno.nl/building#flexibilityManager> ?m"));
-		consequent.add(new TriplePattern("?a <http://ontology.tno.nl/building#Menadžer> ?m"));
+		antecedent.add(new TriplePattern("?a <http://ontology.example.org/building#flexibilityManager> ?m"));
+		consequent.add(new TriplePattern("?a <http://ontology.example.org/building#Menadžer> ?m"));
 		rules.add(new Rule(antecedent, consequent));
 
 		kn.addKB(kb1);
@@ -136,13 +136,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp1 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -158,16 +158,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building1>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing1>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode1>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass1>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider1>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager1>");
-			binding.put("communityID", "<https://www.tno.nl/example/communityID1>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace1>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice1>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed1>");
+			binding.put("building", "<https://www.example.org/example/building1>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing1>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode1>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass1>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider1>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager1>");
+			binding.put("communityID", "<https://www.example.org/example/communityID1>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace1>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice1>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed1>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -175,13 +175,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp2 = new GraphPattern(
 				"?construcao <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?construcao <http://ontology.tno.nl/building#LocatedIn> ?coisaEspacial ."
+						+ "?construcao <http://ontology.example.org/building#LocatedIn> ?coisaEspacial ."
 						+ "?coisaEspacial <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?coisaEspacial <http://www.geonames.org/ontology#postalCode> ?codigoPostal . "
-						+ "?construcao <http://ontology.tno.nl/building#hasEnergyClass> ?classeDeEnergia ."
-						+ "?construcao <http://ontology.tno.nl/building#energyProvider> ?fornecedorDeEnergia ."
-						+ "?construcao <http://ontology.tno.nl/building#flexibilityManager> ?gerenteDeFlexibilidade ."
-						+ "?construcao <http://ontology.tno.nl/building#communityID> ?IDdaComunidade ."
+						+ "?construcao <http://ontology.example.org/building#hasEnergyClass> ?classeDeEnergia ."
+						+ "?construcao <http://ontology.example.org/building#energyProvider> ?fornecedorDeEnergia ."
+						+ "?construcao <http://ontology.example.org/building#flexibilityManager> ?gerenteDeFlexibilidade ."
+						+ "?construcao <http://ontology.example.org/building#communityID> ?IDdaComunidade ."
 						+ "?construcao <https://saref.etsi.org/saref4bldg/hasSpace> ?edificioEspaco ."
 						+ "?edificioEspaco <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?edificioEspaco <https://saref.etsi.org/saref4bldg/contains> ?dispositivoDeConstrucao ."
@@ -197,16 +197,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("construcao", "<https://www.tno.nl/example/construcao2>");
-			binding.put("coisaEspacial", "<https://www.tno.nl/example/coisaEspacial2>");
-			binding.put("codigoPostal", "<https://www.tno.nl/example/codigoPostal2>");
-			binding.put("classeDeEnergia", "<https://www.tno.nl/example/classeDeEnergia2>");
-			binding.put("fornecedorDeEnergia", "<https://www.tno.nl/example/fornecedorDeEnergia2>");
-			binding.put("gerenteDeFlexibilidade", "<https://www.tno.nl/example/gerenteDeFlexibilidade2>");
-			binding.put("IDdaComunidade", "<https://www.tno.nl/example/IDdaDomunidade2>");
-			binding.put("edificioEspaco", "<https://www.tno.nl/example/edificioEspaco2>");
-			binding.put("dispositivoDeConstrucao", "<https://www.tno.nl/example/dispositivoDeConstrucao2>");
-			binding.put("poderSubscrito", "<https://www.tno.nl/example/poderSubscrito2>");
+			binding.put("construcao", "<https://www.example.org/example/construcao2>");
+			binding.put("coisaEspacial", "<https://www.example.org/example/coisaEspacial2>");
+			binding.put("codigoPostal", "<https://www.example.org/example/codigoPostal2>");
+			binding.put("classeDeEnergia", "<https://www.example.org/example/classeDeEnergia2>");
+			binding.put("fornecedorDeEnergia", "<https://www.example.org/example/fornecedorDeEnergia2>");
+			binding.put("gerenteDeFlexibilidade", "<https://www.example.org/example/gerenteDeFlexibilidade2>");
+			binding.put("IDdaComunidade", "<https://www.example.org/example/IDdaDomunidade2>");
+			binding.put("edificioEspaco", "<https://www.example.org/example/edificioEspaco2>");
+			binding.put("dispositivoDeConstrucao", "<https://www.example.org/example/dispositivoDeConstrucao2>");
+			binding.put("poderSubscrito", "<https://www.example.org/example/poderSubscrito2>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -214,13 +214,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp4 = new GraphPattern(
 				"?zgrada <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?zgrada <http://ontology.tno.nl/building#LocatedIn> ?prostornaStvar ."
+						+ "?zgrada <http://ontology.example.org/building#LocatedIn> ?prostornaStvar ."
 						+ "?prostornaStvar <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?prostornaStvar <http://www.geonames.org/ontology#postalCode> ?postanskiBroj . "
-						+ "?zgrada <http://ontology.tno.nl/building#hasEnergyClass> ?energetskaKlasa ."
-						+ "?zgrada <http://ontology.tno.nl/building#energyProvider> ?dobavljacEnergije ."
-						+ "?zgrada <http://ontology.tno.nl/building#flexibilityManager> ?menadzerFleksibilnosti ."
-						+ "?zgrada <http://ontology.tno.nl/building#communityID> ?zajednica ."
+						+ "?zgrada <http://ontology.example.org/building#hasEnergyClass> ?energetskaKlasa ."
+						+ "?zgrada <http://ontology.example.org/building#energyProvider> ?dobavljacEnergije ."
+						+ "?zgrada <http://ontology.example.org/building#flexibilityManager> ?menadzerFleksibilnosti ."
+						+ "?zgrada <http://ontology.example.org/building#communityID> ?zajednica ."
 						+ "?zgrada <https://saref.etsi.org/saref4bldg/hasSpace> ?zgradniProstor ."
 						+ "?zgradniProstor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?zgradniProstor <https://saref.etsi.org/saref4bldg/contains> ?zgradniUredjaj ."
@@ -235,15 +235,15 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("zgrada", "<https://www.tno.nl/example/zgrada4>");
-			binding.put("prostornaStvar", "<https://www.tno.nl/example/prostornaStvar4>");
-			binding.put("postanskiBroj", "<https://www.tno.nl/example/postanskiBroj4>");
-			binding.put("energetskaKlasa", "<https://www.tno.nl/example/energetskaKlasa4>");
-			binding.put("dobavljacEnergije", "<https://www.tno.nl/example/dobavljacEnergije4>");
-			binding.put("menadzerFleksibilnosti", "<https://www.tno.nl/example/menadzerFleksibilnosti4>");
-			binding.put("zajednica", "<https://www.tno.nl/example/zajednica4>");
-			binding.put("zgradniProstor", "<https://www.tno.nl/example/zgradniProstor4>");
-			binding.put("zgradniUredjaj", "<https://www.tno.nl/example/zgradniUredjaj4>");
+			binding.put("zgrada", "<https://www.example.org/example/zgrada4>");
+			binding.put("prostornaStvar", "<https://www.example.org/example/prostornaStvar4>");
+			binding.put("postanskiBroj", "<https://www.example.org/example/postanskiBroj4>");
+			binding.put("energetskaKlasa", "<https://www.example.org/example/energetskaKlasa4>");
+			binding.put("dobavljacEnergije", "<https://www.example.org/example/dobavljacEnergije4>");
+			binding.put("menadzerFleksibilnosti", "<https://www.example.org/example/menadzerFleksibilnosti4>");
+			binding.put("zajednica", "<https://www.example.org/example/zajednica4>");
+			binding.put("zgradniProstor", "<https://www.example.org/example/zgradniProstor4>");
+			binding.put("zgradniUredjaj", "<https://www.example.org/example/zgradniUredjaj4>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -251,13 +251,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp5 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -273,16 +273,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/house5>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing5>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode5>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass5>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider5>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager5>");
-			binding.put("communityID", "<https://www.tno.nl/example/communityID5>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace5>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice5>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed5>");
+			binding.put("building", "<https://www.example.org/example/house5>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing5>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode5>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass5>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider5>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager5>");
+			binding.put("communityID", "<https://www.example.org/example/communityID5>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace5>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice5>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed5>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -290,13 +290,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp6 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -312,16 +312,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building6>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing6>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode6>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass6>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider6>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager6>");
-			binding.put("communityID", "<https://www.tno.nl/example/ID6>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace6>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice6>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed6>");
+			binding.put("building", "<https://www.example.org/example/building6>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing6>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode6>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass6>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider6>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager6>");
+			binding.put("communityID", "<https://www.example.org/example/ID6>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace6>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice6>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed6>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -329,13 +329,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp7 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -351,16 +351,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building7>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing7>");
-			binding.put("zipCode", "<https://www.tno.nl/example/postCode7>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass7>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider7>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager7>");
-			binding.put("communityID", "<https://www.tno.nl/example/ID7>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace7>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice7>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed7>");
+			binding.put("building", "<https://www.example.org/example/building7>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing7>");
+			binding.put("zipCode", "<https://www.example.org/example/postCode7>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass7>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider7>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager7>");
+			binding.put("communityID", "<https://www.example.org/example/ID7>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace7>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice7>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed7>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -368,13 +368,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp8 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -390,16 +390,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building8>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing8>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode8>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass8>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider8>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager8>");
-			binding.put("communityID", "<https://www.tno.nl/example/ID8>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace8>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/uređaj8>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed8>");
+			binding.put("building", "<https://www.example.org/example/building8>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing8>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode8>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass8>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider8>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager8>");
+			binding.put("communityID", "<https://www.example.org/example/ID8>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace8>");
+			binding.put("buildingDevice", "<https://www.example.org/example/uređaj8>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed8>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -407,13 +407,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp9 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -429,16 +429,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building9>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing9>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode9>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass9>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider9>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/flexibilityManager9>");
-			binding.put("communityID", "<https://www.tno.nl/example/ID9>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace9>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice9>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed9>");
+			binding.put("building", "<https://www.example.org/example/building9>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing9>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode9>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass9>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider9>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/flexibilityManager9>");
+			binding.put("communityID", "<https://www.example.org/example/ID9>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace9>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice9>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed9>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -446,13 +446,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp10 = new GraphPattern(
 				"?building <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/Building> ."
-						+ "?building <http://ontology.tno.nl/building#LocatedIn> ?spatialThing ."
+						+ "?building <http://ontology.example.org/building#LocatedIn> ?spatialThing ."
 						+ "?spatialThing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?spatialThing <http://www.geonames.org/ontology#postalCode> ?zipCode . "
-						+ "?building <http://ontology.tno.nl/building#hasEnergyClass> ?energyClass ."
-						+ "?building <http://ontology.tno.nl/building#energyProvider> ?energyProvider ."
-						+ "?building <http://ontology.tno.nl/building#flexibilityManager> ?flexibilityManager ."
-						+ "?building <http://ontology.tno.nl/building#communityID> ?communityID ."
+						+ "?building <http://ontology.example.org/building#hasEnergyClass> ?energyClass ."
+						+ "?building <http://ontology.example.org/building#energyProvider> ?energyProvider ."
+						+ "?building <http://ontology.example.org/building#flexibilityManager> ?flexibilityManager ."
+						+ "?building <http://ontology.example.org/building#communityID> ?communityID ."
 						+ "?building <https://saref.etsi.org/saref4bldg/hasSpace> ?buildingSpace ."
 						+ "?buildingSpace <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?buildingSpace <https://saref.etsi.org/saref4bldg/contains> ?buildingDevice ."
@@ -468,16 +468,16 @@ public class TestAskAnswerRealistic {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("building", "<https://www.tno.nl/example/building10>");
-			binding.put("spatialThing", "<https://www.tno.nl/example/spatialThing10>");
-			binding.put("zipCode", "<https://www.tno.nl/example/zipCode10>");
-			binding.put("energyClass", "<https://www.tno.nl/example/energyClass10>");
-			binding.put("energyProvider", "<https://www.tno.nl/example/energyProvider10>");
-			binding.put("flexibilityManager", "<https://www.tno.nl/example/Menadžer10>");
-			binding.put("communityID", "<https://www.tno.nl/example/ID10>");
-			binding.put("buildingSpace", "<https://www.tno.nl/example/buildingSpace10>");
-			binding.put("buildingDevice", "<https://www.tno.nl/example/buildingDevice10>");
-			binding.put("powerSubscribed", "<https://www.tno.nl/example/powerSubscribed10>");
+			binding.put("building", "<https://www.example.org/example/building10>");
+			binding.put("spatialThing", "<https://www.example.org/example/spatialThing10>");
+			binding.put("zipCode", "<https://www.example.org/example/zipCode10>");
+			binding.put("energyClass", "<https://www.example.org/example/energyClass10>");
+			binding.put("energyProvider", "<https://www.example.org/example/energyProvider10>");
+			binding.put("flexibilityManager", "<https://www.example.org/example/Menadžer10>");
+			binding.put("communityID", "<https://www.example.org/example/ID10>");
+			binding.put("buildingSpace", "<https://www.example.org/example/buildingSpace10>");
+			binding.put("buildingDevice", "<https://www.example.org/example/buildingDevice10>");
+			binding.put("powerSubscribed", "<https://www.example.org/example/powerSubscribed10>");
 
 			bindingSet.add(binding);
 			return bindingSet;
@@ -485,13 +485,13 @@ public class TestAskAnswerRealistic {
 
 		GraphPattern gp3 = new GraphPattern(
 				"?gebouw <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/House> ."
-						+ "?gebouw <http://ontology.tno.nl/building#LocatedIn> ?ruimtelijkDing ."
+						+ "?gebouw <http://ontology.example.org/building#LocatedIn> ?ruimtelijkDing ."
 						+ "?ruimtelijkDing <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ."
 						+ "?ruimtelijkDing <http://www.geonames.org/ontology#zipCode> ?postcode . "
-						+ "?gebouw <http://ontology.tno.nl/building#hasEnergyClass> ?energieklasse ."
-						+ "?gebouw <http://ontology.tno.nl/building#energyProviderSYNONYM> ?energieaanbieder ."
-						+ "?gebouw <http://ontology.tno.nl/building#Menadžer> ?flexibiliteitManager ."
-						+ "?gebouw <http://ontology.tno.nl/building#communityIDSYNONYM> ?gemeenschapsID ."
+						+ "?gebouw <http://ontology.example.org/building#hasEnergyClass> ?energieklasse ."
+						+ "?gebouw <http://ontology.example.org/building#energyProviderSYNONYM> ?energieaanbieder ."
+						+ "?gebouw <http://ontology.example.org/building#Menadžer> ?flexibiliteitManager ."
+						+ "?gebouw <http://ontology.example.org/building#communityIDSYNONYM> ?gemeenschapsID ."
 						+ "?gebouw <https://saref.etsi.org/saref4bldg/hasSpace> ?gebouwRuimte ."
 						+ "?gebouwRuimte <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://saref.etsi.org/saref4bldg/BuildingSpace> ."
 						+ "?gebouwRuimte <https://saref.etsi.org/saref4bldg/sadrži> ?gebouwApparaat ."

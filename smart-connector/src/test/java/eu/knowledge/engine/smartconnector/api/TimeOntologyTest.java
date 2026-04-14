@@ -23,7 +23,7 @@ public class TimeOntologyTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TimeOntologyTest.class);
 
-	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "https://www.tno.nl/example/")
+	private PrefixMapping prefixes = new PrefixMappingMem().setNsPrefix("ex", "https://www.example.org/example/")
 			.setNsPrefix("time", "https://www.w3.org/TR/owl-time/")
 			.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
