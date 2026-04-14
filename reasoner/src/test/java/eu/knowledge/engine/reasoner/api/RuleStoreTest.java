@@ -93,7 +93,7 @@ class RuleStoreTest {
 
 		produceHvtRule = new Rule(
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <Target>"),
-						new TriplePattern("?id <hasCountry> \"Russia\""))),
+						new TriplePattern("?id <hasCountry> \"Prussia\""))),
 				new HashSet<>(Arrays.asList(new TriplePattern("?id rdf:type <HighValueTarget>"))));
 		store.addRule(produceHvtRule);
 
@@ -116,7 +116,7 @@ class RuleStoreTest {
 
 								id = incomingB.get("id");
 								resultBinding.put("id", FmtUtils.stringForNode(id, new PrefixMappingZero()));
-								resultBinding.put("c", "\"Russia\"");
+								resultBinding.put("c", "\"Prussia\"");
 							} else if (incomingB.containsKey("id")
 									&& incomingB.get("id").sameValueAs(SSE.parseNode("<https://www.example.org/target0>"))) {
 								id = incomingB.get("id");

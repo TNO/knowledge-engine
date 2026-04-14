@@ -70,7 +70,7 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
 		antecedent1.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent1.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Russia\""));
+		antecedent1.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
 
 		HashSet<TriplePattern> consequent2 = new HashSet<TriplePattern>();
 		consequent2.add(new TriplePattern(
@@ -78,7 +78,7 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent2 = new HashSet<TriplePattern>();
 		antecedent2.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent2.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Russian\""));
+		antecedent2.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
 
 		HashSet<TriplePattern> consequent3 = new HashSet<TriplePattern>();
 		consequent3.add(new TriplePattern(
@@ -86,8 +86,8 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent3 = new HashSet<TriplePattern>();
 		antecedent3.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Russian\""));
-		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Russia\""));
+		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
+		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
 
 		ruleSet = new HashSet<>();
 		ruleSet.add(new Rule(antecedent1, consequent1));
@@ -329,7 +329,7 @@ public class TestDynamicSemanticComposition {
 				Binding rb = new Binding();
 				rb.put("id", id);
 				if (b.get("id").equals("<https://www.example.org/example/target1>")) {
-					language = "\"Russian\"";
+					language = "\"Prussian\"";
 				} else if (b.get("id").equals("<https://www.example.org/example/target0>")) {
 					language = "\"Dutch\"";
 				} else {
@@ -376,7 +376,7 @@ public class TestDynamicSemanticComposition {
 				Binding rb = new Binding();
 				rb.put("id", id);
 				if (b.get("id").equals("<https://www.example.org/example/target1>")) {
-					country = "\"Russia\"";
+					country = "\"Prussia\"";
 				} else if (b.get("id").equals("<https://www.example.org/example/target0>")) {
 					country = "\"Holland\"";
 				} else {
