@@ -65,19 +65,19 @@ public class TestGraphPatternMatch {
 				new String[] { "?a <test> ?b . ?b <test> ?c . ?c <test> ?a .",
 						"?z <test> ?x . ?y <test> ?z . ?x <test> ?y ." },
 				new String[] {
-						"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.tno.nl/defense/v1905/hvt/High_Value_Target> .\n"
-								+ "?id <http://ontology.tno.nl/defense/v1905/hvt/hasName> ?name .\n"
+						"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.example.org/defense/v1905/hvt/High_Value_Target> .\n"
+								+ "?id <http://ontology.example.org/defense/v1905/hvt/hasName> ?name .\n"
 								+ "?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> .\n"
 								+ "?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?id .\n"
-								+ "?obs <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.tno.nl/defense/v1905/hvt/Position> .\n"
+								+ "?obs <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.example.org/defense/v1905/hvt/Position> .\n"
 								+ "?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?position .",
 
 						"?a <http://www.w3.org/ns/sosa/hasSimpleResult> ?b .\n"
-								+ "?a <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.tno.nl/defense/v1905/hvt/Position> .\n"
+								+ "?a <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.example.org/defense/v1905/hvt/Position> .\n"
 								+ "?a <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?c .\n"
 								+ "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> .\n"
-								+ "?c <http://ontology.tno.nl/defense/v1905/hvt/hasName> ?d .\n"
-								+ "?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.tno.nl/defense/v1905/hvt/High_Value_Target> ."
+								+ "?c <http://ontology.example.org/defense/v1905/hvt/hasName> ?d .\n"
+								+ "?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.example.org/defense/v1905/hvt/High_Value_Target> ."
 
 				},
 
@@ -103,35 +103,35 @@ public class TestGraphPatternMatch {
 
 				// @formatter: off
 
-				new String[] { "?a <http://www.tno.nl/test2> ?b", "?a <http://www.tno.nl/test1> ?b" },
-				new String[] { "?a <http://www.tno.nl/test1> ?b . ?b <http://www.tno.nl/test2> ?a .",
-						"?a <http://www.tno.nl/test1> ?b . ?a <http://www.tno.nl/test2> ?b ." },
-				new String[] { "?a <http://www.tno.nl/test> ?b . ?b <http://www.tno.nl/test>?a .",
-						"?b <http://www.tno.nl/test> ?a . ?b <http://www.tno.nl/test> ?a ." },
-				new String[] { "?a <http://www.tno.nl/test1> ?b . ?b <http://www.tno.nl/test2> ?a .",
-						"?b <http://www.tno.nl/test1> ?a . ?b <http://www.tno.nl/test2> ?a ." },
+				new String[] { "?a <http://www.example.org/test2> ?b", "?a <http://www.example.org/test1> ?b" },
+				new String[] { "?a <http://www.example.org/test1> ?b . ?b <http://www.example.org/test2> ?a .",
+						"?a <http://www.example.org/test1> ?b . ?a <http://www.example.org/test2> ?b ." },
+				new String[] { "?a <http://www.example.org/test> ?b . ?b <http://www.example.org/test>?a .",
+						"?b <http://www.example.org/test> ?a . ?b <http://www.example.org/test> ?a ." },
+				new String[] { "?a <http://www.example.org/test1> ?b . ?b <http://www.example.org/test2> ?a .",
+						"?b <http://www.example.org/test1> ?a . ?b <http://www.example.org/test2> ?a ." },
 
-				new String[] { "  ?b1 <http://test.tno.nl/hond> ?d . ?a1 ?aap1 ?b1 . ?a ?aap1 ?b .",
-						"?a2 ?aap2 ?b . ?b <http://test.tno.nl/hond2> ?d . ?a ?aap2 ?b" },
+				new String[] { "  ?b1 <http://test.example.org/hond> ?d . ?a1 ?aap1 ?b1 . ?a ?aap1 ?b .",
+						"?a2 ?aap2 ?b . ?b <http://test.example.org/hond2> ?d . ?a ?aap2 ?b" },
 				new String[] {
-						"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.tno.nl/defense/v1905/hvt/High_Value_Target> .\n"
-								+ "?id <http://ontology.tno.nl/defense/v1905/hvt/hasName> ?name .\n"
+						"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.example.org/defense/v1905/hvt/High_Value_Target> .\n"
+								+ "?id <http://ontology.example.org/defense/v1905/hvt/hasName> ?name .\n"
 								+ "?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> .\n"
 								+ "?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?id .\n"
-								+ "?obs <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.tno.nl/defense/v1905/hvt/Position> .\n"
+								+ "?obs <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.example.org/defense/v1905/hvt/Position> .\n"
 								+ "?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?position .",
 
 						"?a <http://www.w3.org/ns/sosa/hasSimpleResult> ?b .\n"
-								+ "?a <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.tno.nl/defense/v1905/hvt/Position> .\n"
+								+ "?a <http://www.w3.org/ns/sosa/observedProperty> <http://ontology.example.org/defense/v1905/hvt/Position> .\n"
 								+ "?a <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?c .\n"
 								+ "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> .\n"
-								+ "?c <http://ontology.tno.nl/defense/v1905/hvt/hasName2> ?d .\n"
-								+ "?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.tno.nl/defense/v1905/hvt/High_Value_Target> ."
+								+ "?c <http://ontology.example.org/defense/v1905/hvt/hasName2> ?d .\n"
+								+ "?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ontology.example.org/defense/v1905/hvt/High_Value_Target> ."
 
 				},
 				new String[] {
-						"?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> . ?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> <https://www.tno.nl/defense/data/v1905/air> . ?obs <http://www.w3.org/ns/sosa/observedProperty> <https://www.tno.nl/defense/ontology/v1905/FahrenheitTemperature> . ?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?temp . ",
-						"?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> . ?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> <https://www.tno.nl/defense/data/v1905/air> . ?obs <http://www.w3.org/ns/sosa/observedProperty> <https://www.tno.nl/defense/ontology/v1905/CelsiusTemperature> . ?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?temp . " }
+						"?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> . ?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> <https://www.example.org/defense/data/v1905/air> . ?obs <http://www.w3.org/ns/sosa/observedProperty> <https://www.example.org/defense/ontology/v1905/FahrenheitTemperature> . ?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?temp . ",
+						"?obs <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/sosa/Observation> . ?obs <http://www.w3.org/ns/sosa/hasFeatureOfInterest> <https://www.example.org/defense/data/v1905/air> . ?obs <http://www.w3.org/ns/sosa/observedProperty> <https://www.example.org/defense/ontology/v1905/CelsiusTemperature> . ?obs <http://www.w3.org/ns/sosa/hasSimpleResult> ?temp . " }
 
 				// @formatter: on
 		};

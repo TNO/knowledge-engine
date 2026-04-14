@@ -59,35 +59,35 @@ public class TestDynamicSemanticComposition {
 
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
-//		prefixes.setNsPrefix("tno", "https://www.tno.nl/");
-		prefixes.setNsPrefix("v1905", "https://www.tno.nl/defense/ontology/v1905/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
+//		prefixes.setNsPrefix("tno", "https://www.example.org/");
+		prefixes.setNsPrefix("v1905", "https://www.example.org/defense/ontology/v1905/");
 
 		// add extra domain knowledge in the form of a rule to kbHVTSearcher.
 		HashSet<TriplePattern> consequent1 = new HashSet<TriplePattern>();
 		consequent1.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/HighValueTarget>"));
 		HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
 		antecedent1.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
+		antecedent1.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Russia\""));
 
 		HashSet<TriplePattern> consequent2 = new HashSet<TriplePattern>();
 		consequent2.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/HighValueTarget>"));
 		HashSet<TriplePattern> antecedent2 = new HashSet<TriplePattern>();
 		antecedent2.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent2.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
+		antecedent2.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Russian\""));
 
 		HashSet<TriplePattern> consequent3 = new HashSet<TriplePattern>();
 		consequent3.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/HighValueTarget>"));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/HighValueTarget>"));
 		HashSet<TriplePattern> antecedent3 = new HashSet<TriplePattern>();
 		antecedent3.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/defense/ontology/v1905/Target>"));
-		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasLanguage> \"Russian\""));
-		antecedent3.add(new TriplePattern("?id <https://www.tno.nl/defense/ontology/v1905/hasCountry> \"Russia\""));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
+		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Russian\""));
+		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Russia\""));
 
 		ruleSet = new HashSet<>();
 		ruleSet.add(new Rule(antecedent1, consequent1));
@@ -133,7 +133,7 @@ public class TestDynamicSemanticComposition {
 		assertTrue(iter.hasNext(), "there should be at least 1 binding");
 		Binding b = iter.next();
 
-		assertEquals("<https://www.tno.nl/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
+		assertEquals("<https://www.example.org/example/target1>", b.get("id"), "Binding of 'id' is incorrect.");
 		assertEquals("\"Bla\"", b.get("name"), "Binding of 'name' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
@@ -141,7 +141,7 @@ public class TestDynamicSemanticComposition {
 		// start testing post of targets!
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("id", "<https://www.tno.nl/example/target1>");
+		binding.put("id", "<https://www.example.org/example/target1>");
 		binding.put("name", "\"Bla\"");
 		bindingSet.add(binding);
 
@@ -287,11 +287,11 @@ public class TestDynamicSemanticComposition {
 			// add 2 dummy bindings to the answer
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
-			binding1.put("id", "<https://www.tno.nl/example/target0>");
+			binding1.put("id", "<https://www.example.org/example/target0>");
 			binding1.put("name", "\"Eek\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding1);
 			Binding binding2 = new Binding();
-			binding2.put("id", "<https://www.tno.nl/example/target1>");
+			binding2.put("id", "<https://www.example.org/example/target1>");
 			binding2.put("name", "\"Bla\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding2);
 
@@ -328,9 +328,9 @@ public class TestDynamicSemanticComposition {
 				String language = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
-				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
+				if (b.get("id").equals("<https://www.example.org/example/target1>")) {
 					language = "\"Russian\"";
-				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
+				} else if (b.get("id").equals("<https://www.example.org/example/target0>")) {
 					language = "\"Dutch\"";
 				} else {
 					language = "\"Flemish\"";
@@ -375,9 +375,9 @@ public class TestDynamicSemanticComposition {
 				String country = "";
 				Binding rb = new Binding();
 				rb.put("id", id);
-				if (b.get("id").equals("<https://www.tno.nl/example/target1>")) {
+				if (b.get("id").equals("<https://www.example.org/example/target1>")) {
 					country = "\"Russia\"";
-				} else if (b.get("id").equals("<https://www.tno.nl/example/target0>")) {
+				} else if (b.get("id").equals("<https://www.example.org/example/target0>")) {
 					country = "\"Holland\"";
 				} else {
 					country = "\"Belgium\"";

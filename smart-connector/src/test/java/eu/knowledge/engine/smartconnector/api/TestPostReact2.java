@@ -32,7 +32,7 @@ public class TestPostReact2 {
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -43,11 +43,11 @@ public class TestPostReact2 {
 		kn.addKB(kb3);
 
 		// start registering
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		PostKnowledgeInteraction ki1 = new PostKnowledgeInteraction(new CommunicativeAct(), gp1, null);
 		kb1.register(ki1);
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?d <https://www.example.org/example/b> ?e.");
 		ReactKnowledgeInteraction ki2 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp2, null);
 		kb2.register(ki2, (anRKI, aReactExchangeInfo) -> {
 
@@ -60,15 +60,15 @@ public class TestPostReact2 {
 			assertTrue(iter.hasNext(), "There should be at least a single binding.");
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' should be correct.");
-			assertEquals("<https://www.tno.nl/example/c>", b.get("e"), "Binding of 'e' should be correct.");
+			assertEquals("<https://www.example.org/example/a>", b.get("d"), "Binding of 'd' should be correct.");
+			assertEquals("<https://www.example.org/example/c>", b.get("e"), "Binding of 'e' should be correct.");
 
 			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
 			return new BindingSet();
 		});
 
-		GraphPattern gp3 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/b> ?g");
+		GraphPattern gp3 = new GraphPattern(prefixes, "?f <https://www.example.org/example/b> ?g");
 		ReactKnowledgeInteraction ki3 = new ReactKnowledgeInteraction(new CommunicativeAct(), gp3, null);
 		kb3.register(ki3, (anRKI, aReactExchangeInfo) -> {
 
@@ -78,8 +78,8 @@ public class TestPostReact2 {
 			Iterator<Binding> iter = argument.iterator();
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("f"), "Binding of 'f' should be correct.");
-			assertEquals("<https://www.tno.nl/example/c>", b.get("g"), "Binding of 'g' should be correct.");
+			assertEquals("<https://www.example.org/example/a>", b.get("f"), "Binding of 'f' should be correct.");
+			assertEquals("<https://www.example.org/example/c>", b.get("g"), "Binding of 'g' should be correct.");
 
 			assertFalse(iter.hasNext(), "This BindingSet should only have a single binding.");
 
@@ -92,8 +92,8 @@ public class TestPostReact2 {
 		// start exchanging
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("a", "<https://www.tno.nl/example/a>");
-		binding.put("c", "<https://www.tno.nl/example/c>");
+		binding.put("a", "<https://www.example.org/example/a>");
+		binding.put("c", "<https://www.example.org/example/c>");
 		bindingSet.add(binding);
 
 		try {

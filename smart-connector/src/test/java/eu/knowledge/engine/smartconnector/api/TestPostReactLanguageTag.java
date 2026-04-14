@@ -32,7 +32,7 @@ public class TestPostReactLanguageTag {
 	public void testPostReact() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -54,7 +54,7 @@ public class TestPostReactLanguageTag {
 			assertTrue(iter.hasNext(), "There should be at least a single binding.");
 			Binding b = iter.next();
 
-			assertEquals("<https://www.tno.nl/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
+			assertEquals("<https://www.example.org/example/a>", b.get("d"), "Binding of 'd' is incorrect.");
 			assertEquals("\"eek\"@en", b.get("e"),
 					"Binding of 'e' is incorrect.");
 
@@ -68,7 +68,7 @@ public class TestPostReactLanguageTag {
 
 		BindingSet bindingSet = new BindingSet();
 		Binding binding = new Binding();
-		binding.put("a", "<https://www.tno.nl/example/a>");
+		binding.put("a", "<https://www.example.org/example/a>");
 		binding.put("c", "\"eek\"@en");
 		bindingSet.add(binding);
 

@@ -41,7 +41,7 @@ public class Thermostat {
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
 		prefixes.setNsPrefix("ic", "https://w3id.org/knowledge-engine/");
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		r = new Room();
 		es.execute(new Runnable() {
@@ -101,9 +101,9 @@ public class Thermostat {
 
 				BindingSet args = new BindingSet();
 				Binding i = new Binding();
-				i.put("room", "<https://www.tno.nl/example/room1>");
+				i.put("room", "<https://www.example.org/example/room1>");
 				i.put("roomName", "\"room1\"");
-				i.put("act", "<https://www.tno.nl/example/act1>");
+				i.put("act", "<https://www.example.org/example/act1>");
 				if (tempDouble < threshold) {
 					i.put("state", "\"on\"");
 					LOG.info("Thermostat: posting state: {}", "on");
@@ -150,9 +150,9 @@ public class Thermostat {
 				try {
 					while (true) {
 
-						b.put("id", "<https://www.tno.nl/example/room1>");
+						b.put("id", "<https://www.example.org/example/room1>");
 						b.put("room", "\"room1\"");
-						b.put("obs", "<https://www.tno.nl/example/obs1>");
+						b.put("obs", "<https://www.example.org/example/obs1>");
 						String temp = Integer.toString(Thermostat.this.r.temperature.get());
 						b.put("temp", temp);
 						args.add(b);

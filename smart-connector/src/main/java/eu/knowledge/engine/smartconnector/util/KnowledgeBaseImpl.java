@@ -111,7 +111,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		// id
 		var someId = anId;
 		if (someId == null)
-			someId = "https://www.tno.nl/" + this.name;
+			someId = "https://www.example.org/" + this.name;
 
 		URI uri = null;
 		try {

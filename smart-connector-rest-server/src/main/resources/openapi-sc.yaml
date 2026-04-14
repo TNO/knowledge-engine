@@ -320,19 +320,19 @@ paths:
             examples:
               bindingset only:
                 value:
-                  - p: <http://www.tno.nl/s1>
-                    q: <http://www.tno.nl/p1>
-                    r: <http://www.tno.nl/o1>
+                  - p: <http://www.example.org/s1>
+                    q: <http://www.example.org/p1>
+                    r: <http://www.example.org/o1>
               recipient and bindingset:
                 value:
                   recipientSelector:
                     knowledgeBases:
-                      - http://www.tno.nl/kb2
-                      - http://www.tno.nl/kb3
+                      - http://www.example.org/kb2
+                      - http://www.example.org/kb3
                   bindingSet:
-                    - p: <http://www.tno.nl/s1>
-                      q: <http://www.tno.nl/p1>
-                      r: <http://www.tno.nl/o1>
+                    - p: <http://www.example.org/s1>
+                      q: <http://www.example.org/p1>
+                      r: <http://www.example.org/o1>
       responses:
         '200':
           description: If the ask was successful it returns all found variable
@@ -403,18 +403,18 @@ paths:
             examples:
               bindingset only:
                 value:
-                  - p: <http://www.tno.nl/s1>
-                    q: <http://www.tno.nl/p1>
-                    r: <http://www.tno.nl/o1>
+                  - p: <http://www.example.org/s1>
+                    q: <http://www.example.org/p1>
+                    r: <http://www.example.org/o1>
               recipient and bindingset:
                 value:
                   recipientSelector:
                     knowledgeBases:
-                      - http://www.tno.nl/kb2
+                      - http://www.example.org/kb2
                   bindingSet:
-                    - p: <http://www.tno.nl/s1>
-                      q: <http://www.tno.nl/p1>
-                      r: <http://www.tno.nl/o1>
+                    - p: <http://www.example.org/s1>
+                      q: <http://www.example.org/p1>
+                      r: <http://www.example.org/o1>
       responses:
         '200':
           description: If the post was successful it optionally returns all

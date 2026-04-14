@@ -247,7 +247,7 @@ public class TestApiRoutes {
 	public void startKbs() throws InterruptedException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 		kb1 = null;
 		int wait = 2;
 		final CountDownLatch kb2ReceivedData = new CountDownLatch(1);
@@ -259,7 +259,7 @@ public class TestApiRoutes {
 			}
 		};
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(anAnswerExchangeInfo.getIncomingBindings().isEmpty(),
@@ -267,8 +267,8 @@ public class TestApiRoutes {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -288,7 +288,7 @@ public class TestApiRoutes {
 
 		};
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 
 		kb2.register(askKI);

@@ -39,7 +39,7 @@ public class TestAskAnswerUnregister {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -47,7 +47,7 @@ public class TestAskAnswerUnregister {
 		kb2 = new KnowledgeBaseImpl("kb2");
 		kn.addKB(kb2);
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -57,14 +57,14 @@ public class TestAskAnswerUnregister {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
 		});
 
-		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
+		GraphPattern gp2 = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2);
 		kb2.register(askKI);
 
@@ -89,8 +89,8 @@ public class TestAskAnswerUnregister {
 		assertTrue(!b.containsKey("a") && !b.containsKey("c"),
 				"The variable names should follow the graph pattern of the current KB.");
 
-		assertEquals("<https://www.tno.nl/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
+		assertEquals("<https://www.example.org/example/a>", b.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.example.org/example/c>", b.get("y"), "Binding of 'y' is incorrect.");
 
 		assertFalse(iter.hasNext(), "This BindingSet should only have a single binding");
 
@@ -98,7 +98,7 @@ public class TestAskAnswerUnregister {
 		kb1.unregister(aKI);
 		kb2.unregister(askKI);
 
-		GraphPattern gp3 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/p> ?c.");
+		GraphPattern gp3 = new GraphPattern(prefixes, "?a <https://www.example.org/example/p> ?c.");
 		AnswerKnowledgeInteraction aKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3);
 		kb1.register(aKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -107,13 +107,13 @@ public class TestAskAnswerUnregister {
 					"Should not have bindings in this binding set.");
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 			return bindingSet;
 		});
 
-		GraphPattern gp4 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/p> ?y.");
+		GraphPattern gp4 = new GraphPattern(prefixes, "?x <https://www.example.org/example/p> ?y.");
 		AskKnowledgeInteraction askKI4 = new AskKnowledgeInteraction(new CommunicativeAct(), gp4);
 		kb2.register(askKI4);
 
@@ -149,8 +149,8 @@ public class TestAskAnswerUnregister {
 		assertTrue(!b3.containsKey("a") && !b3.containsKey("c"),
 				"The variable names should follow the graph pattern of the current KB.");
 
-		assertEquals("<https://www.tno.nl/example/a>", b3.get("x"), "Binding of 'x' is incorrect.");
-		assertEquals("<https://www.tno.nl/example/c>", b3.get("y"), "Binding of 'y' is incorrect.");
+		assertEquals("<https://www.example.org/example/a>", b3.get("x"), "Binding of 'x' is incorrect.");
+		assertEquals("<https://www.example.org/example/c>", b3.get("y"), "Binding of 'y' is incorrect.");
 
 		assertFalse(iter3.hasNext(), "This BindingSet should only have a single binding");
 

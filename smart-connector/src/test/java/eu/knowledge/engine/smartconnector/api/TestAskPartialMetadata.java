@@ -37,7 +37,7 @@ public class TestAskPartialMetadata {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -72,7 +72,7 @@ public class TestAskPartialMetadata {
 		Binding b = iter.next();
 
 		assertTrue(b.containsKey("x"), "The variable should be bound.");
-		assertTrue(b.get("x").equals("<https://www.tno.nl/kb1>"));
+		assertTrue(b.get("x").equals("<https://www.example.org/kb1>"));
 	}
 
 	@AfterAll

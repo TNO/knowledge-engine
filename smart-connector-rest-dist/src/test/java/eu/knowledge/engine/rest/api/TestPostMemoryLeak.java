@@ -148,10 +148,10 @@ public class TestPostMemoryLeak {
 						var test = new HttpTester(new URL(TestPostMemoryLeak.this.url.toString() + "/post"), "POST", """
 									[
 									  {
-									    "a": "<http://www.tno.nl/s1>"
+									    "a": "<http://www.example.org/s1>"
 									  },
 									  {
-									    "a": "<http://www.tno.nl/s2>"
+									    "a": "<http://www.example.org/s2>"
 									  }
 									]
 								""", Map.of("Content-Type", "application/json", "Accept", "*/*", "Knowledge-Base-Id",

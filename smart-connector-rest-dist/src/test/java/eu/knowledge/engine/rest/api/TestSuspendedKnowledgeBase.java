@@ -98,9 +98,9 @@ public class TestSuspendedKnowledgeBase {
 						  {
 						    "handleRequestId": 1,
 						    "bindingSet": [{
-						        "a": "<http://www.tno.nl/s1>",
-						        "b": "<http://www.tno.nl/s2>",
-						        "c": "<http://www.tno.nl/s3>"
+						        "a": "<http://www.example.org/s1>",
+						        "b": "<http://www.example.org/s2>",
+						        "c": "<http://www.example.org/s3>"
 						    }]
 						  }
 						""",

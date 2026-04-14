@@ -82,7 +82,7 @@ public class TestMetadataKnowledgeInteractionMatching {
 		kn.addKB(kb2);
 		kn.sync();
 
-		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
+		GraphPattern gp1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);
 		kb1.register(aKI, (anAKI, anAnswerExchangeInfo) -> new BindingSet());
 	}

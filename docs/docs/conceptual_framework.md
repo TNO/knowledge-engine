@@ -129,7 +129,7 @@ In the running example, the necessary concepts for the knowledge model are for e
 
 For the knowledge exchange to work, and to take full advantage of the platform, these concepts and relations between them should be formalized in detail in the knowledge model.
 
-An example of such a knowledge model is the [SAREF ontology](https://ontology.tno.nl/saref/).
+An example of such a knowledge model is the [SAREF ontology](https://ontology.example.org/saref/).
 
 ## Knowledge Interaction
 

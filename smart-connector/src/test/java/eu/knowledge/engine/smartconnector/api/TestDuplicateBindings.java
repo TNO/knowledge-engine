@@ -56,10 +56,10 @@ public class TestDuplicateBindings {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
-		GraphPattern gp1_1 = new GraphPattern(prefixes, "?a <https://www.tno.nl/example/b> ?c.");
-		GraphPattern gp1_2 = new GraphPattern(prefixes, "?b <https://www.tno.nl/example/c> ?d.");
+		GraphPattern gp1_1 = new GraphPattern(prefixes, "?a <https://www.example.org/example/b> ?c.");
+		GraphPattern gp1_2 = new GraphPattern(prefixes, "?b <https://www.example.org/example/c> ?d.");
 		answerKI1 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1_1);
 		kb1.register(answerKI1, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -69,8 +69,8 @@ public class TestDuplicateBindings {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("a", "<https://www.tno.nl/example/a>");
-			binding.put("c", "<https://www.tno.nl/example/c>");
+			binding.put("a", "<https://www.example.org/example/a>");
+			binding.put("c", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -82,14 +82,14 @@ public class TestDuplicateBindings {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("b", "<https://www.tno.nl/example/b>");
-			binding.put("d", "<https://www.tno.nl/example/d>");
+			binding.put("b", "<https://www.example.org/example/b>");
+			binding.put("d", "<https://www.example.org/example/d>");
 			bindingSet.add(binding);
 			return bindingSet;
 		});
 
-		GraphPattern gp3_1 = new GraphPattern(prefixes, "?d <https://www.tno.nl/example/b> ?e.");
-		GraphPattern gp3_2 = new GraphPattern(prefixes, "?f <https://www.tno.nl/example/c> ?g.");
+		GraphPattern gp3_1 = new GraphPattern(prefixes, "?d <https://www.example.org/example/b> ?e.");
+		GraphPattern gp3_2 = new GraphPattern(prefixes, "?f <https://www.example.org/example/c> ?g.");
 
 		answerKI3 = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp3_1);
 		kb3.register(answerKI3, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
@@ -100,8 +100,8 @@ public class TestDuplicateBindings {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("d", "<https://www.tno.nl/example/a>");
-			binding.put("e", "<https://www.tno.nl/example/c>");
+			binding.put("d", "<https://www.example.org/example/a>");
+			binding.put("e", "<https://www.example.org/example/c>");
 			bindingSet.add(binding);
 
 			return bindingSet;
@@ -113,14 +113,14 @@ public class TestDuplicateBindings {
 
 			BindingSet bindingSet = new BindingSet();
 			Binding binding = new Binding();
-			binding.put("f", "<https://www.tno.nl/example/b>");
-			binding.put("g", "<https://www.tno.nl/example/d>");
+			binding.put("f", "<https://www.example.org/example/b>");
+			binding.put("g", "<https://www.example.org/example/d>");
 			bindingSet.add(binding);
 			return bindingSet;
 		});
 
-		GraphPattern gp2_1 = new GraphPattern(prefixes, "?x <https://www.tno.nl/example/b> ?y.");
-		GraphPattern gp2_2 = new GraphPattern(prefixes, "?w <https://www.tno.nl/example/c> ?z.");
+		GraphPattern gp2_1 = new GraphPattern(prefixes, "?x <https://www.example.org/example/b> ?y.");
+		GraphPattern gp2_2 = new GraphPattern(prefixes, "?w <https://www.example.org/example/c> ?z.");
 		askKI2 = new AskKnowledgeInteraction(new CommunicativeAct(), gp2_1);
 		kb2.register(askKI2);
 		postKI2 = new PostKnowledgeInteraction(new CommunicativeAct(), gp2_1, gp2_2);
@@ -153,8 +153,8 @@ public class TestDuplicateBindings {
 			for (Binding b : bindings) {
 				assertTrue(b.containsKey("x"));
 				assertTrue(b.containsKey("y"));
-				assertEquals(b.get("x"), "<https://www.tno.nl/example/a>");
-				assertEquals(b.get("y"), "<https://www.tno.nl/example/c>");
+				assertEquals(b.get("x"), "<https://www.example.org/example/a>");
+				assertEquals(b.get("y"), "<https://www.example.org/example/c>");
 			}
 		} catch (InterruptedException | ExecutionException e) {
 			fail();
@@ -172,8 +172,8 @@ public class TestDuplicateBindings {
 
 			var bindingset = new BindingSet();
 			var binding = new Binding();
-			binding.put("x", "<https://www.tno.nl/example/a>");
-			binding.put("y", "<https://www.tno.nl/example/c>");
+			binding.put("x", "<https://www.example.org/example/a>");
+			binding.put("y", "<https://www.example.org/example/c>");
 			bindingset.add(binding);
 
 			result = kb2.post(postKI2, bindingset).get();
@@ -193,8 +193,8 @@ public class TestDuplicateBindings {
 			for (Binding b : bindings) {
 				assertTrue(b.containsKey("w"));
 				assertTrue(b.containsKey("z"));
-				assertEquals(b.get("w"), "<https://www.tno.nl/example/b>");
-				assertEquals(b.get("z"), "<https://www.tno.nl/example/d>");
+				assertEquals(b.get("w"), "<https://www.example.org/example/b>");
+				assertEquals(b.get("z"), "<https://www.example.org/example/d>");
 			}
 		} catch (InterruptedException | ExecutionException e) {
 			fail();

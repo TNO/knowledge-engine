@@ -50,7 +50,7 @@ public class TestAskAnswerLargeBindingSets {
 		for (int i = 0; i < NR_OF_BINDINGS; i++) {
 			b = new Binding();
 			for (char c : chars)
-				b.put(Character.toString(c), "<https://www.tno.nl/example/" + c + i + ">");
+				b.put(Character.toString(c), "<https://www.example.org/example/" + c + i + ">");
 			kb1BS.add(b);
 		}
 
@@ -59,7 +59,7 @@ public class TestAskAnswerLargeBindingSets {
 		for (int i = NR_OF_BINDINGS; i < (2 * NR_OF_BINDINGS); i++) {
 			b = new Binding();
 			for (char c : chars)
-				b.put(Character.toString(c), "<https://www.tno.nl/example/" + c + i + ">");
+				b.put(Character.toString(c), "<https://www.example.org/example/" + c + i + ">");
 			kb2BS.add(b);
 		}
 
@@ -70,7 +70,7 @@ public class TestAskAnswerLargeBindingSets {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -81,12 +81,12 @@ public class TestAskAnswerLargeBindingSets {
 		kn.addKB(kb3);
 
 		GraphPattern gp1 = new GraphPattern(prefixes, """
-				?a <https://www.tno.nl/example/a> ?b .
-				?a <https://www.tno.nl/example/b> ?c .
-				?a <https://www.tno.nl/example/c> ?d .
-				?a <https://www.tno.nl/example/d> ?e .
-				?e <https://www.tno.nl/example/e> ?f .
-				?e <https://www.tno.nl/example/f> ?g .
+				?a <https://www.example.org/example/a> ?b .
+				?a <https://www.example.org/example/b> ?c .
+				?a <https://www.example.org/example/c> ?d .
+				?a <https://www.example.org/example/d> ?e .
+				?e <https://www.example.org/example/e> ?f .
+				?e <https://www.example.org/example/f> ?g .
 				""");
 
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1);

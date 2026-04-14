@@ -38,7 +38,7 @@ public class TestKnowledgeGapDetection {
 	public void setup() throws InterruptedException, BrokenBarrierException, TimeoutException {
 		prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 		addDomainKnowledge();
 
 		instantiateImperialEggSearcherKB();
@@ -54,13 +54,13 @@ public class TestKnowledgeGapDetection {
 		this.ruleSet = new HashSet<>();
 		HashSet<TriplePattern> consequent1 = new HashSet<>();
 		consequent1.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/ImperialFaberge>"));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/example/ImperialFaberge>"));
 		HashSet<TriplePattern> antecedent1 = new HashSet<>();
 		antecedent1.add(new TriplePattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/FabergeEgg>"));
-		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/commissionedBy> \"Alexander III\""));
-		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/madeIn> \"Russia\""));
-		antecedent1.add(new TriplePattern("?id <https://www.tno.nl/example/madeBy> \"House of Fabergé\""));
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/example/FabergeEgg>"));
+		antecedent1.add(new TriplePattern("?id <https://www.example.org/example/commissionedBy> \"Alexander III\""));
+		antecedent1.add(new TriplePattern("?id <https://www.example.org/example/madeIn> \"Russia\""));
+		antecedent1.add(new TriplePattern("?id <https://www.example.org/example/madeBy> \"House of Fabergé\""));
 		this.ruleSet.add(new Rule("Domain knowledge", antecedent1, consequent1,
 				new Rule.AntecedentToConsequentBindingSetHandler(antecedent1)));
 	}
@@ -88,7 +88,7 @@ public class TestKnowledgeGapDetection {
 	@Test
 	public void testKnowledgeGapNoMatchingVars() throws InterruptedException, ExecutionException {
 		GraphPattern gp = new GraphPattern(prefixes,
-				"?iq rdf:type <https://www.tno.nl/example/ImperialFaberge> . ?iq <https://www.tno.nl/example/madeBy> ?company . ?iq <https://www.tno.nl/example/madeIn> ?country . ?iq <https://www.tno.nl/example/hasImage> ?image .");
+				"?iq rdf:type <https://www.example.org/example/ImperialFaberge> . ?iq <https://www.example.org/example/madeBy> ?company . ?iq <https://www.example.org/example/madeIn> ?country . ?iq <https://www.example.org/example/hasImage> ?image .");
 		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggsNonMatching", false, false,
 				true, MatchStrategy.SUPREME_LEVEL);
 		kbImperialEggSearcher.register(this.askKI);
@@ -116,7 +116,7 @@ public class TestKnowledgeGapDetection {
 	@Test
 	public void testNoKnowledgeGap() throws InterruptedException, ExecutionException {
 		GraphPattern gp = new GraphPattern(prefixes,
-				"?iq rdf:type <https://www.tno.nl/example/FabergeEgg> . ?iq <https://www.tno.nl/example/hasImage> ?image .");
+				"?iq rdf:type <https://www.example.org/example/FabergeEgg> . ?iq <https://www.example.org/example/hasImage> ?image .");
 		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, true,
 				MatchStrategy.SUPREME_LEVEL);
 		kbImperialEggSearcher.register(this.askKI);
@@ -137,7 +137,7 @@ public class TestKnowledgeGapDetection {
 	@Test
 	public void testKnowledgeGapWithoutPrefixes() throws InterruptedException, ExecutionException {
 		GraphPattern gp = new GraphPattern(
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/ImperialFaberge> . ?id <https://www.tno.nl/example/hasImage> ?image .");
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/example/ImperialFaberge> . ?id <https://www.example.org/example/hasImage> ?image .");
 		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp, "askImperialEggNoGap", false, false, true,
 				MatchStrategy.SUPREME_LEVEL);
 		kbImperialEggSearcher.register(this.askKI);
@@ -164,7 +164,7 @@ public class TestKnowledgeGapDetection {
 		kbImperialEggSearcher.setReasonerLevel(4);
 
 		GraphPattern gp2 = new GraphPattern(prefixes,
-				"?id rdf:type <https://www.tno.nl/example/ImperialFaberge> . ?id <https://www.tno.nl/example/madeBy> ?company . ?id <https://www.tno.nl/example/madeIn> ?country . ?id <https://www.tno.nl/example/hasImage> ?image .");
+				"?id rdf:type <https://www.example.org/example/ImperialFaberge> . ?id <https://www.example.org/example/madeBy> ?company . ?id <https://www.example.org/example/madeIn> ?country . ?id <https://www.example.org/example/hasImage> ?image .");
 		this.askKI = new AskKnowledgeInteraction(new CommunicativeAct(), gp2, "askImperialEggs", false, false, true,
 				MatchStrategy.SUPREME_LEVEL);
 		kbImperialEggSearcher.register(this.askKI);
@@ -176,7 +176,7 @@ public class TestKnowledgeGapDetection {
 		kbEggObserver.setReasonerLevel(4);
 
 		GraphPattern gp1 = new GraphPattern(prefixes,
-				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.tno.nl/example/FabergeEgg> . ?id <https://www.tno.nl/example/hasImage> ?image .");
+				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/example/FabergeEgg> . ?id <https://www.example.org/example/hasImage> ?image .");
 		AnswerKnowledgeInteraction aKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp1, "answerEggs");
 		kbEggObserver.register(aKI, (AnswerHandler) (anAKI, anAnswerExchangeInfo) -> {
 			assertTrue(
@@ -185,11 +185,11 @@ public class TestKnowledgeGapDetection {
 					"Should not have bindings in this binding set.");
 			BindingSet bindingSet = new BindingSet();
 			Binding binding1 = new Binding();
-			binding1.put("id", "<https://www.tno.nl/example/Hen>");
+			binding1.put("id", "<https://www.example.org/example/Hen>");
 			binding1.put("image", "\"Picture Of Hen Fabergé Egg\"^^<http://www.w3.org/2001/XMLSchema#string>");
 			bindingSet.add(binding1);
 			Binding binding2 = new Binding();
-			binding2.put("id", "<https://www.tno.nl/example/ThirdImperial>");
+			binding2.put("id", "<https://www.example.org/example/ThirdImperial>");
 			binding2.put("image", "\"Picture of Third Imperial Fabergé Egg\"");
 			bindingSet.add(binding2);
 

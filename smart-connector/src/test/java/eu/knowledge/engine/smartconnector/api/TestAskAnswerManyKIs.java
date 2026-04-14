@@ -36,7 +36,7 @@ public class TestAskAnswerManyKIs {
 	private static KnowledgeBaseImpl kb3;
 	private static KnowledgeBaseImpl kb4;
 
-	private String pattern = "?{} <https://www.tno.nl/example/b{}> ?{}.";
+	private String pattern = "?{} <https://www.example.org/example/b{}> ?{}.";
 
 	private static KnowledgeNetwork kn;
 
@@ -49,7 +49,7 @@ public class TestAskAnswerManyKIs {
 
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
-		prefixes.setNsPrefix("ex", "https://www.tno.nl/example/");
+		prefixes.setNsPrefix("ex", "https://www.example.org/example/");
 
 		kn = new KnowledgeNetwork();
 		kb1 = new KnowledgeBaseImpl("kb1");
@@ -80,8 +80,8 @@ public class TestAskAnswerManyKIs {
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
-				binding.put("a" + idx, "<https://www.tno.nl/example/a" + idx + ">");
-				binding.put("c" + idx, "<https://www.tno.nl/example/c" + idx + ">");
+				binding.put("a" + idx, "<https://www.example.org/example/a" + idx + ">");
+				binding.put("c" + idx, "<https://www.example.org/example/c" + idx + ">");
 				bindingSet.add(binding);
 
 				return bindingSet;
@@ -97,8 +97,8 @@ public class TestAskAnswerManyKIs {
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
-				binding.put("d" + idx, "<https://www.tno.nl/example/d" + idx + ">");
-				binding.put("e" + idx, "<https://www.tno.nl/example/e" + idx + ">");
+				binding.put("d" + idx, "<https://www.example.org/example/d" + idx + ">");
+				binding.put("e" + idx, "<https://www.example.org/example/e" + idx + ">");
 				bindingSet.add(binding);
 
 				return bindingSet;
@@ -114,8 +114,8 @@ public class TestAskAnswerManyKIs {
 
 				BindingSet bindingSet = new BindingSet();
 				Binding binding = new Binding();
-				binding.put("f" + idx, "<https://www.tno.nl/example/f" + idx + ">");
-				binding.put("g" + idx, "<https://www.tno.nl/example/g" + idx + ">");
+				binding.put("f" + idx, "<https://www.example.org/example/f" + idx + ">");
+				binding.put("g" + idx, "<https://www.example.org/example/g" + idx + ">");
 				bindingSet.add(binding);
 
 				return bindingSet;
