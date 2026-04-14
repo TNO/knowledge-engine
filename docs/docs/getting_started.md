@@ -165,16 +165,16 @@ For example, when the graph pattern above is applied to the RDF data above, this
 ```json
 [
   {
-    "parent": "<https://example.com/parent1>",
-    "someChild": "<https://example.com/child1>",
+    "parent": "<https://example.org/parent1>",
+    "someChild": "<https://example.org/child1>",
   },
   {
-    "parent": "<https://example.com/parent1>",
-    "someChild": "<https://example.com/child2>",
+    "parent": "<https://example.org/parent1>",
+    "someChild": "<https://example.org/child2>",
   },
   {
-    "parent": "<https://example.com/parent1>",
-    "someChild": "<https://example.com/child3>",
+    "parent": "<https://example.org/parent1>",
+    "someChild": "<https://example.org/child3>",
   }
 ]
 ```

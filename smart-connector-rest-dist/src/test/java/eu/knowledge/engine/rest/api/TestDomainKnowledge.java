@@ -27,7 +27,7 @@ public class TestDomainKnowledge {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
+				"{\"knowledgeBaseId\": \"http://example.org/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 
@@ -42,24 +42,24 @@ public class TestDomainKnowledge {
 		// non-existing KB id.
 		HttpTester addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST",
 				domainKnowledgePrefix + domainKnowledgeRules,
-				Map.of("Knowledge-Base-Id", "http://example.com/kb123", "Content-Type", "text/plain", "Accept", "*/*"));
+				Map.of("Knowledge-Base-Id", "http://example.org/kb123", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(404);
 
 		// happy flow
 		addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST",
 				domainKnowledgePrefix + domainKnowledgeRules,
-				Map.of("Knowledge-Base-Id", "http://example.com/kb", "Content-Type", "text/plain", "Accept", "*/*"));
+				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(200);
 
 		// domain knowledge with syntax error (missing prefix)
 		addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST", domainKnowledgeRules,
-				Map.of("Knowledge-Base-Id", "http://example.com/kb", "Content-Type", "text/plain", "Accept", "*/*"));
+				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(400);
 		System.out.println("Body: " + addDomainKnowledge.getBody());
 		
 		// remove all domain knowledge
 		addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST", null,
-				Map.of("Knowledge-Base-Id", "http://example.com/kb", "Content-Type", "text/plain", "Accept", "*/*"));
+				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(200);
 		System.out.println("Body: " + addDomainKnowledge.getBody());
 

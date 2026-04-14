@@ -31,20 +31,20 @@ public class TestRegisterKnowledgeInteraction {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"http://example.com/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
+				"{\"knowledgeBaseId\": \"http://example.org/kb\", \"knowledgeBaseName\": \"KB\", \"knowledgeBaseDescription\": \"KB\"}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 
 		HttpTester registerKiWithName = new HttpTester(new URL(url + "/sc/ki"), "POST",
 				"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", \"knowledgeInteractionName\": \"some-name\", \"graphPattern\": \"?a ?b ?c.\"}",
-				Map.of("Knowledge-Base-Id", "http://example.com/kb", "Content-Type", "application/json", "Accept",
+				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "application/json", "Accept",
 						"*/*"));
 		registerKiWithName.expectStatus(200);
 
 		HttpTester getKiWithName = new HttpTester(new URL(url + "/sc/ki"), "GET", null, Map.of("Knowledge-Base-Id",
-				"http://example.com/kb", "Content-Type", "application/json", "Accept", "*/*"));
+				"http://example.org/kb", "Content-Type", "application/json", "Accept", "*/*"));
 		var body = getKiWithName.getBody();
-		assertTrue(body.contains("\"http://example.com/kb/interaction/some-name\""));
+		assertTrue(body.contains("\"http://example.org/kb/interaction/some-name\""));
 	}
 
 	@AfterAll

@@ -27,12 +27,12 @@ public class TestSuspendedKnowledgeBase {
 	public void testSuspendingKnowledgeBase() throws MalformedURLException {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 		HttpTester registerKb = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"http://example.com/kb1\", " + "\"knowledgeBaseName\": \"KB1\", "
+				"{\"knowledgeBaseId\": \"http://example.org/kb1\", " + "\"knowledgeBaseName\": \"KB1\", "
 						+ "\"knowledgeBaseDescription\": \"KB1\"}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb.expectStatus(200);
 		HttpTester registerKb2 = new HttpTester(new URL(url + "/sc"), "POST",
-				"{\"knowledgeBaseId\": \"http://example.com/kb2\", " + "\"knowledgeBaseName\": \"KB2\", "
+				"{\"knowledgeBaseId\": \"http://example.org/kb2\", " + "\"knowledgeBaseName\": \"KB2\", "
 						+ "\"knowledgeBaseDescription\": \"KB2\"}",
 				Map.of("Content-Type", "application/json", "Accept", "*/*"));
 		registerKb2.expectStatus(200);
@@ -42,13 +42,13 @@ public class TestSuspendedKnowledgeBase {
 				HttpTester registerAsk = new HttpTester(new URL(url + "/sc/ki"), "POST",
 						"{\"knowledgeInteractionType\": \"AskKnowledgeInteraction\", "
 								+ "\"knowledgeInteractionName\": \"ask\"," + "\"graphPattern\": \"?a ?b ?c.\"}",
-						Map.of("Knowledge-Base-Id", "http://example.com/kb1", "Content-Type", "application/json",
+						Map.of("Knowledge-Base-Id", "http://example.org/kb1", "Content-Type", "application/json",
 								"Accept", "*/*"));
 				registerAsk.expectStatus(200);
 				System.out.println("Registered Ask");
 				HttpTester executeAsk = new HttpTester(new URL(url + "/sc/ask"), "POST", "[{}]",
-						Map.of("Knowledge-Base-Id", "http://example.com/kb1", "Knowledge-Interaction-Id",
-								"http://example.com/kb1/interaction/ask", "Content-Type", "application/json", "Accept",
+						Map.of("Knowledge-Base-Id", "http://example.org/kb1", "Knowledge-Interaction-Id",
+								"http://example.org/kb1/interaction/ask", "Content-Type", "application/json", "Accept",
 								"*/*"));
 				System.out.println("Executing Ask");
 				var body = executeAsk.getBody();
@@ -60,8 +60,8 @@ public class TestSuspendedKnowledgeBase {
 						HttpTester executeAsk1;
 						try {
 							executeAsk1 = new HttpTester(new URL(url + "/sc/ask"), "POST", "[{}]",
-									Map.of("Knowledge-Base-Id", "http://example.com/kb1", "Knowledge-Interaction-Id",
-											"http://example.com/kb1/interaction/ask", "Content-Type",
+									Map.of("Knowledge-Base-Id", "http://example.org/kb1", "Knowledge-Interaction-Id",
+											"http://example.org/kb1/interaction/ask", "Content-Type",
 											"application/json", "Accept", "*/*"));
 						} catch (MalformedURLException e) {
 							throw new RuntimeException(e);
@@ -82,13 +82,13 @@ public class TestSuspendedKnowledgeBase {
 				HttpTester registerAnswer = new HttpTester(new URL(url + "/sc/ki"), "POST",
 						"{\"knowledgeInteractionType\": \"AnswerKnowledgeInteraction\", "
 								+ "\"knowledgeInteractionName\": \"answer\"," + "\"graphPattern\": \"?a ?b ?c.\"}",
-						Map.of("Knowledge-Base-Id", "http://example.com/kb2", "Content-Type", "application/json",
+						Map.of("Knowledge-Base-Id", "http://example.org/kb2", "Content-Type", "application/json",
 								"Accept", "*/*"));
 				registerAnswer.expectStatus(200);
 				System.out.println("Registered Answer");
 
 				HttpTester waitForRequest = new HttpTester(new URL(url + "/sc/handle"), "GET", null,
-						Map.of("Knowledge-Base-Id", "http://example.com/kb2", "Content-Type", "application/json",
+						Map.of("Knowledge-Base-Id", "http://example.org/kb2", "Content-Type", "application/json",
 								"Accept", "*/*"));
 				var body = waitForRequest.getBody();
 				System.out.println(body);
@@ -105,15 +105,15 @@ public class TestSuspendedKnowledgeBase {
 						  }
 						""",
 						Map.of("Content-Type", "application/json", "Accept", "*/*", "Knowledge-Base-Id",
-								"http://example.com/kb2", "Knowledge-Interaction-Id",
-								"http://example.com/kb2/interaction/answer"));
+								"http://example.org/kb2", "Knowledge-Interaction-Id",
+								"http://example.org/kb2/interaction/answer"));
 				postAnswer.getBody();
 				System.out.println("Posted answer");
 
 				latch.await();
 
 				HttpTester deleteSC = new HttpTester(new URL(url + "/sc/"), "DELETE", "", Map.of("Knowledge-Base-Id",
-						"http://example.com/kb2", "Content-Type", "application/json", "Accept", "*/*"));
+						"http://example.org/kb2", "Content-Type", "application/json", "Accept", "*/*"));
 				deleteSC.expectStatus(200);
 			} catch (MalformedURLException e) {
 				System.err.println(e.getMessage());
