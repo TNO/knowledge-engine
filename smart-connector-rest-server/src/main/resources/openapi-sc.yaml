@@ -508,6 +508,7 @@ paths:
     post:
       summary: Send the answer or reaction of a specific long polling handle
         request back to the Smart Connector of the given Knowledge-Base-Id. Note that an empty binding set object must be returned when the specific react knowledge interaction has no result graph pattern.
+        In the event of an error, use the error message property to convey the error to the caller knowledge base.
       tags:
         - reactive
       parameters:
@@ -525,11 +526,22 @@ paths:
             type: string
       requestBody:
         required: true
+        description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
         content:
           application/json; charset=UTF-8:
             schema:
               $ref: '#/components/schemas/HandleResponse'
-        description: The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.
+            examples:
+              binding set response:
+                value:
+                  handleResponseId: 1
+                  bindingSet:
+                    - a: <http://example.org/some-outgoing-value>
+                      b: <http://example.org/another-outgoing-value>
+              error response:
+                value:
+                  handleResponseId: 1
+                  errorMessage: Database connection lost.					
       responses:
         '200':
           description: If the answer is successfully processed by your smart connector.
@@ -628,7 +640,7 @@ components:
     BindingSet:
       type: array
       items:
-        nullable: false # Enforced manually, but kept here nonetheles.
+        nullable: true # Enforced manually, but kept here nonetheles.
         type: object
         additionalProperties:
           type: string
@@ -832,12 +844,16 @@ components:
           type: string
     HandleResponse:
       type: object
-      required: [handleRequestId, bindingSet]
+      oneOf:
+        - required: [handleRequestId, bindingSet]
+        - required: [handleRequestId, errorMessage]
       properties:
         handleRequestId:
           type: integer
         bindingSet:
           $ref: '#/components/schemas/BindingSet'
+        errorMessage:
+          type: string
     SmartConnectorLease:
       type: object
       properties:
