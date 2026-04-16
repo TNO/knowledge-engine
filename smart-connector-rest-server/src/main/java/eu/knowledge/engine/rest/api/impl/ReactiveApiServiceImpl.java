@@ -177,25 +177,32 @@ public class ReactiveApiServiceImpl {
 
 			if (kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 				// knowledge interaction exists
+				
+				if (responseBody.getHandleRequestId() != null) {
+					if (kb.hasHandleRequestId(responseBody.getHandleRequestId())) {
 
-				if (kb.hasHandleRequestId(responseBody.getHandleRequestId())) {
+						try {
+							kb.finishHandleRequest(knowledgeInteractionId, responseBody);
+						} catch (IllegalArgumentException e) {
+							var response = new ResponseMessage();
+							response.setMessageType("error");
+							response.setMessage(e.getMessage());
+							return Response.status(Status.BAD_REQUEST).entity(response).build();
+						}
 
-					try {
-						kb.finishHandleRequest(knowledgeInteractionId, responseBody);
-					} catch (IllegalArgumentException e) {
+						return Response.ok().build();
+					} else {
 						var response = new ResponseMessage();
 						response.setMessageType("error");
-						response.setMessage(e.getMessage());
-						return Response.status(Status.BAD_REQUEST).entity(response).build();
+						response.setMessage("Handle request id " + responseBody.getHandleRequestId()
+								+ " not found. Are you sure it is still being processed?");
+						return Response.status(Status.NOT_FOUND).entity(response).build();
 					}
-
-					return Response.ok().build();
 				} else {
 					var response = new ResponseMessage();
 					response.setMessageType("error");
-					response.setMessage("Handle request id " + responseBody.getHandleRequestId()
-							+ " not found. Are you sure it is still being processed?");
-					return Response.status(Status.NOT_FOUND).entity(response).build();
+					response.setMessage("The handleRequestId property is mandatory, but not provided.");
+					return Response.status(Status.BAD_REQUEST).entity(response).build();
 				}
 			} else {
 				var response = new ResponseMessage();

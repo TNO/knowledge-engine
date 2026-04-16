@@ -340,14 +340,16 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		HandleRequest hr = null;
 		BindingSet bs = null;
+		String errorMessage = null;
 
 		try {
 
 			synchronized (this.beingProcessedHandleRequests) {
 				hr = this.beingProcessedHandleRequests.get(handleRequestId);
 				bs = this.listToBindingSet(responseBody.getBindingSet());
+				errorMessage = responseBody.getErrorMessage();
 
-				if (this.shouldValidateInputOutputBindings()) {
+				if (this.shouldValidateInputOutputBindings() && bs != null) {
 					// Moved the validation to the {@link
 					// eu.knowledge.engine.smartconnector.impl.InteractionProcessorImpl} so that
 					// also the Java API benefits this, but unfortunately we also have to validate
@@ -362,10 +364,38 @@ public class RestKnowledgeBase implements KnowledgeBase {
 
 		} finally {
 			// we always want to complete the future, also when the binding set is invalid.
-			if (hr != null && bs != null) {
-				hr.getFuture().complete(bs);
+			if (hr != null) {
+				if (errorMessage != null) {
+					String kiType = getOppositeKIType(hr.getKnowledgeInteractionType());
+					hr.getFuture().completeExceptionally(
+							new IllegalStateException("An error occurred while " + kiType + ": " + errorMessage));
+				} else if (bs != null) {
+					hr.getFuture().complete(bs);
+				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a verb of the given reactive KI type. So, ANSWER becomes 'ANSWERing'
+	 * and REACT becomes 'REACTing'.
+	 * 
+	 * @param aKiType The KI type of an knowledge interaction.
+	 * @return the verb of the given KI type.
+	 */
+	private String getOppositeKIType(KnowledgeInteractionType aKiType) {
+		String kiTypeStr = null;
+		switch (aKiType) {
+		case KnowledgeInteractionType.ANSWER:
+			kiTypeStr = "ANSWERing";
+			break;
+		case KnowledgeInteractionType.REACT:
+			kiTypeStr = "REACTing";
+			break;
+		default:
+			assert false;
+		}
+		return kiTypeStr;
 	}
 
 	public String register(KnowledgeInteractionBase ki) {
