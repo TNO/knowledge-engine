@@ -60,7 +60,6 @@ public class ReactiveApiServiceImpl {
 			if (this.manager.hasKB(knowledgeBaseId)) {
 
 				RestKnowledgeBase kb = manager.getKB(knowledgeBaseId);
-				kb.resetInactivityTimeout();
 
 				// handler that returns status code 202
 				TimeoutHandler handler = new TimeoutHandler() {
@@ -72,8 +71,7 @@ public class ReactiveApiServiceImpl {
 						aBuilder = Response.status(Status.ACCEPTED);
 
 						String message = String.format(
-								"This is a heartbeat message that the server is still alive, please renew your long polling request within %d seconds.",
-								RestKnowledgeBase.INACTIVITY_TIMEOUT_SECONDS);
+								"This is a heartbeat message that the server is still alive, please renew your long polling request to be notified of future KI activations.");
 						if (!kbHasAnswerOrReactKnowledgeInteraction(kb)) {
 							message += " Knowledge Base '" + kb.getKnowledgeBaseId().toString()
 									+ "' does not have any Answer or React Knowledge Interaction registered. Only those two types of Knowledge Interactions require the usage of this long polling method.";
@@ -100,21 +98,11 @@ public class ReactiveApiServiceImpl {
 					return;
 				}
 			} else {
-				if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
-					this.manager.removeSuspendedKB(knowledgeBaseId);
-					var response = new ResponseMessage();
-					response.setMessageType("error");
-					response.setMessage(
-							"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-					asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-					return;
-				} else {
-					var response = new ResponseMessage();
-					response.setMessageType("error");
-					response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
-					asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-					return;
-				}
+				var response = new ResponseMessage();
+				response.setMessageType("error");
+				response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
+				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+				return;
 			}
 		} catch (URISyntaxException e) {
 			var response = new ResponseMessage();
@@ -177,7 +165,7 @@ public class ReactiveApiServiceImpl {
 
 			if (kb.hasKnowledgeInteraction(knowledgeInteractionId)) {
 				// knowledge interaction exists
-				
+
 				if (responseBody.getHandleRequestId() != null) {
 					if (kb.hasHandleRequestId(responseBody.getHandleRequestId())) {
 
@@ -212,19 +200,10 @@ public class ReactiveApiServiceImpl {
 				return Response.status(Status.BAD_REQUEST).entity(response).build();
 			}
 		} else {
-			if (manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("A Knowledge Base for the given Knowledge-Base-Id cannot be found.");
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 	}
 

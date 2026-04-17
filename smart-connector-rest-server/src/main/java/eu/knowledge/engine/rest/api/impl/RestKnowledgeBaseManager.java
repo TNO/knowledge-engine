@@ -18,7 +18,6 @@ public class RestKnowledgeBaseManager {
 	private static final Logger LOG = LoggerFactory.getLogger(RestKnowledgeBaseManager.class);
 
 	private Map<String, RestKnowledgeBase> restKnowledgeBases = new ConcurrentHashMap<>();
-	private Map<String, RestKnowledgeBase> suspendedRestKnowledgeBases = new ConcurrentHashMap<>();
 
 	private final ScheduledThreadPoolExecutor leaseExpirationExecutor;
 
@@ -56,17 +55,7 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public boolean hasKB(String knowledgeBaseId) {
-		this.checkSuspendedSmartConnectors();
 		return restKnowledgeBases.containsKey(knowledgeBaseId);
-	}
-
-	public boolean hasSuspendedKB(String knowledgeBaseId) {
-		this.checkSuspendedSmartConnectors();
-		return suspendedRestKnowledgeBases.containsKey(knowledgeBaseId);
-	}
-
-	public void removeSuspendedKB(String knowledgeBaseId) {
-		this.suspendedRestKnowledgeBases.remove(knowledgeBaseId);
 	}
 
 	/**
@@ -77,11 +66,6 @@ public class RestKnowledgeBaseManager {
 	 * @return
 	 */
 	public CompletableFuture<Void> createKB(eu.knowledge.engine.rest.model.SmartConnector scModel) {
-		this.checkSuspendedSmartConnectors();
-
-		// Make sure we don't keep a suspended KB while we also have a valid one.
-		this.removeSuspendedKB(scModel.getKnowledgeBaseId());
-
 		var f = new CompletableFuture<Void>();
 		this.restKnowledgeBases.put(scModel.getKnowledgeBaseId(), new RestKnowledgeBase(scModel, () -> {
 			f.complete(null);
@@ -99,18 +83,14 @@ public class RestKnowledgeBaseManager {
 	}
 
 	public RestKnowledgeBase getKB(String knowledgeBaseId) {
-		this.checkSuspendedSmartConnectors();
 		return this.restKnowledgeBases.get(knowledgeBaseId);
 	}
 
 	public Set<RestKnowledgeBase> getKBs() {
-		this.checkSuspendedSmartConnectors();
 		return Collections.unmodifiableSet(new HashSet<>(this.restKnowledgeBases.values()));
 	}
 
 	public boolean deleteKB(String knowledgeBaseId) {
-		this.checkSuspendedSmartConnectors();
-
 		// Note: We first stop the knowledge base before removing it from our list.
 		// (Because in the meantime (while stopping) we cannot have that someone
 		// tries to register the same ID)
@@ -139,16 +119,6 @@ public class RestKnowledgeBaseManager {
 				.forEach(kbId -> {
 					LOG.warn("Deleting KB with ID {}, because its lease expired.", kbId);
 					this.deleteKB(kbId);
-				});
-	}
-
-	private void checkSuspendedSmartConnectors() {
-		this.restKnowledgeBases.entrySet().stream().filter(entry -> entry.getValue().isSuspended())
-				.collect(Collectors.toSet()) // Collect it so we don't mutate the list while iterating over it.
-				.forEach(entry -> {
-					LOG.info("Moving suspended KB {} to the suspended list.", entry.getKey());
-					this.restKnowledgeBases.remove(entry.getKey());
-					this.suspendedRestKnowledgeBases.put(entry.getKey(), entry.getValue());
 				});
 	}
 }
