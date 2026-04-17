@@ -37,19 +37,10 @@ public class SmartConnectorLeaseApiServiceImpl extends SmartConnectorLeaseApiSer
 
 		var restKb = manager.getKB(knowledgeBaseId);
 		if (restKb == null) {
-			if (manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("Knowledge base not found. (Has its lease already expired?)");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found. (Has its lease already expired?)");
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 
 		if (restKb.getLease() == null) {

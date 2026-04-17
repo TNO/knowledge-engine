@@ -85,21 +85,11 @@ public class ProactiveApiServiceImpl {
 
 		var kb = this.manager.getKB(knowledgeBaseId);
 		if (kb == null) {
-			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
-				this.manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-				return;
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("Smart connector not found, because its ID is unknown.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-				return;
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Smart connector not found, because its ID is unknown.");
+			asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+			return;
 		}
 
 		try {
@@ -256,21 +246,11 @@ public class ProactiveApiServiceImpl {
 
 		var kb = this.manager.getKB(knowledgeBaseId);
 		if (kb == null) {
-			if (this.manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-				return;
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("Smart connector not found, because its ID is unknown.");
-				asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
-				return;
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Smart connector not found, because its ID is unknown.");
+			asyncResponse.resume(Response.status(Status.NOT_FOUND).entity(response).build());
+			return;
 		}
 
 		try {

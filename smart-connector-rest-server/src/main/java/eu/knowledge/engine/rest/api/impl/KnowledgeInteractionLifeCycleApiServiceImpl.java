@@ -46,22 +46,13 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			if (manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			} else {
-				LOG.info("Someone tried to add a KI to KB {}, but it does not exist.", knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(String.format(
-						"Could not add knowledge interaction, because the given knowledge base ID (%s) is unknown.",
-						knowledgeBaseId));
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			}
+			LOG.debug("Someone tried to add a KI to KB {}, but it does not exist.", knowledgeBaseId);
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage(String.format(
+					"Could not add knowledge interaction, because the given knowledge base ID (%s) is unknown.",
+					knowledgeBaseId));
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 
 		String kiId;
@@ -109,19 +100,10 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			if (manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("Knowledge base not found, because its knowledge base ID is unknown.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its knowledge base ID is unknown.");
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 
 		if (knowledgeInteractionId == null) {
@@ -151,19 +133,10 @@ public class KnowledgeInteractionLifeCycleApiServiceImpl extends KnowledgeIntera
 		var restKb = manager.getKB(knowledgeBaseId);
 
 		if (restKb == null) {
-			if (manager.hasSuspendedKB(knowledgeBaseId)) {
-				manager.removeSuspendedKB(knowledgeBaseId);
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage(
-						"This knowledge base has been suspended due to inactivity. Please reregister the knowledge base and its knowledge interactions.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			} else {
-				var response = new ResponseMessage();
-				response.setMessageType("error");
-				response.setMessage("Knowledge base not found, because its knowledge base ID is unknown.");
-				return Response.status(Status.NOT_FOUND).entity(response).build();
-			}
+			var response = new ResponseMessage();
+			response.setMessageType("error");
+			response.setMessage("Knowledge base not found, because its knowledge base ID is unknown.");
+			return Response.status(Status.NOT_FOUND).entity(response).build();
 		}
 
 		Set<KnowledgeInteractionWithId> kis = restKb.getKnowledgeInteractions();
