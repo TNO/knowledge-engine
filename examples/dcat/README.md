@@ -1,0 +1,3 @@
+DCAT example
+============
+This example demonstrates how the Knowledge Bases (KBs) within a Knowledge Network can be exposed as a [Dataset Catalog](https://www.w3.org/TR/vocab-dcat-3/) (DCAT). We reuse the docker compose file from the multiple runtimes example and add a KB that gathers the metadata about the KBs using DCAT terminology. With specific domain knowledge the KE reasoner is able to automatically transform KE metadata into DCAT catalog data.
