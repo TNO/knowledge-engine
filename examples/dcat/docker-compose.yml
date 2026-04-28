@@ -1,0 +1,43 @@
+include:
+  - ../multiple-runtimes/docker-compose.yml
+
+services:
+  runtime-4:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    environment: 
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 2
+      JAVA_TOOL_OPTIONS: "-Xmx6g -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine.smartconnector.impl.ReasonerProcessor=trace"
+  kb4:
+    build: meta-kb
+    environment:
+      KE_URL: http://runtime-4:8280/rest
+      KB_ID: http://example.org/kb4
+      PREFIXES: |
+        {
+          "dcat": "http://www.w3.org/ns/dcat#",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        }
+      GRAPH_PATTERN: |
+        ?ds rdf:type dcat:DataService .
+        ?ds dcat:title ?title .
+        ?ds dcat:description ?description .
+      DOMAIN_KNOWLEDGE: |
+        @prefix dcat: <http://www.w3.org/ns/dcat#> .
+        @prefix ke: <https://w3id.org/knowledge-engine/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix dcterms: <http://purl.org/dc/terms/> .
+        @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+        
+        #KE DCAT facts
+        -> (ke:KnowledgeBase rdfs:subClassOf dcat:DataService ) .
+        -> (ke:hasName skos:exactMatch dcterms:title ) .
+        -> (ke:hasDescription skos:exactMatch dcterms:description ) .
+        
+        #RDFS rules
+        (?i rdf:type ?t1) (?t1 rdfs:subClassOf ?t2) -> (?i rdf:type ?t2) .
+        (?i ?p1 ?v) (?p1 skos:exactMatch ?p2) -> (?i ?p2 ?v) .
+
