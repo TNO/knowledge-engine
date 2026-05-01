@@ -175,7 +175,10 @@ public class JenaRules {
 				throw new IllegalArgumentException("Rule '" + r.toShortString() + "' should have a consequent.");
 			} else {
 				// create normal rule
-				keRules.add(new Rule(antecedent, consequent));
+				if (r.getName() != null)
+					keRules.add(new Rule(r.getName(), antecedent, consequent));
+				else
+					keRules.add(new Rule(antecedent, consequent));
 			}
 		}
 
