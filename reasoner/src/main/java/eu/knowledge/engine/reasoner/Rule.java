@@ -142,6 +142,11 @@ public class Rule extends BaseRule {
 		}
 	}
 
+	public Rule(String aName, Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent) {
+		this(anAntecedent, aConsequent);
+		this.setName(aName);
+	}
+
 	public Rule(Set<TriplePattern> anAntecedent, Set<TriplePattern> aConsequent,
 			TransformBindingSetHandler aBindingSetHandler) {
 		super(anAntecedent, aConsequent);

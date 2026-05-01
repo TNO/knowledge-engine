@@ -8,8 +8,8 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 2
-      JAVA_TOOL_OPTIONS: "-Xmx6g -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine.smartconnector.impl.ReasonerProcessor=trace"
+      KE_REASONER_LEVEL: 5
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine.smartconnector.impl.ReasonerProcessor=info"
   kb4:
     build: meta-kb
     environment:
@@ -18,12 +18,13 @@ services:
       PREFIXES: |
         {
           "dcat": "http://www.w3.org/ns/dcat#",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "dcterms": "http://purl.org/dc/terms/"
         }
       GRAPH_PATTERN: |
         ?ds rdf:type dcat:DataService .
-        ?ds dcat:title ?title .
-        ?ds dcat:description ?description .
+        ?ds dcterms:title ?title .
+        ?ds dcterms:description ?description .
       DOMAIN_KNOWLEDGE: |
         @prefix dcat: <http://www.w3.org/ns/dcat#> .
         @prefix ke: <https://w3id.org/knowledge-engine/> .
@@ -31,7 +32,7 @@ services:
         @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
         @prefix dcterms: <http://purl.org/dc/terms/> .
         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-        
+
         #KE DCAT facts
         -> (ke:KnowledgeBase rdfs:subClassOf dcat:DataService ) .
         -> (ke:hasName skos:exactMatch dcterms:title ) .

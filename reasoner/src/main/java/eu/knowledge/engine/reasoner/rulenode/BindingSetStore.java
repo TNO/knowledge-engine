@@ -171,18 +171,18 @@ public class BindingSetStore {
 		if (this.combiMatches != null)
 			this.cache = this.combineWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
 		else {
-			LOG.trace("Ignoring combi matches for binding set construction.");
+			LOG.trace("Ignoring combi matches for binding set construction in {}.");
 			TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
 
 			for (TripleVarBindingSet bs : this.neighborBindingSet.values().stream().map(x -> x.values())
 					.flatMap(x -> x.stream()).collect(Collectors.toSet())) {
-				combinedBS = combinedBS.merge(bs);
+				combinedBS.addAll(bs.getBindings());
 			}
 
 			// NOTE: we merge the bindings with themselves here (when the bindings
 			// 'leave' the store), but it may be better to do it when they enter the
 			// store, or when they get translated/matched.
-			this.cache = combinedBS.merge(combinedBS);
+			this.cache = combinedBS;// .merge(combinedBS);
 		}
 
 		return this.cache;
@@ -197,10 +197,18 @@ public class BindingSetStore {
 		if (r.getName().isEmpty()) {
 			return r.toString();
 		} else {
-			return r.getName();
+			return "<span title=\"" + r.toString() + "\">" + r.getName() + "</span>";
 		}
 	}
 
+	/**
+	 * Prints a Markdown table to the console. Each triple pattern in the relevant
+	 * graph pattern of this rule is respresented by a row in the table, while each
+	 * neighbor's bindingset represents a column within the table.
+	 * 
+	 * Use the following website to visualize the markdown table output:
+	 * https://markdownlivepreview.com/
+	 */
 	public void printDebuggingTable() {
 		StringBuilder table = new StringBuilder();
 
@@ -236,14 +244,18 @@ public class BindingSetStore {
 		// content rows
 		for (TriplePattern tp : this.graphPattern) {
 			// triple pattern
-			table.append(" | ").append(tp.toString()).append(" | ");
+			table.append(" | ").append("<span style=\"white-space: nowrap;\">").append(tp.toString()).append("</span>")
+					.append(" | ");
 
 			// bindings
 			for (BaseRule neigh : allNeighbors) {
 
+				// TODO: we lose bindings with the following combine, maybe just generate
+				// multiple spans?
 				TripleVarBindingSet tvbs = combine(this.neighborBindingSet.get(neigh));
 
 				if (tvbs != null) {
+
 					for (TripleVarBinding tvb : tvbs.getBindings()) {
 						Set<TripleNode> nodes = tvb.getTripleNodes(tp);
 						if (!nodes.isEmpty()) {
@@ -261,18 +273,22 @@ public class BindingSetStore {
 									object = tvb.get(tn);
 							}
 
-//							tp.getSubject().isVariable() ?
-
-							table.append(subject != null ? subject : formatNode(tp.getSubject())).append(" ");
-							table.append(predicate != null ? predicate : formatNode(tp.getPredicate())).append(" ");
-							table.append(object != null ? object : formatNode(tp.getObject())).append(" ");
+							table.append("<span style=\"white-space: nowrap;\">");
+							table.append(
+									subject != null ? formatNode(subject, true) : formatNode(tp.getSubject(), false))
+									.append(" ");
+							table.append(predicate != null ? formatNode(predicate, true)
+									: formatNode(tp.getPredicate(), false)).append(" ");
+							table.append(object != null ? formatNode(object, true) : formatNode(tp.getObject(), false))
+									.append(" ");
+							table.append("</span>");
 
 						} else {
 							table.append("");
 						}
-
 						table.append(" | ");
 					}
+
 				} else {
 					table.append("|");
 				}
@@ -282,12 +298,18 @@ public class BindingSetStore {
 		System.out.println(table.toString());
 	}
 
-	private String formatNode(Node n) {
+	private String formatNode(Node n, boolean includeFormatting) {
 
-		String before = "<span style=\"color:red\">";
+		String color;
+		if (n.isVariable())
+			color = "red";
+		else
+			color = "green";
+
+		String before = "<span style=\"color:" + color + "\">";
 		String after = "</span>";
 
-		return n.isVariable() ? before + TriplePattern.trunc(n) + after : TriplePattern.trunc(n);
+		return includeFormatting | n.isVariable() ? before + TriplePattern.trunc(n) + after : TriplePattern.trunc(n);
 	}
 
 	private TripleVarBindingSet combine(Map<Match, TripleVarBindingSet> someBindingSets) {
