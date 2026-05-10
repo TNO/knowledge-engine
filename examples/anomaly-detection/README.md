@@ -7,8 +7,10 @@ This is an example of combining anomaly detection with the knowledge engine. We 
 
 The example consists of 6 knowledge bases:
 
-- `anomaly-detection-kb`: A knowledge base that represents an anomaly detection algorithm which only looks at `building1`.
+- `anomaly-detection-kb`: A knowledge base that contains the GLADoSS anomaly detection algorithm which only looks at `building1`.
   - It reacts to sensor measurements by printing the results.
+- `anomaly-logger-kb`: A knowledge base that subscribes to anomaly reports published by the `anomaly-detection-kb`.
+  - It reacts to validation reports by logging them to the standard output.
 - `sensor1-kb`: A knowledge base that publishes celsius temperature measurements from a Dutch sensor type.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and SAREF.
@@ -66,7 +68,7 @@ We use the following static building information as context information to the a
 ```
 
 
-#Remarks
+# Remarks
 Following questions/remarks:
 - we could use `owl:inverseOf` property and [related rule](https://github.com/apache/jena/blob/main/jena-core/src/main/resources/etc/owl.rules) to go from `s4bldg:isSpaceOf` to `s4bldg:hasSpace`.
 - we cannot use the `@include <RDFS>` directive, because it contains all kinds of builtins (such as `-> tableAll()`) which we do not support.
