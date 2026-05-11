@@ -9,7 +9,7 @@ services:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://anomaly-detection-ker:8081
       KD_URL: http://knowledge-directory:8282
-      JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=debug
+      JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
       KE_REASONER_LEVEL: 3
   anomaly-detection-kb:
     image: custom-gladoss:0.1.0.RC1
@@ -77,29 +77,25 @@ services:
       KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
     volumes:
       - '.:/tke/'
+    healthcheck:
+      test: wget http://sensor1-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor1-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor1-ker:8280/rest
-      KB_ID: http://example.org/sensor1-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInCelsius ?celsius .
-        ?m ex:madeBy ex:sensor1 .
-        ex:sensor1 rdf:type ex:DutchTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor1/measurement>",
-            "celsius": "15.3"
-          }
-        ]
-  
+      SENSOR_ID: sensor1
+      SENSOR_TYPE: DutchTemperatureSensor
+      UNIT: °C
+      MIN_VALUE: 15
+      DELTA_VALUE: 10
+      SLEEPTIME: 0.5
+      ANOMALY_FREQUENCY: 75
+      ANOMALOUS_VALUE: 253.4
+    depends_on:
+      sensor1-ker:
+        condition: service_healthy
+ 
   #SENSOR2
   sensor2-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
@@ -111,28 +107,24 @@ services:
       KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
     volumes:
       - '.:/tke/'
+    healthcheck:
+      test: wget http://sensor2-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor2-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor2-ker:8280/rest
-      KB_ID: http://example.org/sensor2-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInFahrenheit ?fahrenheit .
-        ?m ex:madeBy ex:sensor2 .
-        ex:sensor2 rdf:type ex:USTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor2/measurement>",
-            "fahrenheit": "68.2"
-          }
-        ]
+      SENSOR_ID: sensor2
+      SENSOR_TYPE: USTemperatureSensor
+      UNIT: °F
+      MIN_VALUE: 59
+      DELTA_VALUE: 18
+      SLEEPTIME: 1
+      ANOMALY_FREQUENCY: 75
+      ANOMALOUS_VALUE: 281.7
+    depends_on:
+      sensor2-ker:
+        condition: service_healthy
 
   #SENSOR3
   sensor3-ker:
@@ -145,28 +137,24 @@ services:
       KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
     volumes:
       - '.:/tke/'
+    healthcheck:
+      test: wget http://sensor3-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor3-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor3-ker:8280/rest
-      KB_ID: http://example.org/sensor3-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInCelsius ?celsius .
-        ?m ex:madeBy ex:sensor3 .
-        ex:sensor3 rdf:type ex:DutchTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor3/measurement>",
-            "celsius": "23.9"
-          }
-        ]
+      SENSOR_ID: sensor3
+      SENSOR_TYPE: DutchTemperatureSensor
+      UNIT: °C
+      MIN_VALUE: 15
+      DELTA_VALUE: 10
+      SLEEPTIME: 0.75
+      ANOMALY_FREQUENCY: 75
+      ANOMALOUS_VALUE: 193.1
+    depends_on:
+      sensor2-ker:
+        condition: service_healthy
   building-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
