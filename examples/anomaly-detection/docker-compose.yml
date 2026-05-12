@@ -95,7 +95,7 @@ services:
     environment:
       KE_URL: http://sensor1-ker:8280/rest
       SENSOR_ID: sensor1
-      SENSOR_TYPE: DutchTemperatureSensor
+      SENSOR_TYPE: EUTemperatureSensor
       UNIT: °C
       MIN_VALUE: 15
       DELTA_VALUE: 10
@@ -155,7 +155,7 @@ services:
     environment:
       KE_URL: http://sensor3-ker:8280/rest
       SENSOR_ID: sensor3
-      SENSOR_TYPE: DutchTemperatureSensor
+      SENSOR_TYPE: EUTemperatureSensor
       UNIT: °C
       MIN_VALUE: 15
       DELTA_VALUE: 10
@@ -165,6 +165,37 @@ services:
     depends_on:
       sensor3-ker:
         condition: service_healthy
+
+  #SENSOR4
+  sensor4-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://sensor4-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 3
+      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+    volumes:
+      - '.:/tke/'
+    healthcheck:
+      test: wget http://sensor4-ker:8280/rest/sc -O /dev/null
+      interval: 1s
+  sensor4-kb:
+    build: ./sensor/
+    environment:
+      KE_URL: http://sensor4-ker:8280/rest
+      SENSOR_ID: sensor4
+      SENSOR_TYPE: USTemperatureSensor
+      UNIT: °F
+      MIN_VALUE: 59
+      DELTA_VALUE: 18
+      SLEEPTIME: 0.25
+      ANOMALY_FREQUENCY: 75
+      ANOMALOUS_VALUE: 281.7
+    depends_on:
+      sensor4-ker:
+        condition: service_healthy
+
   building-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
@@ -196,7 +227,11 @@ services:
           },
           {
             "s": "<http://example.org/sensor3>",
-            "b": "<http://example.org/buildingX>"
+            "b": "<http://example.org/building2>"
+          },
+          {
+            "s": "<http://example.org/sensor4>",
+            "b": "<http://example.org/building2>"
           }
         ]
   converter-ker:
