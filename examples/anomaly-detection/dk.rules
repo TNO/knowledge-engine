@@ -4,8 +4,16 @@
 
 @prefix ex: <http://example.org/> .
 
--> ( ex:DutchTemperatureSensor rdfs:subClassOf ex:Sensor ) .
--> ( ex:USTemperatureSensor rdfs:subClassOf ex:Sensor ) .
+# these facts & rules are slower, but more generic
 
-(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+#-> ( ex:DutchTemperatureSensor rdfs:subClassOf ex:Sensor ) .
+#-> ( ex:USTemperatureSensor rdfs:subClassOf ex:Sensor ) .
+
+#(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .
+
+
+# these facts & rules are faster, but less generic
+
+(?a rdf:type ex:DutchTemperatureSensor) -> (?a rdf:type ex:Sensor) .
+(?a rdf:type ex:USTemperatureSensor) -> (?a rdf:type ex:Sensor) .
 

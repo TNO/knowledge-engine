@@ -42,7 +42,6 @@ REPORT_GRAPH_PATTERN = """
 ?result sh:focusNode ?resultFocusNode .
 ?result sh:resultPath ?resultPath .
 ?result sh:value ?resultValue .
-?result sh:sourceShape ?resultSourceShape .
 ?result sh:resultMessage ?resultStatusMsgLong .
 ?result sh:resultSeverity ?resultSeverity .
 
@@ -214,6 +213,8 @@ class KE_Adaptor(Adaptor):
             except Exception:
                 logger.error(f"Unable to register at endpoint '{ki_endpoint}'")
 
+                raise
+
         self.context['knowledgeBaseId'] = kb_id
 
         # necessary for knowledge engine
@@ -224,6 +225,8 @@ class KE_Adaptor(Adaptor):
             self.register_report_publications()
         except Exception:
             logger.error("Unable to register POST knowledge interaction")
+
+            raise
 
     def register_report_publications(self: Self) -> None:
         """ Register a single post knowledge interaction per known
@@ -267,7 +270,8 @@ class KE_Adaptor(Adaptor):
                 logger.error("Unable to deregister knowledge base")
 
     def publish_report(self: Self, identifier: str,
-                       data: Collection[Statement]) -> bool:
+                       data: Collection[Statement],
+                       label: None) -> bool:
         """ Publish the validation report (as N-Triples) for
             the state graph with the provided identifier, by
             performing a post knowledge interaction to the
@@ -409,7 +413,7 @@ class KE_Adaptor(Adaptor):
         return payload
 
     def translate(self: Self, data: dict[str, Any])\
-            -> list[tuple[str, list[Statement]]]:
+            -> list[tuple[str, list[Statement]], None]:
         """ Translate binding sets to RDF.
 
         :param data: data received from API
@@ -432,6 +436,9 @@ class KE_Adaptor(Adaptor):
                           + f"with knowledge interaction {ki_id}")
             return data_translated
 
+        # graph identifier
+        graph_id = ki_id
+
         ki_pattern, ki_prefixes = self.context['argumentGraphPatterns'][ki_id]
         bindings = data["bindingSet"]  # type: list[dict[str,str]]
         try:
@@ -446,7 +453,7 @@ class KE_Adaptor(Adaptor):
 
                         graph.append(fact)
 
-                data_translated.append((ki_id, graph))
+                data_translated.append((graph_id, graph, None))
         except Exception:
             raise SyntaxWarning(f"Unexpected data format: {bindings}")
 
@@ -535,10 +542,6 @@ class KE_Adaptor(Adaptor):
                         continue
                     if statement.predicate == SHACL + "value":
                         results[sbj]["resultValue"] = statement.object
-
-                        continue
-                    if statement.predicate == SHACL + "sourceShape":
-                        results[sbj]["resultSourceShape"] = statement.object
 
                         continue
                     if statement.predicate == SHACL + "resultMessage":
@@ -683,7 +686,7 @@ class KE_Adaptor(Adaptor):
 
                 if char == '?':
                     # possible variable
-                    if i > 0:
+                    if j > 0:
                         # add chars since last variable
                         s_lst.append(s[i:j])
 
@@ -701,6 +704,8 @@ class KE_Adaptor(Adaptor):
 
                         binding = bindings[var]
                         s_lst.append(binding)
+                    else:  # retain variable
+                        s_lst.append(s[i:j])
 
                     i = j
                     flag = False

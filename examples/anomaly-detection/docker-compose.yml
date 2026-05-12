@@ -11,9 +11,12 @@ services:
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
       KE_REASONER_LEVEL: 3
+    healthcheck:
+      test: wget http://anomaly-detection-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   anomaly-detection-kb:
-    image: custom-gladoss:0.1.0.RC1
-    entrypoint: gladoss-run --verbose --continuous --grace-period 100 --report-level 3 knowledge_engine
+    image: registry.gitlab.com/wxwilcke/gladoss/base-ke:2026.05
+    entrypoint: gladoss-run --verbose --continuous --grace-period 100 --report-level 1 knowledge_engine
     volumes:
       - source: ./gladoss/backup/
         target: /mnt/backup
@@ -25,7 +28,9 @@ services:
         type: bind
         bind:
           create_host_path: true
-
+    depends_on:
+      anomaly-detection-ker:
+        condition: service_healthy
   #ANOMALY LOGGER
   anomaly-logger-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
@@ -34,6 +39,9 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://anomaly-logger-ker:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 3
+    healthcheck:
+      test: wget http://anomaly-detection-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   anomaly-logger-kb:
     build: ../common/reacting_kb
     environment:
@@ -58,12 +66,14 @@ services:
         ?result sh:focusNode ?resultFocusNode .
         ?result sh:resultPath ?resultPath .
         ?result sh:value ?resultValue .
-        ?result sh:sourceShape ?resultSourceShape .
         ?result sh:resultMessage ?resultStatusMsgLong .
         ?result sh:resultSeverity ?resultSeverity .
         ?resultSeverity rdf:type sh:Severity .
         ?resultSeverity rdfs:label ?severityLabel .
         ?resultSeverity rdfs:comment ?severityDescription .
+    depends_on:
+      anomaly-logger-ker:
+        condition: service_healthy
 
   #SENSOR1
   sensor1-ker:
@@ -153,7 +163,7 @@ services:
       ANOMALY_FREQUENCY: 75
       ANOMALOUS_VALUE: 193.1
     depends_on:
-      sensor2-ker:
+      sensor3-ker:
         condition: service_healthy
   building-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
