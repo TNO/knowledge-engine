@@ -79,7 +79,7 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 			}
 		}
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
-		if (changed && hasProactiveParent) {
+		if (changed && this.filterBindingSetOutput.isEmpty() && hasProactiveParent) {
 			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
 
