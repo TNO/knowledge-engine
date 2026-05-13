@@ -5,7 +5,7 @@ This is an example of combining anomaly detection with the knowledge engine. We 
 - using context data (i.e. building data) about sensors to improve anomaly detection performance.
 - using a converter knowledge base to convert from fahrenheit to celsius and improve the anomaly detection performance.
 
-The example consists of 6 knowledge bases:
+The example consists of 8 knowledge bases:
 
 - `anomaly-detection-kb`: A knowledge base that contains the GLADoSS anomaly detection algorithm which only looks at `building1`.
   - It reacts to sensor measurements by printing the results.
@@ -14,10 +14,14 @@ The example consists of 6 knowledge bases:
 - `sensor1-kb`: A knowledge base that publishes celsius temperature measurements from a Dutch sensor type.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and SAREF.
-- `sensor2-kb`: A knowledge base that publishes fahrenheit measurements from a US sensor type.
+- `sensor2-kb`: A knowledge base that publishes fahrenheit measurements from a United States sensor type.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and a custom ontology.
-- `sensor3-kb`: A knowledge base that publishes celsius measurements from a Dutch sensor type but is contained in a different building than the other two sensors.
+- `sensor3-kb`: A knowledge base that publishes celsius measurements from a European sensor type but is contained in building 2.
+  - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
+  - This sensor should have the appropriate reasoner level and load RDFS rules and a custom ontology.
+  - The idea is that this sensor's data is not received by the anomaly detector.
+- `sensor4-kb`: A knowledge base that publishes fahrenheit measurements from a United States sensor type but is contained in building 2.
   - It makes available the data in `KB_DATA`, using the pattern in `GRAPH_PATTERN`
   - This sensor should have the appropriate reasoner level and load RDFS rules and a custom ontology.
   - The idea is that this sensor's data is not received by the anomaly detector.
