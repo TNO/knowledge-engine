@@ -93,24 +93,69 @@ run_tests() {
     # Run unit tests.
     # 0 = success
     # > 0 = failure
-    
+ 
+    GREEN='\033[0;32m'    
+    NC='\033[0m'
+    RED='\033[0;31m'
+
     test_RQ.KE-1
-    echo "test_RQ.KE-1: $?"
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KE-1: $res"
 
     test_RQ.KE-2
-    echo "test_RQ.KE-2: $?"
+
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KE-2: $res"
 
     test_RQ.KE-3
-    echo "test_RQ.KE-3: $?"
+
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KE-3: $res"
 
     test_RQ.KE-4
-    echo "test_RQ.KE-4: $?"
+
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KE-4: $res"
 
     test_RQ.KE-5
-    echo "test_RQ.KE-5: $?"
+
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KE-5: $res"
 
     test_RQ.KV-1
-    echo "test_RQ.KV-1: $?"
+
+    if [[ "$?" -eq 0 ]]; then
+        res="${GREEN}✓${NC}"
+    else
+        res="${RED}✗${NC}"
+    fi
+
+    echo -e "test_RQ.KV-1: $res"
 }
 
 run_tests
