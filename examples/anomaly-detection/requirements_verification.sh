@@ -54,7 +54,7 @@ test_RQ.KE-2() {
 test_RQ.KE-3() {
     NUM_EXPECTED=5
 
-    num_matches=$(docker compose logs | grep -o "Planning post for KI <.*>" | sort | uniq | wc -l)
+    num_matches=$(docker compose logs --tail=250 | grep -o "Planning post for KI <.*>" | sort | uniq | wc -l)
     if [[ "$num_matches" -eq $NUM_EXPECTED ]]
     then
         # received data from all registered publications
@@ -67,7 +67,7 @@ test_RQ.KE-3() {
 test_RQ.KE-4() {
     NUM_EXPECTED=2
 
-    num_matches=$(docker compose logs | grep -o "Contacting my KB to react to KI <.*>"| sort | uniq | wc -l)
+    num_matches=$(docker compose logs --tail=250 | grep -o "Contacting my KB to react to KI <.*>"| sort | uniq | wc -l)
     if [[ "$num_matches" -eq $NUM_EXPECTED ]]
     then
         # send data to all registered subscribers
@@ -80,7 +80,7 @@ test_RQ.KE-4() {
 test_RQ.KE-5() {
     NUM_EXPECTED=3
 
-    num_matches=$(docker compose logs | grep -o "Finished post for KI <.*> with .* result bindings involving 1 KI(s) (of which .* failed: .*"| sort | uniq | wc -l)
+    num_matches=$(docker compose logs --tail=250 | grep -o "Finished post for KI <.*> with .* result bindings involving 1 KI(s) (of which .* failed: .*"| sort | uniq | wc -l)
     if [[ "$num_matches" -eq $NUM_EXPECTED ]]
     then
         # forward data from registered publishers to registered subscribers
@@ -91,7 +91,7 @@ test_RQ.KE-5() {
 }
 
 test_RQ.KV-1() {
-    num_matches=$(docker compose logs | grep -cF "Received new graph message")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -cF "Received new graph message")
     if [[ "$num_matches" -gt 0 ]]
     then
         # received at least one message
@@ -102,7 +102,7 @@ test_RQ.KV-1() {
 }
 
 test_RQ.KV-2() {
-    num_matches=$(docker compose logs | grep -cF "Creating validation report")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -cF "Creating validation report")
     if [[ "$num_matches" -gt 0 ]]
     then
         # learned at least one pattern of nominal behaviour
@@ -113,7 +113,7 @@ test_RQ.KV-2() {
 }
 
 test_RQ.KV-3() {
-    num_matches=$(docker compose logs | grep -cF "Updating graph data")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -cF "Updating graph data")
     if [[ "$num_matches" -gt 0 ]]
     then
         # updated at least one pattern
@@ -124,7 +124,7 @@ test_RQ.KV-3() {
 }
 
 test_RQ.KV-4() {
-    num_matches=$(docker compose logs | grep -cF "Graph failed validation")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -cF "Graph failed validation")
     if [[ "$num_matches" -gt 0 ]]
     then
         # detected at least one anomaly
@@ -135,7 +135,7 @@ test_RQ.KV-4() {
 }
 
 test_RQ.KV-5() {
-    num_matches=$(docker compose logs | grep -cF "Publishing validation report")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -cF "Publishing validation report")
     if [[ "$num_matches" -gt 0 ]]
     then
         # sent at least one validation report
@@ -146,7 +146,7 @@ test_RQ.KV-5() {
 }
 
 test_RQ.KV-6() {
-    num_matches=$(docker compose logs | grep -c "http://www.w3.org/ns/shacl#resultMessage, .*$")
+    num_matches=$(docker compose logs knowledge-validator-kb | grep -c "http://www.w3.org/ns/shacl#resultMessage, .*$")
     if [[ "$num_matches" -gt 0 ]]
     then
         # received at least one message

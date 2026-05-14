@@ -2,21 +2,21 @@ services:
   knowledge-directory:
     image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.4.0
 
-  #ANOMALY DETECTION
-  anomaly-detection-ker:
+  #KNOWLEDGE VALIDATOR
+  knowledge-validator-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
-      KE_RUNTIME_EXPOSED_URL: http://anomaly-detection-ker:8081
+      KE_RUNTIME_EXPOSED_URL: http://knowledge-validator-ker:8081
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
       KE_REASONER_LEVEL: 3
     healthcheck:
-      test: wget http://anomaly-detection-ker:8280/rest/sc -O /dev/null
+      test: wget http://knowledge-validator-ker:8280/rest/sc -O /dev/null
       interval: 1s
-  anomaly-detection-kb:
+  knowledge-validator-kb:
     image: registry.gitlab.com/wxwilcke/gladoss/base-ke:2026.05
-    entrypoint: gladoss-run -vv --verbose --continuous --grace-period 100 --report-level 1 knowledge_engine
+    entrypoint: gladoss-run -vv --continuous --grace-period 100 --report-level 3 knowledge_engine
     volumes:
       - source: ./gladoss/backup/
         target: /mnt/backup
@@ -29,9 +29,9 @@ services:
         bind:
           create_host_path: true
     depends_on:
-      anomaly-detection-ker:
+      knowledge-validator-ker:
         condition: service_healthy
-  #ANOMALY LOGGER
+  #DASHBOARD
   dashboard-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
@@ -84,9 +84,9 @@ services:
       KD_URL: http://knowledge-directory:8282
       JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
       KE_REASONER_LEVEL: 3
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
     healthcheck:
       test: wget http://sensor1-ker:8280/rest/sc -O /dev/null
       interval: 1s
@@ -100,7 +100,7 @@ services:
       MIN_VALUE: 15
       DELTA_VALUE: 10
       SLEEPTIME: 0.5
-      ANOMALY_FREQUENCY: 75
+      ANOMALY_FREQUENCY: 30
       ANOMALOUS_VALUE: 253.4
     depends_on:
       sensor1-ker:
@@ -114,9 +114,9 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://sensor2-ker:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 3
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
     healthcheck:
       test: wget http://sensor2-ker:8280/rest/sc -O /dev/null
       interval: 1s
@@ -130,7 +130,7 @@ services:
       MIN_VALUE: 59
       DELTA_VALUE: 18
       SLEEPTIME: 1
-      ANOMALY_FREQUENCY: 75
+      ANOMALY_FREQUENCY: 30
       ANOMALOUS_VALUE: 281.7
     depends_on:
       sensor2-ker:
@@ -144,9 +144,9 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://sensor3-ker:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 3
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
     healthcheck:
       test: wget http://sensor3-ker:8280/rest/sc -O /dev/null
       interval: 1s
@@ -160,7 +160,7 @@ services:
       MIN_VALUE: 15
       DELTA_VALUE: 10
       SLEEPTIME: 0.75
-      ANOMALY_FREQUENCY: 75
+      ANOMALY_FREQUENCY: 30
       ANOMALOUS_VALUE: 193.1
     depends_on:
       sensor3-ker:
@@ -174,9 +174,9 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://sensor4-ker:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 3
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
     healthcheck:
       test: wget http://sensor4-ker:8280/rest/sc -O /dev/null
       interval: 1s
@@ -190,7 +190,7 @@ services:
       MIN_VALUE: 59
       DELTA_VALUE: 18
       SLEEPTIME: 0.25
-      ANOMALY_FREQUENCY: 75
+      ANOMALY_FREQUENCY: 30
       ANOMALOUS_VALUE: 281.7
     depends_on:
       sensor4-ker:

@@ -5,7 +5,7 @@ knowledgeBaseName = "GLADoSS"
 knowledgeBaseDescription = "Graph-based Live Anomaly Detection on Semantic Streams"
 
 [[knowledgeInteraction]]
-knowledgeInteractionEndpoint = "http://anomaly-detection-ker:8280/rest"
+knowledgeInteractionEndpoint = "http://knowledge-validator-ker:8280/rest"
 knowledgeInteractionName = "TemperatureMeasurementSubscription"
 argumentGraphPattern = """
   ?m rdf:type ex:Measurement .
