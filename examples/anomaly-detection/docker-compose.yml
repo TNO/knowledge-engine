@@ -16,7 +16,7 @@ services:
       interval: 1s
   anomaly-detection-kb:
     image: registry.gitlab.com/wxwilcke/gladoss/base-ke:2026.05
-    entrypoint: gladoss-run --verbose --continuous --grace-period 100 --report-level 1 knowledge_engine
+    entrypoint: gladoss-run -vv --verbose --continuous --grace-period 100 --report-level 1 knowledge_engine
     volumes:
       - source: ./gladoss/backup/
         target: /mnt/backup
