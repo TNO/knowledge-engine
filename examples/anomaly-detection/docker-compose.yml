@@ -32,21 +32,21 @@ services:
       anomaly-detection-ker:
         condition: service_healthy
   #ANOMALY LOGGER
-  anomaly-logger-ker:
+  dashboard-ker:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
-      KE_RUNTIME_EXPOSED_URL: http://anomaly-logger-ker:8081
+      KE_RUNTIME_EXPOSED_URL: http://dashboard-ker:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 3
     healthcheck:
-      test: wget http://anomaly-detection-ker:8280/rest/sc -O /dev/null
+      test: wget http://dashboard-ker:8280/rest/sc -O /dev/null
       interval: 1s
-  anomaly-logger-kb:
+  dashboard-kb:
     build: ../common/reacting_kb
     environment:
-      KE_URL: http://anomaly-logger-ker:8280/rest
-      KB_ID: http://example.org/anomaly-logger-kb
+      KE_URL: http://dashboard-ker:8280/rest
+      KB_ID: http://example.org/dashboard-kb
       PREFIXES: |
         {
           "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -72,7 +72,7 @@ services:
         ?resultSeverity rdfs:label ?severityLabel .
         ?resultSeverity rdfs:comment ?severityDescription .
     depends_on:
-      anomaly-logger-ker:
+      dashboard-ker:
         condition: service_healthy
 
   #SENSOR1
