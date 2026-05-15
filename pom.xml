@@ -53,23 +53,6 @@
 		</plugins>
 	</build>
 
-	<repositories>
-		<repository>
-			<id>gitlab-maven</id>
-			<url>https://gitlab.inesctec.pt/api/v4/projects/2878/packages/maven</url>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<repository>
-			<id>gitlab-maven</id>
-			<url>https://gitlab.inesctec.pt/api/v4/projects/2878/packages/maven</url>
-		</repository>
-		<snapshotRepository>
-			<id>gitlab-maven</id>
-			<url>https://gitlab.inesctec.pt/api/v4/projects/2878/packages/maven</url>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<properties>
 		<jetty-version>11.0.26</jetty-version>
 		<java.version>17</java.version>
