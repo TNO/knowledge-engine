@@ -14,6 +14,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.AsyncTester;
@@ -29,6 +31,8 @@ public class TestAskAnswerWithGapsEnabledNoGaps {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerWithGapsEnabledNoGaps.class);
+	
 	@BeforeAll
 	public void setUpServer() {
 		rsh.start(PORT);
@@ -85,7 +89,7 @@ public class TestAskAnswerWithGapsEnabledNoGaps {
 					builder.add("bindingSet", bs);
 					JsonObject jo2 = builder.build();
 					String body = jo2.toString();
-					System.out.println("Handle an answer to a request with body: " + body);
+					LOG.info("Handle an answer to a request with body: {}", body);
 
 					// fire the POST handle to execute the answer
 					var test2 = new HttpTester(new URL(url.toString() + "/sc/handle"), "POST", body,
@@ -122,7 +126,7 @@ public class TestAskAnswerWithGapsEnabledNoGaps {
 						"https://www.example.org/example/relationAsker/interaction/askRelations", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
-		System.out.println("Result is:" + result);
+		LOG.info("Result is: {}", result);
 		assertTrue(result.contains("\"knowledgeGaps\":[]"));
 
 	}

@@ -209,7 +209,7 @@ public class RemoteKerConnection {
 			}
 		}
 
-		LOG.debug("Returning {} SCs for {}.", list.size(), this.remoteKerUri);
+		LOG.trace("KER '{}' has SCs: {}", this.remoteKerUri, list);
 
 		return list;
 	}

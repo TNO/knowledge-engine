@@ -139,8 +139,6 @@ public class Util {
 
 	public static List<Connection> createConnectionObjects(RuleNode rn) {
 
-		System.out.println(rn.toString());
-
 		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);
 

@@ -135,7 +135,6 @@ public class TestUtils {
 		}
 
 		RuleNode rn = plan.getStartNode();
-//		System.out.println(rn.toString());
 
 		Queue<RuleNode> queue = new LinkedList<RuleNode>();
 		queue.add(rn);

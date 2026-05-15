@@ -291,13 +291,11 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 
 		// then use the Knowledge Interaction as a query to retrieve the bindings.
 		Query q = QueryFactory.create("SELECT * WHERE {" + this.convertToPattern(this.metaGraphPattern) + "}");
-		LOG.trace("Query: {}", q);
+
 		QueryExecution qe = QueryExecutionFactory.create(q, m);
 		ResultSet rs = qe.execSelect();
 		BindingSet bindings = new BindingSet(rs);
 		qe.close();
-
-		LOG.trace("BindingSet: {}", bindings);
 
 		if (incoming != null) {
 			Util.removeRedundantBindingsAnswer(incoming, bindings);
@@ -339,7 +337,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			CompletableFuture<OtherKnowledgeBase> future = this.messageRouter.sendAskMessage(askMsg)
 					.thenApply(answerMsg -> {
 						try {
-							this.LOG.trace("Received message: {}", answerMsg);
 							var answeringKi = answerMsg.getFromKnowledgeInteraction();
 							var itShouldBeThis = this.knowledgeBaseStore.getMetaId(toKnowledgeBaseId,
 									KnowledgeInteractionInfo.Type.ANSWER, null);
@@ -417,8 +414,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 			boolean isMeta = kiMeta.asLiteral().getBoolean();
 			assert isMeta == kiMeta.toString().contains("true") : "If the text contains 'true' (=" + kiMeta
 					+ ") then the boolean should be true.";
-
-			this.LOG.trace("meta: {} = {}", FmtUtils.stringForNode(kiMeta.asNode()), isMeta);
 
 			// retrieve acts
 			Resource act = model.getProperty(ki, Vocab.HAS_ACT).getObject().asResource();
@@ -505,9 +500,6 @@ public class MetaKnowledgeBaseImpl implements MetaKnowledgeBase, KnowledgeBaseSt
 					}
 
 					if (kiType.equals(Vocab.POST_KI)) {
-
-						this.LOG.trace("{} - {}", argumentGraphPatternString, resultGraphPatternString);
-
 						PostKnowledgeInteraction postKnowledgeInteraction = new PostKnowledgeInteraction(actObject,
 								new GraphPattern(argumentGraphPatternString),
 								resultGraphPatternString != null ? new GraphPattern(resultGraphPatternString) : null,

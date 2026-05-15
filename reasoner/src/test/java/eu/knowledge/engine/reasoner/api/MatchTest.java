@@ -20,6 +20,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.BaseRule.CombiMatch;
@@ -31,6 +33,8 @@ import eu.knowledge.engine.reasoner.SinkBindingSetHandler;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MatchTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(MatchTest.class);
 
 	private List<TriplePattern> loadTriple(String aResource) {
 		String gp = Util.getStringFromInputStream(MatchTest.class.getResourceAsStream(aResource));
@@ -58,7 +62,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -73,7 +77,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -90,7 +94,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -107,7 +111,7 @@ public class MatchTest {
 
 		// there should be a match, but its mapping should be empty nothing needs to
 		// happen to translate one to the other.
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -124,7 +128,7 @@ public class MatchTest {
 
 		// there should be a match and its mapping should be empty because nothing needs
 		// to happen to translate one to the other.
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -141,7 +145,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), rhs);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(obj, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -169,10 +173,10 @@ public class MatchTest {
 
 		Set<Match> findMatchesWithConsequent = r.antecedentMatches(obj,
 				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
-		System.out.println("Size: " + findMatchesWithConsequent.size());
+		LOG.info("Size: {}", findMatchesWithConsequent.size());
 
 		for (Match m : findMatchesWithConsequent) {
-			System.out.println(m.getMappings());
+			LOG.info("{}", m.getMappings());
 		}
 
 	}
@@ -191,7 +195,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), tp2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -209,7 +213,7 @@ public class MatchTest {
 		Rule r = new Rule(new HashSet<>(), tp2);
 
 		Set<Match> findMatchesWithConsequent = r.consequentMatches(tp1, EnumSet.of(MatchFlag.ONLY_BIGGEST));
-		System.out.println(findMatchesWithConsequent);
+		LOG.info("{}", findMatchesWithConsequent);
 	}
 
 	@Test
@@ -237,12 +241,12 @@ public class MatchTest {
 
 		// should correctly create a combined match (because no conflict)
 		Match m3 = m1.merge(m2);
-		System.out.println("Match: " + m3);
+		LOG.info("Match: {}", m3);
 
 		// should correctly create the same combined match as previous merge (because
 		// merge should be symmetrical)
 		Match m4 = m2.merge(m1);
-		System.out.println("Match: " + m4);
+		LOG.info("Match: {}", m4);
 
 		Map<TripleNode, TripleNode> mapping3 = new HashMap<TripleNode, TripleNode>();
 		mapping3.put(new TripleNode(tp1_1, SSE.parseNode("?p"), 0), new TripleNode(tp2_3, SSE.parseNode("?s"), 0));
@@ -252,7 +256,7 @@ public class MatchTest {
 
 		// conflict, so should be null
 		Match m6 = m5.merge(m1);
-		System.out.println("Match: " + m6);
+		LOG.info("Match: {}", m6);
 	}
 
 	@Test
@@ -277,15 +281,15 @@ public class MatchTest {
 		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2,
 				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST));
 
-		System.out.println("Size 1: " + findMatchesWithConsequent.size());
-		System.out.println(findMatchesWithConsequent);
-		System.out.println("Size 2: " + findMatchesWithConsequent2.size());
-		System.out.println(findMatchesWithConsequent2);
+		LOG.info("Size 1: {}", findMatchesWithConsequent.size());
+		LOG.info("{}", findMatchesWithConsequent);
+		LOG.info("Size 2: {}", findMatchesWithConsequent2.size());
+		LOG.info("{}", findMatchesWithConsequent2);
 
 		assertTrue(findMatchesWithConsequent.size() == findMatchesWithConsequent2.size());
 
 		for (Match m : findMatchesWithConsequent) {
-			System.out.println(m.getMappings());
+			LOG.info("{}", m.getMappings());
 		}
 
 	}
@@ -312,15 +316,15 @@ public class MatchTest {
 		Set<Match> findMatchesWithConsequent2 = r2.consequentMatches(obj2,
 				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST));
 
-		System.out.println("Size 1: " + findMatchesWithConsequent.size());
-		System.out.println(findMatchesWithConsequent);
-		System.out.println("Size 2: " + findMatchesWithConsequent2.size());
-		System.out.println(findMatchesWithConsequent2);
+		LOG.info("Size 1: {}", findMatchesWithConsequent.size());
+		LOG.info("{}", findMatchesWithConsequent);
+		LOG.info("Size 2: {}", findMatchesWithConsequent2.size());
+		LOG.info("{}", findMatchesWithConsequent2);
 
 		assertTrue(findMatchesWithConsequent.size() == findMatchesWithConsequent2.size());
 
 		for (Match m : findMatchesWithConsequent) {
-			System.out.println(m.getMappings());
+			LOG.info("{}", m.getMappings());
 		}
 
 	}
@@ -346,19 +350,14 @@ public class MatchTest {
 				new HashSet<>(Arrays.asList(/* t1, */ t5, t9, t8, t7, t6, t4, t3)),
 				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED, MatchFlag.ONE_TO_ONE));
 
-		System.out.println("Size: " + findMatchesWithAntecedent.size());
-//		System.out.println(findMatchesWithConsequent);
-
+		LOG.info("Size: {}", findMatchesWithAntecedent.size());
 		int count = 0;
 		for (Match m : findMatchesWithAntecedent) {
-//			System.out.println(m.getMatchingPatterns());
 
 			if (m.getMatchingPatterns().size() == 3) {
 				count++;
 			}
 		}
-//		System.out.println("Number of 3 size matches: " + count);
-
 	}
 
 	@Test
@@ -434,8 +433,8 @@ public class MatchTest {
 			Set<Match> findMatchesWithConsequent = r.consequentMatches(new HashSet<>(Arrays.asList(graphPattern)),
 					EnumSet.of(MatchFlag.ONE_TO_ONE));
 
-			System.out.println("graph pattern size " + gpSize + " gives matches size "
-					+ findMatchesWithConsequent.size() + "-" + getNumberOfMatches(gpSize));
+			LOG.info("graph pattern size {} gives matches size {} - {}", 
+					+ gpSize, findMatchesWithConsequent.size(), getNumberOfMatches(gpSize));
 			assertEquals(findMatchesWithConsequent.size(), getNumberOfMatches(gpSize));
 		}
 	}
@@ -490,7 +489,7 @@ public class MatchTest {
 
 		var nBs = tvbs.translate(rhs, findMatchesWithConsequent).values().iterator().next();
 
-		System.out.println(nBs);
+		LOG.info("{}", nBs);
 		assertTrue(nBs.isEmpty());
 	}
 
@@ -513,7 +512,7 @@ public class MatchTest {
 
 		var nBs = tvbs.translate(rhs, findMatchesWithConsequent);
 
-		System.out.println(nBs);
+		LOG.info("{}", nBs);
 		assertTrue(!nBs.isEmpty());
 	}
 
@@ -555,7 +554,7 @@ public class MatchTest {
 			tvbs1 = tvbs1.merge(aBS);
 		}
 
-		System.out.println("BindingSet: " + tvbs1);
+		LOG.info("BindingSet: {}", tvbs1);
 
 		assertTrue(tvbs1.isEmpty());
 	}
@@ -595,17 +594,17 @@ public class MatchTest {
 
 			@Override
 			public CompletableFuture<Void> handle(BindingSet aBindingSet) {
-				System.out.println("bla");
+				LOG.info("bla");
 				return null;
 			}
 		});
 
-		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
+		LOG.info("NrOfMatches with {} triple patterns: {}", obj.size(), getNumberOfMatches(obj.size()));
 
 		Set<Match> findMatchesWithAntecedent = r.antecedentMatches(obj,
 				EnumSet.of(MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
-		System.out.println("Size: " + findMatchesWithAntecedent.size());
+		LOG.info("Size: {}", findMatchesWithAntecedent.size());
 
 	}
 
@@ -672,12 +671,12 @@ public class MatchTest {
 
 		BaseRule r2 = new Rule(new HashSet<>(), obj2);
 
-		System.out.println("NrOfMatches with " + obj.size() + " triple patterns: " + getNumberOfMatches(obj.size()));
+		LOG.info("NrOfMatches with {} triple patterns: {}", obj.size(), getNumberOfMatches(obj.size()));
 
 		var findMatchesWithConsequent = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
 				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.FULLY_COVERED));
 
-		System.out.println("Size: " + findMatchesWithConsequent.size());
+		LOG.info("Size: {}", findMatchesWithConsequent.size());
 		assertEquals(1, findMatchesWithConsequent.size());
 	}
 
@@ -699,7 +698,7 @@ public class MatchTest {
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
 				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST));
 
-		System.out.println(matches);
+		LOG.info("{}", matches);
 
 		assertEquals(matches.size(), 2);
 	}
@@ -720,7 +719,7 @@ public class MatchTest {
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true,
 				EnumSet.of(MatchFlag.ONLY_BIGGEST));
 
-		System.out.println(matches);
+		LOG.info("{}", matches);
 		assertEquals(1, matches.size());
 
 	}
@@ -741,7 +740,7 @@ public class MatchTest {
 
 		var matches = BaseRule.getMatches(r1, new HashSet<>(Arrays.asList(r2)), true, EnumSet.noneOf(MatchFlag.class));
 
-		System.out.println(matches);
+		LOG.info("{}", matches);
 		assertEquals(7, matches.size());
 
 	}
@@ -790,7 +789,7 @@ public class MatchTest {
 		Set<CombiMatch> combiMatches = BaseRule.getMatches(target, someCandidateRules, false,
 				EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.SINGLE_RULE));
 
-		System.out.println("Size: " + combiMatches.size());
+		LOG.info("Size: {}", combiMatches.size());
 		assertEquals(2, combiMatches.size());
 	}
 

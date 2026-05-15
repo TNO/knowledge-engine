@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.JenaRDFSRulesTest;
@@ -18,6 +20,8 @@ import eu.knowledge.engine.reasoner.util.JenaRules;
 import eu.knowledge.engine.reasoner.util.Table;
 
 public class JenaRuleConversionTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(JenaRuleConversionTest.class);
 
 	/**
 	 * <a href="https://www.w3.org/TR/turtle/#sec-intro">source</a>
@@ -60,7 +64,7 @@ public class JenaRuleConversionTest {
 		assertEquals(6, data.size());
 
 		for (Map<String, String> binding : data) {
-			System.out.println(binding.get("s") + " " + binding.get("p") + " " + binding.get("o"));
+			LOG.info("{} {} {}", binding.get("s"), binding.get("p"), binding.get("o"));
 		}
 
 	}
@@ -71,7 +75,7 @@ public class JenaRuleConversionTest {
 
 		String ruleString = JenaRules.createApacheJenaRulesFromTurtle(sr);
 
-		System.out.println(ruleString);
+		LOG.info("{}", ruleString);
 
 		List<org.apache.jena.reasoner.rulesys.Rule> jenaRules = org.apache.jena.reasoner.rulesys.Rule
 				.parseRules(ruleString);

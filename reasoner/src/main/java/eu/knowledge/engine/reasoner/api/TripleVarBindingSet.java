@@ -219,7 +219,6 @@ public class TripleVarBindingSet {
 				Set<Var> vars2 = aBindingSet.getVariables();
 				overlappingVars.addAll(vars1);
 				overlappingVars.retainAll(vars2);
-				LOG.trace("Overlapping vars found: {} - {} = {}", vars1, vars2, overlappingVars);
 			}
 
 			// Cartesian product is the base case
@@ -438,7 +437,7 @@ public class TripleVarBindingSet {
 
 			table.append("\n");
 		}
-		System.out.println(table.toString());
+		LOG.info("{}", table.toString());
 	}
 
 	private String formatNode(Node n) {

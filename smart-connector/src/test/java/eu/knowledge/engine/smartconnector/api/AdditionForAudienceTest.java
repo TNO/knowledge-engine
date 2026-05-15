@@ -32,7 +32,7 @@ public class AdditionForAudienceTest {
 		public BindingSet react(ReactKnowledgeInteraction anRKI, ReactExchangeInfo aReactExchangeInfo) {
 			BindingSet bs = aReactExchangeInfo.getArgumentBindings();
 
-			System.out.println("In: " + bs);
+			LOG.info("In: {}", bs);
 
 			BindingSet bs2 = new BindingSet();
 			for (Binding b : bs) {
@@ -69,7 +69,7 @@ public class AdditionForAudienceTest {
 				}
 			}
 
-			System.out.println("Out: " + bs2);
+			LOG.info("Out: {}", bs2);
 
 			return bs2;
 		}
@@ -185,7 +185,7 @@ public class AdditionForAudienceTest {
 			b6.put("ad1", "\"6\"");
 			bs.add(b6);
 
-			System.out.println(bs);
+			LOG.info("{}", bs);
 
 			return bs;
 		});
@@ -220,7 +220,7 @@ public class AdditionForAudienceTest {
 
 		AskResult ar = ap.execute(new BindingSet()).get();
 
-		System.out.println("Result: " + ar.getBindings());
+		LOG.info("Result: {}", ar.getBindings());
 
 		BindingSet bs = new BindingSet();
 		Binding b1 = new Binding();

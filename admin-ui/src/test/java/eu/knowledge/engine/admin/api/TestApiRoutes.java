@@ -155,8 +155,6 @@ public class TestApiRoutes {
 			ArrayList<eu.knowledge.engine.admin.model.SmartConnector> list = new ArrayList<>();
 			Collections.addAll(list, result);
 
-			System.out.println(list);
-
 			assertNotNull(list);
 			assertEquals(2, list.size());
 

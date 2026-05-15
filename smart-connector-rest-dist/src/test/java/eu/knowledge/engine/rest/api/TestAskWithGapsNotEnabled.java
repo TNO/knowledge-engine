@@ -11,6 +11,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.HttpTester;
@@ -19,6 +21,8 @@ import eu.knowledge.engine.test_utils.HttpTester;
 public class TestAskWithGapsNotEnabled {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
+
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskWithGapsNotEnabled.class);
 
 	@BeforeAll
 	public void setUpServer() {
@@ -57,7 +61,7 @@ public class TestAskWithGapsNotEnabled {
 						"https://www.example.org/example/relationAsker/interaction/askRelations", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
-		System.out.println("Result is:" + result);
+		LOG.info("Result is: {}", result);
 		assertFalse(result.contains("\"knowledgeGaps\":"));
 	}
 

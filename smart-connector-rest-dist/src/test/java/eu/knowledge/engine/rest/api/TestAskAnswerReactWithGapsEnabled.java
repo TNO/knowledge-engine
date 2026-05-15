@@ -16,6 +16,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.AsyncTester;
@@ -32,6 +34,8 @@ import jakarta.json.JsonValue;
 public class TestAskAnswerReactWithGapsEnabled {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
+	
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerReactWithGapsEnabled.class);
 
 	@BeforeAll
 	public void setUpServer() {
@@ -99,7 +103,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 					builder.add("bindingSet", bs);
 					JsonObject jo2 = builder.build();
 					String body = jo2.toString();
-					System.out.println("Handle an answer to a request with body: " + body);
+					LOG.info("Handle an answer to a request with body: {}", body);
 
 					// fire the POST handle to execute the answer
 					var test2 = new HttpTester(new URL(url.toString() + "/sc/handle"), "POST", body,
@@ -141,7 +145,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 
 					KBReady.countDown();
 
-					System.out.println("Getting the handle for the reactKBId");
+					LOG.info("Getting the handle for the reactKBId");
 					// get the handle for the reactKB to see if there are requests to be handled =>
 					// NOTE: it should never exit/return this handle for this test
 					var test = new HttpTester(new URL(url.toString() + "/sc/handle"), "GET", null, Map
@@ -159,7 +163,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 					builder.add("bindingSet", JsonObject.EMPTY_JSON_ARRAY);
 					JsonObject jo2 = builder.build();
 					String body = jo2.toString();
-					System.out.println("Handle a react to a request with body: " + body);
+					LOG.info("Handle a react to a request with body: {}", body);
 
 					// fire the POST handle to execute the react
 					var test2 = new HttpTester(new URL(url.toString() + "/sc/handle"), "POST", body,
@@ -201,7 +205,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 						"https://www.example.org/example/relationAsker/interaction/askRelations", "Content-Type",
 						"application/json", "Accept", "*/*"));
 		var result = askKiWithoutGapsEnabled.getBody();
-		System.out.println("Result is:" + result);
+		LOG.info("Result is: {}", result);
 
 		JsonObject jsonObject = Json.createReader(new StringReader(result)).readObject();
 		JsonArray knowledgeGapsArray = jsonObject.getJsonArray("knowledgeGaps");

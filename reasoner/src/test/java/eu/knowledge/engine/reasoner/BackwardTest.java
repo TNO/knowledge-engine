@@ -336,7 +336,7 @@ public class BackwardTest {
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(aStore, requestNonExistingDataRule);
 
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		aStore.printGraphVizCode(root);
 
@@ -353,7 +353,7 @@ public class BackwardTest {
 		}
 
 		BindingSet bind = root.getResults();
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(isEmpty(bind));
 
 	}
@@ -385,7 +385,7 @@ public class BackwardTest {
 		}
 		BindingSet result = plan.getResults();
 
-		System.out.println("bindings: " + result);
+		LOG.info("bindings: {}", result);
 		assertFalse(result.isEmpty());
 
 	}
@@ -394,7 +394,7 @@ public class BackwardTest {
 	public void testMoreThanOneInputBinding() throws InterruptedException, ExecutionException {
 
 		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBindingRule);
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding = new Binding();
@@ -411,7 +411,7 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(isEmpty(bind));
 
 	}
@@ -420,7 +420,7 @@ public class BackwardTest {
 	public void testMoreThanOneInputBinding2() throws InterruptedException, ExecutionException {
 
 		ReasonerPlan root = new ReasonerPlan(store, moreThanOneInputBinding2Rule);
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding = new Binding();
@@ -437,7 +437,7 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}
@@ -446,7 +446,7 @@ public class BackwardTest {
 	public void testTwoPropsToAndFromTheSameVars() throws InterruptedException, ExecutionException {
 
 		ReasonerPlan root = new ReasonerPlan(store, twoPropsToAndFromTheSameVarsRule);
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		BindingSet bs = new BindingSet();
 //		Binding binding = new Binding();
@@ -464,7 +464,7 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(isEmpty(bind));
 	}
 
@@ -506,7 +506,7 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(!bind.isEmpty());
 	}
 
@@ -514,7 +514,7 @@ public class BackwardTest {
 	public void testVariableAsPredicate() throws InterruptedException, ExecutionException {
 		ReasonerPlan root = new ReasonerPlan(store, variableAsPredicateRule);
 
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
@@ -525,9 +525,9 @@ public class BackwardTest {
 			tb.executeScheduledTasks().get();
 		}
 		BindingSet bind = root.getResults();
-		System.out.println(root);
+		LOG.info("{}", root);
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(!bind.isEmpty());
 	}
 
@@ -547,16 +547,16 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println(root);
+		LOG.info("{}", root);
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(!bind.isEmpty()); // TODO THIS ONE SHOULD CONTAIN ONLY sensor1
 	}
 
 	@Test
 	public void testAllTriples() throws InterruptedException, ExecutionException {
 		ReasonerPlan root = new ReasonerPlan(store, allTriplesRule);
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		// empty binding is necessary
 		BindingSet bs = new BindingSet();
@@ -569,9 +569,9 @@ public class BackwardTest {
 		}
 		BindingSet bind = root.getResults();
 
-		System.out.println(root);
+		LOG.info("{}", root);
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertTrue(!bind.isEmpty());
 	}
 
@@ -653,7 +653,7 @@ public class BackwardTest {
 
 		while (iter.hasNext()) {
 			Statement st = iter.next();
-			System.out.println(st);
+			LOG.info("{}", st);
 		}
 		assertEquals(7, rp.getResults().size()); // TODO make this assert more specific
 
@@ -734,7 +734,7 @@ public class BackwardTest {
 
 		while (iter.hasNext()) {
 			Statement st = iter.next();
-			System.out.println(st);
+			LOG.info("{}", st);
 		}
 		assertEquals(5, rp.getResults().size()); // TODO make this assert more specific
 

@@ -229,7 +229,7 @@ public class PruningTest {
 		/*
 		 * while (!rn.execute(bs)) { taskboard.executeScheduledTasks().get(); }
 		 */
-		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
+		LOG.info("Result: {}", aBindingSetHandler.getBindingSet());
 		assertNull(aBindingSetHandler.getBindingSet());
 	}
 

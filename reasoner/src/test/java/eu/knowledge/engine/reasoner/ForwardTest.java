@@ -142,7 +142,7 @@ public class ForwardTest {
 
 		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rp);
+		LOG.info("{}", rp);
 
 		store.printGraphVizCode(rp);
 
@@ -197,7 +197,7 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rp = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rp);
+		LOG.info("{}", rp);
 
 		BindingSet bs = new BindingSet();
 
@@ -217,7 +217,7 @@ public class ForwardTest {
 			tb.executeScheduledTasks().get();
 		}
 
-		System.out.println("Result: " + aBindingSetHandler.getBindingSet() + " (expected null)");
+		LOG.info("Result: {} (expected null)", aBindingSetHandler.getBindingSet());
 		assertEquals(aBindingSetHandler.getBindingSet(), null);
 	}
 
@@ -268,8 +268,8 @@ public class ForwardTest {
 		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
 		assertFalse(aBindingSetHandler2.getBindingSet().isEmpty());
 
-		System.out.println("Result1: " + aBindingSetHandler1.getBindingSet());
-		System.out.println("Result2: " + aBindingSetHandler2.getBindingSet());
+		LOG.info("Result1: {}", aBindingSetHandler1.getBindingSet());
+		LOG.info("Result2: {}", aBindingSetHandler2.getBindingSet());
 	}
 
 	@Test
@@ -289,7 +289,7 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rn);
+		LOG.info("{}", rn);
 
 		BindingSet bs = new BindingSet();
 
@@ -313,7 +313,7 @@ public class ForwardTest {
 
 		assertNotNull(aBindingSetHandler.getBindingSet());
 		assertTrue(!aBindingSetHandler.getBindingSet().isEmpty());
-		System.out.println("Result: " + aBindingSetHandler.getBindingSet());
+		LOG.info("Result: {}", aBindingSetHandler.getBindingSet());
 	}
 
 	/**
@@ -418,7 +418,7 @@ public class ForwardTest {
 
 		store.printGraphVizCode(rn);
 
-		System.out.println(rn);
+		LOG.info("{}", rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
 				// @formatter:off
@@ -435,7 +435,7 @@ public class ForwardTest {
 			tb.executeScheduledTasks().get();
 		}
 
-		System.out.println(aBindingSetHandler1.getBindingSet());
+		LOG.info("{}", aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
 	}
@@ -482,7 +482,7 @@ public class ForwardTest {
 
 		store.printGraphVizCode(rn);
 
-		System.out.println(rn);
+		LOG.info("{}", rn);
 		BindingSet bs = new BindingSet();
 		bs.addAll(new Table(new String[] {
 				// @formatter:off
@@ -499,7 +499,7 @@ public class ForwardTest {
 			tb.executeScheduledTasks().get();
 		}
 
-		System.out.println(aBindingSetHandler1.getBindingSet());
+		LOG.info("{}", aBindingSetHandler1.getBindingSet());
 		assertTrue(!aBindingSetHandler1.getBindingSet().isEmpty());
 		assertEquals(aBindingSetHandler1.getBindingSet().size(), 1);
 	}
@@ -644,14 +644,14 @@ public class ForwardTest {
 		store.addRule(aStartRule);
 		ReasonerPlan rn = new ReasonerPlan(store, aStartRule);
 
-		System.out.println(rn);
+		LOG.info("{}", rn);
 
 		TaskBoard tb;
 		while ((tb = rn.execute(bs)).hasTasks()) {
 			tb.executeScheduledTasks().get();
 		}
 
-		System.out.println(aBindingSetHandler1.getBindingSet());
+		LOG.info("{}", aBindingSetHandler1.getBindingSet());
 		assertNotNull(aBindingSetHandler1.getBindingSet());
 		assertFalse(aBindingSetHandler1.getBindingSet().isEmpty());
 	}
@@ -744,7 +744,7 @@ public class ForwardTest {
 		}
 
 		BindingSet bindingSet2 = aSinkBindingSetHandler.getBindingSet();
-		System.out.println(bindingSet2);
+		LOG.info("{}", bindingSet2);
 
 		Binding e1 = new Binding("o4", "<o3>");
 		e1.put("s4", "<s3>");
