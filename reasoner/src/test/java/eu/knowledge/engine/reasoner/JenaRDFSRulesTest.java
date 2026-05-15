@@ -53,7 +53,7 @@ public class JenaRDFSRulesTest {
 		Set<BaseRule> rdfsRules = JenaRules.convertJenaToKeRules(readRuleFile());
 
 		for (BaseRule br : rdfsRules) {
-			LOG.info("{}", br);
+			LOG.debug("{}", br);
 		}
 
 		RuleStore rs = new RuleStore();
@@ -105,7 +105,7 @@ public class JenaRDFSRulesTest {
 		LOG.info("------------------------");
 		while (iter.hasNext()) {
 			Statement st = iter.next();
-			LOG.info("{}", st);
+			LOG.debug("{}", st);
 		}
 		iter.close();
 

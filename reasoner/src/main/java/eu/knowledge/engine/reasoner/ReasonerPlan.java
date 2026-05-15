@@ -327,7 +327,6 @@ public class ReasonerPlan {
 		Set<RuleNode> changed = new HashSet<>();
 
 		do {
-			LOG.trace("New round.");
 			stack.clear();
 			visited.clear();
 			changed.clear();
@@ -394,6 +393,8 @@ public class ReasonerPlan {
 			}
 		} while (!changed.isEmpty());
 
+		LOG.trace("Finished reasoning round with {} tasks.", taskBoard.getNrOfTasks());
+		
 		this.done = !taskBoard.hasTasks();
 		return taskBoard;
 	}

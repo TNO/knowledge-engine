@@ -81,8 +81,6 @@ public class OtherKnowledgeBaseStoreImpl implements OtherKnowledgeBaseStore, Kno
 						});
 
 				futures.add(otherKnowledgeBaseFuture);
-			} else {
-				this.LOG.trace("Skipping myself: {}", this.sc.getKnowledgeBaseId());
 			}
 		}
 

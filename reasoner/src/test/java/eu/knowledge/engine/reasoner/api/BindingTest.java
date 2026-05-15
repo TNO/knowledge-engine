@@ -12,9 +12,12 @@ import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.junit.jupiter.api.Test;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BindingTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BindingTest.class);
 
 	@Test
 	public void testGraphPatternBindingSets() {
@@ -33,14 +36,14 @@ public class BindingTest {
 		gbs.add(tb1);
 		gbs.add(tb2);
 
-		System.out.println(gbs);
+		LOG.info("{}", gbs);
 
 		BindingSet bs = gbs.toBindingSet();
-		System.out.println(bs);
+		LOG.info("{}", bs);
 
 		TripleVarBindingSet gbsReturned = bs.toTripleVarBindingSet(aGraphPattern);
 
-		System.out.println(gbsReturned);
+		LOG.info("{}", gbsReturned);
 	}
 
 	@Test
@@ -55,7 +58,7 @@ public class BindingTest {
 		tvb2.put(new TripleNode(tp2, "?s", 0), "<sensor1>");
 		tvb2.put(new TripleNode(tp2, "?v", 2), "22");
 
-		System.out.println(tvb1.merge(tvb2));
+		LOG.info("{}", tvb1.merge(tvb2));
 	}
 
 	@Test
@@ -78,7 +81,7 @@ public class BindingTest {
 		gbs2.add(tvb2);
 
 		TripleVarBindingSet merge = gbs1.merge(gbs2);
-		System.out.println(merge);
+		LOG.info("{}", merge);
 
 		assertTrue(!merge.isEmpty());
 
@@ -108,7 +111,7 @@ public class BindingTest {
 		gbs2.add(tvb2);
 
 		TripleVarBindingSet merge = gbs1.merge(gbs2);
-		System.out.println(merge);
+		LOG.info("{}", merge);
 
 		assertTrue(!merge.isEmpty());
 

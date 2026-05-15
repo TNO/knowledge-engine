@@ -113,7 +113,7 @@ public class VerySimpleBackwardTest {
 			tb.executeScheduledTasks().get();
 		}
 		var result = plan.getResults();
-		System.out.println(result);
+		LOG.info("{}", result);
 	}
 
 }

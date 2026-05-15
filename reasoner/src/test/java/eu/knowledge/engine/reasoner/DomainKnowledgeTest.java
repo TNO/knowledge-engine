@@ -12,11 +12,9 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.reasoner.ProactiveRule;
-import eu.knowledge.engine.reasoner.ReasonerPlan;
-import eu.knowledge.engine.reasoner.Rule;
-import eu.knowledge.engine.reasoner.TaskBoard;
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TriplePattern;
@@ -35,6 +33,8 @@ import eu.knowledge.engine.reasoner.util.Table;
 public class DomainKnowledgeTest {
 
 	private static RuleStore store;
+
+	private static final Logger LOG = LoggerFactory.getLogger(DomainKnowledgeTest.class);
 
 	@BeforeAll
 	public static void setup() {
@@ -102,7 +102,6 @@ public class DomainKnowledgeTest {
 		Binding binding2 = new Binding();
 		bs.add(binding2);
 
-
 		TaskBoard tb;
 		while ((tb = plan.execute(bs)).hasTasks()) {
 			tb.executeScheduledTasks().get();
@@ -111,7 +110,7 @@ public class DomainKnowledgeTest {
 
 		BindingSet bind = plan.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}

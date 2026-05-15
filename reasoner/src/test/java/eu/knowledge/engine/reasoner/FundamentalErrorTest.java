@@ -9,6 +9,8 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.ProactiveRule;
 import eu.knowledge.engine.reasoner.ReasonerPlan;
@@ -23,13 +25,15 @@ import eu.knowledge.engine.reasoner.util.Table;
 
 /**
  * This fundamental error occurs when the matches do not contain all possible
- * matches, but for example only the biggest once.
+ * matches, but for example only the biggest one.
  * 
  * @author nouwtb
  *
  */
 public class FundamentalErrorTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(FundamentalErrorTest.class);
+	
 	private static RuleStore store;
 
 	@BeforeAll
@@ -86,7 +90,7 @@ public class FundamentalErrorTest {
 
 		BindingSet bind = plan.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}

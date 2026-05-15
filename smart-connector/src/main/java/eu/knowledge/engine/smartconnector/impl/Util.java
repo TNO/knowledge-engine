@@ -39,8 +39,6 @@ public class Util {
 	 */
 	public static Model generateModel(GraphPattern graphPattern, BindingSet variableBindings) throws ParseException {
 
-		LOG.trace("generating model");
-
 		List<TriplePath> tripleList = graphPattern.getGraphPattern().getPattern().getList();
 
 		Model m = ModelFactory.createDefaultModel();

@@ -185,6 +185,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
+		
+		if (this.myKnowledgeInteraction.isMeta())
+			LOG.trace("Ask: {}", this.reasonerPlan);
+		else
+			LOG.debug("Ask: {}", this.reasonerPlan);
+		
 		continueReasoningBackward(someBindings);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -223,7 +229,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		final String msg = "Executing (scheduled) tasks for the reasoner should not result in problems.";
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
-		LOG.trace("Ask: {}", this.reasonerPlan);
 		taskboard.executeScheduledTasks().thenAccept(_ -> {
 			LOG.trace("All ask tasks finished.");
 			if (isComplete) {
@@ -282,7 +287,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
-
+		
+		if (this.myKnowledgeInteraction.isMeta())
+			LOG.trace("Post: {}", this.reasonerPlan);
+		else
+			LOG.debug("Post: {}", this.reasonerPlan);
+		
 		continueReasoningForward(someBindings, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -316,7 +326,6 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 		TaskBoard taskboard;
 		taskboard = this.reasonerPlan.execute(incomingBS);
 		isComplete = !taskboard.hasTasks();
-		LOG.trace("Post: {}", this.reasonerPlan);
 		taskboard.executeScheduledTasks().thenAccept(_ -> {
 			LOG.trace("All post tasks finished.");
 			if (isComplete) {

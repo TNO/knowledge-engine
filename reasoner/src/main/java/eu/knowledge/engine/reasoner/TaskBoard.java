@@ -48,6 +48,10 @@ public class TaskBoard {
 	public boolean hasTask(RuleNode node) {
 		return this.tasks.contains(node);
 	}
+	
+	public int getNrOfTasks() {
+		return this.tasks.size();
+	}
 
 	/**
 	 * Executes all tasks that are on the taskboard and returns a future that is

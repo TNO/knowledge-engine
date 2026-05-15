@@ -76,9 +76,8 @@ public class TestAskAnswer4 {
 			AskResult result = kb2.ask(askKI, new BindingSet()).get();
 			bindings = result.getBindings();
 
-			System.out.println("Bindings: " + bindings);
-			System.out
-					.println("Bindings2: " + result.getExchangeInfoPerKnowledgeBase().iterator().next().getBindings());
+			LOG.info("Bindings: {}", bindings);
+			LOG.info("Bindings2: {}", result.getExchangeInfoPerKnowledgeBase().iterator().next().getBindings());
 
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {

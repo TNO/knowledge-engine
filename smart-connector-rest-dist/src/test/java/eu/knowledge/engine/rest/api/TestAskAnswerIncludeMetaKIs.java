@@ -14,6 +14,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.AsyncTester;
@@ -28,6 +30,8 @@ public class TestAskAnswerIncludeMetaKIs {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerIncludeMetaKIs.class);
+	
 	@BeforeAll
 	public void setUpServer() {
 		rsh.start(PORT);
@@ -99,7 +103,7 @@ public class TestAskAnswerIncludeMetaKIs {
 				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
 						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIs",
 						"Content-Type", "application/json", "Accept", "*/*"));
-		System.out.println("Result is:" + askAskKiWithIncludeMetaKIs.getBody());
+		LOG.info("Result is: {}", askAskKiWithIncludeMetaKIs.getBody());
 
 		JsonReader jsonReader = Json.createReader(new StringReader(askAskKiWithIncludeMetaKIs.getBody()));
 		JsonObject jsonRoot = jsonReader.readObject();
@@ -111,7 +115,7 @@ public class TestAskAnswerIncludeMetaKIs {
 				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
 						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithoutIncludeMetaKIs",
 						"Content-Type", "application/json", "Accept", "*/*"));
-		System.out.println("Result is:" + askAskKiWithoutIncludeMetaKIs.getBody());
+		LOG.info("Result is: {}", askAskKiWithoutIncludeMetaKIs.getBody());
 		jsonReader = Json.createReader(new StringReader(askAskKiWithoutIncludeMetaKIs.getBody()));
 		jsonRoot = jsonReader.readObject();
 		jsonBindingSet = jsonRoot.getJsonArray("bindingSet");
@@ -122,7 +126,7 @@ public class TestAskAnswerIncludeMetaKIs {
 				Map.of("Knowledge-Base-Id", "https://www.example.org/example/metadataAsker", "Knowledge-Interaction-Id",
 						"https://www.example.org/example/metadataAsker/interaction/askMetadataWithIncludeMetaKIsDisabled",
 						"Content-Type", "application/json", "Accept", "*/*"));
-		System.out.println("Result is:" + askAskKiWithIncludeMetaKIsDisabled.getBody());
+		LOG.info("Result is: {}", askAskKiWithIncludeMetaKIsDisabled.getBody());
 		jsonReader = Json.createReader(new StringReader(askAskKiWithIncludeMetaKIsDisabled.getBody()));
 		jsonRoot = jsonReader.readObject();
 		jsonBindingSet = jsonRoot.getJsonArray("bindingSet");

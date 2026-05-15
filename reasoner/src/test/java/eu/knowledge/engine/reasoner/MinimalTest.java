@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.api.Binding;
 import eu.knowledge.engine.reasoner.api.BindingSet;
@@ -25,6 +27,8 @@ public class MinimalTest {
 
 	private RuleStore store;
 
+	private static final Logger LOG = LoggerFactory.getLogger(MinimalTest.class);
+	
 	@BeforeAll
 	public void init() throws URISyntaxException {
 		// Initialize
@@ -71,7 +75,7 @@ public class MinimalTest {
 
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 
 	}
@@ -89,7 +93,7 @@ public class MinimalTest {
 
 		// Start reasoning
 		ReasonerPlan root = new ReasonerPlan(store, startRule);
-		System.out.println(root);
+		LOG.info("{}", root);
 
 		BindingSet bs = new BindingSet();
 		Binding binding2 = new Binding();
@@ -103,7 +107,7 @@ public class MinimalTest {
 
 		BindingSet bind = root.getResults();
 
-		System.out.println("bindings: " + bind);
+		LOG.info("bindings: {}", bind);
 		assertFalse(bind.isEmpty());
 	}
 }

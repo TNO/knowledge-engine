@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.ProactiveRule;
@@ -23,6 +25,8 @@ public class ReasoningPlanTest {
 
 	private static final String TEST_RULES = "/reasoningplantest.rls";
 
+	private static final Logger LOG = LoggerFactory.getLogger(ReasoningPlanTest.class);
+	
 	@Test
 	public void test() throws IOException, InterruptedException, ExecutionException {
 
@@ -89,7 +93,7 @@ public class ReasoningPlanTest {
 
 		BindingSet bs = plan.getResults();
 
-		System.out.println(bs);
+		LOG.info("{}", bs);
 		assertEquals(2, bs.size());
 
 	}

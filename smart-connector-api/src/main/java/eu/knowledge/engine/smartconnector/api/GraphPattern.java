@@ -130,9 +130,6 @@ public class GraphPattern {
 	}
 
 	private ElementPathBlock parseGraphPattern(PrefixMapping prefixes, String pattern) throws ParseException {
-
-		LOG.trace("prefixes: {}- pattern: {}", prefixes, pattern);
-
 		ElementGroup eg;
 		String queryString = "SELECT * {" + pattern + "}";
 
@@ -141,7 +138,6 @@ public class GraphPattern {
 		QueryFactory.parse(query, queryString, null, Syntax.defaultQuerySyntax);
 
 		Element e = query.getQueryPattern();
-		LOG.trace("parsed knowledge: {}", e);
 		eg = (ElementGroup) e;
 		Element last = eg.getLast();
 

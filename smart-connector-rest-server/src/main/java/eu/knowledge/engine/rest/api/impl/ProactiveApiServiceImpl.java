@@ -60,14 +60,14 @@ public class ProactiveApiServiceImpl {
 			@Parameter(description = "The keys bindings are allowed to be incomplete, but they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.debug("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+		LOG.trace("scAskPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
 
 		RecipientAndBindingSet recipientAndBindingSetObject;
 		try {
 			recipientAndBindingSetObject = new RecipientAndBindingSet(recipientAndBindingSet);
 		} catch (IllegalArgumentException e) {
-			LOG.debug("", e);
+			LOG.trace("", e);
 			var response = new ResponseMessage();
 			response.setMessageType("error");
 			response.setMessage(e.getMessage());
@@ -126,7 +126,7 @@ public class ProactiveApiServiceImpl {
 
 			askFuture.thenAccept(askResult -> {
 
-				LOG.debug("AskResult received, resuming async response: {}", askResult);
+				LOG.trace("AskResult received, resuming async response: {}", askResult);
 				List<AskExchangeInfo> infos = askResult.getExchangeInfoPerKnowledgeBase().stream()
 						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
 								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
@@ -138,15 +138,14 @@ public class ProactiveApiServiceImpl {
 								.failedMessage(aei.getFailedMessage()))
 						.collect(Collectors.toList());
 
-				LOG.debug("Bindings in result is {}", askResult.getBindings());
-				LOG.debug("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
+				LOG.trace("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
 
 				AskResult ar = new AskResult().bindingSet(this.bindingSetToList(askResult.getBindings()))
 						.exchangeInfo(infos);
 				// distinguish between knowledge gaps enabled or not to produce an AskResult or
 				// an AskResultWithGaps
 				if (ki.getKnowledgeGapsEnabled()) {
-					LOG.info("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
+					LOG.debug("Knowledge gaps in result is {}", askResult.getKnowledgeGaps());
 					ar.knowledgeGaps(this.knowledgeGapsToList(askResult.getKnowledgeGaps()));
 				}
 				asyncResponse.resume(Response.status(Status.OK).entity(ar).build());
@@ -221,7 +220,7 @@ public class ProactiveApiServiceImpl {
 			@Parameter(description = "The keys bindings must be complete, and they must correspond to the binding keys that were defined in the knowledge interaction.", required = true) @NotNull @Valid JsonNode recipientAndBindingSet,
 			@Suspended final AsyncResponse asyncResponse, @Context SecurityContext securityContext) {
 
-		LOG.debug("scPostPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
+		LOG.trace("scPostPost called for KB {} and KI {} - {}", knowledgeBaseId, knowledgeInteractionId,
 				recipientAndBindingSet);
 
 		RecipientAndBindingSet recipientAndBindingSetObject;
@@ -288,7 +287,7 @@ public class ProactiveApiServiceImpl {
 
 				postFuture.thenAccept(postResult -> {
 
-					LOG.debug("PostResult received, resuming async response: {}", postResult);
+					LOG.trace("PostResult received, resuming async response: {}", postResult);
 
 					List<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase().stream()
 							.map(pei -> new PostExchangeInfo()

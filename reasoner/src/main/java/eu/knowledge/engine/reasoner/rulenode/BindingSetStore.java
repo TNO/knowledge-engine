@@ -114,15 +114,13 @@ public class BindingSetStore {
 
 		someCombiMatches.stream().forEach(cMatch -> {
 			i.incrementAndGet();
-			LOG.trace("Creating binding set for combi match: {}/{}", i.get(), size);
+			LOG.trace("Creating binding set for combi match of {} rules: {}/{}", cMatch.size(), i.get(), size);
 
 			// keep separate binding set per combi match
 			var cMatchTVBS = new TripleVarBindingSet(aGraphPattern);
 
 			for (Entry<BaseRule, Set<Match>> cEntry : cMatch.entrySet()) {
-
 				BaseRule aNeighborRule = cEntry.getKey();
-
 				Map<Match, TripleVarBindingSet> matchToBS = someNeighborBS.get(aNeighborRule);
 
 				if (matchToBS != null) {
@@ -171,7 +169,7 @@ public class BindingSetStore {
 		if (this.combiMatches != null)
 			this.cache = this.combineWithCombiMatches(this.graphPattern, this.combiMatches, this.neighborBindingSet);
 		else {
-			LOG.trace("Ignoring combi matches for binding set construction in {}.");
+			LOG.trace("Ignoring combi matches for binding set construction in {}.", this.graphPattern);
 			TripleVarBindingSet combinedBS = new TripleVarBindingSet(graphPattern);
 
 			for (TripleVarBindingSet bs : this.neighborBindingSet.values().stream().map(x -> x.values())

@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.AsyncTester;
@@ -30,6 +32,8 @@ public class TestPostMemoryLeak {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
 	private URL url;
+
+	private static final Logger LOG = LoggerFactory.getLogger(TestPostMemoryLeak.class);
 
 	@BeforeAll
 	public void setUpServer() throws InterruptedException {
@@ -77,7 +81,6 @@ public class TestPostMemoryLeak {
 						var test = new HttpTester(new URL(url.toString() + "/handle"), "GET", null, Map
 								.of("Knowledge-Base-Id", kb2Id, "Content-Type", "application/json", "Accept", "*/*"));
 						test.expectStatus(200);
-//						System.out.println("Body: " + test.getBody());
 
 						if (Math.random() > 0.95) {
 							JsonReader jp = Json.createReader(new StringReader(test.getBody()));
@@ -91,7 +94,7 @@ public class TestPostMemoryLeak {
 
 							String body = jo2.toString();
 
-							System.out.println("Body2: " + body);
+							LOG.info("Body2: {}", body);
 
 							var test2 = new HttpTester(new URL(url.toString() + "/handle"), "POST", body,
 									Map.of("Knowledge-Base-Id", kb2Id, "Knowledge-Interaction-Id", kiId, "Content-Type",
@@ -139,7 +142,7 @@ public class TestPostMemoryLeak {
 		while (true) {
 			counter++;
 			Thread.sleep(SLEEPTIME);
-			System.out.println("post data");
+			LOG.info("post data");
 			new AsyncTester(new Runnable() {
 				@Override
 				public void run() {
@@ -157,7 +160,7 @@ public class TestPostMemoryLeak {
 								""", Map.of("Content-Type", "application/json", "Accept", "*/*", "Knowledge-Base-Id",
 								kb1Id, "Knowledge-Interaction-Id", kiId));
 						test.expectStatus(200);
-						System.out.println("finshed posting: " + test.getBody());
+						LOG.info("finshed posting: {}", test.getBody());
 					} catch (MalformedURLException e) {
 						fail();
 					}

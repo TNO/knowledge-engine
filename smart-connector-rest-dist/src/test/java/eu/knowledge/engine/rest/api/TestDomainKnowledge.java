@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.rest.RestServerHelper;
 import eu.knowledge.engine.test_utils.HttpTester;
@@ -17,6 +19,8 @@ public class TestDomainKnowledge {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TestDomainKnowledge.class);
+	
 	@BeforeAll
 	public void setUpServer() {
 		rsh.start(PORT);
@@ -55,13 +59,13 @@ public class TestDomainKnowledge {
 		addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST", domainKnowledgeRules,
 				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(400);
-		System.out.println("Body: " + addDomainKnowledge.getBody());
+		LOG.info("Body: {}", addDomainKnowledge.getBody());
 		
 		// remove all domain knowledge
 		addDomainKnowledge = new HttpTester(new URL(url + "/sc/knowledge"), "POST", null,
 				Map.of("Knowledge-Base-Id", "http://example.org/kb", "Content-Type", "text/plain", "Accept", "*/*"));
 		addDomainKnowledge.expectStatus(200);
-		System.out.println("Body: " + addDomainKnowledge.getBody());
+		LOG.info("Body: {}", addDomainKnowledge.getBody());
 
 	}
 
