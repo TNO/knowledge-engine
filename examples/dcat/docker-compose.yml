@@ -9,7 +9,7 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 5
-      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info"
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=trace"
   meta-kb:
     build: meta-kb
     environment:
