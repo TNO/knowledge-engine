@@ -1,0 +1,20 @@
+# Example configuration for SAREF use case
+
+knowledgeBaseId = "http://example.org/gladoss"
+knowledgeBaseName = "GLADoSS"
+knowledgeBaseDescription = "Graph-based Live Anomaly Detection on Semantic Streams"
+
+[[knowledgeInteraction]]
+knowledgeInteractionEndpoint = "http://knowledge-validator-ker:8280/rest"
+knowledgeInteractionName = "TemperatureMeasurementSubscription"
+argumentGraphPattern = """
+  ?m rdf:type ex:Measurement .
+  ?m ex:hasValueInCelsius ?celsius .
+  ?m ex:madeBy ?sensor .
+  ?sensor rdf:type ex:Sensor .
+  ?sensor ex:isContainedIn <http://example.org/building1> .
+  """
+[knowledgeInteraction.prefixes]
+rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ex = "http://example.org/" 
+

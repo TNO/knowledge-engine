@@ -5,6 +5,7 @@ import java.util.concurrent.Future;
 
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
+import eu.knowledge.engine.reasoner.api.BindingSet;
 import eu.knowledge.engine.reasoner.api.TripleVarBindingSet;
 
 /**
@@ -17,6 +18,8 @@ public class ActiveAntRuleNode extends AntRuleNode {
 
 	public ActiveAntRuleNode(BaseRule aRule) {
 		super(aRule);
+		this.filterBindingSetOutput = new TripleVarBindingSet(this.getRule().getAntecedent(), new BindingSet());
+		this.isFilterBindingSetOutputDirty = true;
 	}
 
 	@Override

@@ -72,22 +72,24 @@ def kb_1():
     log.info(f"POST KI registered!")
     result = []
     try:
-	    while True:
-	        log.info(f"posting...")
-	        result = post.post(KB_DATA)
-	        resultBindingSet = result["resultBindingSet"]
-	        exchangeInfo = result["exchangeInfo"]
-	        kbs = [ exchange['knowledgeBaseId'] for exchange in exchangeInfo]
-	
-	        if len(result) == 0:
-	            log.debug(f"posting gave no results; will sleep for 2s...")
-	            message = f"empty bindingset"
-	        else:
-	            message = f"{resultBindingSet}"
-	            log.debug(f"got reaction: {resultBindingSet}")
-	
-	        log.info(f"Received {message} from following KBs: {kbs}")
-	        time.sleep(2)
+        i = 0
+        while True:
+            i = i + 1
+            log.info(f"posting...{i}")
+            result = post.post(KB_DATA)
+            resultBindingSet = result["resultBindingSet"]
+            exchangeInfo = result["exchangeInfo"]
+            kbs = [ exchange['knowledgeBaseId'] for exchange in exchangeInfo]
+    
+            if len(result) == 0:
+                log.debug(f"posting gave no results; will sleep for 2s...")
+                message = f"empty bindingset"
+            else:
+                message = f"{resultBindingSet}"
+                log.debug(f"got reaction: {resultBindingSet}")
+    
+            log.info(f"Received {message} from following KBs: {kbs}")
+            time.sleep(2)
     finally:
         log.info(f"unregistering...")
         kb.unregister()

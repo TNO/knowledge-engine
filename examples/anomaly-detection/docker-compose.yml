@@ -2,140 +2,207 @@ services:
   knowledge-directory:
     image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.4.0
 
-  #ANOMALY DETECTION
-  anomaly-detection-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+  #KNOWLEDGE VALIDATOR
+  knowledge-validator-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
-      KE_RUNTIME_EXPOSED_URL: http://anomaly-detection-ker:8081
+      KE_RUNTIME_EXPOSED_URL: http://knowledge-validator-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
-  anomaly-detection-kb:
+      JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
+      KE_REASONER_LEVEL: 3
+    healthcheck:
+      test: wget http://knowledge-validator-ker:8280/rest/sc -O /dev/null
+      interval: 1s
+  knowledge-validator-kb:
+    image: registry.gitlab.com/wxwilcke/gladoss/base-ke:2026.05
+    entrypoint: gladoss-run -vv --continuous --grace-period 100 --report-level 3 knowledge_engine
+    volumes:
+      - source: ./gladoss/backup/
+        target: /mnt/backup
+        type: bind
+        bind:
+          create_host_path: true
+      - source: ./gladoss/adaptors/
+        target: /etc/gladoss/adaptors
+        type: bind
+        bind:
+          create_host_path: true
+    depends_on:
+      knowledge-validator-ker:
+        condition: service_healthy
+  #DASHBOARD
+  dashboard-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://dashboard-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 3
+    healthcheck:
+      test: wget http://dashboard-ker:8280/rest/sc -O /dev/null
+      interval: 1s
+  dashboard-kb:
     build: ../common/reacting_kb
     environment:
-      KE_URL: http://anomaly-detection-ker:8280/rest
-      KB_ID: http://example.org/anomaly-detection-kb
-      KE_REASONER_LEVEL: 5
+      KE_URL: http://dashboard-ker:8280/rest
+      KB_ID: http://example.org/dashboard-kb
       PREFIXES: |
         {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+          "dct": "http://purl.org/dc/terms/",
+          "sh": "http://www.w3.org/ns/shacl#"
         }
       ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInCelsius ?celsius .
-        ?m ex:madeBy ?sensor .
-        ?sensor rdf:type ex:Sensor .
-        ?sensor ex:isContainedIn <http://example.org/building1> .
+        ?report rdf:type sh:ValidationReport .
+        ?report dct:date ?reportDate .
+        ?report dct:identifier ?reportIdentifier .
+        ?report dct:conformsTo ?reportLanguage .
+        ?report sh:conforms ?validationPassed .
+        ?report dct:hasPart ?result .
+        ?result rdf:type sh:ValidationResult .
+        ?result rdfs:label ?resultStatusMsg .
+        ?result sh:focusNode ?resultFocusNode .
+        ?result sh:resultPath ?resultPath .
+        ?result sh:value ?resultValue .
+        ?result sh:resultMessage ?resultStatusMsgLong .
+        ?result sh:resultSeverity ?resultSeverity .
+        ?resultSeverity rdf:type sh:Severity .
+        ?resultSeverity rdfs:label ?severityLabel .
+        ?resultSeverity rdfs:comment ?severityDescription .
+    depends_on:
+      dashboard-ker:
+        condition: service_healthy
 
   #SENSOR1
   sensor1-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor1-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      JAVA_TOOL_OPTIONS: -Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info
+      KE_REASONER_LEVEL: 3
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
+    healthcheck:
+      test: wget http://sensor1-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor1-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor1-ker:8280/rest
-      KB_ID: http://example.org/sensor1-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInCelsius ?celsius .
-        ?m ex:madeBy ex:sensor1 .
-        ex:sensor1 rdf:type ex:DutchTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor1/measurement>",
-            "celsius": "15.3"
-          }
-        ]
-  
+      SENSOR_ID: sensor1
+      SENSOR_TYPE: EUTemperatureSensor
+      UNIT: °C
+      MIN_VALUE: 15
+      DELTA_VALUE: 10
+      SLEEPTIME: 0.5
+      ANOMALY_FREQUENCY: 30
+      ANOMALOUS_VALUE: 253.4
+    depends_on:
+      sensor1-ker:
+        condition: service_healthy
+ 
   #SENSOR2
   sensor2-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor2-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_REASONER_LEVEL: 3
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
+    healthcheck:
+      test: wget http://sensor2-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor2-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor2-ker:8280/rest
-      KB_ID: http://example.org/sensor2-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInFahrenheit ?fahrenheit .
-        ?m ex:madeBy ex:sensor2 .
-        ex:sensor2 rdf:type ex:USTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor2/measurement>",
-            "fahrenheit": "68.2"
-          }
-        ]
+      SENSOR_ID: sensor2
+      SENSOR_TYPE: USTemperatureSensor
+      UNIT: °F
+      MIN_VALUE: 59
+      DELTA_VALUE: 18
+      SLEEPTIME: 1
+      ANOMALY_FREQUENCY: 30
+      ANOMALOUS_VALUE: 281.7
+    depends_on:
+      sensor2-ker:
+        condition: service_healthy
 
   #SENSOR3
   sensor3-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor3-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
-      KE_DOMAIN_KNOWLEDGE_PATH: /tke/dk.rules
+      KE_REASONER_LEVEL: 3
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
     volumes:
-      - '.:/tke/'
+      - '.:/ke/'
+    healthcheck:
+      test: wget http://sensor3-ker:8280/rest/sc -O /dev/null
+      interval: 1s
   sensor3-kb:
-    build: ../common/posting_kb
+    build: ./sensor/
     environment:
       KE_URL: http://sensor3-ker:8280/rest
-      KB_ID: http://example.org/sensor3-kb
-      PREFIXES: |
-        {
-          "ex": "http://example.org/",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        }
-      ARGUMENT_GRAPH_PATTERN: |
-        ?m rdf:type ex:Measurement .
-        ?m ex:hasValueInCelsius ?celsius .
-        ?m ex:madeBy ex:sensor3 .
-        ex:sensor3 rdf:type ex:DutchTemperatureSensor .
-      KB_DATA: |
-        [
-          {
-            "m": "<http://example.org/sensor3/measurement>",
-            "celsius": "23.9"
-          }
-        ]
+      SENSOR_ID: sensor3
+      SENSOR_TYPE: EUTemperatureSensor
+      UNIT: °C
+      MIN_VALUE: 15
+      DELTA_VALUE: 10
+      SLEEPTIME: 0.75
+      ANOMALY_FREQUENCY: 30
+      ANOMALOUS_VALUE: 193.1
+    depends_on:
+      sensor3-ker:
+        condition: service_healthy
+
+  #SENSOR4
+  sensor4-ker:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    environment:
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://sensor4-ker:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 3
+      KE_DOMAIN_KNOWLEDGE_PATH: /ke/dk.rules
+    volumes:
+      - '.:/ke/'
+    healthcheck:
+      test: wget http://sensor4-ker:8280/rest/sc -O /dev/null
+      interval: 1s
+  sensor4-kb:
+    build: ./sensor/
+    environment:
+      KE_URL: http://sensor4-ker:8280/rest
+      SENSOR_ID: sensor4
+      SENSOR_TYPE: USTemperatureSensor
+      UNIT: °F
+      MIN_VALUE: 59
+      DELTA_VALUE: 18
+      SLEEPTIME: 0.25
+      ANOMALY_FREQUENCY: 30
+      ANOMALOUS_VALUE: 281.7
+    depends_on:
+      sensor4-ker:
+        condition: service_healthy
+
   building-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://building-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
+      KE_REASONER_LEVEL: 3
   building-kb:
     build: ../common/answering_kb
     environment:
@@ -160,16 +227,20 @@ services:
           },
           {
             "s": "<http://example.org/sensor3>",
-            "b": "<http://example.org/buildingX>"
+            "b": "<http://example.org/building2>"
+          },
+          {
+            "s": "<http://example.org/sensor4>",
+            "b": "<http://example.org/building2>"
           }
         ]
   converter-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://converter-ker:8081
       KD_URL: http://knowledge-directory:8282
-      KE_REASONER_LEVEL: 5
+      KE_REASONER_LEVEL: 3
   converter-kb:
     build: ../common/react_function_kb
     environment:

@@ -69,15 +69,17 @@ public abstract class AntRuleNode extends RuleNode implements AntSide {
 	public boolean addResultBindingSetInput(RuleNode aNeighbor, Map<Match, TripleVarBindingSet> someBindingSets) {
 		assert (antecedentNeighbours.keySet().contains(aNeighbor));
 		Map<Match, TripleVarBindingSet> filteredBS = someBindingSets;
-		if (this.filterBindingSetOutput != null && !this.hasProactiveParent(aNeighbor)) {
+
+		boolean hasProactiveParent = this.hasProactiveParent(aNeighbor);
+
+		if (!this.filterBindingSetOutput.isEmpty() && !hasProactiveParent) {
 
 			for (Map.Entry<Match, TripleVarBindingSet> matchBS : filteredBS.entrySet()) {
 				filteredBS.put(matchBS.getKey(), matchBS.getValue().keepCompatible(this.filterBindingSetOutput));
 			}
 		}
-
 		var changed = this.resultBindingSetInput.add(aNeighbor, filteredBS);
-		if (changed && this.filterBindingSetOutput == null && this.hasProactiveParent(aNeighbor)) {
+		if (changed && this.filterBindingSetOutput.isEmpty() && hasProactiveParent) {
 			var previousBindingSetOutput = this.filterBindingSetOutput;
 			this.filterBindingSetOutput = this.resultBindingSetInput.get();
 
