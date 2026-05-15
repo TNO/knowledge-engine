@@ -9,12 +9,12 @@ services:
       KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
       KD_URL: http://knowledge-directory:8282
       KE_REASONER_LEVEL: 5
-      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine.smartconnector.impl.ReasonerProcessor=info"
-  kb4:
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info"
+  meta-kb:
     build: meta-kb
     environment:
       KE_URL: http://runtime-4:8280/rest
-      KB_ID: http://example.org/kb4
+      KB_ID: http://example.org/meta-kb
       PREFIXES: |
         {
           "dcat": "http://www.w3.org/ns/dcat#",
@@ -33,12 +33,8 @@ services:
         @prefix dcterms: <http://purl.org/dc/terms/> .
         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
-        #KE DCAT facts
-        -> (ke:KnowledgeBase rdfs:subClassOf dcat:DataService ) .
-        -> (ke:hasName skos:exactMatch dcterms:title ) .
-        -> (ke:hasDescription skos:exactMatch dcterms:description ) .
-        
-        #RDFS rules
-        (?i rdf:type ?t1) (?t1 rdfs:subClassOf ?t2) -> (?i rdf:type ?t2) .
-        (?i ?p1 ?v) (?p1 skos:exactMatch ?p2) -> (?i ?p2 ?v) .
+        // KE DCAT rules
+        [DCATDataService: (?i rdf:type ke:KnowledgeBase) -> (?i rdf:type dcat:DataService)]
+        [DCATTitle: (?i ke:hasName ?v) -> (?i dcterms:title ?v)]
+        [DCATDesc: (?i ke:hasDescription ?v) -> (?i dcterms:description ?v)]
 

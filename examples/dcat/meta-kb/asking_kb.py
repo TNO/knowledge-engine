@@ -64,6 +64,19 @@ def ask(kiId, bindingSet: dict ) -> dict:
     
     return resp.json()
 
+def bindingset_to_dcatrdf(aGraphPattern, bindingSet: list[dict]):
+    someRDF = ""
+    
+    for binding in bindingSet:
+        partRDF = aGraphPattern
+        id = binding["ds"]
+        for aVar, aValue in binding.items():
+            partRDF = partRDF.replace("?" + aVar, aValue)
+            
+        partRDF += f"ex:ke_catalog dcat:service {id} .\n"
+        someRDF += partRDF + "\n" 
+    return someRDF;
+
 def kb_1():
     client = TkeClient(KE_URL)
     client.connect()
@@ -91,14 +104,27 @@ def kb_1():
     log.info(f"ASK KI ({kiId}) registered!")
     result = []
     try:
-	    while True:
-	        log.info(f"asking...")
-	        result = ask(kiId, [{}])["bindingSet"]
-	        if len(result) == 0:
-	            log.info(f"asking gave no results; will sleep for 2s...")
-	        else:
-	            log.info(f"got answer: {result}")
-	        time.sleep(2)
+        while True:
+            log.info(f"asking...")
+            result = ask(kiId, [{}])
+            
+            bs = result["bindingSet"]
+
+            if len(bs) == 0:
+                log.info(f"asking gave no results; will sleep for 2s...")
+            else:
+                rdf = bindingset_to_dcatrdf(GRAPH_PATTERN, bs)
+                rdf = """@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.org/> .
+
+ex:ke_catalog rdf:type dcat:Catalog .
+ex:ke_catalog dcterms:title \"Knowledge Engine DCAT Catalog\" .
+
+""" + rdf
+                log.info(f"Knowledge Network DCAT info: \n{rdf}")
+            time.sleep(2)
     finally:
         log.info(f"unregistering...")
         kb.unregister()
