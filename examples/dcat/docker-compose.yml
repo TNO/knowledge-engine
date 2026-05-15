@@ -1,0 +1,40 @@
+include:
+  - ../multiple-runtimes/docker-compose.yml
+
+services:
+  runtime-4:
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    environment: 
+      KE_RUNTIME_PORT: 8081
+      KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
+      KD_URL: http://knowledge-directory:8282
+      KE_REASONER_LEVEL: 5
+      JAVA_TOOL_OPTIONS: "-Dorg.slf4j.simpleLogger.log.eu.knowledge.engine=info"
+  meta-kb:
+    build: meta-kb
+    environment:
+      KE_URL: http://runtime-4:8280/rest
+      KB_ID: http://example.org/meta-kb
+      PREFIXES: |
+        {
+          "dcat": "http://www.w3.org/ns/dcat#",
+          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "dcterms": "http://purl.org/dc/terms/"
+        }
+      GRAPH_PATTERN: |
+        ?ds rdf:type dcat:DataService .
+        ?ds dcterms:title ?title .
+        ?ds dcterms:description ?description .
+      DOMAIN_KNOWLEDGE: |
+        @prefix dcat: <http://www.w3.org/ns/dcat#> .
+        @prefix ke: <https://w3id.org/knowledge-engine/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix dcterms: <http://purl.org/dc/terms/> .
+        @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+        // KE DCAT rules
+        [DCATDataService: (?i rdf:type ke:KnowledgeBase) -> (?i rdf:type dcat:DataService)]
+        [DCATTitle: (?i ke:hasName ?v) -> (?i dcterms:title ?v)]
+        [DCATDesc: (?i ke:hasDescription ?v) -> (?i dcterms:description ?v)]
+
