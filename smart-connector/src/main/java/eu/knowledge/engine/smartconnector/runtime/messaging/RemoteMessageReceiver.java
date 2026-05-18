@@ -34,8 +34,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	private Response handleMessage(String authorizationToken, KnowledgeMessage message) {
-		LOG.trace("Received {} {} from KnowledgeDirectory for KnowledgeBase {} from remote SmartConnector",
-				message.getClass().getSimpleName(), message.getMessageId(), message.getToKnowledgeBase());
+		LOG.trace("Received {} {} for {} from {}", message.getClass().getSimpleName(),
+				message.getMessageId(), message.getToKnowledgeBase(), message.getFromKnowledgeBase());
 		try {
 			messageDispatcher.deliverToLocalSmartConnector(message);
 			return Response.status(202).build();
@@ -51,8 +51,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingAskmessagePost(String authorizationToken, AskMessage askMessage, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response messagingAskmessagePost(String authorizationToken, AskMessage askMessage,
+			SecurityContext securityContext) throws NotFoundException {
 		try {
 			return handleMessage(authorizationToken, MessageConverter.fromJson(askMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
@@ -61,8 +61,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingAnswermessagePost(String authorizationToken, AnswerMessage answerMessage, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response messagingAnswermessagePost(String authorizationToken, AnswerMessage answerMessage,
+			SecurityContext securityContext) throws NotFoundException {
 		try {
 			return handleMessage(authorizationToken, MessageConverter.fromJson(answerMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
@@ -72,8 +72,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingPostmessagePost(String authorizationToken, PostMessage postMessage, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response messagingPostmessagePost(String authorizationToken, PostMessage postMessage,
+			SecurityContext securityContext) throws NotFoundException {
 		try {
 			return handleMessage(authorizationToken, MessageConverter.fromJson(postMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
@@ -82,8 +82,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingReactmessagePost(String authorizationToken, ReactMessage reactMessage, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response messagingReactmessagePost(String authorizationToken, ReactMessage reactMessage,
+			SecurityContext securityContext) throws NotFoundException {
 		try {
 			return handleMessage(authorizationToken, MessageConverter.fromJson(reactMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
@@ -92,8 +92,8 @@ public class RemoteMessageReceiver extends MessagingApiService {
 	}
 
 	@Override
-	public Response messagingErrormessagePost(String authorizationToken, ErrorMessage errorMessage, SecurityContext securityContext)
-			throws NotFoundException {
+	public Response messagingErrormessagePost(String authorizationToken, ErrorMessage errorMessage,
+			SecurityContext securityContext) throws NotFoundException {
 		try {
 			return handleMessage(authorizationToken, MessageConverter.fromJson(errorMessage));
 		} catch (URISyntaxException | IllegalArgumentException e) {
