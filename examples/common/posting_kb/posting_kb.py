@@ -38,7 +38,7 @@ def handle_sigterm(*args):
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 def register_domain_knowledge(domain_knowledge):
-    resp = requests.post(url = KE_URL + "/sc/knowledge", headers = {"Knowledge-Base-Id":KB_ID}, data = DOMAIN_KNOWLEDGE);
+    resp = requests.post(url = KE_URL + "/sc/knowledge", headers = {"Knowledge-Base-Id":KB_ID}, data = domain_knowledge);
     if resp.status_code != 200:
         log.error(f"Our domain knowledge register should return 200 and not {resp.status_code} with message: " + resp.text);
 
