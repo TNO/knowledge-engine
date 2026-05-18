@@ -35,7 +35,7 @@ public class RemoteMessageReceiver extends MessagingApiService {
 
 	private Response handleMessage(String authorizationToken, KnowledgeMessage message) {
 		LOG.trace("Received {} {} for {} from {}", message.getClass().getSimpleName(),
-				message.getMessageId(), message.getFromKnowledgeBase(), message.getToKnowledgeBase());
+				message.getMessageId(), message.getToKnowledgeBase(), message.getFromKnowledgeBase());
 		try {
 			messageDispatcher.deliverToLocalSmartConnector(message);
 			return Response.status(202).build();
