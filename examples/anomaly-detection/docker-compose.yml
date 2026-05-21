@@ -1,10 +1,10 @@
 services:
   knowledge-directory:
-    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.4.0
+    image: ghcr.io/tno/knowledge-engine/knowledge-directory:1.5.0
 
   #KNOWLEDGE VALIDATOR
   knowledge-validator-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://knowledge-validator-ker:8081
@@ -33,7 +33,7 @@ services:
         condition: service_healthy
   #DASHBOARD
   dashboard-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://dashboard-ker:8081
@@ -77,7 +77,7 @@ services:
 
   #SENSOR1
   sensor1-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor1-ker:8081
@@ -108,7 +108,7 @@ services:
  
   #SENSOR2
   sensor2-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor2-ker:8081
@@ -138,7 +138,7 @@ services:
 
   #SENSOR3
   sensor3-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor3-ker:8081
@@ -168,7 +168,7 @@ services:
 
   #SENSOR4
   sensor4-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://sensor4-ker:8081
@@ -197,7 +197,7 @@ services:
         condition: service_healthy
 
   building-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://building-ker:8081
@@ -235,7 +235,7 @@ services:
           }
         ]
   converter-ker:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment:
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://converter-ker:8081

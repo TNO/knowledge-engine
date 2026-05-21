@@ -3,7 +3,7 @@ include:
 
 services:
   runtime-4:
-    image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.1-SNAPSHOT
+    image: ghcr.io/tno/knowledge-engine/smart-connector:1.5.0
     environment: 
       KE_RUNTIME_PORT: 8081
       KE_RUNTIME_EXPOSED_URL: http://runtime-4:8081
