@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public class Thermostat {
 
 	ExecutorService es = Executors.newFixedThreadPool(4);
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
 
 		Thermostat t = new Thermostat();
 
@@ -36,7 +37,7 @@ public class Thermostat {
 
 	}
 
-	public void start() throws InterruptedException {
+	public void start() throws InterruptedException, ExecutionException {
 		PrefixMappingMem prefixes = new PrefixMappingMem();
 		prefixes.setNsPrefixes(PrefixMapping.Standard);
 		prefixes.setNsPrefix("sosa", "http://www.w3.org/ns/sosa/");
@@ -173,9 +174,9 @@ public class Thermostat {
 		es.awaitTermination(100, TimeUnit.SECONDS);
 		LOG.info("Shutting down now.");
 		es.shutdownNow();
-		this.sensor.stop();
-		this.thermostat.stop();
-		this.heating.stop();
+		this.sensor.stop().get();
+		this.thermostat.stop().get();
+		this.heating.stop().get();
 
 	}
 

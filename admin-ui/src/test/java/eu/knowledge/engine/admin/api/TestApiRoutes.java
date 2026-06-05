@@ -18,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.PrefixMappingMem;
@@ -309,7 +310,11 @@ public class TestApiRoutes {
 
 	public void stopKb(KnowledgeBaseImpl aKb) {
 		if (aKb != null) {
-			aKb.stop();
+			try {
+				aKb.stop().get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error("Stopping a KB should not throw an exception.", e);
+			}
 		}
 	}
 }

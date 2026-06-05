@@ -1,106 +1,43 @@
 package eu.knowledge.engine.smartconnector.api;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
+import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
+@Tag("Long")
 public class TestAddingDeletingManySmartConnectors {
 
-	private static final int AMOUNT = 20;
+	private static final int AMOUNT = 25;
 	private Logger LOG = LoggerFactory.getLogger(TestAddingDeletingManySmartConnectors.class);
 
 	@Disabled
 	@Test
-	void test() throws InterruptedException {
+	void test() throws InterruptedException, ExecutionException {
 
-		KnowledgeBase[] kb = new KnowledgeBase[AMOUNT];
+		KnowledgeNetwork kn = new KnowledgeNetwork();
 
-		SmartConnector[] sc = new SmartConnector[AMOUNT];
-		LOG.info("Start creating SCs");
+		LOG.info("Creating SCs");
 		for (int i = 0; i < AMOUNT; i++) {
-
-			kb[i] = new MyKnowledgeBase("kb" + i);
-			sc[i] = SmartConnectorBuilder.newSmartConnector(kb[i]).create();
+			kn.addKB(new KnowledgeBaseImpl("kb" + i));
 		}
+		kn.sync();
 
-		Thread.sleep(20000);
+		LOG.info("Stopping SCs");
+		kn.stop().get();
 
-		LOG.info("Start stopping SCs");
+		LOG.info("Creating SCs again");
 		for (int i = 0; i < AMOUNT; i++) {
-			sc[i].stop();
+			kn.addKB(new KnowledgeBaseImpl("kb" + i));
 		}
-
-		Thread.sleep(5000);
-
-		LOG.info("Start creating SCs again");
-		sc = new SmartConnector[AMOUNT];
-		for (int i = 0; i < AMOUNT; i++) {
-
-			kb[i] = new MyKnowledgeBase("kb" + i);
-			sc[i] = SmartConnectorBuilder.newSmartConnector(kb[i]).create();
-		}
-
+		kn.sync();
+		LOG.info("Stopping SCs again");
+		kn.stop().get();
 	}
-
-	private static class MyKnowledgeBase implements KnowledgeBase {
-
-		private String name;
-
-		public MyKnowledgeBase(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public URI getKnowledgeBaseId() {
-			try {
-				return new URI("http://www.example.org/" + name);
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return null;
-			}
-		}
-
-		@Override
-		public String getKnowledgeBaseName() {
-			return name;
-		}
-
-		@Override
-		public String getKnowledgeBaseDescription() {
-			return this.name;
-		}
-
-		@Override
-		public void smartConnectorReady(SmartConnector aSC) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void smartConnectorConnectionLost(SmartConnector aSC) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void smartConnectorConnectionRestored(SmartConnector aSC) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void smartConnectorStopped(SmartConnector aSC) {
-			// TODO Auto-generated method stub
-
-		}
-
-	}
-
 }

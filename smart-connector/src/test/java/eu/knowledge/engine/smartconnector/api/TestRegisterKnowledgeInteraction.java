@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +11,7 @@ import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 
 public class TestRegisterKnowledgeInteraction {
 	@Test
-	public void testRegisterKnowledgeInteractionWithSameName() {
+	public void testRegisterKnowledgeInteractionWithSameName() throws InterruptedException, ExecutionException {
 		var sc1 = SmartConnectorBuilder.newSmartConnector(new KnowledgeBase() {
 
 			@Override
@@ -55,7 +56,7 @@ public class TestRegisterKnowledgeInteraction {
 					false));
 		});
 
-		sc1.stop();
+		sc1.stop().get();
 	}
 
 }

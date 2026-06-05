@@ -121,8 +121,8 @@ class AnomalyDetectionTest {
 	}
 
 	@AfterAll
-	public static void close() {
-		kn.stop();
+	public static void close() throws InterruptedException, ExecutionException {
+		kn.stop().get();
 	}
 
 }
