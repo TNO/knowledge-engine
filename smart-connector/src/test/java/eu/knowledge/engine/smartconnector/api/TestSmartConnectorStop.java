@@ -3,6 +3,7 @@ package eu.knowledge.engine.smartconnector.api;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ public class TestSmartConnectorStop {
 	private static AtomicBoolean scStoppedCalled = new AtomicBoolean(false);
 
 	@Test
-	public void test() throws InterruptedException {
+	public void test() throws InterruptedException, ExecutionException {
 
 		sc1 = SmartConnectorBuilder.newSmartConnector(new MyKnowledgeBase("kb1")).create();
 		sc2 = SmartConnectorBuilder.newSmartConnector(new MyKnowledgeBase("kb2")).create();
@@ -42,7 +43,7 @@ public class TestSmartConnectorStop {
 
 		Thread.sleep(500);
 
-		sc2.stop();
+		sc2.stop().get();
 	}
 
 	class MyKnowledgeBase implements KnowledgeBase {

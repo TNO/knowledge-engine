@@ -247,7 +247,11 @@ public class MetadataKB extends KnowledgeBaseImpl {
 	}
 
 	public void close() {
-		this.stop();
+		try {
+			this.stop().get();
+		} catch (InterruptedException | ExecutionException e) {
+			LOG.error("Exceptions should not occur when closing the MetadataKB.", e);
+		}
 	}
 
 	public Model getMetadata() {

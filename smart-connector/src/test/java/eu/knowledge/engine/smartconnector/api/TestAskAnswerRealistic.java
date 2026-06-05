@@ -546,64 +546,64 @@ public class TestAskAnswerRealistic {
 	}
 
 	@AfterAll
-	public static void cleanup() {
+	public static void cleanup() throws InterruptedException, ExecutionException {
 		LOG.info("Clean up: {}", TestAskAnswerRealistic.class.getSimpleName());
 		if (kb1 != null) {
-			kb1.stop();
+			kb1.stop().get();
 		} else {
 			fail("KB1 should not be null!");
 		}
 
 		if (kb2 != null) {
-			kb2.stop();
+			kb2.stop().get();
 		} else {
 			fail("KB2 should not be null!");
 		}
 
 		if (kb3 != null) {
-			kb3.stop();
+			kb3.stop().get();
 		} else {
 			fail("KB3 should not be null!");
 		}
 
 		if (kb4 != null) {
-			kb4.stop();
+			kb4.stop().get();
 		} else {
 			fail("KB4 should not be null!");
 		}
 
 		if (kb5 != null) {
-			kb5.stop();
+			kb5.stop().get();
 		} else {
 			fail("KB5 should not be null");
 		}
 
 		if (kb6 != null) {
-			kb6.stop();
+			kb6.stop().get();
 		} else {
 			fail("KB6 should not be null");
 		}
 
 		if (kb7 != null) {
-			kb7.stop();
+			kb7.stop().get();
 		} else {
 			fail("KB7 should not be null");
 		}
 
 		if (kb8 != null) {
-			kb8.stop();
+			kb8.stop().get();
 		} else {
 			fail("KB8 should not be null");
 		}
 
 		if (kb9 != null) {
-			kb9.stop();
+			kb9.stop().get();
 		} else {
 			fail("KB9 should not be null");
 		}
 
 		if (kb10 != null) {
-			kb10.stop();
+			kb10.stop().get();
 		} else {
 			fail("KB10 should not be null");
 		}

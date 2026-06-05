@@ -107,7 +107,7 @@ public class SmartConnectorRegistrationStressTest {
 		LOG.info("Registration took {} milliseconds.", duration.toMillis());
 		assertTrue(duration.toSeconds() < TEST_FAIL_THRESHOLD_SECONDS);
 
-		sc.stop();
+		sc.stop().get();
 	}
 
 	@AfterAll
