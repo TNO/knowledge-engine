@@ -567,7 +567,8 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		}
 		this.unregisteredReactKIs.clear();
 
-		this.getSC().setDomainKnowledge(this.domainKnowledge);
+		if (!this.domainKnowledge.isEmpty())
+			this.getSC().setDomainKnowledge(this.domainKnowledge);
 		this.getSC().setReasonerLevel(this.reasonerLevel);
 
 	}
