@@ -48,6 +48,17 @@ import eu.knowledge.engine.smartconnector.api.Vocab;
 import eu.knowledge.engine.smartconnector.impl.SmartConnectorBuilder;
 import eu.knowledge.engine.smartconnector.impl.Util;
 
+/**
+ * This class helps creating knowledge bases easily for testing purposes.
+ * Multiple {@code KnowledgeBaseImpl} instances can be collected in a
+ * {@link KnowledgeNetwork} and managed and checked together.
+ * 
+ * Note that the {@link KnowledgeBaseImpl#register(AskKnowledgeInteraction)}
+ * methods do not directly register the KI with the corresponding Smart
+ * Connector. This only happens when the {@link KnowledgeBaseImpl#syncKIs()}
+ * methods is called. The same holds for the
+ * {@link #unregister(AnswerKnowledgeInteraction)} methods.
+ */
 public class KnowledgeBaseImpl implements KnowledgeBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
@@ -61,6 +72,11 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 	private final Map<AnswerKnowledgeInteraction, AnswerHandler> currentAnswerKIs;
 	private final Set<PostKnowledgeInteraction> currentPostKIs;
 	private final Map<ReactKnowledgeInteraction, ReactHandler> currentReactKIs;
+
+	/**
+	 * Keep track of KI URIs of registered KIs.
+	 */
+	private final Map<KnowledgeInteraction, URI> currentKiToUri;
 
 	private final Set<AskKnowledgeInteraction> unregisteredAskKIs;
 	private final Set<AnswerKnowledgeInteraction> unregisteredAnswerKIs;
@@ -99,6 +115,8 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		this.currentAnswerKIs = new ConcurrentHashMap<>();
 		this.currentPostKIs = ConcurrentHashMap.newKeySet();
 		this.currentReactKIs = new ConcurrentHashMap<>();
+
+		this.currentKiToUri = new ConcurrentHashMap<>();
 
 		this.unregisteredAskKIs = ConcurrentHashMap.newKeySet();
 		this.unregisteredAnswerKIs = ConcurrentHashMap.newKeySet();
@@ -186,6 +204,7 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 	public CompletableFuture<Void> stop() {
 		CompletableFuture<Void> future = this.sc.stop();
+		this.sc = null;
 		// remove all KIs
 		this.unregisteredAskKIs.clear();
 		this.unregisteredAnswerKIs.clear();
@@ -194,40 +213,82 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		return future;
 	}
 
+	/**
+	 * Stores the given KI for registration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anAskKI
+	 */
 	public void register(AskKnowledgeInteraction anAskKI) {
 		this.registeredAskKIs.add(anAskKI);
 	}
 
+	/**
+	 * Stores the given KI for unregistration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anAskKI
+	 */
 	public void unregister(AskKnowledgeInteraction anAskKI) {
 		boolean removed = this.currentAskKIs.remove(anAskKI);
 		assert removed;
 		this.unregisteredAskKIs.add(anAskKI);
 	}
 
+	/**
+	 * Stores the given KI for registration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anAnswerKI
+	 * @param aAnswerHandler
+	 */
 	public void register(AnswerKnowledgeInteraction anAnswerKI, AnswerHandler aAnswerHandler) {
 		this.registeredAnswerKIs.put(anAnswerKI, aAnswerHandler);
 	}
 
+	/**
+	 * Stores the given KI for unregistration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anAnswerKI
+	 */
 	public void unregister(AnswerKnowledgeInteraction anAnswerKI) {
 		assert this.currentAnswerKIs.containsKey(anAnswerKI);
 		this.currentAnswerKIs.remove(anAnswerKI);
 		this.unregisteredAnswerKIs.add(anAnswerKI);
 	}
 
+	/**
+	 * Stores the given KI for registration when {@link #syncKIs()} is called.
+	 * 
+	 * @param aPostKI
+	 */
 	public void register(PostKnowledgeInteraction aPostKI) {
 		this.registeredPostKIs.add(aPostKI);
 	}
 
+	/**
+	 * Stores the given KI for unregistration when {@link #syncKIs()} is called.
+	 * 
+	 * @param aPostKI
+	 */
 	public void unregister(PostKnowledgeInteraction aPostKI) {
 		boolean removed = this.currentPostKIs.remove(aPostKI);
 		assert removed;
 		this.unregisteredPostKIs.add(aPostKI);
 	}
 
+	/**
+	 * Stores the given KI for registration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anReactKI
+	 * @param aReactHandler
+	 */
 	public void register(ReactKnowledgeInteraction anReactKI, ReactHandler aReactHandler) {
 		this.registeredReactKIs.put(anReactKI, aReactHandler);
 	}
 
+	/**
+	 * Stores the given KI for unregistration when {@link #syncKIs()} is called.
+	 * 
+	 * @param anReactKI
+	 */
 	public void unregister(ReactKnowledgeInteraction anReactKI) {
 		assert this.currentReactKIs.containsKey(anReactKI);
 		this.currentReactKIs.remove(anReactKI);
@@ -280,6 +341,15 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		all.putAll(registeredReactKIs);
 
 		return all;
+	}
+
+	public URI getKnowledgeInteractionURI(KnowledgeInteraction aKI) {
+		return this.currentKiToUri.get(aKI);
+	}
+
+	public KnowledgeInteraction getKnowledgeInteraction(URI anURI) {
+		return this.currentKiToUri.entrySet().stream().filter(entry -> entry.getValue().equals(anURI)).findFirst().get()
+				.getKey();
 	}
 
 	public boolean isUpToDate(AskKnowledgeInteraction askKnowledgeInteraction,
@@ -505,8 +575,9 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 		for (var ki : this.registeredAskKIs) {
 			try {
-				this.getSC().register(ki);
+				URI anURI = this.getSC().register(ki);
 				this.currentAskKIs.add(ki);
+				this.currentKiToUri.put(ki, anURI);
 			} catch (IllegalArgumentException iae) {
 				LOG.error("Registering KI {} should succeed.", ki, iae);
 			}
@@ -515,8 +586,9 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 		for (var entry : this.registeredAnswerKIs.entrySet()) {
 			try {
-				this.getSC().register(entry.getKey(), entry.getValue());
+				URI anURI = this.getSC().register(entry.getKey(), entry.getValue());
 				this.currentAnswerKIs.put(entry.getKey(), entry.getValue());
+				this.currentKiToUri.put(entry.getKey(), anURI);
 			} catch (IllegalArgumentException iae) {
 				LOG.error("Registering KI {} should succeed.", entry.getKey(), iae);
 			}
@@ -525,8 +597,9 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 		for (var ki : this.registeredPostKIs) {
 			try {
-				this.getSC().register(ki);
+				URI anURI = this.getSC().register(ki);
 				this.currentPostKIs.add(ki);
+				this.currentKiToUri.put(ki, anURI);
 			} catch (IllegalArgumentException iae) {
 				LOG.error("Registering KI {} should succeed.", ki, iae);
 			}
@@ -535,8 +608,9 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 
 		for (var entry : this.registeredReactKIs.entrySet()) {
 			try {
-				this.getSC().register(entry.getKey(), entry.getValue());
+				URI anURI = this.getSC().register(entry.getKey(), entry.getValue());
 				this.currentReactKIs.put(entry.getKey(), entry.getValue());
+				this.currentKiToUri.put(entry.getKey(), anURI);
 			} catch (IllegalArgumentException iae) {
 				LOG.error("Registering KI {} should succeed.", entry.getKey(), iae);
 			}
@@ -546,24 +620,28 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		for (var ki : this.unregisteredAskKIs) {
 			this.getSC().unregister(ki);
 			this.currentAskKIs.remove(ki);
+			this.currentKiToUri.remove(ki);
 		}
 		this.unregisteredAskKIs.clear();
 
 		for (var ki : this.unregisteredAnswerKIs) {
 			this.getSC().unregister(ki);
 			this.currentAnswerKIs.remove(ki);
+			this.currentKiToUri.remove(ki);
 		}
 		this.unregisteredAnswerKIs.clear();
 
 		for (var ki : this.unregisteredPostKIs) {
 			this.getSC().unregister(ki);
 			this.currentPostKIs.remove(ki);
+			this.currentKiToUri.remove(ki);
 		}
 		this.unregisteredPostKIs.clear();
 
 		for (var ki : this.unregisteredReactKIs) {
 			this.getSC().unregister(ki);
 			this.currentReactKIs.remove(ki);
+			this.currentKiToUri.remove(ki);
 		}
 		this.unregisteredReactKIs.clear();
 
