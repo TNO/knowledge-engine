@@ -20,6 +20,10 @@ public final class AskKnowledgeInteraction extends KnowledgeInteraction {
 		this(act, pattern, null, false, false, false, null);
 	}
 
+	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name) {
+		this(act, pattern, name, false, false, false, null);
+	}
+
 	public AskKnowledgeInteraction(CommunicativeAct act, GraphPattern pattern, String name,
 			boolean aKnowledgeGapsEnabled) {
 		this(act, pattern, name, false, false, aKnowledgeGapsEnabled, null);
