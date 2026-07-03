@@ -36,6 +36,7 @@ import eu.knowledge.engine.smartconnector.api.AnswerKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.AskKnowledgeInteraction;
 import eu.knowledge.engine.smartconnector.api.AskResult;
+import eu.knowledge.engine.smartconnector.api.ExchangeInfo;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Initiator;
 import eu.knowledge.engine.smartconnector.api.ExchangeInfo.Status;
 import eu.knowledge.engine.smartconnector.api.GraphPattern;
@@ -69,8 +70,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 	private RuleStore store;
 	private MyKnowledgeInteractionInfo myKnowledgeInteraction;
-	private final Set<AskExchangeInfo> askExchangeInfos;
-	private final Set<PostExchangeInfo> postExchangeInfos;
+	private final Set<ExchangeInfo> exchangeInfos;
 	private Set<Rule> additionalDomainKnowledge;
 	private ReasonerPlan reasonerPlan;
 	private Set<KnowledgeGap> knowledgeGaps;
@@ -101,8 +101,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			store.addRule(r);
 		}
 
-		this.askExchangeInfos = Collections.newSetFromMap(new ConcurrentHashMap<AskExchangeInfo, Boolean>());
-		this.postExchangeInfos = Collections.newSetFromMap(new ConcurrentHashMap<PostExchangeInfo, Boolean>());
+		this.exchangeInfos = Collections.newSetFromMap(new ConcurrentHashMap<ExchangeInfo, Boolean>());
 
 		for (KnowledgeInteractionInfo kii : knowledgeInteractions) {
 			String ruleName = kii.getKnowledgeInteraction().getName() != null ? kii.getKnowledgeInteraction().getName()
@@ -185,12 +184,12 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
-		
+
 		if (this.myKnowledgeInteraction.isMeta())
 			LOG.trace("Ask: {}", this.reasonerPlan);
 		else
 			LOG.debug("Ask: {}", this.reasonerPlan);
-		
+
 		continueReasoningBackward(someBindings);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
@@ -201,7 +200,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 			// extract succeeded nr of exchange infos and nr of failed exchange infos
 			List<String> succeededKIs = new ArrayList<String>(), failedKIs = new ArrayList<String>();
-			for (AskExchangeInfo aei : this.askExchangeInfos) {
+			for (ExchangeInfo aei : this.exchangeInfos) {
 				if (aei.getStatus().equals(Status.SUCCEEDED)) {
 					succeededKIs.add(aei.getKnowledgeInteractionId().toString());
 				} else if (aei.getStatus().equals(Status.FAILED)) {
@@ -217,7 +216,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				LOG.info(logStatement, this.myKnowledgeInteraction.getId(), bs.size(),
 						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 
-			return new AskResult(Util.translateToApiBindingSet(bs), this.askExchangeInfos, this.reasonerPlan,
+			return new AskResult(Util.translateToApiBindingSet(bs), this.exchangeInfos, this.reasonerPlan,
 					this.knowledgeGaps);
 		});
 	}
@@ -287,19 +286,19 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		this.finalBindingSetFuture = new CompletableFuture<BindingSet>();
 //		this.reasonerPlan.optimize();
-		
+
 		if (this.myKnowledgeInteraction.isMeta())
 			LOG.trace("Post: {}", this.reasonerPlan);
 		else
 			LOG.debug("Post: {}", this.reasonerPlan);
-		
+
 		continueReasoningForward(someBindings, this.captureResultBindingSetHandler);
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 
 			// extract succeeded nr of exchange infos and nr of failed exchange infos
 			List<String> succeededKIs = new ArrayList<>(), failedKIs = new ArrayList<>();
-			for (PostExchangeInfo aei : this.postExchangeInfos) {
+			for (ExchangeInfo aei : this.exchangeInfos) {
 				if (aei.getStatus().equals(Status.SUCCEEDED)) {
 					succeededKIs.add(aei.getKnowledgeInteractionId().toString());
 				} else if (aei.getStatus().equals(Status.FAILED)) {
@@ -315,7 +314,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 				LOG.info(logMessage, this.myKnowledgeInteraction.getId(), bs.size(),
 						succeededKIs.size() + failedKIs.size(), failedKIs.size(), failedKIs);
 
-			return new PostResult(Util.translateToApiBindingSet(bs), this.postExchangeInfos, this.reasonerPlan);
+			return new PostResult(Util.translateToApiBindingSet(bs), this.exchangeInfos, this.reasonerPlan);
 		});
 	}
 
@@ -460,7 +459,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					LOG.trace("Received ANSWER message from KI '{}'", answerMessage.getFromKnowledgeInteraction());
 					BindingSet resultBindingSet = answerMessage.getBindings();
 
-					ReasonerProcessor.this.askExchangeInfos
+					ReasonerProcessor.this.exchangeInfos
 							.add(convertMessageToExchangeInfo(resultBindingSet, answerMessage, aPreviousSend));
 
 					return resultBindingSet;
@@ -555,7 +554,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					assert reactMessage != null;
 					BindingSet resultBindingSet = reactMessage.getResult();
 
-					ReasonerProcessor.this.postExchangeInfos
+					ReasonerProcessor.this.exchangeInfos
 							.add(convertMessageToExchangeInfo(bs, resultBindingSet, reactMessage, aPreviousSend));
 
 					return resultBindingSet;
@@ -628,7 +627,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 									failedMessage);
 				}).thenApply((reactMessage) -> {
 					assert reactMessage != null;
-					ReasonerProcessor.this.postExchangeInfos.add(
+					ReasonerProcessor.this.exchangeInfos.add(
 							convertMessageToExchangeInfo(bs, reactMessage.getResult(), reactMessage, aPreviousSend));
 
 					return (Void) null;

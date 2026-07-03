@@ -771,7 +771,7 @@ components:
         exchangeInfo:
           type: array
           items:
-            $ref: '#/components/schemas/AskExchangeInfo'
+            $ref: '#/components/schemas/ExchangeInfo'
         knowledgeGaps:
           type: array
           items:
@@ -786,10 +786,15 @@ components:
         exchangeInfo:
           type: array
           items:
-            $ref: '#/components/schemas/PostExchangeInfo'
+            $ref: '#/components/schemas/ExchangeInfo'
     ExchangeInfo:
       type: object
-      required: [initiator, knowledgeBaseId, knowledgeInteractionId, exchangeStart, exchangeEnd, status]
+      discriminator:
+        propertyName: knowledgeInteractionType
+        mapping:
+          ReactKnowledgeInteraction: '#/components/schemas/PostExchangeInfo'
+          AnswerKnowledgeInteraction: '#/components/schemas/AskExchangeInfo'
+      required: [knowledgeInteractionType, initiator, knowledgeBaseId, knowledgeInteractionId, exchangeStart, exchangeEnd, status]
       properties:
         initiator:
           type: string

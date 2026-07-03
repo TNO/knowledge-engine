@@ -141,7 +141,7 @@ public class TestDuplicateBindings {
 			LOG.trace("After ask.");
 
 			LOG.info("Bindings: {}", bindings);
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
@@ -181,7 +181,7 @@ public class TestDuplicateBindings {
 			LOG.trace("After post.");
 			LOG.info("Bindings: {}", bindings);
 
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(PostExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,

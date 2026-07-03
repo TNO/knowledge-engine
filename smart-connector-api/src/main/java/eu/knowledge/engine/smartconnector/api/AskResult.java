@@ -27,10 +27,14 @@ public class AskResult {
 	 * Can be null, if the matcher is used instead of the reasoner.
 	 */
 	private ReasonerPlan reasonerPlan;
-	
+
 	private Set<KnowledgeGap> knowledgeGaps;
 
-	private final Set<AskExchangeInfo> exchangeInfos;
+	/**
+	 * Can contain both Post and Ask ExchangeInfo objects, because the reasoner can
+	 * activate Post KIs while answering.
+	 */
+	private final Set<ExchangeInfo> exchangeInfos;
 
 	/**
 	 * Create a {@link AskResult}.
@@ -41,14 +45,15 @@ public class AskResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode, Set<KnowledgeGap> kGaps) {
+	public AskResult(BindingSet someBindings, Set<ExchangeInfo> askExchangeInfos, ReasonerPlan aRootNode,
+			Set<KnowledgeGap> kGaps) {
 		this.bindings = someBindings;
 		this.exchangeInfos = askExchangeInfos;
 		this.reasonerPlan = aRootNode;
 		this.knowledgeGaps = kGaps;
 	}
 
-	public AskResult(BindingSet someBindings, Set<AskExchangeInfo> askExchangeInfos) {
+	public AskResult(BindingSet someBindings, Set<ExchangeInfo> askExchangeInfos) {
 		this(someBindings, askExchangeInfos, null, null);
 	}
 
@@ -60,20 +65,20 @@ public class AskResult {
 		return this.bindings;
 	}
 
-	public Set<AskExchangeInfo> getExchangeInfoPerKnowledgeBase() {
+	public Set<ExchangeInfo> getExchangeInfoPerKnowledgeBase() {
 		return Collections.unmodifiableSet(exchangeInfos);
 	}
 
 	public Duration getTotalExchangeTime() {
 
-		Set<AskExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
+		Set<ExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
 
 		if (!infos.isEmpty()) {
 			Instant start = Instant.MAX;
 			Instant end = Instant.MIN;
 
 			// find the earliest and latest instant among the exchange infos.
-			for (AskExchangeInfo info : infos) {
+			for (ExchangeInfo info : infos) {
 
 				if (info.getExchangeStart().isBefore(start)) {
 					start = info.getExchangeStart();
@@ -109,6 +114,7 @@ public class AskResult {
 
 	@Override
 	public String toString() {
-		return "AskResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfos + ", knowledgeGaps=" + knowledgeGaps + "]";
+		return "AskResult [bindings=" + bindings + ", exchangeInfoPerKnowledgeBase=" + exchangeInfos
+				+ ", knowledgeGaps=" + knowledgeGaps + "]";
 	}
 }

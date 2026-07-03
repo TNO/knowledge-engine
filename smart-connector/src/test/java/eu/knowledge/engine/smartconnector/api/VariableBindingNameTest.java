@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
+import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
 class VariableBindingNameTest {
 
@@ -106,9 +106,9 @@ class VariableBindingNameTest {
 		try {
 			PostResult postResult = sensor.post(sensorPostKI, bs).get();
 
-			Set<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
+			Set<ExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase();
 
-			PostExchangeInfo info = infos.stream()
+			PostExchangeInfo info = (PostExchangeInfo) infos.stream()
 					.filter(ei -> ei.getKnowledgeBaseId().equals(thermostat.getKnowledgeBaseId())).findFirst().get();
 
 			BindingSet bindingSet = info.getArgument();

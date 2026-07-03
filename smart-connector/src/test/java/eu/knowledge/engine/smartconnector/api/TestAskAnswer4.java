@@ -77,7 +77,6 @@ public class TestAskAnswer4 {
 			bindings = result.getBindings();
 
 			LOG.info("Bindings: {}", bindings);
-			LOG.info("Bindings2: {}", result.getExchangeInfoPerKnowledgeBase().iterator().next().getBindings());
 
 			LOG.trace("After ask.");
 		} catch (InterruptedException | ExecutionException e) {

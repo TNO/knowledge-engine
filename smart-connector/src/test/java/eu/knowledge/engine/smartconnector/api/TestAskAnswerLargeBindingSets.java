@@ -130,7 +130,7 @@ public class TestAskAnswerLargeBindingSets {
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,

@@ -70,7 +70,8 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent1 = new HashSet<TriplePattern>();
 		antecedent1.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent1.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
+		antecedent1
+				.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
 
 		HashSet<TriplePattern> consequent2 = new HashSet<TriplePattern>();
 		consequent2.add(new TriplePattern(
@@ -78,7 +79,8 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent2 = new HashSet<TriplePattern>();
 		antecedent2.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent2.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
+		antecedent2.add(
+				new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
 
 		HashSet<TriplePattern> consequent3 = new HashSet<TriplePattern>();
 		consequent3.add(new TriplePattern(
@@ -86,8 +88,10 @@ public class TestDynamicSemanticComposition {
 		HashSet<TriplePattern> antecedent3 = new HashSet<TriplePattern>();
 		antecedent3.add(new TriplePattern(
 				"?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.example.org/defense/ontology/v1905/Target>"));
-		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
-		antecedent3.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
+		antecedent3.add(
+				new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasLanguage> \"Prussian\""));
+		antecedent3
+				.add(new TriplePattern("?id <https://www.example.org/defense/ontology/v1905/hasCountry> \"Prussia\""));
 
 		ruleSet = new HashSet<>();
 		ruleSet.add(new Rule(antecedent1, consequent1));
@@ -119,6 +123,7 @@ public class TestDynamicSemanticComposition {
 		BindingSet bindings = null;
 		try {
 			AskResult result = kbHVTSearcher.ask(askKI, new BindingSet()).get();
+			assertTrue(result.getExchangeInfoPerKnowledgeBase().size() == 2);
 			bindings = result.getBindings();
 			// try to generate JSON tree.
 			TestUtils.printSequenceDiagram(kbHVTSearcher.getKnowledgeBaseId().toString(), "ask", postKI.getArgument(),
@@ -149,6 +154,7 @@ public class TestDynamicSemanticComposition {
 			LOG.info("Before post!");
 			PostPlan aPlan = kbTargetObserver.planPost(postKI, new RecipientSelector());
 			PostResult result = aPlan.execute(bindingSet).get();
+			assertEquals(2, result.getExchangeInfoPerKnowledgeBase().size());
 			bindings = result.getBindings();
 			iter = bindings.iterator();
 			assertFalse(iter.hasNext(), "there should be no bindings");

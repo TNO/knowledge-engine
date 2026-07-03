@@ -97,7 +97,7 @@ public class TestAskAnswerSingleKBMultipleMatchingKIs {
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
-			List<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			List<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toList());
 
 			// with the reasoner there used to be more matching gp (i.e. the meta
