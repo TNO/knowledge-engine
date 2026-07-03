@@ -1,6 +1,7 @@
 package eu.knowledge.engine.smartconnector.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -61,6 +62,7 @@ public class GeneralizeIfNecessaryTest {
 
 		BindingSet argument = new BindingSet();
 		Binding binding = new Binding();
+		binding.put("b", "<http://example.org/building1>");
 		argument.add(binding);
 		AskPlan pp = appKb.planAsk(appKbAsk, new RecipientSelector());
 
@@ -72,22 +74,34 @@ public class GeneralizeIfNecessaryTest {
 		BindingSet expectedBS = new BindingSet();
 		Binding expectedB = new Binding();
 		expectedB.put("s", "<http://example.org/sensor1>");
+		expectedB.put("b", "<http://example.org/building1>");
 		expectedB.put("value", "\"10\"^^<http://www.w3.org/2001/XMLSchema#integer>");
 		expectedBS.add(expectedB);
 
 		expectedB = new Binding();
 		expectedB.put("s", "<http://example.org/sensor2>");
+		expectedB.put("b", "<http://example.org/building1>");
 		expectedB.put("value", "\"20\"^^<http://www.w3.org/2001/XMLSchema#integer>");
 		expectedBS.add(expectedB);
 
 		assertEquals(expectedBS, result.getBindings());
 
+		// test again, but now trigger knowledge gaps detection (in loop scenario's like
+		// this test contains)
+		BindingSet bs = new BindingSet();
+		Binding b = new Binding();
+		b.put("b", "<http://example.org/building3>");
+		bs.add(b);
+		AskResult ar = appKb.ask(appKbAsk, bs).get();
+		assertNotNull(ar);
+
 	}
 
 	private AskKnowledgeInteraction configureAppKb() {
 		GraphPattern appGP = new GraphPattern(prefixes,
-				"?s rdf:type ex:Sensor . ?s ex:isPartOf ex:building1 . ?s ex:hasLatestValue ?value .");
-		AskKnowledgeInteraction appKbAsk = new AskKnowledgeInteraction(new CommunicativeAct(), appGP);
+				"?s rdf:type ex:Sensor . ?s ex:isPartOf ?b . ?s ex:hasLatestValue ?value .");
+		AskKnowledgeInteraction appKbAsk = new AskKnowledgeInteraction(new CommunicativeAct(), appGP, "askLatestValue",
+				true);
 		appKb.register(appKbAsk);
 
 		HashSet<TriplePattern> rule1ant = new HashSet<>(

@@ -194,7 +194,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 
 		return this.finalBindingSetFuture.thenApply((bs) -> {
 			if (myKnowledgeInteraction.getKnowledgeInteraction().knowledgeGapsEnabled()) {
-				this.knowledgeGaps = bs.isEmpty() ? getKnowledgeGaps(this.reasonerPlan.getStartNode())
+				this.knowledgeGaps = bs.isEmpty() ? getKnowledgeGaps(this.reasonerPlan.getStartNode(), new HashSet<>())
 						: new HashSet<KnowledgeGap>();
 			}
 
@@ -666,15 +666,17 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 	 *         {@code A} <i><b>AND</b></i> {@code B} need to be added to solve the
 	 *         gap.
 	 */
-	public Set<KnowledgeGap> getKnowledgeGaps(RuleNode plan) {
+	public Set<KnowledgeGap> getKnowledgeGaps(RuleNode node, Set<RuleNode> someVisitedNodes) {
 
-		assert plan instanceof AntSide;
+		assert node instanceof AntSide;
 
 		Set<KnowledgeGap> existingOrGaps = new HashSet<>();
 
+		someVisitedNodes.add(node);
+
 		// TODO do we need to include the parent if we are not backward chaining?
-		Map<TriplePattern, Set<RuleNode>> nodeCoverage = plan
-				.findAntecedentCoverage(((AntSide) plan).getAntecedentNeighbours());
+		Map<TriplePattern, Set<RuleNode>> nodeCoverage = node
+				.findAntecedentCoverage(((AntSide) node).getAntecedentNeighbours());
 
 		// collect triple patterns that have an empty set
 		Set<KnowledgeGap> collectedOrGaps, someGaps = new HashSet<>();
@@ -689,7 +691,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 			for (RuleNode neighbor : entry.getValue()) {
 				LOG.trace("Neighbor is {}", neighbor);
 
-				if (!neighbor.getRule().getAntecedent().isEmpty()) {
+				if (!someVisitedNodes.contains(neighbor) && !neighbor.getRule().getAntecedent().isEmpty()) {
 					// make sure neighbor has no knowledge gaps
 					LOG.trace("Neighbor has antecedents, so check if the neighbor has gaps");
 
@@ -699,7 +701,7 @@ public class ReasonerProcessor extends SingleInteractionProcessor {
 					boolean isMeta = isMetaKI(neighbor);
 
 					// TODO what if the graph contains loops?
-					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor)).isEmpty()) {
+					if (!isMeta && (someGaps = getKnowledgeGaps(neighbor, someVisitedNodes)).isEmpty()) {
 						// found neighbor without knowledge gaps for the current triple, so current
 						// triple is covered.
 						LOG.trace("Neighbor has no gaps");
