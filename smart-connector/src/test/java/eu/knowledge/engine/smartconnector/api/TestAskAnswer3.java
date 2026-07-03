@@ -123,7 +123,7 @@ public class TestAskAnswer3 {
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(

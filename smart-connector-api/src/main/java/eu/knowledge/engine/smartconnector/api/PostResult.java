@@ -21,7 +21,12 @@ public class PostResult {
 	private static final Logger LOG = LoggerFactory.getLogger(PostResult.class);
 
 	private final BindingSet bindings;
-	private final Set<PostExchangeInfo> exchangeInfos;
+
+	/**
+	 * The exchange infos can contain Post and Ask Exchange infos, because the
+	 * reasoner can activate Ask KIs while reacting.
+	 */
+	private final Set<ExchangeInfo> exchangeInfos;
 	/**
 	 * Can be null if the matcher is used instead of the reasoner.
 	 */
@@ -36,11 +41,11 @@ public class PostResult {
 	 *                     value for every available variable in the
 	 *                     {@link GraphPattern}.
 	 */
-	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos) {
+	public PostResult(BindingSet someBindings, Set<ExchangeInfo> postExchangeInfos) {
 		this(someBindings, postExchangeInfos, null);
 	}
 
-	public PostResult(BindingSet someBindings, Set<PostExchangeInfo> postExchangeInfos, ReasonerPlan aNode) {
+	public PostResult(BindingSet someBindings, Set<ExchangeInfo> postExchangeInfos, ReasonerPlan aNode) {
 		this.bindings = someBindings;
 		this.exchangeInfos = postExchangeInfos;
 		this.rootNode = aNode;
@@ -54,20 +59,20 @@ public class PostResult {
 		return this.bindings;
 	}
 
-	public Set<PostExchangeInfo> getExchangeInfoPerKnowledgeBase() {
+	public Set<ExchangeInfo> getExchangeInfoPerKnowledgeBase() {
 		return Collections.unmodifiableSet(exchangeInfos);
 	}
 
 	public Duration getTotalExchangeTime() {
 
-		Set<PostExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
+		Set<ExchangeInfo> infos = this.getExchangeInfoPerKnowledgeBase();
 
 		if (!infos.isEmpty()) {
 			Instant start = Instant.MAX;
 			Instant end = Instant.MIN;
 
 			// find the earliest and latest instant among the exchange infos.
-			for (PostExchangeInfo info : infos) {
+			for (ExchangeInfo info : infos) {
 
 				if (info.getExchangeStart().isBefore(start)) {
 					start = info.getExchangeStart();

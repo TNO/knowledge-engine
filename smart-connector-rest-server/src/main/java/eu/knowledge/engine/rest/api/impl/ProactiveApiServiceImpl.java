@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import eu.knowledge.engine.rest.model.AskExchangeInfo;
 import eu.knowledge.engine.rest.model.AskResult;
+import eu.knowledge.engine.rest.model.ExchangeInfo;
 import eu.knowledge.engine.rest.model.KnowledgeInteractionWithId;
 import eu.knowledge.engine.rest.model.PostExchangeInfo;
 import eu.knowledge.engine.rest.model.PostResult;
@@ -127,16 +128,7 @@ public class ProactiveApiServiceImpl {
 			askFuture.thenAccept(askResult -> {
 
 				LOG.trace("AskResult received, resuming async response: {}", askResult);
-				List<AskExchangeInfo> infos = askResult.getExchangeInfoPerKnowledgeBase().stream()
-						.map(aei -> new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
-								.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
-								.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
-								.exchangeStart(Date.from(aei.getExchangeStart()))
-								.exchangeStart(Date.from(aei.getExchangeStart()))
-								.initiator(toInitiatorEnumAsk(aei.getInitiator()))
-								.exchangeEnd(Date.from(aei.getExchangeEnd())).status(aei.getStatus().toString())
-								.failedMessage(aei.getFailedMessage()))
-						.collect(Collectors.toList());
+				List<ExchangeInfo> infos = convertToExchangeInfos(askResult.getExchangeInfoPerKnowledgeBase());
 
 				LOG.trace("KnowledgeGapsEnabled is {}", ki.getKnowledgeGapsEnabled());
 
@@ -171,6 +163,42 @@ public class ProactiveApiServiceImpl {
 			response.setMessage(e.getMessage());
 			asyncResponse.resume(Response.status(Status.GONE).entity(response).build());
 		}
+	}
+
+	private List<ExchangeInfo> convertToExchangeInfos(
+			Set<eu.knowledge.engine.smartconnector.api.ExchangeInfo> exchangeInfos) {
+
+		List<ExchangeInfo> someExchangeInfos = new ArrayList<ExchangeInfo>();
+
+		for (eu.knowledge.engine.smartconnector.api.ExchangeInfo ei : exchangeInfos) {
+			switch (ei) {
+			case eu.knowledge.engine.smartconnector.api.AskExchangeInfo aei:
+				someExchangeInfos.add(new AskExchangeInfo().bindingSet(this.bindingSetToList(aei.getBindings()))
+						.knowledgeBaseId(aei.getKnowledgeBaseId().toString())
+						.knowledgeInteractionId(aei.getKnowledgeInteractionId().toString())
+						.exchangeStart(Date.from(aei.getExchangeStart()))
+						.exchangeStart(Date.from(aei.getExchangeStart()))
+						.initiator(toInitiatorEnumAsk(aei.getInitiator())).exchangeEnd(Date.from(aei.getExchangeEnd()))
+						.status(aei.getStatus().toString()).failedMessage(aei.getFailedMessage()));
+				break;
+			case eu.knowledge.engine.smartconnector.api.PostExchangeInfo pei:
+				someExchangeInfos.add(new PostExchangeInfo()
+						.argumentBindingSet(this.bindingSetToList(pei.getArgument()))
+						.resultBindingSet(this.bindingSetToList(pei.getResult()))
+						.knowledgeBaseId(pei.getKnowledgeBaseId().toString())
+						.knowledgeInteractionId(pei.getKnowledgeInteractionId().toString())
+						.initiator(toInitiatorEnumPost(pei.getInitiator()))
+						.exchangeStart(Date.from(pei.getExchangeStart())).exchangeEnd(Date.from(pei.getExchangeEnd()))
+						.status(pei.getStatus().toString()).failedMessage(pei.getFailedMessage()));
+
+				break;
+			default:
+				LOG.error("ExchangeInfos should either be of type AskExchangeInfo or PostExchangeInfo and not {}",
+						ei.getClass().getSimpleName());
+			}
+		}
+
+		return someExchangeInfos;
 	}
 
 	private List<Map<String, String>> bindingSetToList(BindingSet bindings) {
@@ -289,17 +317,7 @@ public class ProactiveApiServiceImpl {
 
 					LOG.trace("PostResult received, resuming async response: {}", postResult);
 
-					List<PostExchangeInfo> infos = postResult.getExchangeInfoPerKnowledgeBase().stream()
-							.map(pei -> new PostExchangeInfo()
-									.argumentBindingSet(this.bindingSetToList(pei.getArgument()))
-									.resultBindingSet(this.bindingSetToList(pei.getResult()))
-									.knowledgeBaseId(pei.getKnowledgeBaseId().toString())
-									.knowledgeInteractionId(pei.getKnowledgeInteractionId().toString())
-									.initiator(toInitiatorEnumPost(pei.getInitiator()))
-									.exchangeStart(Date.from(pei.getExchangeStart()))
-									.exchangeEnd(Date.from(pei.getExchangeEnd())).status(pei.getStatus().toString())
-									.failedMessage(pei.getFailedMessage()))
-							.collect(Collectors.toList());
+					List<ExchangeInfo> infos = convertToExchangeInfos(postResult.getExchangeInfoPerKnowledgeBase());
 
 					PostResult pr = new PostResult().resultBindingSet(this.bindingSetToList(postResult.getBindings()))
 							.exchangeInfo(infos);

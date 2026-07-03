@@ -128,7 +128,7 @@ public class TestAskRecipientSelector {
 			// Recipient Selector is single KB (kb1).
 			result = kb2.ask(askKI, new RecipientSelector(kb1.getKnowledgeBaseId()), new BindingSet()).get();
 			bindings = result.getBindings();
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId())), kbIds,
@@ -149,7 +149,7 @@ public class TestAskRecipientSelector {
 					new RecipientSelector(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())),
 					new BindingSet()).get();
 			bindings = result.getBindings();
-			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(Arrays.asList(kb1.getKnowledgeBaseId(), kb3.getKnowledgeBaseId())), kbIds,
@@ -173,7 +173,7 @@ public class TestAskRecipientSelector {
 			bindings = result.getBindings();
 			LOG.trace("After ask.");
 
-			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(

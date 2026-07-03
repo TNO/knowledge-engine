@@ -30,12 +30,19 @@ import jakarta.json.JsonReader;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 
+/**
+ * In this test there will be an Ask KB with an AskKI with 2 triplepatterns, an
+ * AnswerKB with a single AnswerKI that answers only the first triplepattern of
+ * the Ask pattern, and a ReactKB that can answer the other triplepattern of the
+ * Ask, but needs another pattern to be satisfied. This is done by another KB
+ * that provides that triple.
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestAskAnswerReactWithGapsEnabled {
+public class TestAskAnswerReact {
 	private final RestServerHelper rsh = new RestServerHelper();
 	private static int PORT = 8280;
-	
-	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerReactWithGapsEnabled.class);
+
+	private static final Logger LOG = LoggerFactory.getLogger(TestAskAnswerReact.class);
 
 	@BeforeAll
 	public void setUpServer() {
@@ -43,21 +50,12 @@ public class TestAskAnswerReactWithGapsEnabled {
 	}
 
 	@Test
-	public void testAskAnswerReactWithGaps() throws IOException, InterruptedException {
-
-		// In this test there will be an Ask KB with an AskKI with 2 triplepatterns,
-		// an AnswerKB with a single AnswerKI that answers only the first triplepattern
-		// of the Ask pattern, and
-		// a ReactKB that can answer the other triplepattern of the Ask, but needs
-		// another pattern to be satisfied.
-		// The test will execute the AskKI with knowledge gaps enabled.
-		// As a result, the set of knowledge gaps should contain a single gap.
-
+	public void testAskAnswerReact() throws IOException, InterruptedException {
 		URL url = new URL("http://localhost:" + PORT + "/rest");
 
 		// sync between threads to make sure the ask is not activated before the others
 		// are ready.
-		CountDownLatch KBReady = new CountDownLatch(2);
+		CountDownLatch KBReady = new CountDownLatch(3);
 
 		// activate the answer SC, KB, KI in a separate thread
 		var answeringSc = new AsyncTester(new Runnable() {
@@ -68,7 +66,8 @@ public class TestAskAnswerReactWithGapsEnabled {
 				try {
 					// register the AnswerKB
 					HttpTester registerAnswerKb = new HttpTester(new URL(url + "/sc"), "POST",
-							"{\"knowledgeBaseId\": \"https://www.example.org/example/relationProvider\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
+							"{\"knowledgeBaseId\": \"" + answerKBId
+									+ "\", \"knowledgeBaseName\": \"RelationProvider\", \"knowledgeBaseDescription\": \"A KB that provides relations between people\", \"reasonerLevel\" : 2}",
 							Map.of("Content-Type", "application/json", "Accept", "*/*"));
 					registerAnswerKb.expectStatus(200);
 
@@ -77,10 +76,10 @@ public class TestAskAnswerReactWithGapsEnabled {
 							{
 							 "knowledgeInteractionType": "AnswerKnowledgeInteraction",
 							 "knowledgeInteractionName": "answerRelations",
-							 "graphPattern": "?a <http://example.org/isRelatedTo1> ?b ."
+							 "graphPattern": "?a <http://example.org/isRelatedTo> ?b ."
 							}
-							""", Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationProvider",
-							"Content-Type", "application/json", "Accept", "*/*"));
+							""", Map.of("Knowledge-Base-Id", answerKBId, "Content-Type", "application/json", "Accept",
+							"*/*"));
 					registerAnswerKi.expectStatus(200);
 
 					KBReady.countDown();
@@ -98,7 +97,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 					int handleRequestId = jo.getInt("handleRequestId");
 					builder.add("handleRequestId", handleRequestId);
 					JsonReader jr = Json.createReader(new StringReader(
-							"[{\"a\": \"<https://www.example.org/example/Barry>\",\"b\": \"<https://www.example.org/example/Jack>\"}]"));
+							"[{\"a\": \"<https://www.example.org/example/Barry>\",\"b\": \"<https://www.example.org/example/Lieke>\"}]"));
 					JsonArray bs = jr.readArray();
 					builder.add("bindingSet", bs);
 					JsonObject jo2 = builder.build();
@@ -137,7 +136,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 							 "knowledgeInteractionType": "ReactKnowledgeInteraction",
 							 "knowledgeInteractionName": "reactRelations",
 							 "argumentGraphPattern": "?a <http://example.org/liveInTheSameHouse> ?b .",
-							 "resultGraphPattern": "?a <http://example.org/isRelatedTo> ?b ."
+							 "resultGraphPattern": "?a <http://example.org/isFatherOf> ?b ."
 							}
 							""", Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationReactor",
 							"Content-Type", "application/json", "Accept", "*/*"));
@@ -152,6 +151,9 @@ public class TestAskAnswerReactWithGapsEnabled {
 							.of("Knowledge-Base-Id", reactKBId, "Content-Type", "application/json", "Accept", "*/*"));
 					test.expectStatus(200);
 
+					JsonObject jsonObject = Json.createReader(new StringReader(test.getBody())).readObject();
+					JsonArray incomingBindingSet = jsonObject.getJsonArray("bindingSet");
+
 					// build the body to react to the request: add handle request ID and dummy data
 					// bindingset
 					JsonObjectBuilder builder = Json.createObjectBuilder();
@@ -160,7 +162,7 @@ public class TestAskAnswerReactWithGapsEnabled {
 					int handleRequestId = jo.getInt("handleRequestId");
 					builder.add("handleRequestId", handleRequestId);
 					// for now simply add an empty bindingset as a result
-					builder.add("bindingSet", JsonObject.EMPTY_JSON_ARRAY);
+					builder.add("bindingSet", incomingBindingSet);
 					JsonObject jo2 = builder.build();
 					String body = jo2.toString();
 					LOG.info("Handle a react to a request with body: {}", body);
@@ -178,6 +180,66 @@ public class TestAskAnswerReactWithGapsEnabled {
 		});
 		reactingSc.start();
 
+		// activate the answer SC, KB, KI in a separate thread
+		var answeringSc2 = new AsyncTester(new Runnable() {
+			@Override
+			public void run() {
+				String answerKBId = "https://www.example.org/example/sameHouseProvider";
+				String answerKIId = answerKBId + "/interaction/sameHouse";
+				try {
+					// register the AnswerKB
+					HttpTester registerAnswerKb = new HttpTester(new URL(url + "/sc"), "POST",
+							"{\"knowledgeBaseId\": \"" + answerKBId
+									+ "\", \"knowledgeBaseName\": \"SomeHouseProvider\", \"knowledgeBaseDescription\": \"A KB that provides whether people live in the same house\", \"reasonerLevel\" : 2}",
+							Map.of("Content-Type", "application/json", "Accept", "*/*"));
+					registerAnswerKb.expectStatus(200);
+
+					// register the AnswerKI
+					HttpTester registerAnswerKi = new HttpTester(new URL(url + "/sc/ki"), "POST", """
+							{
+							 "knowledgeInteractionType": "AnswerKnowledgeInteraction",
+							 "knowledgeInteractionName": "sameHouse",
+							 "graphPattern": "?a <http://example.org/liveInTheSameHouse> ?b ."
+							}
+							""", Map.of("Knowledge-Base-Id", answerKBId, "Content-Type", "application/json", "Accept",
+							"*/*"));
+					registerAnswerKi.expectStatus(200);
+
+					KBReady.countDown();
+
+					// get the handle for the answerKB to see if there are requests to be handled
+					var test = new HttpTester(new URL(url.toString() + "/sc/handle"), "GET", null, Map
+							.of("Knowledge-Base-Id", answerKBId, "Content-Type", "application/json", "Accept", "*/*"));
+					test.expectStatus(200);
+
+					// build the body to answer the request: add handle request ID and dummy data
+					// bindingset
+					JsonObjectBuilder builder = Json.createObjectBuilder();
+					JsonReader jp = Json.createReader(new StringReader(test.getBody()));
+					JsonObject jo = jp.readObject();
+					int handleRequestId = jo.getInt("handleRequestId");
+					builder.add("handleRequestId", handleRequestId);
+					JsonReader jr = Json.createReader(new StringReader(
+							"[{\"a\": \"<https://www.example.org/example/Barry>\",\"b\": \"<https://www.example.org/example/Lieke>\"}]"));
+					JsonArray bs = jr.readArray();
+					builder.add("bindingSet", bs);
+					JsonObject jo2 = builder.build();
+					String body = jo2.toString();
+					LOG.info("Handle an answer to a request with body: {}", body);
+
+					// fire the POST handle to execute the answer
+					var test2 = new HttpTester(new URL(url.toString() + "/sc/handle"), "POST", body,
+							Map.of("Knowledge-Base-Id", answerKBId, "Knowledge-Interaction-Id", answerKIId,
+									"Content-Type", "application/json", "Accept", "*/*"));
+					test2.expectStatus(200);
+
+				} catch (MalformedURLException e) {
+					fail();
+				}
+			}
+		});
+		answeringSc2.start();
+
 		KBReady.await();
 
 		// register the AskKB
@@ -187,16 +249,16 @@ public class TestAskAnswerReactWithGapsEnabled {
 		registerKb.expectStatus(200);
 
 		// register the AskKI
-		HttpTester registerKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ki"), "POST", """
+		HttpTester registerKi = new HttpTester(new URL(url + "/sc/ki"), "POST", """
 				{
 				 "knowledgeInteractionType": "AskKnowledgeInteraction",
 				 "knowledgeInteractionName": "askRelations",
-				 "graphPattern": "?a <http://example.org/isRelatedTo> ?b . ?a <http://example.org/isFatherOf> ?c .",
-				 "knowledgeGapsEnabled": true
+				 "graphPattern": "?a <http://example.org/isRelatedTo> ?b . ?a <http://example.org/isFatherOf> ?b .",
+				 "knowledgeGapsEnabled": false
 				}
 				""", Map.of("Knowledge-Base-Id", "https://www.example.org/example/relationAsker", "Content-Type",
 				"application/json", "Accept", "*/*"));
-		registerKiWithoutGapsEnabled.expectStatus(200);
+		registerKi.expectStatus(200);
 
 		// fire the ask KI
 		HttpTester askKiWithoutGapsEnabled = new HttpTester(new URL(url + "/sc/ask"), "POST",
@@ -208,27 +270,15 @@ public class TestAskAnswerReactWithGapsEnabled {
 		LOG.info("Result is: {}", result);
 
 		JsonObject jsonObject = Json.createReader(new StringReader(result)).readObject();
-		JsonArray knowledgeGapsArray = jsonObject.getJsonArray("knowledgeGaps");
+		JsonArray exchangeInfoArray = jsonObject.getJsonArray("exchangeInfo");
 
-		// tried to convert it using streams, but failed. So, just using for old
-		// fashioned loops :(
-		Set<Set<String>> actualKnowledgeGaps = new HashSet<Set<String>>();
-		Set<String> set;
-		for (JsonValue jv : knowledgeGapsArray) {
-			set = new HashSet<String>();
-			for (JsonString js : jv.asJsonArray().getValuesAs(JsonString.class)) {
-				set.add(js.getString());
-			}
-			actualKnowledgeGaps.add(set);
-		}
+		assertEquals(exchangeInfoArray.size(), 3);
 
-		var expectedKnowledgeGaps = Set
-				.of(Set.of("?a <http://example.org/isFatherOf> ?c", "?a <http://example.org/liveInTheSameHouse> ?b"));
-		assertEquals(expectedKnowledgeGaps, actualKnowledgeGaps);
-
-		JsonArray bindingArray = jsonObject.getJsonArray("bindingSet");
-		var actualBindingSet = Set.of(bindingArray.toArray());
-		var expectedBindingSet = Set.<Map<String, String>>of( /* empty */ );
+		JsonArray actualBindingSet = jsonObject.getJsonArray("bindingSet");
+		var expectedBindingSet = Json.createArrayBuilder()
+				.add(Json.createObjectBuilder().add("a", "<https://www.example.org/example/Barry>")
+						.add("b", "<https://www.example.org/example/Lieke>").build())
+				.build();
 		assertEquals(expectedBindingSet, actualBindingSet);
 	}
 

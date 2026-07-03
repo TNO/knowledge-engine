@@ -81,8 +81,8 @@ public class TestComplexGraphPatternMatching {
 			bindings = askResult.getBindings();
 			LOG.trace("After ask.");
 
-			Set<URI> kbIds = askResult.getExchangeInfoPerKnowledgeBase().stream()
-					.map(AskExchangeInfo::getKnowledgeBaseId).collect(Collectors.toSet());
+			Set<URI> kbIds = askResult.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
+					.collect(Collectors.toSet());
 
 			assertEquals(
 					new HashSet<URI>(

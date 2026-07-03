@@ -513,7 +513,7 @@ public class TestAskAnswerRealistic {
 			bindings = result.getBindings();
 			LOG.trace("After ask");
 
-			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(AskExchangeInfo::getKnowledgeBaseId)
+			Set<URI> kbIds = result.getExchangeInfoPerKnowledgeBase().stream().map(ExchangeInfo::getKnowledgeBaseId)
 					.collect(Collectors.toSet());
 
 			assertEquals(new HashSet<URI>(
