@@ -1,4 +1,4 @@
-# Semantics 2026: Knowledge-driven Data Exchange and Validation Framework for Networked Smart Buildings
+# Semantics 2026: Distributed Knowledge-driven Data Exchange and Validation Framework for Networked Smart Buildings
 
 This is a demo combining a knowledge validator with the knowledge engine. We want to have a scenario that demonstrates/uses the following:
 - using a (saref + custom) ontology to reach semantic interoperability.
