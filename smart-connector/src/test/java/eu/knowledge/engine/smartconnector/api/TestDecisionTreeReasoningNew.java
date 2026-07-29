@@ -98,6 +98,9 @@ class TestDecisionTreeReasoningNew {
 
 		AskResult ar = this.diagnoseKb.ask(askKI, bindingSet).get();
 		LOG.info("Result: {}", ar);
+		for (Binding rb : ar.getBindings()) {
+			LOG.info("Binding: {}", rb);
+		}
 	}
 
 	private AskKnowledgeInteraction configureDiagnoseKb() {
@@ -141,6 +144,18 @@ class TestDecisionTreeReasoningNew {
 				   ->
 				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/medium>) .
 
+
+				( ?component rdf:type ex:Battery ) ( ?component ex:hasNrOfCycles <https://www.example.org/high> )
+					->
+				( ?component ex:hasMaximumCapacity <https://www.example.org/low> ) .
+
+				( ?component rdf:type ex:Battery ) ( ?component ex:hasAge <https://www.example.org/old> )
+					->
+				( ?component ex:hasMaximumCapacity <https://www.example.org/low> ) .
+
+			    ( ?component rdf:type ex:Battery ) ( ?component ex:hasMaximumCapacity <https://www.example.org/low> )
+				   ->
+				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/low>) .				
 				
 				""";
 
@@ -213,6 +228,7 @@ class TestDecisionTreeReasoningNew {
 		GraphPattern gp = new GraphPattern(this.pm, """
 				?system rdf:type ex:System .
 				?system ex:hasAge ?age .
+				?system ex:hasNrOfCycles ?cycles .
 				""");
 
 		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp,
@@ -223,10 +239,13 @@ class TestDecisionTreeReasoningNew {
 			Binding b = new Binding();
 			b.put("system", "<https://www.example.org/camera>");
 			b.put("age", "<https://www.example.org/young>");
+			b.put("cycles", "<https://www.example.org/low>");
 			bs.add(b);
 			b= new Binding();
 			b.put("system", "<https://www.example.org/battery>");
-			b.put("age", "<https://www.example.org/old>");
+			b.put("age", "<https://www.example.org/young>");
+			b.put("cycles", "<https://www.example.org/high>");
+			bs.add(b);
 			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
 			return bs1;
 		});
