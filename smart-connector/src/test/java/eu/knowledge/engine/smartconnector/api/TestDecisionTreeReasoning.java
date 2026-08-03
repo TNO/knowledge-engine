@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import eu.knowledge.engine.reasoner.BaseRule;
 import eu.knowledge.engine.reasoner.Rule;
 import eu.knowledge.engine.reasoner.util.JenaRules;
+import eu.knowledge.engine.smartconnector.impl.Util;
 import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
 import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
 
@@ -22,33 +23,47 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
  * the form of domain rules) that get taken into account when asking or posting
  * data.
  * 
- * Story: A camera sensor publishes observations of the contrast/brightness of
- * the camera image, which is analysed by the an anomaly detector. When the
- * brightness suddenly goes down, the anomaly detector will produce an anomaly.
- * A dependency graph determines what the possible causes of the anomaly on the
- * camera image could be and comes up with the sensor itself or the weather.
- * Then this unit test starts with those two possible causes.
+ * Story: A camera sensor publishes observations of the quality of
+ * the camera image in terms of contrast and brightness, which is analyzed by the
+ * anomaly detector. When the brightness suddenly goes down, the anomaly detector
+ * will produce an anomaly, called lowVideoQuality.
  * 
- * A diagnose KB asks the Knowledge Network for the probability that a few
- * systems are causing an anomaly on a dependent system. There are two
- * dependencies: sensor info and weather.
+ * A diagnose KB is activated that asks the Knowledge Network which possible
+ * causes there are for this anomaly and what the probability for each cause is.
  * 
- * The sensor info KB tells whether a particular sensor is old or young.
+ * A causes KB can answer for a given system which components of that system
+ * are possibly the cause of the anomaly and what type of component it is.
+ * This is determined by using a dependency graph that is constructed based 
+ * on the physical decomposition of the system. For the camera in our example, 
+ * the dependency graph determines that the possible
+ * components that can cause are the light sensor, the lens or the battery. 
  * 
- * The weather KB tells whether there is currently a sandstorm in the area.
+ * The probability of a component to be the cause of the anomaly depends on a
+ * few possibilities, such as the weather and more detailed information about the
+ * component, such as the age. Therefore, a weather KB and a system info KB are 
+ * setup to provide extra information to reason over.
  * 
- * The decision tree is simple: if there currently is a sandstorm, then the
- * weather probably of the weather being the possible cause is high and the
- * probability of the sensor being the possible cause is low, while if there is
- * no sandstorm, the probabilities are reversed.
+ * The system info KB tells whether a particular system is old or young and
+ * the number of charging cycles if it is a battery.
+ * 
+ * The weather KB tells whether there is currently a sandstorm or fog in the area.
+ * It also states at which period of the day this weather state holds .
+ * 
+ * Then this unit test starts with these possible causes. There are multiple
+ * rules for deriving the more detailed cause of the anomaly, such as weather
+ * situation, period of the day or usage history of the component.
+ * 
+ * The decision tree and the rules derived from it are extensive and intended to
+ * test more complex situations to reason over.
+ * 
  */
-class TestDecisionTreeReasoning {
+class TestDecisionTreeReasoningNew {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestDecisionTreeReasoning.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestDecisionTreeReasoningNew.class);
 
 	private KnowledgeNetwork network;
 	private KnowledgeBaseImpl diagnoseKb;
-	private KnowledgeBaseImpl sensorInfoKb;
+	private KnowledgeBaseImpl systemInfoKb;
 	private KnowledgeBaseImpl weatherKb;
 	private KnowledgeBaseImpl causesKb;
 
@@ -64,9 +79,9 @@ class TestDecisionTreeReasoning {
 		diagnoseKb = new KnowledgeBaseImpl("diagnoseKb");
 		var askKI = configureDiagnoseKb();
 		network.addKB(diagnoseKb);
-		sensorInfoKb = new KnowledgeBaseImpl("sensorInfoKb");
-		configureSensorInfoKb();
-		network.addKB(this.sensorInfoKb);
+		systemInfoKb = new KnowledgeBaseImpl("systemInfoKb");
+		configureSystemInfoKb();
+		network.addKB(systemInfoKb);
 		weatherKb = new KnowledgeBaseImpl("weatherKb");
 		configureWeatherKb();
 		network.addKB(weatherKb);
@@ -78,95 +93,78 @@ class TestDecisionTreeReasoning {
 
 		var bindingSet = new BindingSet();
 		var b = new Binding();
-		b.put("s", "<https://www.example.org/weather>");
-		bindingSet.add(b);
-		b = new Binding();
-		b.put("s", "<https://www.example.org/sensor>");
+		b.put("system", "<https://www.example.org/camera>");
+		b.put("anomaly", "<https://www.example.org/lowVideoQuality>");
 		bindingSet.add(b);
 
 		AskResult ar = this.diagnoseKb.ask(askKI, bindingSet).get();
 		LOG.info("Result: {}", ar);
-	}
-
-	private void configureCausesKb() {
-		GraphPattern diagnoseGp2 = new GraphPattern(this.pm, """
-				?s rdf:type ex:PossibleCause .
-				""");
-		AnswerKnowledgeInteraction answerKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), diagnoseGp2,
-				"sensorInfoKI2");
-		this.causesKb.register(answerKI2, (_, _) -> {
-			BindingSet bs = new BindingSet();
-			Binding b = new Binding();
-			b.put("s", "<https://www.example.org/weather>");
-			bs.add(b);
-			b = new Binding();
-			b.put("s", "<https://www.example.org/sensor>");
-			bs.add(b);
-			return bs;
-		});
-	}
-
-	private void configureWeatherKb() {
-		GraphPattern gp = new GraphPattern(this.pm, """
-				?w ex:hasSandstorm ?b .
-				""");
-
-		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp, "weatherKI");
-		this.weatherKb.register(answerKI, (_, _) -> {
-
-			BindingSet bs = new BindingSet();
-			Binding b = new Binding();
-			b.put("w", "<https://www.example.org/weather>");
-			b.put("b", "\"true\"");
-			bs.add(b);
-			return bs;
-		});
-	}
-
-	private void configureSensorInfoKb() {
-		GraphPattern gp = new GraphPattern(this.pm, """
-				?sens ex:hasAge ?age .
-				""");
-
-		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp,
-				"sensorInfoKI");
-
-		this.sensorInfoKb.register(answerKI, (_, _) -> {
-			BindingSet bs = new BindingSet();
-			Binding b = new Binding();
-			b.put("sens", "<https://www.example.org/sensor>");
-			b.put("age", "<https://www.example.org/old>");
-			bs.add(b);
-			b = new Binding();
-			b.put("sens", "<https://www.example.org/otherSensor>");
-			b.put("age", "<https://www.example.org/young>");
-			return bs;
-		});
+		for (Binding rb : ar.getBindings()) {
+			LOG.info("Binding: {}", rb);
+		}
 	}
 
 	private AskKnowledgeInteraction configureDiagnoseKb() {
 		GraphPattern diagnoseGp = new GraphPattern(this.pm, """
-				?s rdf:type ex:PossibleCause .
-				?s ex:hasProbability ?p .
+				?system rdf:type ex:System .
+				?system ex:hasAnomaly ?anomaly .
+				?anomaly ex:hasCause ?component .
+				?component ex:hasProbabilityToBeTheCause ?probability .
 				""");
 		AskKnowledgeInteraction askKI = new AskKnowledgeInteraction(new CommunicativeAct(), diagnoseGp, "diagnoseKI");
 		this.diagnoseKb.register(askKI);
 
 		String rules = """
-
 				@prefix ex: <https://www.example.org/>
 
-				( ?s ex:hasSandstorm "true" ) -> ( ?s ex:hasProbability <https://www.example.org/high> ) .
-				( ?s ex:hasSandstorm "false" ) -> ( ?s ex:hasProbability <https://www.example.org/low> ) .
-				( ?s ex:hasAge <https://www.example.org/old> ) -> (?s ex:hasProbability <https://www.example.org/high> ) .
-				( ?s ex:hasAge <https://www.example.org/young> ) -> (?s ex:hasProbability <https://www.example.org/low> ) .
+				-> ( <https://www.example.org/camera> ex:hasAnomaly <https://www.example.org/lowVideoQuality> ) .
 
+				( ?system ex:hasAnomaly ?anomaly ) ( ?system ex:isAffectedBy ?component )
+					->
+			    ( ?anomaly ex:hasCause ?component ) .
+			    
+
+				-> ( <https://www.example.org/interference> rdf:type ex:Interference ) .
+
+				( ?weather rdf:type ex:Weather) ( ?weather ex:hasState <https://www.example.org/fog> ) ( ?interference rdf:type ex:Interference )
+					->
+			    ( ?interference ex:hasLevel <https://www.example.org/high> ) .
+
+			    ( ?component rdf:type ex:Lens ) ( ?interference ex:hasLevel <https://www.example.org/high> )
+				   ->
+				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/high>) .
+				
+				
+				-> ( <https://www.example.org/lightintensity> rdf:type ex:LightIntensity ) .
+
+				( ?weather rdf:type ex:Weather) ( ?weather ex:atPeriodOfDay <https://www.example.org/sunset> ) ( ?lightIntensity rdf:type ex:LightIntensity )
+					->
+			    ( ?lightIntensity ex:hasLevel <https://www.example.org/low> ) .
+
+			    ( ?component rdf:type ex:Lens ) ( ?lightIntensity ex:hasLevel <https://www.example.org/low> )
+				   ->
+				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/medium>) .
+
+
+				( ?component rdf:type ex:Battery ) ( ?component ex:hasNrOfCycles <https://www.example.org/high> )
+					->
+				( ?component ex:hasMaximumCapacity <https://www.example.org/low> ) .
+
+				( ?component rdf:type ex:Battery ) ( ?component ex:hasAge <https://www.example.org/old> )
+					->
+				( ?component ex:hasMaximumCapacity <https://www.example.org/low> ) .
+
+			    ( ?component rdf:type ex:Battery ) ( ?component ex:hasMaximumCapacity <https://www.example.org/low> )
+				   ->
+				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/low>) .				
+				
 				""";
 
 		Set<BaseRule> someRules = JenaRules.convertJenaToKeRules(rules);
 		Set<Rule> dkRules = new HashSet<Rule>();
 
 		for (BaseRule br : someRules) {
+			LOG.info("Rule: {}", br);
 			dkRules.add((Rule) br);
 		}
 
@@ -176,4 +174,90 @@ class TestDecisionTreeReasoning {
 		return askKI;
 	}
 
+	private void configureCausesKb() {
+		GraphPattern diagnoseGp2 = new GraphPattern(this.pm, """
+				?system ex:isAffectedBy ?component .
+				?component rdf:type ?type .
+				""");
+		AnswerKnowledgeInteraction answerKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), diagnoseGp2,
+				"causesKI");
+		this.causesKb.register(answerKI2, (_, ei) -> {
+			LOG.info("{}",ei.getIncomingBindings());
+			BindingSet bs = new BindingSet();
+			Binding b = new Binding();
+			b.put("system", "<https://www.example.org/camera>");
+			b.put("component", "<https://www.example.org/lens>");
+			b.put("type", "<https://www.example.org/Lens>");
+			bs.add(b);
+			b = new Binding();
+			b.put("system", "<https://www.example.org/camera>");
+			b.put("component", "<https://www.example.org/lightSensor>");
+			b.put("type", "<https://www.example.org/LightSensor>");
+			bs.add(b);
+			b = new Binding();
+			b.put("system", "<https://www.example.org/camera>");
+			b.put("component", "<https://www.example.org/battery>");
+			b.put("type", "<https://www.example.org/Battery>");
+			bs.add(b);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			return bs1;
+		});
+	}
+
+	private void configureWeatherKb() {
+		GraphPattern gp = new GraphPattern(this.pm, """
+				?weather a ex:Weather .
+				?weather ex:hasState ?weatherState .
+				?weather ex:atPeriodOfDay ?periodOfDay .
+				""");
+
+		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp, "weatherKI");
+		this.weatherKb.register(answerKI, (_, ei) -> {
+
+			BindingSet bs = new BindingSet();
+			Binding b = new Binding();
+			b.put("weather", "<https://www.example.org/weather>");
+			b.put("weatherState", "<https://www.example.org/fog>");
+			b.put("periodOfDay", "<https://www.example.org/sunset>");
+			bs.add(b);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			return bs1;
+		});
+	}
+
+	private void configureSystemInfoKb() {
+		GraphPattern gp = new GraphPattern(this.pm, """
+				?system rdf:type ex:System .
+				?system ex:hasAge ?age .
+				?system ex:hasNrOfCycles ?cycles .
+				""");
+
+		AnswerKnowledgeInteraction answerKI = new AnswerKnowledgeInteraction(new CommunicativeAct(), gp,
+				"systemInfoKI");
+
+		this.systemInfoKb.register(answerKI, (_, ei) -> {
+			BindingSet bs = new BindingSet();
+			Binding b = new Binding();
+			b.put("system", "<https://www.example.org/camera>");
+			b.put("age", "<https://www.example.org/young>");
+			b.put("cycles", "<https://www.example.org/low>");
+			bs.add(b);
+			b= new Binding();
+			b.put("system", "<https://www.example.org/battery>");
+			b.put("age", "<https://www.example.org/young>");
+			b.put("cycles", "<https://www.example.org/high>");
+			bs.add(b);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			return bs1;
+		});
+	}
+
+	private BindingSet filterOutgoingBindingSet(BindingSet ib, BindingSet ob) {
+		var bs2 = Util.translateFromApiBindingSet(ob);
+		Util.removeRedundantBindingsAnswer(Util.translateFromApiBindingSet(ib), bs2);
+		
+		return Util.translateToApiBindingSet(bs2);
+		
+	}
+	
 }
