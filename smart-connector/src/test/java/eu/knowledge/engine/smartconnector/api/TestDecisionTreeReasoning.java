@@ -23,31 +23,31 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
  * the form of domain rules) that get taken into account when asking or posting
  * data.
  * 
- * Story: A camera sensor publishes observations of the quality of
- * the camera image in terms of contrast and brightness, which is analyzed by the
- * anomaly detector. When the brightness suddenly goes down, the anomaly detector
- * will produce an anomaly, called lowVideoQuality.
+ * Story: A camera sensor publishes observations of the quality of the camera
+ * image in terms of contrast and brightness, which is analyzed by the anomaly
+ * detector. When the brightness suddenly goes down, the anomaly detector will
+ * produce an anomaly, called lowVideoQuality.
  * 
  * A diagnose KB is activated that asks the Knowledge Network which possible
  * causes there are for this anomaly and what the probability for each cause is.
  * 
- * A causes KB can answer for a given system which components of that system
- * are possibly the cause of the anomaly and what type of component it is.
- * This is determined by using a dependency graph that is constructed based 
- * on the physical decomposition of the system. For the camera in our example, 
- * the dependency graph determines that the possible
- * components that can cause are the light sensor, the lens or the battery. 
+ * A causes KB can answer for a given system which components of that system are
+ * possibly the cause of the anomaly and what type of component it is. This is
+ * determined by using a dependency graph that is constructed based on the
+ * physical decomposition of the system. For the camera in our example, the
+ * dependency graph determines that the possible components that can cause are
+ * the light sensor, the lens or the battery.
  * 
  * The probability of a component to be the cause of the anomaly depends on a
- * few possibilities, such as the weather and more detailed information about the
- * component, such as the age. Therefore, a weather KB and a system info KB are 
- * setup to provide extra information to reason over.
+ * few possibilities, such as the weather and more detailed information about
+ * the component, such as the age. Therefore, a weather KB and a system info KB
+ * are setup to provide extra information to reason over.
  * 
- * The system info KB tells whether a particular system is old or young and
- * the number of charging cycles if it is a battery.
+ * The system info KB tells whether a particular system is old or young and the
+ * number of charging cycles if it is a battery.
  * 
- * The weather KB tells whether there is currently a sandstorm or fog in the area.
- * It also states at which period of the day this weather state holds .
+ * The weather KB tells whether there is currently a sandstorm or fog in the
+ * area. It also states at which period of the day this weather state holds .
  * 
  * Then this unit test starts with these possible causes. There are multiple
  * rules for deriving the more detailed cause of the anomaly, such as weather
@@ -57,9 +57,9 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeNetwork;
  * test more complex situations to reason over.
  * 
  */
-class TestDecisionTreeReasoningNew {
+class TestDecisionTreeReasoning {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestDecisionTreeReasoningNew.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TestDecisionTreeReasoning.class);
 
 	private KnowledgeNetwork network;
 	private KnowledgeBaseImpl diagnoseKb;
@@ -121,27 +121,27 @@ class TestDecisionTreeReasoningNew {
 
 				( ?system ex:hasAnomaly ?anomaly ) ( ?system ex:isAffectedBy ?component )
 					->
-			    ( ?anomaly ex:hasCause ?component ) .
-			    
+				   ( ?anomaly ex:hasCause ?component ) .
+
 
 				-> ( <https://www.example.org/interference> rdf:type ex:Interference ) .
 
 				( ?weather rdf:type ex:Weather) ( ?weather ex:hasState <https://www.example.org/fog> ) ( ?interference rdf:type ex:Interference )
 					->
-			    ( ?interference ex:hasLevel <https://www.example.org/high> ) .
+				   ( ?interference ex:hasLevel <https://www.example.org/high> ) .
 
-			    ( ?component rdf:type ex:Lens ) ( ?interference ex:hasLevel <https://www.example.org/high> )
+				   ( ?component rdf:type ex:Lens ) ( ?interference ex:hasLevel <https://www.example.org/high> )
 				   ->
 				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/high>) .
-				
-				
+
+
 				-> ( <https://www.example.org/lightintensity> rdf:type ex:LightIntensity ) .
 
 				( ?weather rdf:type ex:Weather) ( ?weather ex:atPeriodOfDay <https://www.example.org/sunset> ) ( ?lightIntensity rdf:type ex:LightIntensity )
 					->
-			    ( ?lightIntensity ex:hasLevel <https://www.example.org/low> ) .
+				   ( ?lightIntensity ex:hasLevel <https://www.example.org/low> ) .
 
-			    ( ?component rdf:type ex:Lens ) ( ?lightIntensity ex:hasLevel <https://www.example.org/low> )
+				   ( ?component rdf:type ex:Lens ) ( ?lightIntensity ex:hasLevel <https://www.example.org/low> )
 				   ->
 				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/medium>) .
 
@@ -154,10 +154,10 @@ class TestDecisionTreeReasoningNew {
 					->
 				( ?component ex:hasMaximumCapacity <https://www.example.org/low> ) .
 
-			    ( ?component rdf:type ex:Battery ) ( ?component ex:hasMaximumCapacity <https://www.example.org/low> )
+				   ( ?component rdf:type ex:Battery ) ( ?component ex:hasMaximumCapacity <https://www.example.org/low> )
 				   ->
-				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/low>) .				
-				
+				( ?component ex:hasProbabilityToBeTheCause <https://www.example.org/low>) .
+
 				""";
 
 		Set<BaseRule> someRules = JenaRules.convertJenaToKeRules(rules);
@@ -182,7 +182,7 @@ class TestDecisionTreeReasoningNew {
 		AnswerKnowledgeInteraction answerKI2 = new AnswerKnowledgeInteraction(new CommunicativeAct(), diagnoseGp2,
 				"causesKI");
 		this.causesKb.register(answerKI2, (_, ei) -> {
-			LOG.info("{}",ei.getIncomingBindings());
+			LOG.info("{}", ei.getIncomingBindings());
 			BindingSet bs = new BindingSet();
 			Binding b = new Binding();
 			b.put("system", "<https://www.example.org/camera>");
@@ -199,7 +199,7 @@ class TestDecisionTreeReasoningNew {
 			b.put("component", "<https://www.example.org/battery>");
 			b.put("type", "<https://www.example.org/Battery>");
 			bs.add(b);
-			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(), bs);
 			return bs1;
 		});
 	}
@@ -220,7 +220,7 @@ class TestDecisionTreeReasoningNew {
 			b.put("weatherState", "<https://www.example.org/fog>");
 			b.put("periodOfDay", "<https://www.example.org/sunset>");
 			bs.add(b);
-			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(), bs);
 			return bs1;
 		});
 	}
@@ -242,12 +242,12 @@ class TestDecisionTreeReasoningNew {
 			b.put("age", "<https://www.example.org/young>");
 			b.put("cycles", "<https://www.example.org/low>");
 			bs.add(b);
-			b= new Binding();
+			b = new Binding();
 			b.put("system", "<https://www.example.org/battery>");
 			b.put("age", "<https://www.example.org/young>");
 			b.put("cycles", "<https://www.example.org/high>");
 			bs.add(b);
-			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(),bs);
+			var bs1 = filterOutgoingBindingSet(ei.getIncomingBindings(), bs);
 			return bs1;
 		});
 	}
@@ -255,9 +255,9 @@ class TestDecisionTreeReasoningNew {
 	private BindingSet filterOutgoingBindingSet(BindingSet ib, BindingSet ob) {
 		var bs2 = Util.translateFromApiBindingSet(ob);
 		Util.removeRedundantBindingsAnswer(Util.translateFromApiBindingSet(ib), bs2);
-		
+
 		return Util.translateToApiBindingSet(bs2);
-		
+
 	}
-	
+
 }
