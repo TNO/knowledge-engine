@@ -111,7 +111,7 @@ public class AdminApiServiceImpl {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "If the SC were reloaded."),
 			@ApiResponse(responseCode = "500", description = "If a problem occurred.") })
 	public Response reloadSCs() {
-		AdminUI.newInstance(false).fetchInitialData();
+		AdminUI.newInstance(false).fetchMetaData();
 		return Response.noContent().status(200).build();
 	}
 
