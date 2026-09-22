@@ -3,6 +3,10 @@ package eu.knowledge.engine.admin;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -13,6 +17,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
+import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +42,8 @@ import eu.knowledge.engine.smartconnector.util.KnowledgeBaseImpl;
  *
  */
 public class MetadataKB extends KnowledgeBaseImpl {
+
+	private static final Config CONFIG = ConfigProvider.getConfig();
 
 	private static final Logger LOG = LoggerFactory.getLogger(MetadataKB.class);
 
@@ -69,11 +76,40 @@ public class MetadataKB extends KnowledgeBaseImpl {
 	// used triggered when knowledge about other KBs is deleted
 	private ReactKnowledgeInteraction rKIRemoved;
 
+	/**
+	 * The RDF metadata about all KBs and KIs in the network. It is kept up-to-date
+	 * by periodically quering all KBs and subscribing to notifications about
+	 * new/changed/removed KBs.
+	 */
 	private Model metadata;
 
+	/**
+	 * The metadata graph pattern object.
+	 */
 	private GraphPattern metaGraphPattern;
 
-	private boolean timeToSleepAndFetch = true;
+	/**
+	 * The metadata future for the polling.
+	 */
+	private ScheduledFuture<?> pollMetadataFuture;
+
+	/**
+	 * The delay to wait between the end and begin of metadata polling.
+	 */
+	private long repeatedMetadataDelay = Long
+			.parseLong(CONFIG.getConfigValue(AdminUIConfig.CONF_KEY_REPEATED_METADATA_DELAY).getValue());
+
+	/**
+	 * The delay to wait between the end and begin of metadata polling.
+	 */
+	private long initialMetadataDelay = Long
+			.parseLong(CONFIG.getConfigValue(AdminUIConfig.CONF_KEY_INITIAL_METADATA_DELAY).getValue());
+
+	/**
+	 * Executor service for polling all Answer KIs in the network for (possibly)
+	 * updating our stored binding sets.
+	 */
+	public ScheduledExecutorService executorService;
 
 	/**
 	 * Intialize a MetadataKB that collects metadata about the available knowledge
@@ -81,6 +117,9 @@ public class MetadataKB extends KnowledgeBaseImpl {
 	 */
 	public MetadataKB(String id, String name, String description) {
 		super(id, name, description);
+
+		// create scheduled executor for regular tasks
+		executorService = Executors.newScheduledThreadPool(1);
 
 		// store some predefined prefixes
 		this.prefixes = new PrefixMappingMem();
@@ -107,28 +146,25 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 		// register the knowledge interactions with the smart connector.
 		this.register(this.aKI);
-		this.register(this.rKINew, (rki, ei) -> this.handleNewKnowledgeBase(ei));
-		this.register(this.rKIChanged, (rki, ei) -> this.handleChangedKnowledgeBase(ei));
-		this.register(this.rKIRemoved, (rki, ei) -> this.handleRemovedKnowledgeBase(ei));
+		this.register(this.rKINew, (_, ei) -> this.handleNewKnowledgeBase(ei));
+		this.register(this.rKIChanged, (_, ei) -> this.handleChangedKnowledgeBase(ei));
+		this.register(this.rKIRemoved, (_, ei) -> this.handleRemovedKnowledgeBase(ei));
 
+		scheduleMetadataPolling();
 	}
 
-	@Override
-	public void syncKIs() {
-		super.syncKIs();
-
-		if (timeToSleepAndFetch) {
-			// to receive the initial state, we do a single Ask (after sleeping for a
-			// specific amount of time)
-			try {
-				Thread.sleep(ConfigProvider.getConfig().getValue(AdminUIConfig.CONF_KEY_INITIAL_METADATA_DELAY,
-						Integer.class));
-			} catch (InterruptedException e) {
-				LOG.error("Initial metadata KB delay should not fail.", e);
-			}
-			this.fetchInitialData();
-			this.timeToSleepAndFetch = false;
-		}
+	/**
+	 * Schedule polling task with executor service.
+	 */
+	public void scheduleMetadataPolling() {
+		if (repeatedMetadataDelay > 0)
+			this.pollMetadataFuture = this.executorService.scheduleWithFixedDelay(() -> {
+				MetadataKB.this.fetchMetaData();
+			}, this.initialMetadataDelay, repeatedMetadataDelay, TimeUnit.MILLISECONDS);
+		else
+			this.pollMetadataFuture = this.executorService.schedule(() -> {
+				this.fetchMetaData();
+			}, this.initialMetadataDelay, TimeUnit.MILLISECONDS);
 	}
 
 	public BindingSet handleNewKnowledgeBase(ReactExchangeInfo ei) {
@@ -206,11 +242,10 @@ public class MetadataKB extends KnowledgeBaseImpl {
 		return new BindingSet();
 	}
 
-	public void fetchInitialData() {
-		LOG.info("Retrieving initial other Knowledge Base info...");
+	public void fetchMetaData() {
+		LOG.info("Retrieving Knowledge Base metadata...");
 
 		try {
-
 			// execute actual *ask* and use previously defined Knowledge Interaction.
 			this.getSC().ask(this.aKI, new BindingSet()).thenAccept(askResult -> {
 				try {
@@ -224,7 +259,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 							eu.knowledge.engine.smartconnector.impl.Util
 									.translateFromApiBindingSet(askResult.getBindings()));
 					this.metadata.setNsPrefixes(this.prefixes);
-
+					LOG.debug("Metadata updated with '{}' RDF statements.", this.metadata.size());
 				} catch (ParseException e) {
 					LOG.error("{}", e);
 				}
@@ -239,7 +274,6 @@ public class MetadataKB extends KnowledgeBaseImpl {
 		} catch (ExecutionException | InterruptedException ee) {
 			LOG.error("{}", ee);
 		}
-
 	}
 
 	protected boolean canReceiveUpdates() {
@@ -248,6 +282,7 @@ public class MetadataKB extends KnowledgeBaseImpl {
 
 	public void close() {
 		try {
+			this.pollMetadataFuture.cancel(true);
 			this.stop().get();
 		} catch (InterruptedException | ExecutionException e) {
 			LOG.error("Exceptions should not occur when closing the MetadataKB.", e);
