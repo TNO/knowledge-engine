@@ -58,7 +58,7 @@ public enum MatchStrategy {
 					MatchFlag.FULLY_COVERED);
 			break;
 		case NORMAL_LEVEL:
-			config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST);
+			config = EnumSet.of(MatchFlag.ONE_TO_ONE, MatchFlag.ONLY_BIGGEST, MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY);
 
 			// disable fully covered when matching consequents.
 			if (antecedentOfTarget)

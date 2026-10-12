@@ -84,7 +84,16 @@ public class BaseRule {
 		 * Only look for the biggest combi matches and ignore combi matches that are a
 		 * submatch of another combi match.
 		 */
-		ONLY_BIGGEST;
+		ONLY_BIGGEST,
+
+		/**
+		 * Temp name: If the current combi match already has a triple pattern matched by
+		 * one rule, this flag makes sure that a next triple pattern should always only
+		 * be matched to that one rule if it exists in there and only if this one rule
+		 * does not have the triple pattern will it allow other rules to match to that
+		 * triple pattern.
+		 */
+		ONLY_NEW_RULE_WHEN_NECESSARY;
 
 		public static final EnumSet<MatchFlag> ALL_OPTS = EnumSet.allOf(MatchFlag.class);
 	}
@@ -422,6 +431,8 @@ public class BaseRule {
 		List<CombiMatch> toBeAddedToBiggestMatches = null, toBeAddedToSmallerMatches = null;
 		Set<Integer> toBeDemotedMatchIndices = null;
 
+		Set<BaseRule> candidateRulesInBiggestMatch = new HashSet<>();
+
 		Iterator<Map.Entry<TriplePattern, Set<CombiMatch>>> triplePatternMatchesIter = combiMatchesPerTriple.entrySet()
 				.iterator();
 
@@ -430,6 +441,10 @@ public class BaseRule {
 			LOG.trace("{}/{} ({}): biggest: {}, smaller: {} ({})", 1, combiMatchesPerTriple.size(), value.size(),
 					biggestMatches.size(), smallerMatches.size(), aConfig);
 			biggestMatches.addAll(value);
+
+			for (CombiMatch cm : biggestMatches) {
+				candidateRulesInBiggestMatch.addAll(cm.keySet());
+			}
 		}
 
 		int cnt = 1;
@@ -454,15 +469,37 @@ public class BaseRule {
 				for (int i = 0; i < biggestMatches.size(); i++) {
 					CombiMatch aBiggestMatch = biggestMatches.get(i);
 					// compare/combine combimatches.
-					CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, aConfig);
 
-					if (newCombiMatch != null) {
-						// successful merge add new biggest and demote old biggest
-						toBeAddedToBiggestMatches.add(newCombiMatch);
-						candidateWasMerged = true;
-						toBeDemotedMatchIndices.add(i);
-					} else if (aConfig.contains(MatchFlag.FULLY_COVERED))
-						toBeDemotedMatchIndices.add(i);
+					boolean tryMerge = true;
+					// TODO: this does not seem to be going in the right direction, because this way
+					// the ordering of the triple patterns is important and we do not want that.
+					// TODO can we move this outside the current loops?
+					BaseRule candidateRule = candidateCombiMatch.keySet().iterator().next();
+					if (aConfig.contains(MatchFlag.ONLY_NEW_RULE_WHEN_NECESSARY)
+							&& !aBiggestMatch.containsKey(candidateRule) && candidateRulesInBiggestMatch.contains(candidateRule)) {
+						// check if a rule already present in aBiggestMatch
+						// can match the current triple pattern
+
+						for (CombiMatch cm : candidateCombiMatches) {
+							if (!cm.equals(candidateCombiMatch)) {
+								if (aBiggestMatch.containsKey(cm.keySet().iterator().next())) {
+									tryMerge = false;
+								}
+							}
+						}
+					}
+
+					if (tryMerge) {
+						CombiMatch newCombiMatch = mergeCombiMatches(candidateCombiMatch, aBiggestMatch, aConfig);
+
+						if (newCombiMatch != null) {
+							// successful merge add new biggest and demote old biggest
+							toBeAddedToBiggestMatches.add(newCombiMatch);
+							candidateWasMerged = true;
+							toBeDemotedMatchIndices.add(i);
+						} else if (aConfig.contains(MatchFlag.FULLY_COVERED))
+							toBeDemotedMatchIndices.add(i);
+					}
 				}
 
 				if (!aConfig.contains(MatchFlag.FULLY_COVERED)) {
@@ -516,6 +553,11 @@ public class BaseRule {
 			// add all toBeAddedMatches
 			biggestMatches.addAll(toBeAddedToBiggestMatches);
 			smallerMatches.addAll(toBeAddedToSmallerMatches);
+			
+			for(CombiMatch big: toBeAddedToBiggestMatches)
+			{
+				candidateRulesInBiggestMatch.addAll(big.keySet());
+			}
 		}
 
 		toBeAddedToBiggestMatches = null;
@@ -622,7 +664,7 @@ public class BaseRule {
 			}
 
 		} else if (!config.contains(MatchFlag.SINGLE_RULE)) {
-			// rule not yet present, add new entry for rule.
+			// rule not yet present, add new entry for rule
 			CombiMatch newCombiMatch = new CombiMatch(aBiggestCombiMatch);
 			Set<Match> matches = new HashSet<>();
 			matches.add(candidateMatch);
