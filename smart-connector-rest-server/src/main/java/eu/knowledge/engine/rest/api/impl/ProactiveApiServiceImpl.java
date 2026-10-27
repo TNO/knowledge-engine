@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.apache.jena.sparql.graph.PrefixMappingZero;
 import org.apache.jena.sparql.util.FmtUtils;

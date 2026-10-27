@@ -38,6 +38,11 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<version>2.0.20</version>
+		</dependency>
 		<!-- Jetty -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -71,8 +76,8 @@
 			<artifactId>jersey-container-servlet</artifactId>
 		</dependency>
 		<dependency>
-    		<groupId>org.glassfish.jersey.ext</groupId>
-    		<artifactId>jersey-bean-validation</artifactId>
+			<groupId>org.glassfish.jersey.ext</groupId>
+			<artifactId>jersey-bean-validation</artifactId>
 		</dependency>
 
 		<!-- Add XML suport -->

@@ -1,6 +1,7 @@
 package eu.knowledge.engine.rest.api;
 
 import org.eclipse.jetty.server.Server;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -44,6 +45,9 @@ public class RestServer {
 		ServletHolder jerseyServlet = new ServletHolder(sc);
 
 		ctx.addServlet(jerseyServlet, "/rest/*");
+
+		SLF4JBridgeHandler.removeHandlersForRootLogger();
+		SLF4JBridgeHandler.install();
 
 		try {
 			server.start();
