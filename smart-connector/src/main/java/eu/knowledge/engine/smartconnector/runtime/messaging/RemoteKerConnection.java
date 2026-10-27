@@ -22,6 +22,7 @@ import java.util.List;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,10 +65,11 @@ public class RemoteKerConnection {
 
 	/**
 	 * 
-	 * @param transferProcess The EDC transfer process this connection belongs to. Set to null for non-EDC connections.
+	 * @param transferProcess The EDC transfer process this connection belongs to.
+	 *                        Set to null for non-EDC connections.
 	 */
-	public RemoteKerConnection(MessageDispatcher dispatcher, KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails,
-		TransferProcess transferProcess) {
+	public RemoteKerConnection(MessageDispatcher dispatcher,
+			KnowledgeEngineRuntimeConnectionDetails kerConnectionDetails, TransferProcess transferProcess) {
 		this.dispatcher = dispatcher;
 		this.remoteKerConnectionDetails = kerConnectionDetails;
 		this.transferProcess = transferProcess;
@@ -134,7 +136,7 @@ public class RemoteKerConnection {
 			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails"));
 			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
-			
+
 			HttpRequest request = requestBuilder.GET().build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -227,9 +229,13 @@ public class RemoteKerConnection {
 	 * @param kerDetails
 	 */
 	public void updateKerDetails(KnowledgeEngineRuntimeDetails kerDetails) {
-		// TODO implement checks?
-		this.remoteKerDetails = kerDetails;
-		dispatcher.notifySmartConnectorsChanged();
+		if (this.isAvailable()) {
+			LOG.trace("Updated KER '{}' Ker Details to {}.", this.getRemoteKerUri());
+			this.remoteKerDetails = kerDetails;
+			dispatcher.notifySmartConnectorsChanged();
+		} else {
+			LOG.trace("Not updated KER '{}' Ker Details due to unavailability.", this.getRemoteKerUri());
+		}
 	}
 
 	public void start() {
@@ -241,11 +247,12 @@ public class RemoteKerConnection {
 			try {
 				String ker_id = URLEncoder.encode(dispatcher.getMyKnowledgeEngineRuntimeDetails().getRuntimeId(),
 						StandardCharsets.UTF_8);
-				
-				HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id));
+
+				HttpRequest.Builder requestBuilder = HttpRequest
+						.newBuilder(new URI(this.remoteKerUri + "/runtimedetails/" + ker_id));
 				if (this.isEdcConnection())
 					requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
-					
+
 				HttpRequest request = requestBuilder.DELETE().build();
 				HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 				if (response.statusCode() == 204) {
@@ -290,39 +297,51 @@ public class RemoteKerConnection {
 			throw new IOException("KER " + this.remoteKerUri + " is currently unavailable. Trying again later.");
 		}
 
+		HttpResponse<String> response;
 		try {
 			String jsonMessage = objectMapper.writeValueAsString(MessageConverter.toJson(message));
-			
+
 			HttpRequest.Builder requestBuilder = HttpRequest
 					.newBuilder(new URI(this.remoteKerUri + getPathForMessageType(message)))
 					.headers("Content-Type", "application/json");
 			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.setHeader("Authorization", this.transferProcess.authToken());
-			
+
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
-			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
-			// NOTE: 200 when using EDC, 202 otherwise
-			if (response.statusCode() == 200 || response.statusCode() == 202)  {
-				this.noError();
-				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
-			} else {
-				this.remoteKerDetails = null;
-				int time = this.errorOccurred();
-				LOG.warn("Ignoring KER {} for {} minutes. Failed to send message {} to {}, got response {}: {}",
-						this.remoteKerUri, time, message.getMessageId(), this.remoteKerUri, response.statusCode(),
-						response.body());
-				this.dispatcher.notifySmartConnectorsChanged();
-				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
-						+ ", body " + response.body());
-			}
+			response = this.httpClient.send(request, BodyHandlers.ofString());
 		} catch (URISyntaxException | InterruptedException | IOException | IllegalArgumentException e) {
 			this.remoteKerDetails = null;
 			int time = this.errorOccurred();
-			LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time,
-					e.getMessage());
+			LOG.warn("Ignoring KER {} for {} minutes. Error '{}' occurred.", this.remoteKerUri, time, e.getMessage());
 			this.dispatcher.notifySmartConnectorsChanged();
 			throw new IOException(e);
 		}
+
+		if (response != null) {
+			// NOTE: 200 when using EDC, 202 otherwise
+			if (response.statusCode() == 200 || response.statusCode() == 202) {
+				this.noError();
+				LOG.trace("Successfully sent message {} to {}", message.getMessageId(), this.remoteKerUri);
+			} else if (response.statusCode() >= 400 && response.statusCode() < 500) {
+				// these error status codes are not severe enough to set this KER to temporarily
+				// unavailable.
+				throw new IOException("Message not accepted by remote host, status code " + response.statusCode()
+						+ ", body " + response.body());
+			} else {
+				this.remoteKerDetails = null;
+				int time = this.errorOccurred();
+				String msg = MessageFormatter.basicArrayFormat(
+						"Ignoring KER {} for {} minutes. Error statuscode '{}' occurred.",
+						new Object[] { this.remoteKerUri, time, response.statusCode() });
+				LOG.warn(msg);
+				this.dispatcher.notifySmartConnectorsChanged();
+				throw new IOException(msg);
+			}
+		} else {
+			assert false;
+			LOG.error("Response should not be null when sending message to remote KER.");
+		}
+
 	}
 
 	public void sendMyKerDetailsToPeer(KnowledgeEngineRuntimeDetails details) {
@@ -339,7 +358,7 @@ public class RemoteKerConnection {
 
 			if (this.isEdcConnection())
 				requestBuilder = requestBuilder.headers("Authorization", this.transferProcess.authToken());
-			
+
 			HttpRequest request = requestBuilder.POST(BodyPublishers.ofString(jsonMessage)).build();
 			HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
@@ -357,8 +376,7 @@ public class RemoteKerConnection {
 			this.remoteKerDetails = null;
 			int time = this.errorOccurred();
 			this.dispatcher.notifySmartConnectorsChanged();
-			LOG.warn(
-					"Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
+			LOG.warn("Ignoring KER {} for {} minutes. Failed to send updated KnowledgeEngineRuntimeDetails due to '{}'",
 					this.remoteKerUri, time, e.getMessage());
 			LOG.debug("", e);
 		}
