@@ -60,7 +60,7 @@ public class RestServer {
 			AdminUI.newInstance(false);
 			server.join();
 		} catch (Exception ex) {
-			LOG.error("{}", ex);
+			LOG.error("An error occurred running the REST server.", ex);
 		} finally {
 			try {
 				server.stop();

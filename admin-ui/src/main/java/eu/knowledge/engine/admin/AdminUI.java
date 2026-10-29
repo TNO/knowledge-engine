@@ -77,8 +77,8 @@ public class AdminUI extends MetadataKB {
 	}
 
 	@Override
-	public void fetchInitialData() {
-		super.fetchInitialData();
+	public void fetchMetaData() {
+		super.fetchMetaData();
 
 		// when result available (and the config is enabled), we print the
 		// knowledge bases to the console.
