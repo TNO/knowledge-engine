@@ -24,6 +24,12 @@ public class SmartConnectorConfig {
 	public static final String CONF_KEY_KD_URL = "kd.url";
 
 	/**
+	 * Key to configure the update interval of the Knowledge Directory which
+	 * determines how often this KER queries the KD to discover other KERs.
+	 */
+	public static final String CONF_KEY_KD_UPDATE_INTERVAL = "kd.update.interval";
+
+	/**
 	 * Key to configure the time in seconds the SCs in this KER wait for a HTTP
 	 * connection response from another KER. Only used in distributed mode.
 	 */
