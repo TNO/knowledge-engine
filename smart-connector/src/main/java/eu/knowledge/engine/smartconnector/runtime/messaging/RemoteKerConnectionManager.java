@@ -12,10 +12,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.knowledge.engine.smartconnector.api.SmartConnector;
+import eu.knowledge.engine.smartconnector.api.SmartConnectorConfig;
 import eu.knowledge.engine.smartconnector.edc.EdcConnectorService;
 import eu.knowledge.engine.smartconnector.edc.ParticipantProperties;
 import eu.knowledge.engine.smartconnector.edc.TransferProcess;
@@ -38,7 +40,6 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	private static final Logger LOG = LoggerFactory.getLogger(RemoteKerConnectionManager.class);
 
-	private static final int KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL = 60;
 	private static final int KNOWLEDGE_DIRECTORY_UPDATE_COOLDOWN = 2;
 	private final RemoteMessageReceiver messageReceiver;
 	private final Map<String, RemoteKerConnection> remoteKerConnections = new ConcurrentHashMap<>();
@@ -68,7 +69,7 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 			} catch (Throwable t) {
 				LOG.error("", t);
 			}
-		}, 5, KNOWLEDGE_DIRECTORY_UPDATE_INTERVAL, TimeUnit.SECONDS);
+		}, 5, this.getKnowledgeDirectoryUpdateInterval(), TimeUnit.SECONDS);
 
 		// configure our EDC Connector with the TKE asset
 		if (useEdc) {
@@ -130,11 +131,8 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 				RemoteKerConnection messageSender;
 				if (useEdc) {
-					ParticipantProperties participant = new ParticipantProperties(
-						knowledgeEngineRuntime.getId(),
-						knowledgeEngineRuntime.getEdcConnectorUrl(),
-						knowledgeEngineRuntime.getExposedUrl()
-					);
+					ParticipantProperties participant = new ParticipantProperties(knowledgeEngineRuntime.getId(),
+							knowledgeEngineRuntime.getEdcConnectorUrl(), knowledgeEngineRuntime.getExposedUrl());
 					TransferProcess transferProcess = this.edcService.createTransferProcess(participant);
 
 					messageSender = new RemoteKerConnection(messageDispatcher, knowledgeEngineRuntime, transferProcess);
@@ -274,6 +272,10 @@ public class RemoteKerConnectionManager extends SmartConnectorManagementApiServi
 
 	public RemoteMessageReceiver getMessageReceiver() {
 		return messageReceiver;
+	}
+
+	private int getKnowledgeDirectoryUpdateInterval() {
+		return ConfigProvider.getConfig().getValue(SmartConnectorConfig.CONF_KEY_KD_UPDATE_INTERVAL, Integer.class);
 	}
 
 	public List<URI> getRemoteSmartConnectorIds() {
